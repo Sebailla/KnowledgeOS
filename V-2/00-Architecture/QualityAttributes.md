@@ -313,3 +313,18 @@ Las excepciones deberán documentarse mediante un ADR.
 # 21. Principio Fundamental
 
 Una funcionalidad no será considerada terminada si compromete los atributos de calidad definidos en este documento.
+
+
+## 22. Durability (Critical)
+
+### Objetivo
+
+Garantizar que el conocimiento permanezca accesible e íntegro durante largos períodos de tiempo.
+
+### Requisitos
+
+- formatos persistentes;
+- migraciones compatibles;
+- respaldo recuperable;
+- versionado de datos;
+- conservación de referencias.
