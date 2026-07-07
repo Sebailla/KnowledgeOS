@@ -1,4 +1,3 @@
-
 # Documentation Standard
 
 Versión: 1.0
@@ -298,3 +297,47 @@ La documentación es parte del producto.
 No describe el sistema.
 
 El sistema se construye siguiendo la documentación.
+
+
+
+## 20. Diagramas
+
+### Objetivo
+
+Todos los diagramas oficiales de KnowledgeOS deben mantenerse como artefactos independientes del texto para facilitar su reutilización, validación y generación automática.
+
+### Estándar
+
+- PlantUML es el lenguaje oficial para todos los diagramas.
+- Los archivos `.puml` son la fuente de verdad.
+- Los documentos Markdown no contienen diagramas embebidos; únicamente describen el contexto y referencian el diagrama correspondiente.
+
+### Ubicación
+
+docs/
+└── diagrams/
+    ├── architecture/
+    ├── platform/
+    ├── kernel/
+    └── engines/
+
+### Convención de nombres
+
+SD-xxx → Sequence Diagram
+
+ST-xxx → State Diagram
+
+CD-xxx → Class Diagram
+
+CMP-xxx → Component Diagram
+
+ACT-xxx → Activity Diagram
+
+DEP-xxx → Deployment Diagram
+
+### Reglas
+
+- Un diagrama por archivo.
+- Todo diagrama debe estar versionado junto con el código.
+- Todo diagrama debe mantenerse sincronizado con la documentación.
+- Los diagramas forman parte de la documentación oficial del proyecto.
