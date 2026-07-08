@@ -1,0 +1,3 @@
+[submodule "V-2/docs/diagrams/libraries/C4-PlantUML"]
+	path = V-2/docs/diagrams/libraries/C4-PlantUML
+	url = https://github.com/plantuml-stdlib/C4-PlantUML.git
