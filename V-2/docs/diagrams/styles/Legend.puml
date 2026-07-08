@@ -1,1 +1,15 @@
-' KnowledgeOS diagram legend
+legend right
+
+|= Tipo |= Descripción |
+
+| Kernel | Núcleo |
+
+| Platform | Servicios compartidos |
+
+| Engine | Motor funcional |
+
+| Model | Modelo de dominio |
+
+| External | Sistema externo |
+
+endlegend

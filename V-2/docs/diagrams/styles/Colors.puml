@@ -1,1 +1,12 @@
-' KnowledgeOS color palette
+' ==========================================
+' KnowledgeOS Color Palette
+' ==========================================
+
+!define KERNEL_COLOR      #2E3440
+!define PLATFORM_COLOR    #5E81AC
+!define ENGINE_COLOR      #88C0D0
+!define MODEL_COLOR       #A3BE8C
+!define EVENT_COLOR       #EBCB8B
+!define PLUGIN_COLOR      #B48EAD
+!define STORAGE_COLOR     #D08770
+!define EXTERNAL_COLOR    #4C566A

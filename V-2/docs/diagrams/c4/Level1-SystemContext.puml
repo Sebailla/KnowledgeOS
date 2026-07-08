@@ -1,0 +1,22 @@
+@startuml Level1-SystemContext
+
+!include ../styles/KnowledgeOS.puml
+
+title C4 Level 1 - KnowledgeOS System Context
+
+rectangle "KnowledgeOS" as KOS
+
+actor User
+
+cloud "AI Providers" as AI
+folder "File System" as FS
+cloud "Cloud / Git" as CLOUD
+rectangle "Plugins" as PLUGINS
+
+User --> KOS
+KOS --> AI
+KOS --> FS
+KOS --> CLOUD
+PLUGINS --> KOS
+
+@enduml

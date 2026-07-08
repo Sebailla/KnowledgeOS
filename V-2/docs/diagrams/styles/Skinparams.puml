@@ -1,0 +1,13 @@
+skinparam shadowing false
+
+skinparam roundcorner 12
+
+skinparam packageStyle rectangle
+
+skinparam ArrowThickness 1.5
+
+skinparam DefaultTextAlignment center
+
+skinparam dpi 150
+
+left to right direction

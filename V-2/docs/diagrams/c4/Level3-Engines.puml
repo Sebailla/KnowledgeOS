@@ -1,0 +1,27 @@
+@startuml Level3-Engines
+!include ../styles/KnowledgeOS.puml
+!include <C4/C4_Component>
+
+title Component Diagram - Engines
+
+Container(engines, "Engines", "Modules", "Motores especializados")
+
+Container_Boundary(engines_internals, "Engine Modules") {
+    Component(import, "Import Engine", "Parser", "Importa contenido externo")
+    Component(storage, "Storage Engine", "Persistence", "Almacenamiento de archivos")
+    Component(rendering, "Rendering Engine", "Renderer", "Renderiza markdown/HTML")
+    Component(search, "Search Engine", "Indexer", "Búsqueda full-text")
+    Component(annotation, "Annotation Engine", "Annotator", "Anotaciones y comentarios")
+    Component(knowledge, "Knowledge Engine", "Processor", "Extracción de conocimiento")
+    Component(graph, "Graph Engine", "Graph", "Grafo de conocimiento")
+    Component(ai, "AI Engine", "LLM Client", "Integración con modelos de IA")
+    Component(plugin, "Plugin Engine", "Runtime", "Ejecución de plugins")
+    Component(sync, "Sync Engine", "Sync", "Sincronización con remotos")
+}
+
+Rel(import, storage, "Persiste")
+Rel(knowledge, graph, "Alimenta")
+Rel(ai, knowledge, "Asiste")
+Rel(sync, storage, "Sincroniza")
+
+@enduml
