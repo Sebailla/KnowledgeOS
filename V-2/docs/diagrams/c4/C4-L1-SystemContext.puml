@@ -1,0 +1,15 @@
+@startuml TestC4-03
+
+!include ../libraries/C4-PlantUML/C4_Context.puml
+
+LAYOUT_LEFT_RIGHT()
+
+Person(user, "User")
+
+System(kos, "KnowledgeOS Platform")
+
+Rel(user, kos, "Uses")
+
+SHOW_LEGEND()
+
+@enduml
