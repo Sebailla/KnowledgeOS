@@ -1,0 +1,22 @@
+@startuml Deployment_Web
+
+title KnowledgeOS - Web Deployment
+
+node "User Device" {
+  node "Browser" {
+    artifact "KnowledgeOS Web App"
+  }
+}
+
+node "Server" {
+  artifact "API Gateway"
+}
+
+node "NAS" {
+  database "Library Source of Truth"
+}
+
+"KnowledgeOS Web App" --> "API Gateway"
+"API Gateway" --> "Library Source of Truth"
+
+@enduml

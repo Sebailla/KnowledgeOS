@@ -1,0 +1,19 @@
+@startuml Deployment_iPadOS
+
+title KnowledgeOS - iPadOS Deployment
+
+node "iPad" {
+  artifact "KnowledgeOS iPad App"
+  device "Apple Pencil"
+  database "Local Storage"
+}
+
+node "NAS" {
+  database "Library Source of Truth"
+}
+
+"Apple Pencil" --> "KnowledgeOS iPad App"
+"KnowledgeOS iPad App" --> "Local Storage"
+"KnowledgeOS iPad App" --> "Library Source of Truth"
+
+@enduml

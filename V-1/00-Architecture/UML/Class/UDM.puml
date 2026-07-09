@@ -1,0 +1,75 @@
+@startuml UDM_Class
+
+title Universal Document Model
+
+abstract class UDMNode {
+  UUID id
+  String type
+  Integer order
+}
+
+class UDMDocument {
+  UUID id
+  String title
+}
+
+class HeadingNode {
+  Integer level
+  String text
+}
+
+class ParagraphNode {
+  String text
+}
+
+class ListNode {
+  String style
+}
+
+class TableNode {
+  Integer rows
+  Integer columns
+}
+
+class FigureNode {
+  String caption
+}
+
+class ImageNode {
+  UUID assetId
+  String alt
+}
+
+class CodeBlockNode {
+  String language
+  String code
+}
+
+class FormulaNode {
+  String notation
+}
+
+class ReferenceNode {
+  String target
+}
+
+class FootnoteNode {
+  String text
+}
+
+UDMDocument "1" --> "*" UDMNode
+
+UDMNode <|-- HeadingNode
+UDMNode <|-- ParagraphNode
+UDMNode <|-- ListNode
+UDMNode <|-- TableNode
+UDMNode <|-- FigureNode
+UDMNode <|-- ImageNode
+UDMNode <|-- CodeBlockNode
+UDMNode <|-- FormulaNode
+UDMNode <|-- ReferenceNode
+UDMNode <|-- FootnoteNode
+
+UDMNode "1" --> "*" UDMNode
+
+@enduml
