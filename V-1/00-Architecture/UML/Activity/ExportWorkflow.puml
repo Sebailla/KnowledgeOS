@@ -1,0 +1,21 @@
+@startuml ExportWorkflow
+
+title Export Workflow
+
+start
+
+:Seleccionar documento;
+:Seleccionar formato;
+:Seleccionar plantilla;
+:Generar representación;
+:Validar salida;
+
+if (¿Salida válida?) then (Sí)
+  :Entregar archivo;
+else (No)
+  :Publicar ExportFailed;
+endif
+
+stop
+
+@enduml

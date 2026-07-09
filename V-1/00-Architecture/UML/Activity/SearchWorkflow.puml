@@ -1,0 +1,17 @@
+@startuml SearchWorkflow
+
+title Search Workflow
+
+start
+
+:Ingresar consulta;
+:Procesar consulta;
+:Seleccionar índices;
+:Ejecutar búsqueda;
+:Aplicar filtros;
+:Ordenar resultados;
+:Mostrar resultados;
+
+stop
+
+@enduml

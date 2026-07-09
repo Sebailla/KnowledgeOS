@@ -1,0 +1,22 @@
+@startuml OCRWorkflow
+
+title OCR Workflow
+
+start
+
+:Recibir documento escaneado;
+:Preprocesar imagen;
+:Corregir orientación;
+:Mejorar contraste;
+:Ejecutar OCR;
+:Evaluar confianza;
+
+if (¿Confianza suficiente?) then (Sí)
+  :Entregar texto extraído;
+else (No)
+  :Marcar para revisión;
+endif
+
+stop
+
+@enduml
