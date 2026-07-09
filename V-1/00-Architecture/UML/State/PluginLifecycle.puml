@@ -1,0 +1,25 @@
+@startuml PluginLifecycle
+
+title Plugin Lifecycle
+
+[*] --> Discovered
+
+Discovered --> Registered
+
+Registered --> Installed
+
+Installed --> Loaded
+
+Loaded --> Running
+
+Running --> Disabled
+
+Disabled --> Running
+
+Running --> Unloaded
+
+Unloaded --> Removed
+
+Removed --> [*]
+
+@enduml

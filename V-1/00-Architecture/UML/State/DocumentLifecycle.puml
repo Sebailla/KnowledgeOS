@@ -1,27 +1,31 @@
 @startuml DocumentLifecycle
-title Document Lifecycle - State Diagram
 
-[*] --> Draft : Create document
+title Document Lifecycle
 
-Draft --> Processing : Submit for processing
-Processing --> Indexed : Indexing complete
-Processing --> OCRPending : Image-based document
+[*] --> Imported
 
-OCRPending --> OCRProcessing : Start OCR
-OCRProcessing --> Indexed : OCR complete
+Imported --> Processing
 
-Indexed --> Active : Open / View
-Active --> Annotated : Add annotation
-Annotated --> Active : Remove annotation
+Processing --> Indexed
 
-Active --> Archived : Archive document
-Archived --> Active : Restore document
+Indexed --> Available
 
-Active --> Deleted : Delete document
-Archived --> Deleted : Delete document
-Deleted --> [*] : Purge
+Available --> Modified
 
-Indexed --> Shared : Share document
-Shared --> Indexed : Revoke sharing
+Modified --> Synchronizing
+
+Synchronizing --> Synchronized
+
+Synchronized --> Available
+
+Available --> Archived
+
+Archived --> Available
+
+Available --> Deleted
+
+Archived --> Deleted
+
+Deleted --> [*]
 
 @enduml
