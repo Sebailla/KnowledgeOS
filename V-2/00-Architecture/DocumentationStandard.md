@@ -298,8 +298,6 @@ No describe el sistema.
 
 El sistema se construye siguiendo la documentación.
 
-
-
 ## 20. Diagramas
 
 ### Objetivo
@@ -341,3 +339,225 @@ DEP-xxx → Deployment Diagram
 - Todo diagrama debe estar versionado junto con el código.
 - Todo diagrama debe mantenerse sincronizado con la documentación.
 - Los diagramas forman parte de la documentación oficial del proyecto.
+
+# 21. Diagram Abstraction Rule
+
+## Purpose
+
+Architecture diagrams describe responsibilities and boundaries.
+
+They do not describe concrete implementations unless the purpose of the diagram is to document a technology decision.
+
+---
+
+## Principle
+
+Prefer architectural roles over product names.
+
+---
+
+## Correct
+
+AI Platform
+
+Version Control Platform
+
+Cloud Storage
+
+Relational Database
+
+Object Storage
+
+Message Broker
+
+Desktop Application
+
+Plugin SDK
+
+---
+
+## Avoid
+
+OpenAI
+
+Anthropic
+
+GitHub
+
+GitLab
+
+Dropbox
+
+SQLite
+
+PostgreSQL
+
+Redis
+
+RabbitMQ
+
+Electron
+
+Next.js
+
+React
+
+---
+
+## Exception
+
+Concrete technologies may appear only when:
+
+- documenting an Architecture Decision Record (ADR);
+- documenting deployment architecture;
+- documenting infrastructure;
+- documenting a technology strategy;
+- documenting implementation details.
+
+---
+
+## Rationale
+
+Technology changes more frequently than architecture.
+
+Architecture documentation should remain stable even when implementations evolve.
+
+# 22. One Diagram — One Question Rule
+
+Every architectural diagram must answer one primary question.
+
+Examples:
+
+C4 Level 1
+
+Who interacts with the platform?
+
+---
+
+C4 Level 2
+
+How is the platform executed?
+
+---
+
+Component Diagram
+
+How is this subsystem organized?
+
+---
+
+Sequence Diagram
+
+How does this interaction occur?
+
+---
+
+State Diagram
+
+How does this object evolve?
+
+---
+
+Activity Diagram
+
+How is this process executed?
+
+# 23. Diagram Validation Rule
+
+Every PlantUML diagram must compile successfully.
+
+Diagrams that do not compile must never be committed.
+
+Continuous Integration should validate all .puml files.
+
+# 24. Relationship Rule
+
+Relationship labels must describe a business interaction.
+
+Good
+
+Imports knowledge
+
+Indexes documents
+
+Synchronizes workspace
+
+Executes automation
+
+Consumes AI capabilities
+
+Avoid
+
+Uses
+
+Calls
+
+Accesses
+
+Reads
+
+Writes
+
+# 25. Diagram Metadata Standard
+
+Every PlantUML diagram shall include:
+
+- Diagram ID
+- Title
+- Version
+- Status
+- Author
+- Standard footer
+
+The metadata must appear immediately after the @startuml declaration.
+
+# 26. Convención de IDs
+
+Esto debe quedar escrito porque se reutilizará en UML.
+
+| Prefijo | Significado          | Ejemplo               |
+| ------- | -------------------- | --------------------- |
+| USR     | User                 | USR                   |
+| DEV     | Plugin Developer     | DEV                   |
+| KOS     | KnowledgeOS Platform | KOS                   |
+| EXT     | External System      | EXT_AI                |
+| CNT     | Container            | CNT_DESKTOP           |
+| CMP     | Component            | CMP_EVENTBUS          |
+| IF      | Interface            | IF_STORAGE            |
+| EVT     | Event                | EVT_DOCUMENT_IMPORTED |
+| CMD     | Command              | CMD_IMPORT_DOCUMENT   |
+
+
+# 27. Diagram Metadata Standard
+
+Every PlantUML diagram must include:
+
+- Diagram ID
+- Title
+- Version
+- Status
+- Author
+- Footer
+
+Example:
+
+@startuml DiagramName
+
+'
+' ============================================================================
+' Diagram ID : C4-L1
+' Title      : System Context
+' Version    : 1.0
+' Status     : Approved
+' Author     : KnowledgeOS Team
+' ============================================================================
+
+...
+
+footer
+KnowledgeOS Architecture
+C4 Model
+Version 1.0
+endfooter
+
+@enduml
