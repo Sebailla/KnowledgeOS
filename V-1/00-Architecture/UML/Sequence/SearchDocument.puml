@@ -1,22 +1,35 @@
 @startuml SearchDocument
-title Search Document - Sequence Diagram
+
+title Search Document
 
 actor User
-participant "UI Layer" as UI
-participant "SearchService" as Search
-participant "IndexService" as Index
-participant "StorageEngine" as Storage
-participant "RankingEngine" as Rank
 
-User -> UI : Enter search query
-UI -> Search : search(query, filters)
-Search -> Index : queryIndex(query)
-Index --> Search : results
-Search -> Rank : rank(results, relevance)
-Rank --> Search : rankedResults
-Search -> Storage : fetchDocuments(rankedResults)
-Storage --> Search : documents
-Search --> UI : searchResults
-UI --> User : Display results
+participant UI
+
+participant "Search Engine" as Search
+
+participant "Query Processor" as Query
+
+participant "Index Manager" as Index
+
+participant "Ranking Engine" as Ranking
+
+User -> UI : Buscar
+
+UI -> Search : Search()
+
+Search -> Query : Procesar consulta
+
+Query --> Search : Consulta normalizada
+
+Search -> Index : Buscar
+
+Index --> Search : Resultados
+
+Search -> Ranking : Ordenar
+
+Ranking --> Search : Resultados ordenados
+
+Search --> UI : Resultados
 
 @enduml

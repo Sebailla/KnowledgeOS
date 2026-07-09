@@ -1,27 +1,31 @@
 @startuml LoadPlugin
-title Load Plugin - Sequence Diagram
 
-actor System
-participant "PluginManager" as PM
-participant "PluginRegistry" as Reg
-participant "Sandbox" as SB
-participant "PluginEngine" as PE
-participant "EventBus" as EB
+title Load Plugin
 
-System -> PM : loadPlugin(pluginId)
-PM -> Reg : getPluginMetadata(pluginId)
-Reg --> PM : metadata
-PM -> SB : createSandbox(metadata.permissions)
-SB --> PM : sandboxContext
-PM -> PE : initialize(pluginId, sandboxContext)
-PE --> PM : initResult
-alt Success
-    PM -> EB : registerHandlers(pluginId, handlers)
-    PM -> Reg : markActive(pluginId)
-    PM --> System : pluginLoaded
-else Failure
-    PM -> SB : destroySandbox()
-    PM --> System : pluginLoadFailed
-end
+actor User
+
+participant UI
+
+participant "Plugin Engine" as PluginEngine
+
+participant Plugin
+
+participant "Event Bus" as Events
+
+User -> UI : Instalar plugin
+
+UI -> PluginEngine : InstallPlugin()
+
+PluginEngine -> PluginEngine : Validar
+
+PluginEngine -> PluginEngine : Registrar
+
+PluginEngine -> Plugin : Inicializar
+
+Plugin --> PluginEngine : OK
+
+PluginEngine -> Events : PluginLoaded
+
+Events --> UI : Actualizar listado
 
 @enduml

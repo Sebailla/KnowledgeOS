@@ -1,22 +1,57 @@
 @startuml ImportDocument
-title Import Document - Sequence Diagram
+
+title Import Document
 
 actor User
-participant "UI Layer" as UI
-participant "ImportService" as Import
-participant "DocumentParser" as Parser
-participant "StorageEngine" as Storage
-participant "IndexService" as Index
 
-User -> UI : Import document
-UI -> Import : requestImport(file)
-Import -> Parser : parse(file)
-Parser --> Import : parsedContent
-Import -> Storage : save(document)
-Storage --> Import : documentId
-Import -> Index : index(documentId)
-Index --> Import : indexed
-Import --> UI : importComplete
-UI --> User : Document imported
+participant UI
+
+participant "Import Engine" as Import
+
+participant "OCR Adapter" as OCR
+
+participant "Structure Analyzer" as Structure
+
+participant "UDM Builder" as UDM
+
+participant "Validation Service" as Validation
+
+participant "Library Engine" as Library
+
+participant "Event Bus" as Events
+
+User -> UI : Importar documento
+
+UI -> Import : ImportDocument()
+
+Import -> Import : Detectar formato
+
+alt Documento escaneado
+
+Import -> OCR : Ejecutar OCR
+
+OCR --> Import : Texto
+
+end
+
+Import -> Structure : Analizar estructura
+
+Structure --> Import : Árbol del documento
+
+Import -> UDM : Construir UDM
+
+UDM --> Import : Documento UDM
+
+Import -> Validation : Validar
+
+Validation --> Import : OK
+
+Import -> Library : CreateDocument()
+
+Library --> Import : Documento creado
+
+Import -> Events : DocumentCreated
+
+Events --> UI : Actualizar biblioteca
 
 @enduml

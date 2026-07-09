@@ -1,22 +1,36 @@
+
 @startuml ChatWithAI
-title Chat with AI - Sequence Diagram
+
+title Chat With AI
 
 actor User
-participant "UI Layer" as UI
-participant "ChatService" as Chat
-participant "ContextBuilder" as Ctx
-participant "AIEngine" as AI
-participant "StorageEngine" as Storage
 
-User -> UI : Send message
-UI -> Chat : sendMessage(conversationId, message)
-Chat -> Ctx : buildContext(conversationId, message)
-Ctx -> Storage : loadRelevantDocs(message)
-Storage --> Ctx : contextDocs
-Ctx --> Chat : context
-Chat -> AI : generate(context, message)
-AI --> Chat : streamResponse
-Chat --> UI : streamTokens
-UI --> User : Display AI response
+participant UI
+
+participant "AI Engine" as AI
+
+participant "Search Engine" as Search
+
+participant "Library Engine" as Library
+
+participant "AI Provider" as Provider
+
+User -> UI : Pregunta
+
+UI -> AI : Chat()
+
+AI -> Search : Buscar contexto
+
+Search -> Library : Obtener documentos
+
+Library --> Search : Documentos
+
+Search --> AI : Contexto
+
+AI -> Provider : Prompt + Contexto
+
+Provider --> AI : Respuesta
+
+AI --> UI : Respuesta
 
 @enduml

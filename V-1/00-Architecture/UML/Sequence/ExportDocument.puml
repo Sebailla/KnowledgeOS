@@ -1,22 +1,29 @@
 @startuml ExportDocument
-title Export Document - Sequence Diagram
+
+title Export Document
 
 actor User
-participant "UI Layer" as UI
-participant "ExportService" as Export
-participant "FormatConverter" as Conv
-participant "StorageEngine" as Storage
-participant "FileSystem" as FS
 
-User -> UI : Export document(format)
-UI -> Export : export(documentId, format)
-Export -> Storage : load(documentId)
-Storage --> Export : documentData
-Export -> Conv : convert(documentData, format)
-Conv --> Export : convertedData
-Export -> FS : writeFile(convertedData, path)
-FS --> Export : filePath
-Export --> UI : exportComplete(filePath)
-UI --> User : Document exported
+participant UI
+
+participant "Export Engine" as Export
+
+participant "Library Engine" as Library
+
+participant "Render Engine" as Render
+
+User -> UI : Exportar
+
+UI -> Export : ExportDocument()
+
+Export -> Library : Obtener UDM
+
+Library --> Export : Documento
+
+Export -> Render : Render()
+
+Render --> Export : Representación
+
+Export --> UI : Archivo generado
 
 @enduml

@@ -1,25 +1,31 @@
 @startuml AnnotateDocument
-title Annotate Document - Sequence Diagram
+
+title Annotate Document
 
 actor User
-participant "UI Layer" as UI
-participant "AnnotationService" as Annot
-participant "ValidationEngine" as Valid
-participant "StorageEngine" as Storage
-participant "SyncEngine" as Sync
 
-User -> UI : Create annotation
-UI -> Annot : addAnnotation(docId, annotation)
-Annot -> Valid : validate(annotation)
-Valid --> Annot : isValid
-alt Valid
-    Annot -> Storage : save(annotation)
-    Storage --> Annot : annotationId
-    Annot -> Sync : markDirty(docId)
-    Annot --> UI : annotationSaved
-else Invalid
-    Annot --> UI : validationError
-end
-UI --> User : Feedback
+participant UI
+
+participant "Annotation Engine" as Annotation
+
+participant "Annotation Repository" as Repository
+
+participant "Event Bus" as Events
+
+participant "Render Engine" as Render
+
+User -> UI : Crear anotación
+
+UI -> Annotation : CreateAnnotation()
+
+Annotation -> Repository : Guardar
+
+Repository --> Annotation : OK
+
+Annotation -> Events : AnnotationCreated
+
+Events -> Render : Actualizar vista
+
+Render --> UI : Redibujar documento
 
 @enduml
