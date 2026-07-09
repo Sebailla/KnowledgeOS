@@ -1,0 +1,13 @@
+@startuml Level1_SystemContext
+
+!include ../../../../diagrams/_includes/C4_Context.puml
+
+title KnowledgeOS
+
+Person(user, "User")
+
+System(kos, "KnowledgeOS")
+
+Rel(user, kos, "Uses")
+
+@enduml
