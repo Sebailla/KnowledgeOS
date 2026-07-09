@@ -1,0 +1,22 @@
+@startuml ImportDocument
+title Import Document - Sequence Diagram
+
+actor User
+participant "UI Layer" as UI
+participant "ImportService" as Import
+participant "DocumentParser" as Parser
+participant "StorageEngine" as Storage
+participant "IndexService" as Index
+
+User -> UI : Import document
+UI -> Import : requestImport(file)
+Import -> Parser : parse(file)
+Parser --> Import : parsedContent
+Import -> Storage : save(document)
+Storage --> Import : documentId
+Import -> Index : index(documentId)
+Index --> Import : indexed
+Import --> UI : importComplete
+UI --> User : Document imported
+
+@enduml

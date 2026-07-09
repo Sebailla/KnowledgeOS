@@ -1,0 +1,25 @@
+@startuml AnnotateDocument
+title Annotate Document - Sequence Diagram
+
+actor User
+participant "UI Layer" as UI
+participant "AnnotationService" as Annot
+participant "ValidationEngine" as Valid
+participant "StorageEngine" as Storage
+participant "SyncEngine" as Sync
+
+User -> UI : Create annotation
+UI -> Annot : addAnnotation(docId, annotation)
+Annot -> Valid : validate(annotation)
+Valid --> Annot : isValid
+alt Valid
+    Annot -> Storage : save(annotation)
+    Storage --> Annot : annotationId
+    Annot -> Sync : markDirty(docId)
+    Annot --> UI : annotationSaved
+else Invalid
+    Annot --> UI : validationError
+end
+UI --> User : Feedback
+
+@enduml

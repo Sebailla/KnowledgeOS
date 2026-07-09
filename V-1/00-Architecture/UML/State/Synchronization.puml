@@ -1,0 +1,28 @@
+@startuml Synchronization
+title Synchronization - State Diagram
+
+[*] --> Idle : Initial state
+
+Idle --> Syncing : Trigger sync
+Syncing --> FetchingRemote : Request remote changes
+FetchingRemote --> FetchingLocal : Receive remote data
+FetchingLocal --> Resolving : Collect local changes
+
+Resolving --> Merging : No conflicts
+Resolving --> ConflictDetected : Conflicts found
+
+ConflictDetected --> AutoResolved : Auto-resolution possible
+ConflictDetected --> ManualResolution : User intervention needed
+
+ManualResolution --> Merging : User resolves
+AutoResolved --> Merging : Merge applied
+
+Merging --> Pushing : Push merged changes
+Pushing --> UpdatingIndex : Remote updated
+UpdatingIndex --> Idle : Sync complete
+
+Syncing --> SyncFailed : Network error
+SyncFailed --> Idle : Retry
+SyncFailed --> Idle : Cancel
+
+@enduml

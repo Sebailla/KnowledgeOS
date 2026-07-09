@@ -1,0 +1,26 @@
+@startuml SynchronizeLibrary
+title Synchronize Library - Sequence Diagram
+
+actor User
+participant "UI Layer" as UI
+participant "SyncService" as Sync
+participant "ConflictResolver" as CR
+participant "CloudStorage" as Cloud
+participant "LocalStorage" as Local
+participant "IndexService" as Index
+
+User -> UI : Trigger sync
+UI -> Sync : synchronize()
+Sync -> Local : getLocalChanges()
+Local --> Sync : localChanges
+Sync -> Cloud : getRemoteChanges()
+Cloud --> Sync : remoteChanges
+Sync -> CR : resolve(localChanges, remoteChanges)
+CR --> Sync : mergedChanges
+Sync -> Local : applyChanges(mergedChanges)
+Sync -> Cloud : pushChanges(mergedChanges)
+Sync -> Index : rebuildIndex()
+Sync --> UI : syncComplete
+UI --> User : Library up to date
+
+@enduml

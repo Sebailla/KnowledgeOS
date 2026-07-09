@@ -1,0 +1,26 @@
+@startuml RenderDocument
+title Render Document - Sequence Diagram
+
+actor User
+participant "UI Layer" as UI
+participant "RenderService" as Render
+participant "DocumentCache" as Cache
+participant "StorageEngine" as Storage
+participant "AnnotationLayer" as Annot
+
+User -> UI : Open document
+UI -> Render : render(documentId)
+Render -> Cache : get(documentId)
+alt Cache hit
+    Cache --> Render : cachedContent
+else Cache miss
+    Render -> Storage : load(documentId)
+    Storage --> Render : documentData
+    Render -> Cache : put(documentId, data)
+end
+Render -> Annot : overlayAnnotations(documentId)
+Annot --> Render : annotations
+Render --> UI : renderedDocument
+UI --> User : Display document
+
+@enduml
