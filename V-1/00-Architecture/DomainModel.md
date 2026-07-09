@@ -1,5 +1,3 @@
-
-
 # DomainModel.md
 
 **Proyecto:** KnowledgeOS
@@ -69,8 +67,6 @@ Knowledge Space
 └── Plugin
 ```
 
-
-
 # Library
 
 ## Definición
@@ -382,31 +378,28 @@ Tipos:
 
 # Relaciones principales
 
-<pre class="overflow-visible! px-0!" data-start="4185" data-end="4375"><div class="relative w-full mt-4 mb-1"><div class=""><div class="contents"><div class="relative"><div class="h-full min-h-0 min-w-0"><div class="h-full min-h-0 min-w-0"><div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl"><div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback"><div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1"></div><div class="relative"><div class="pe-11 pt-3"><div class="relative z-0 flex max-w-full"><div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr"><div class="cm-scroller"><pre class="cm-content q9tKkq_readonly m-0"><code><span>
 Library
-
+│
 ├── Workspace
-
 ├── Collection
-
 ├── Document
-
-│ ├── Original Document
-
-│ ├── UDM
-
-│ │ └── UDM Node
-
-│ ├── Metadata
-
-│ ├── Layout
-
-│ ├── Assets
-
-│ └── Annotation
-
-└── Plugin
-</span></code></pre></div></div></div></div></div></div></div></div></div><div class=""><div class=""></div></div></div></div></div></div></pre>
+│   ├── Original Document
+│   ├── Document Version
+│   ├── UDM
+│   │   └── UDM Node
+│   ├── Metadata
+│   ├── Layout
+│   ├── Assets
+│   ├── References
+│   └── Annotations
+│
+├── Knowledge Graph
+│   ├── Graph Node
+│   └── Graph Edge
+│
+├── Search
+├── Jobs
+└── Plugins
 
 ---
 
@@ -924,3 +917,99 @@ Puede regenerarse.
 ## Cache
 
 Nunca contiene información única.
+
+
+# Document Version
+
+## Definición
+
+Representa una versión del procesamiento interno de un documento.
+
+No representa una nueva versión del documento original.
+
+Permite regenerar el UDM cuando evolucionan los algoritmos de importación.
+
+## Identidad
+
+- UUID
+- Processing Version
+- Created At
+
+## Relaciones
+
+Pertenece a un único Document.
+
+Genera un único UDM.
+
+---
+
+# Reference
+
+## Definición
+
+Representa una referencia explícita contenida en un documento.
+
+Puede corresponder a:
+
+- referencia bibliográfica
+- DOI
+- URL
+- referencia cruzada
+- nota enlazada
+
+Las referencias forman parte del conocimiento del documento.
+
+---
+
+# Job
+
+## Definición
+
+Representa una tarea de larga duración ejecutada por el sistema.
+
+## Tipos
+
+- Import
+- OCR
+- Index
+- Export
+- Sync
+- AI
+
+## Estado
+
+- Pending
+- Running
+- Completed
+- Failed
+- Cancelled
+
+Los Jobs pertenecen al dominio porque representan procesos observables por el usuario.
+
+---
+
+# Knowledge Graph
+
+## Definición
+
+Modelo derivado que representa relaciones entre elementos del conocimiento.
+
+Se construye a partir del UDM.
+
+Puede regenerarse completamente.
+
+No reemplaza al UDM.
+
+## Componentes
+
+- Graph Node
+- Graph Edge
+
+## Relaciones
+
+Puede conectar:
+
+- Documents
+- UDM Nodes
+- References
+- Annotations
