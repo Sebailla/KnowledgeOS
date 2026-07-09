@@ -1,0 +1,26 @@
+@startuml SyncEngine_Component
+
+title Sync Engine - Component Diagram
+
+package "Sync Engine" {
+
+  [Sync Service]
+  [Change Detector]
+  [Sync Planner]
+  [Conflict Resolver]
+  [Transfer Manager]
+  [Version Manager]
+  [Sync Queue]
+  [Recovery Manager]
+
+}
+
+[Sync Service] --> [Change Detector]
+[Change Detector] --> [Sync Planner]
+[Sync Planner] --> [Conflict Resolver]
+[Conflict Resolver] --> [Transfer Manager]
+[Transfer Manager] --> [Version Manager]
+[Version Manager] --> [Sync Queue]
+[Sync Queue] --> [Recovery Manager]
+
+@enduml

@@ -1,0 +1,26 @@
+@startuml PluginEngine_Component
+
+title Plugin Engine - Component Diagram
+
+package "Plugin Engine" {
+
+  [Plugin Service]
+  [Discovery Manager]
+  [Registry]
+  [Loader]
+  [Lifecycle Manager]
+  [Permission Manager]
+  [Version Manager]
+  [Sandbox Manager]
+
+}
+
+[Plugin Service] --> [Discovery Manager]
+[Discovery Manager] --> [Registry]
+[Registry] --> [Loader]
+[Loader] --> [Lifecycle Manager]
+[Lifecycle Manager] --> [Permission Manager]
+[Permission Manager] --> [Version Manager]
+[Version Manager] --> [Sandbox Manager]
+
+@enduml

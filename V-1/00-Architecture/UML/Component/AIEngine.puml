@@ -1,0 +1,26 @@
+@startuml AIEngine_Component
+
+title AI Engine - Component Diagram
+
+package "AI Engine" {
+
+  [AI Service]
+  [Provider Manager]
+  [Model Manager]
+  [Prompt Manager]
+  [Context Builder]
+  [RAG Pipeline]
+  [Embedding Manager]
+  [Response Validator]
+
+}
+
+[AI Service] --> [Provider Manager]
+[Provider Manager] --> [Model Manager]
+[Model Manager] --> [Prompt Manager]
+[Prompt Manager] --> [Context Builder]
+[Context Builder] --> [RAG Pipeline]
+[RAG Pipeline] --> [Embedding Manager]
+[Embedding Manager] --> [Response Validator]
+
+@enduml

@@ -1,0 +1,60 @@
+@startuml KnowledgeCore_Component
+
+title Knowledge Core - Component Diagram
+
+package "Knowledge Core" {
+
+  [Application Layer]
+
+  [Import Engine]
+  [Library Engine]
+  [Search Engine]
+  [Render Engine]
+  [Annotation Engine]
+  [AI Engine]
+  [Sync Engine]
+  [Export Engine]
+  [Plugin Engine]
+
+  [Event Bus]
+  [Shared Kernel]
+  [Infrastructure Ports]
+
+}
+
+[Application Layer] --> [Import Engine]
+[Application Layer] --> [Library Engine]
+[Application Layer] --> [Search Engine]
+[Application Layer] --> [Render Engine]
+[Application Layer] --> [Annotation Engine]
+[Application Layer] --> [AI Engine]
+[Application Layer] --> [Sync Engine]
+[Application Layer] --> [Export Engine]
+[Application Layer] --> [Plugin Engine]
+
+[Import Engine] --> [Event Bus]
+[Library Engine] --> [Event Bus]
+[Search Engine] --> [Event Bus]
+[Render Engine] --> [Event Bus]
+[Annotation Engine] --> [Event Bus]
+[AI Engine] --> [Event Bus]
+[Sync Engine] --> [Event Bus]
+[Export Engine] --> [Event Bus]
+[Plugin Engine] --> [Event Bus]
+
+[Import Engine] --> [Shared Kernel]
+[Library Engine] --> [Shared Kernel]
+[Search Engine] --> [Shared Kernel]
+[Render Engine] --> [Shared Kernel]
+[Annotation Engine] --> [Shared Kernel]
+[AI Engine] --> [Shared Kernel]
+[Sync Engine] --> [Shared Kernel]
+[Export Engine] --> [Shared Kernel]
+[Plugin Engine] --> [Shared Kernel]
+
+[Library Engine] --> [Infrastructure Ports]
+[Sync Engine] --> [Infrastructure Ports]
+[AI Engine] --> [Infrastructure Ports]
+[Plugin Engine] --> [Infrastructure Ports]
+
+@enduml
