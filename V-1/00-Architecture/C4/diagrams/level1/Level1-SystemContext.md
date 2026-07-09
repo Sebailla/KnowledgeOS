@@ -1,5 +1,5 @@
 
-# C4 Level 1 - System Context
+# C4 Level 1 – System Context
 
 **Proyecto:** KnowledgeOS
 
@@ -11,44 +11,57 @@
 
 # Objetivo
 
-Describir el contexto del sistema, sus actores y los sistemas externos con los que interactúa.
+Mostrar el sistema completo, sus usuarios y los sistemas externos con los que interactúa.
 
-Este documento se corresponde con el nivel 1 del modelo C4.
+Este nivel no describe la arquitectura interna.
+
+---
+
+# Actor
+
+## Usuario
+
+Utiliza KnowledgeOS para:
+
+- importar documentos
+- organizar bibliotecas
+- leer contenido
+- crear anotaciones
+- realizar búsquedas
+- consultar IA
+- sincronizar dispositivos
+- exportar información
 
 ---
 
 # Sistema
 
-KnowledgeOS es una plataforma de gestión de conocimiento personal que permite importar, organizar, enriquecer, buscar, anotar y consultar documentos mediante un modelo unificado de conocimiento (UDM).
+## KnowledgeOS
 
----
-
-# Actores
-
-## Usuario
-
-Persona que utiliza KnowledgeOS para gestionar su biblioteca de conocimiento.
+Plataforma de gestión de conocimiento personal basada en un Universal Document Model (UDM).
 
 Responsabilidades:
 
 - importar documentos
+- preservar originales
+- construir el UDM
 - organizar bibliotecas
-- leer documentos
-- crear anotaciones
-- realizar búsquedas
-- consultar IA
+- indexar conocimiento
+- renderizar documentos
+- gestionar anotaciones
 - sincronizar dispositivos
+- integrar IA
 - exportar contenido
 
 ---
 
 # Sistemas externos
 
-## Sistema de Archivos
+## Sistema de archivos
 
-Proporciona acceso a documentos originales.
+Ubicación de los documentos originales.
 
-KnowledgeOS nunca modifica estos archivos.
+KnowledgeOS únicamente los lee.
 
 ---
 
@@ -56,154 +69,44 @@ KnowledgeOS nunca modifica estos archivos.
 
 Source of Truth de la biblioteca.
 
-Almacena la información persistente de KnowledgeOS.
+Almacena toda la información persistente.
 
 ---
 
 ## Servicios de IA
 
-Proveedores opcionales de modelos de inteligencia artificial.
-
-Su ausencia no afecta el funcionamiento esencial del sistema.
+Modelos remotos utilizados opcionalmente.
 
 ---
 
 ## Modelos Locales
 
-Modelos ejecutados en el dispositivo del usuario.
-
-Son equivalentes funcionalmente a los servicios remotos.
+LLMs ejecutados en el dispositivo.
 
 ---
 
-## Proveedores OCR
+## OCR
 
-Servicios o motores utilizados para reconocer texto en documentos escaneados.
-
-Opcionales.
+Motores utilizados para documentos escaneados.
 
 ---
 
-## Sistemas de Exportación
+## Exportadores
 
-Destinos externos para generar documentos derivados.
-
-Ejemplos:
+Generan:
 
 - Markdown
-- PDF
 - HTML
+- PDF
 - EPUB
 
 ---
 
-# Relaciones
+# Decisiones congeladas
 
-Usuario
-
-↓
-
-KnowledgeOS
-
-↓
-
-Library
-
-↓
-
-NAS
-
----
-
-KnowledgeOS
-
-↓
-
-Sistema de Archivos
-
-(solo lectura)
-
----
-
-KnowledgeOS
-
-↓
-
-Servicios IA
-
-(opcional)
-
----
-
-KnowledgeOS
-
-↓
-
-Modelos Locales
-
-(opcional)
-
----
-
-KnowledgeOS
-
-↓
-
-OCR
-
-(opcional)
-
----
-
-KnowledgeOS
-
-↓
-
-Exportadores
-
----
-
-# Límites
-
-Dentro del sistema:
-
-- Core
-- Engines
-- UDM
-- Biblioteca
-- Plugins
-
-Fuera del sistema:
-
-- documentos originales
-- NAS
-- modelos IA
-- OCR
-- sistemas de exportación
-
----
-
-# Responsabilidades del sistema
-
-- importar conocimiento
-- preservar documentos originales
-- construir el UDM
-- mantener la biblioteca
-- indexar conocimiento
-- renderizar contenido
-- gestionar anotaciones
-- sincronizar bibliotecas
-- integrar IA
-- exportar conocimiento
-
----
-
-# Decisiones Congeladas
-
-1. KnowledgeOS constituye un único sistema.
-2. El usuario interactúa exclusivamente con KnowledgeOS.
-3. Los documentos originales permanecen fuera del sistema.
-4. El NAS es la Source of Truth.
-5. La IA es un sistema externo opcional.
-6. OCR es un servicio externo.
-7. Los exportadores representan integraciones externas.
+1. KnowledgeOS es un único sistema.
+2. Los documentos originales permanecen fuera del sistema.
+3. El NAS es la Source of Truth.
+4. La IA es opcional.
+5. OCR es opcional.
+6. Los exportadores son sistemas externos.

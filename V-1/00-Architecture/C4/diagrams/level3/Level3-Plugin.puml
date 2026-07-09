@@ -1,0 +1,40 @@
+@startuml Level3_Plugin
+
+!include ../../_includes/C4_Component.puml
+
+title KnowledgeOS - Plugin Engine
+
+Container_Boundary(plugin_engine, "Plugin Engine") {
+
+Component(api, "Plugin Service", "API", "Entrada pública")
+
+Component(discovery, "Discovery Manager", "Component", "Descubre plugins")
+
+Component(registry, "Registry", "Component", "Registro de plugins")
+
+Component(loader, "Loader", "Component", "Carga plugins")
+
+Component(lifecycle, "Lifecycle Manager", "Component", "Gestiona el ciclo de vida")
+
+Component(permission, "Permission Manager", "Component", "Gestiona permisos")
+
+Component(version, "Version Manager", "Component", "Compatibilidad")
+
+Component(sandbox, "Sandbox Manager", "Component", "Aislamiento")
+
+Component(events, "Event Publisher", "Infrastructure", "Publica eventos")
+
+}
+
+Rel(api, discovery, "Usa")
+Rel(discovery, registry, "Registra")
+Rel(registry, loader, "Carga")
+Rel(loader, lifecycle, "Inicializa")
+Rel(lifecycle, permission, "Valida")
+Rel(permission, version, "Comprueba")
+Rel(version, sandbox, "Ejecuta")
+Rel(sandbox, events, "Publica")
+
+SHOW_LEGEND()
+
+@enduml

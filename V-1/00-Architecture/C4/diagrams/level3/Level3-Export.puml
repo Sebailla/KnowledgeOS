@@ -1,0 +1,45 @@
+@startuml Level3_Export
+
+!include ../../_includes/C4_Component.puml
+
+title KnowledgeOS - Export Engine
+
+Container_Boundary(export_engine, "Export Engine") {
+
+Component(api, "Export Service", "API", "Entrada pública")
+
+Component(manager, "Export Manager", "Component", "Coordina exportaciones")
+
+Component(template, "Template Manager", "Component", "Gestiona plantillas")
+
+Component(md, "Markdown Exporter", "Exporter", "Markdown")
+
+Component(html, "HTML Exporter", "Exporter", "HTML")
+
+Component(pdf, "PDF Exporter", "Exporter", "PDF")
+
+Component(epub, "EPUB Exporter", "Exporter", "EPUB")
+
+Component(validation, "Validation Service", "Component", "Valida resultados")
+
+Component(events, "Event Publisher", "Infrastructure", "Publica eventos")
+
+}
+
+Rel(api, manager, "Usa")
+Rel(manager, template, "Selecciona")
+Rel(template, md, "Configura")
+Rel(template, html, "Configura")
+Rel(template, pdf, "Configura")
+Rel(template, epub, "Configura")
+
+Rel(md, validation, "Valida")
+Rel(html, validation, "Valida")
+Rel(pdf, validation, "Valida")
+Rel(epub, validation, "Valida")
+
+Rel(validation, events, "Publica")
+
+SHOW_LEGEND()
+
+@enduml

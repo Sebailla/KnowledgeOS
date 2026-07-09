@@ -1,0 +1,55 @@
+@startuml Level2_Containers
+
+!include ../../_includes/C4_Container.puml
+
+title KnowledgeOS - Container Diagram
+
+Person(user, "Usuario", "Gestiona su conocimiento")
+
+Container(mac, "macOS App", "SwiftUI", "Aplicación principal")
+Container(ipad, "iPad App", "SwiftUI", "Lectura y anotaciones")
+Container(iphone, "iPhone App", "SwiftUI", "Consulta rápida")
+Container(web, "Web App", "Next.js", "Cliente web (opcional)")
+
+Container(core, "Knowledge Core", "Swift", "Reglas de negocio y orquestación")
+
+ContainerDb(localdb, "Local Storage", "SQLite / Core Data", "Persistencia local")
+
+Container(sync, "Sync Service", "Core Service", "Sincronización")
+
+Container(ai, "AI Gateway", "Core Service", "Acceso unificado a IA")
+
+Container(plugin, "Plugin Host", "Core Service", "Extensibilidad")
+
+System_Ext(nas, "NAS", "Source of Truth")
+System_Ext(fs, "Sistema de Archivos", "Documentos originales")
+System_Ext(remoteai, "Servicios IA", "Modelos remotos")
+System_Ext(localai, "Modelos Locales", "LLMs")
+System_Ext(ocr, "OCR", "Reconocimiento de texto")
+
+Rel(user, mac, "Utiliza")
+Rel(user, ipad, "Utiliza")
+Rel(user, iphone, "Utiliza")
+Rel(user, web, "Utiliza")
+
+Rel(mac, core, "Usa")
+Rel(ipad, core, "Usa")
+Rel(iphone, core, "Usa")
+Rel(web, core, "Usa")
+
+Rel(core, localdb, "Lee / Escribe")
+Rel(core, sync, "Sincroniza")
+Rel(core, ai, "Consulta")
+Rel(core, plugin, "Carga plugins")
+
+Rel(sync, nas, "Sincroniza")
+
+Rel(core, fs, "Lee documentos")
+
+Rel(ai, remoteai, "Consulta")
+Rel(ai, localai, "Ejecuta")
+Rel(core, ocr, "Solicita OCR")
+
+SHOW_LEGEND()
+
+@enduml

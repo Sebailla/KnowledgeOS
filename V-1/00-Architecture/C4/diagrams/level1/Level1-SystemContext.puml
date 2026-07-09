@@ -1,13 +1,28 @@
 @startuml Level1_SystemContext
 
-!include ../../../../diagrams/_includes/C4_Context.puml
+!include ../../_includes/C4_Context.puml
 
-title KnowledgeOS
+title KnowledgeOS - System Context
 
-Person(user, "User")
+Person(user, "Usuario", "Gestiona su conocimiento")
 
-System(kos, "KnowledgeOS")
+System(kos, "KnowledgeOS", "Plataforma de gestión del conocimiento personal")
 
-Rel(user, kos, "Uses")
+System_Ext(fs, "Sistema de Archivos", "Documentos originales")
+System_Ext(nas, "NAS", "Source of Truth")
+System_Ext(ai, "Servicios IA", "Modelos remotos")
+System_Ext(local, "Modelos Locales", "LLMs ejecutados localmente")
+System_Ext(ocr, "OCR", "Reconocimiento óptico de caracteres")
+System_Ext(exporter, "Exportadores", "Markdown, HTML, PDF, EPUB")
+
+Rel(user, kos, "Utiliza")
+Rel(kos, fs, "Lee documentos")
+Rel(kos, nas, "Sincroniza")
+Rel(kos, ai, "Consulta")
+Rel(kos, local, "Ejecuta")
+Rel(kos, ocr, "Solicita OCR")
+Rel(kos, exporter, "Exporta")
+
+SHOW_LEGEND()
 
 @enduml

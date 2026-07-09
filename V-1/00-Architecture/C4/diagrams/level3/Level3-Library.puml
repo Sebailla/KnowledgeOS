@@ -1,0 +1,39 @@
+@startuml Level3_Library
+
+!include ../../_includes/C4_Component.puml
+
+title KnowledgeOS - Library Engine
+
+Container_Boundary(library,"Library Engine") {
+
+Component(api,"Library Service","API","Contratos públicos")
+
+Component(workspace,"Workspace Manager")
+Component(collections,"Collection Manager")
+
+Component(documents,"Document Repository")
+
+Component(assets,"Asset Repository")
+
+Component(metadata,"Metadata Repository")
+
+Component(udm,"UDM Repository")
+
+Component(events,"Event Publisher")
+
+}
+
+Rel(api,workspace,"Usa")
+Rel(api,collections,"Usa")
+Rel(api,documents,"Usa")
+Rel(api,assets,"Usa")
+Rel(api,metadata,"Usa")
+Rel(api,udm,"Usa")
+
+Rel(documents,events,"Publica")
+Rel(assets,events,"Publica")
+Rel(metadata,events,"Publica")
+
+SHOW_LEGEND()
+
+@enduml

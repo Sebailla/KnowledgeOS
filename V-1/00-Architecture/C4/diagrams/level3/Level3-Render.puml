@@ -1,0 +1,40 @@
+@startuml Level3_Render
+
+!include ../../_includes/C4_Component.puml
+
+title KnowledgeOS - Render Engine
+
+Container_Boundary(render_engine, "Render Engine") {
+
+Component(api, "Render Service", "API", "Entrada pública")
+
+Component(layout, "Layout Manager", "Component", "Selecciona layouts")
+
+Component(theme, "Theme Manager", "Component", "Gestiona temas")
+
+Component(typography, "Typography Manager", "Component", "Gestiona tipografías")
+
+Component(media, "Media Renderer", "Component", "Render multimedia")
+
+Component(table, "Table Renderer", "Component", "Render tablas")
+
+Component(formula, "Formula Renderer", "Component", "Render ecuaciones")
+
+Component(annotation, "Annotation Renderer", "Component", "Render anotaciones")
+
+Component(view, "View Builder", "Component", "Construye la vista")
+
+}
+
+Rel(api, layout, "Usa")
+Rel(layout, theme, "Aplica")
+Rel(theme, typography, "Aplica")
+Rel(typography, media, "Renderiza")
+Rel(media, table, "Renderiza")
+Rel(table, formula, "Renderiza")
+Rel(formula, annotation, "Superpone")
+Rel(annotation, view, "Construye")
+
+SHOW_LEGEND()
+
+@enduml

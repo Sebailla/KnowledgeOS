@@ -1,0 +1,40 @@
+@startuml Level3_Import
+
+!include ../../_includes/C4_Component.puml
+
+title KnowledgeOS - Import Engine
+
+Container_Boundary(import_engine, "Import Engine") {
+
+Component(api, "Import Service", "API", "Entrada pública del Engine")
+
+Component(detector, "File Detector", "Component", "Detecta el formato")
+
+Component(parser, "Parser Manager", "Component", "Selecciona el parser")
+
+Component(ocr, "OCR Adapter", "Adapter", "Integra motores OCR")
+
+Component(metadata, "Metadata Extractor", "Component", "Extrae metadata")
+
+Component(structure, "Structure Analyzer", "Component", "Reconstruye la estructura")
+
+Component(udm, "UDM Builder", "Component", "Construye el UDM")
+
+Component(validation, "Validation Service", "Component", "Valida el UDM")
+
+Component(events, "Event Publisher", "Infrastructure", "Publica eventos")
+
+}
+
+Rel(api, detector, "Usa")
+Rel(detector, parser, "Selecciona")
+Rel(parser, ocr, "Invoca si es necesario")
+Rel(parser, metadata, "Extrae")
+Rel(metadata, structure, "Continúa")
+Rel(structure, udm, "Construye")
+Rel(udm, validation, "Valida")
+Rel(validation, events, "Publica")
+
+SHOW_LEGEND()
+
+@enduml

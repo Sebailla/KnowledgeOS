@@ -1,0 +1,47 @@
+@startuml Level3_Annotation
+
+!include ../../_includes/C4_Component.puml
+
+title KnowledgeOS - Annotation Engine
+
+Container_Boundary(annotation_engine, "Annotation Engine") {
+
+Component(api, "Annotation Service", "API", "Entrada pública")
+
+Component(highlight, "Highlight Manager", "Component", "Gestiona resaltados")
+
+Component(note, "Note Manager", "Component", "Gestiona notas")
+
+Component(drawing, "Drawing Manager", "Component", "Gestiona dibujos")
+
+Component(bookmark, "Bookmark Manager", "Component", "Gestiona marcadores")
+
+Component(sticker, "Sticker Manager", "Component", "Gestiona stickers")
+
+Component(link, "Link Manager", "Component", "Relaciona anotaciones")
+
+Component(repository, "Annotation Repository", "Repository", "Persistencia")
+
+Component(events, "Event Publisher", "Infrastructure", "Publica eventos")
+
+}
+
+Rel(api, highlight, "Usa")
+Rel(api, note, "Usa")
+Rel(api, drawing, "Usa")
+Rel(api, bookmark, "Usa")
+Rel(api, sticker, "Usa")
+Rel(api, link, "Usa")
+
+Rel(highlight, repository, "Lee / Escribe")
+Rel(note, repository, "Lee / Escribe")
+Rel(drawing, repository, "Lee / Escribe")
+Rel(bookmark, repository, "Lee / Escribe")
+Rel(sticker, repository, "Lee / Escribe")
+Rel(link, repository, "Lee / Escribe")
+
+Rel(repository, events, "Publica")
+
+SHOW_LEGEND()
+
+@enduml

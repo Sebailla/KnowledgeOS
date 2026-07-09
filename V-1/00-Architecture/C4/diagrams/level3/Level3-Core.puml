@@ -1,0 +1,44 @@
+@startuml Level3_Core
+
+!include ../../_includes/C4_Component.puml
+
+title KnowledgeOS - Level 3 - Knowledge Core
+
+Container(core, "Knowledge Core", "Swift", "Modular Monolith")
+
+Component(import, "Import Engine", "Engine", "Importación y conversión al UDM")
+Component(library, "Library Engine", "Engine", "Gestión de la biblioteca")
+Component(search, "Search Engine", "Engine", "Indexación y búsqueda")
+Component(render, "Render Engine", "Engine", "Representación visual")
+Component(annotation, "Annotation Engine", "Engine", "Anotaciones")
+Component(ai, "AI Engine", "Engine", "Orquestación de IA")
+Component(sync, "Sync Engine", "Engine", "Sincronización")
+Component(export, "Export Engine", "Engine", "Exportación")
+Component(plugin, "Plugin Engine", "Engine", "Extensibilidad")
+
+Component(events, "Event Bus", "Infrastructure", "Comunicación interna")
+Component(kernel, "Shared Kernel", "Shared", "Tipos y contratos comunes")
+
+Rel(import, events, "Publica")
+Rel(library, events, "Publica / Consume")
+Rel(search, events, "Consume")
+Rel(render, events, "Consume")
+Rel(annotation, events, "Publica")
+Rel(ai, events, "Consume")
+Rel(sync, events, "Publica")
+Rel(export, events, "Consume")
+Rel(plugin, events, "Consume")
+
+Rel(import, kernel, "Usa")
+Rel(library, kernel, "Usa")
+Rel(search, kernel, "Usa")
+Rel(render, kernel, "Usa")
+Rel(annotation, kernel, "Usa")
+Rel(ai, kernel, "Usa")
+Rel(sync, kernel, "Usa")
+Rel(export, kernel, "Usa")
+Rel(plugin, kernel, "Usa")
+
+SHOW_LEGEND()
+
+@enduml
