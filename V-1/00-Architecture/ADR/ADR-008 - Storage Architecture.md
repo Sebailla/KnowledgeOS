@@ -1,196 +1,369 @@
-# ADR-008 - Storage Architecture
+
+# ADR-008 — Storage Architecture
+
+**Proyecto:** KnowledgeOS
+
+**Documento:** Architecture Decision Record
+
+**Versión:** 2.0
 
 **Estado:** Accepted
 
----
+**Autor:** KnowledgeOS Team
 
-# Contexto
+**Última actualización:** *(Completar)*
 
-KnowledgeOS administra una biblioteca de conocimiento compuesta por documentos, modelos derivados, anotaciones, índices, recursos y metadatos.
+**Supersedes**
 
-El almacenamiento debe garantizar:
+* ADR-008 v1.0
 
-- funcionamiento offline;
-- independencia tecnológica;
-- integridad de la información;
-- escalabilidad;
-- sincronización futura.
+**Related Documents**
 
-La arquitectura no debe depender de un motor de persistencia específico.
-
----
-
-# Decisión
-
-La persistencia se divide en dominios independientes.
-
-Cada dominio administra exclusivamente su propio tipo de información.
-
-El acceso al almacenamiento se realiza únicamente mediante contratos definidos por el Library Engine.
-
-Ningún Engine puede acceder directamente al mecanismo de almacenamiento.
+* ../ArchitectureModel.md
+* ../ArchitectureVocabulary.md
+* ../ArchitectureConstraints.md
+* ../QualityAttributes.md
+* ../../01-Specifications/Storage/
 
 ---
 
-# Dominios de almacenamiento
+# 1. Context
 
-## Original Documents
+KnowledgeOS administra bibliotecas que pueden contener durante décadas:
 
-Archivos importados.
+* cientos de miles de Knowledge Objects;
+* millones de Assets;
+* millones de anotaciones;
+* índices reconstruibles;
+* información derivada.
 
-Características:
+El almacenamiento debía satisfacer simultáneamente:
 
-- Solo lectura.
-- Nunca modificados.
-- Permanecen en la Source of Truth.
+* Offline First;
+* integridad;
+* portabilidad;
+* deduplicación;
+* recuperación;
+* versionado;
+* sincronización incremental.
 
----
-
-## UDM Store
-
-Representación canónica del conocimiento.
-
-Contiene exclusivamente el Universal Document Model.
-
----
-
-## Annotation Store
-
-Contiene:
-
-- highlights
-- ink
-- bookmarks
-- sticky notes
-- text notes
-
-Nunca modifica el UDM.
+Una organización basada únicamente en carpetas físicas no representa correctamente el dominio.
 
 ---
 
-## Layout Store
+# 2. Decision Drivers
 
-Contiene:
+La decisión debía garantizar:
 
-- geometría
-- columnas
-- flujo visual
-- reconstrucción
-
-Es regenerable.
+* separación entre dominio y persistencia;
+* independencia tecnológica;
+* recuperación ante fallos;
+* crecimiento a largo plazo;
+* bajo acoplamiento;
+* alta mantenibilidad.
 
 ---
 
-## Asset Store
+# 3. Decision
 
-Contiene recursos asociados.
+KnowledgeOS organiza toda la persistencia mediante **Logical Repositories**.
+
+Cada Repository administra un único tipo de información.
+
+La estructura física constituye únicamente una implementación del modelo lógico.
+
+```text
+Library
+
+├── Object Repository
+├── Asset Repository
+├── Index Repository
+├── Journal Repository
+├── Backup Repository
+└── Configuration Repository
+```
+
+---
+
+# 4. Detailed Design
+
+## Object Repository
+
+Responsabilidad:
+
+Administrar todos los Knowledge Objects.
+
+Cada objeto persistente se almacena como un archivo `.kdoc`.
+
+Gestiona:
+
+* creación;
+* lectura;
+* actualización;
+* versionado;
+* migraciones;
+* eliminación lógica.
+
+No administra Assets.
+
+---
+
+## Asset Repository
+
+Responsabilidad:
+
+Administrar todos los recursos binarios.
 
 Ejemplos:
 
-- imágenes
-- miniaturas
-- OCR
-- audio
-- vídeo
+* imágenes;
+* audio;
+* vídeo;
+* SVG;
+* datasets;
+* archivos adjuntos.
+
+Los Assets poseen identidad propia y pueden compartirse entre múltiples Knowledge Objects.
 
 ---
 
-## Search Index
+## Content Addressing
 
-Contiene índices derivados.
+Los Assets utilizan direccionamiento por contenido.
 
-Puede reconstruirse completamente.
+```text
+SHA256
 
----
+ab/
 
-## Metadata Store
+cd/
 
-Contiene:
+abcdef123456...
+```
 
-- UUID
-- hash
-- fechas
-- etiquetas
-- colecciones
-- estadísticas
+La ubicación física nunca representa la identidad.
 
 ---
 
-## Cache
+## Index Repository
 
-Almacena información temporal.
+Contiene únicamente información reconstruible.
+
+Ejemplos:
+
+* Full Text Index;
+* Metadata Index;
+* Semantic Index;
+* Graph Index;
+* Embeddings.
 
 Puede eliminarse completamente.
 
 ---
 
-# Clasificación de persistencia
+## Journal Repository
 
-Persistencia permanente
+Registra todas las operaciones persistentes.
 
-- Original Documents
-- UDM
-- Annotation
-- Metadata
+Permite:
 
-Persistencia regenerable
+* recuperación;
+* auditoría;
+* sincronización;
+* reanudación;
+* diagnóstico.
 
-- Layout
-- Search Index
-- Cache
-
----
-
-# Responsabilidades
-
-Library Engine
-
-- administra persistencia
-
-UDM Engine
-
-- administra únicamente el modelo lógico
-
-Los demás Engines utilizan contratos públicos.
+No reemplaza el History del Knowledge Object.
 
 ---
 
-# Consecuencias
+## Backup Repository
+
+Administra snapshots completos de la Library.
+
+Su función es permitir recuperación ante desastres.
+
+---
+
+## Configuration Repository
+
+Contiene:
+
+* preferencias;
+* configuración;
+* parámetros locales;
+* configuración de Plugins.
+
+Nunca almacena contenido del usuario.
+
+---
+
+# 5. Persistencia
+
+El formato persistente oficial es:
+
+```text
+Knowledge Object
+
+↓
+
+.kdoc
+
+↓
+
+SQLite
+```
+
+SQLite constituye una implementación.
+
+No forma parte del dominio.
+
+---
+
+# 6. Integridad
+
+Toda información persistente deberá garantizar:
+
+* checksums;
+* versionado;
+* transacciones;
+* Journal;
+* validación.
+
+---
+
+# 7. Reglas
+
+1. Todo Knowledge Object pertenece al Object Repository.
+2. Todo Asset pertenece al Asset Repository.
+3. Ningún Asset se almacena dentro del `.kdoc`.
+4. Los índices son reconstruibles.
+5. La Cache nunca es persistente.
+6. Todo cambio genera Journal.
+7. Toda operación persistente es transaccional.
+
+---
+
+# 8. Alternatives Considered
+
+## Directorios tradicionales
+
+Descartados.
+
+Representan implementación.
+
+No representan el dominio.
+
+---
+
+## Base de datos única
+
+Descartada.
+
+Reduce portabilidad.
+
+---
+
+## Assets embebidos
+
+Descartados.
+
+Impiden deduplicación.
+
+---
+
+# 9. Consequences
 
 ## Positivas
 
-- Bajo acoplamiento.
-- Escalabilidad.
-- Regeneración de índices.
-- Sustitución del almacenamiento.
-- Mejor sincronización.
+* Persistencia desacoplada.
+* Mayor escalabilidad.
+* Deduplicación.
+* Recuperación sencilla.
+* Evolución independiente.
 
 ## Negativas
 
-- Mayor número de repositorios.
-- Mayor coordinación entre dominios.
+* Mayor complejidad inicial.
+* Coordinación entre repositorios.
 
 ---
 
-# Alternativas consideradas
+# 10. Trade-offs
 
-Una única base de datos.
+Se prioriza:
 
-Descartada por mezclar responsabilidades.
-
-Persistencia distribuida por Engine.
-
-Descartada por dificultar consistencia.
+* claridad del dominio sobre simplicidad física;
+* recuperación sobre optimización prematura;
+* independencia tecnológica sobre integración específica.
 
 ---
 
-# Decisiones congeladas
+# 11. Risks
 
-1. La persistencia pertenece exclusivamente al Library Engine.
-2. El almacenamiento se divide por dominios.
-3. El UDM es persistente.
-4. Las anotaciones son persistentes.
-5. Los índices son regenerables.
-6. El Layout es regenerable.
-7. La caché nunca contiene información única.
-8. El almacenamiento es independiente de la tecnología utilizada.
+## Corrupción
+
+Mitigación:
+
+Checksums + Journal + Backups.
+
+---
+
+## Crecimiento
+
+Mitigación:
+
+Repositories independientes.
+
+---
+
+## Migraciones
+
+Mitigación:
+
+Versionado del `.kdoc`.
+
+---
+
+# 12. Compliance
+
+Esta decisión deberá cumplirse obligatoriamente por:
+
+* Library Engine;
+* Import Engine;
+* Sync Engine;
+* Export Engine;
+* Backup Engine (futuro);
+* Workflow Engine.
+
+---
+
+# 13. Related Documents
+
+* Storage/
+* LibraryStructure.md
+* Assets.md
+* Cache.md
+* PackageFormat.md
+* Indexes.md
+
+---
+
+# 14. Related ADR
+
+* ADR-003 — Offline First
+* ADR-004 — Library Source of Truth
+* ADR-005 — Engine Based Architecture
+* ADR-009 — Synchronization Strategy
+* ADR-014 — Workflow Engine
+* ADR-015 — Global Identity Model
+
+---
+
+# 15. Status
+
+**Accepted**
+
+Los Logical Repositories constituyen la arquitectura oficial de almacenamiento de KnowledgeOS.
+
+Toda evolución futura deberá preservar este modelo o aprobar un nuevo ADR.
