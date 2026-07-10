@@ -1,1015 +1,453 @@
-# DomainModel.md
+
+# Domain Model
 
 **Proyecto:** KnowledgeOS
 
-**Versión:** 1.0
+**Versión:** 2.0
 
 **Estado:** Congelado
 
 ---
 
-# Objetivo
+# 1. Objetivo
 
-Definir el modelo conceptual del dominio.
+Este documento define el modelo conceptual del dominio de KnowledgeOS.
 
-Este documento establece el lenguaje ubicuo de KnowledgeOS.
+No describe clases, tablas de base de datos ni implementaciones.
 
-Todos los componentes, APIs, bases de datos, diagramas y código utilizarán esta terminología.
-
----
-
-# Principios
-
-## El dominio es independiente de la implementación
-
-Las entidades representan conceptos del negocio.
-
-No representan tablas.
-
-No representan clases.
-
-No representan archivos.
+Describe los conceptos fundamentales sobre los cuales se construye todo el sistema.
 
 ---
 
-## Identidad permanente
+# 2. Principios
 
-Toda entidad persistente posee un UUID.
+El modelo del dominio se basa en los siguientes principios:
 
-La identidad nunca depende del almacenamiento.
-
----
-
-## Relaciones explícitas
-
-Las relaciones forman parte del dominio.
-
-Nunca se infieren mediante la interfaz.
+* Todo el conocimiento se representa mediante Knowledge Objects.
+* Todo Knowledge Object posee identidad permanente.
+* Todo Knowledge Object contiene exactamente un UDM.
+* El conocimiento derivado nunca modifica el contenido original.
+* Los Assets son entidades independientes.
+* La organización nunca modifica el contenido.
+* Todo puede relacionarse.
 
 ---
 
-# Agregados del dominio
+# 3. Modelo Conceptual
 
-KnowledgeOS se organiza mediante los siguientes agregados.
-
-```
-
-Knowledge Space
-│
-├── Library
-├── Workspace
-├── Document
-├── Asset
-├── Annotation
-├── Collection
-├── Tag
-├── Search
-└── Plugin
-```
-
-# Library
-
-## Definición
-
-La Library representa una biblioteca completa de conocimiento.
-
-Es el agregado raíz del sistema.
-
----
-
-## Responsabilidades
-
-* administrar documentos
-* administrar assets
-* administrar metadatos
-* administrar colecciones
-* administrar workspaces
-
----
-
-## Identidad
-
-* UUID
-
----
-
-## Relaciones
-
-Contiene:
-
-* Documents
-* Assets
-* Workspaces
-* Collections
-
----
-
-# Workspace
-
-## Definición
-
-Vista lógica de una Library.
-
-No almacena conocimiento.
-
-Organiza conocimiento.
-
----
-
-## Puede contener
-
-* carpetas virtuales
-* filtros
-* búsquedas
-* colecciones
-
----
-
-# Collection
-
-Agrupación lógica de documentos.
-
-No modifica documentos.
-
-Puede ser:
-
-* manual
-* dinámica
-
----
-
-# Document
-
-## Definición
-
-Unidad principal de conocimiento.
-
-Representa un documento importado.
-
----
-
-## Identidad
-
-* UUID
-
----
-
-## Estado
-
-Un documento posee:
-
-* Original
-* UDM
-* Metadata
-* Assets
-* Layout
-
----
-
-## Relaciones
-
-Pertenece a:
-
-* una Library
-
-Puede aparecer en:
-
-* múltiples Collections
-* múltiples Workspaces
-
-Posee:
-
-* Annotation
-* Assets
-
----
-
-# Original Document
-
-Representa el archivo importado.
-
-Características:
-
-* solo lectura
-* inmutable
-* referencia permanente
-
-No forma parte del UDM.
-
----
-
-# UDM Document
-
-Representación canónica del conocimiento.
-
-Está compuesto por nodos.
-
----
-
-# UDM Node
-
-Unidad básica del conocimiento.
-
-Ejemplos:
-
-* Heading
-* Paragraph
-* List
-* Table
-* Figure
-* Formula
-* Quote
-* Code
-* Footnote
-
----
-
-## Relaciones
-
-Un nodo puede contener otros nodos.
-
-Forma un árbol.
-
----
-
-# Asset
-
-Representa un recurso asociado.
-
-Ejemplos:
-
-* imagen
-* vídeo
-* audio
-* miniatura
-* OCR
-* PDF original
-
----
-
-# Metadata
-
-Información descriptiva.
-
-Ejemplos:
-
-* título
-* autores
-* idioma
-* etiquetas
-* fechas
-* hash
-
----
-
-# Annotation
-
-Representa una interacción del usuario.
-
-Nunca modifica el documento.
-
----
-
-## Tipos
-
-* Highlight
-* Ink
-* Bookmark
-* Sticky Note
-* Text Note
-
----
-
-## Relaciones
-
-Toda Annotation pertenece a:
-
-* un Document
-
-y
-
-* un UDM Node
-
-Nunca a una página.
-
----
-
-# Highlight
-
-Representa texto resaltado.
-
-Posee:
-
-* color
-* transparencia
-* rango
-
----
-
-# Ink
-
-Representa escritura manuscrita.
-
----
-
-# Sticky Note
-
-Nota visual.
-
-Puede contener:
-
-* texto
-* dibujo
-
----
-
-# Bookmark
-
-Marca una posición del conocimiento.
-
----
-
-# Tag
-
-Etiqueta reutilizable.
-
-Puede asociarse a:
-
-* Documents
-* Collections
-* Annotations
-
----
-
-# Search Query
-
-Representa una búsqueda realizada por el usuario.
-
-Puede almacenarse.
-
-Puede reutilizarse.
-
----
-
-# Search Result
-
-Resultado de una consulta.
-
-Siempre referencia objetos del dominio.
-
-Nunca texto plano.
-
----
-
-# Plugin
-
-Extensión del sistema.
-
-Tipos:
-
-* Importer
-* Exporter
-* Renderer
-* OCR
-* AI
-* Tool
-
----
-
-# Relaciones principales
-
+```text
 Library
-│
-├── Workspace
-├── Collection
-├── Document
-│   ├── Original Document
-│   ├── Document Version
-│   ├── UDM
-│   │   └── UDM Node
-│   ├── Metadata
-│   ├── Layout
-│   ├── Assets
-│   ├── References
-│   └── Annotations
-│
-├── Knowledge Graph
-│   ├── Graph Node
-│   └── Graph Edge
-│
-├── Search
+
+├── Knowledge Objects
+├── Collections
+├── Workspaces
+├── Assets
 ├── Jobs
-└── Plugins
+├── Plugins
+└── Knowledge Graph
+```
+
+La **Library** constituye la raíz del dominio.
 
 ---
 
-# Cardinalidades
+# 4. Library
 
-Una Library
+Representa la biblioteca completa del usuario.
 
-→ contiene muchos Documents.
+Responsabilidades:
 
-Un Document
+* administrar Knowledge Objects;
+* administrar Assets;
+* administrar Collections;
+* administrar Workspaces;
+* administrar índices;
+* administrar sincronización;
+* administrar configuración.
 
-→ posee un único Original Document.
-
-Un Document
-
-→ posee un único UDM.
-
-Un UDM
-
-→ contiene muchos UDM Nodes.
-
-Un Document
-
-→ posee muchas Annotation.
-
-Una Annotation
-
-→ referencia un único UDM Node.
-
-Un Document
-
-→ posee muchos Assets.
-
-Una Collection
-
-→ contiene muchos Documents.
-
-Un Document
-
-→ puede pertenecer a muchas Collections.
+Una Library posee una única Source of Truth.
 
 ---
 
-# Invariantes del dominio
+# 5. Knowledge Object
 
-## Library
+Es la unidad persistente fundamental.
 
-Existe una única Source of Truth.
+Puede representar:
 
----
+* libro;
+* paper;
+* nota;
+* conversación IA;
+* página web;
+* correo;
+* manual;
+* notebook;
+* documento técnico;
+* cualquier unidad futura de conocimiento.
 
-## Document
-
-Nunca pierde su identidad.
-
----
-
-## Original Document
-
-Nunca se modifica.
-
----
-
-## UDM
-
-Siempre representa el conocimiento vigente.
+Todo Knowledge Object se almacena como un archivo `.kdoc`.
 
 ---
 
-## Annotation
+# 6. Estructura de un Knowledge Object
 
-Nunca modifica el UDM.
+```text
+Knowledge Object
 
----
+├── Identity
+├── Metadata
+├── UDM
+├── Layout
+├── Style
+├── Annotations
+├── Knowledge
+├── Provenance
+├── History
+└── Asset References
+```
 
-## Layout
-
-Puede regenerarse.
-
----
-
-## Search Index
-
-Puede regenerarse.
-
----
-
-## Cache
-
-Nunca contiene información única.
-
-# Library
-
-## Definición
-
-La Library representa una biblioteca completa de conocimiento.
-
-Es el agregado raíz del sistema.
+Cada componente tiene una responsabilidad única.
 
 ---
 
-## Responsabilidades
+# 7. Identity
 
-* administrar documentos
-* administrar assets
-* administrar metadatos
-* administrar colecciones
-* administrar workspaces
+Define la identidad permanente.
+
+Incluye:
+
+* KnowledgeObjectID
+* ContentHash
+* SchemaVersion
+* Version
+* CreatedAt
+* UpdatedAt
+
+Nunca cambia durante la vida del objeto.
 
 ---
 
-## Identidad
+# 8. Metadata
 
-* UUID
+Describe el objeto.
+
+Ejemplos:
+
+* título;
+* autor;
+* idioma;
+* editorial;
+* palabras clave;
+* categoría;
+* licencia;
+* ISBN;
+* DOI.
+
+No forma parte del contenido.
 
 ---
 
-## Relaciones
+# 9. UDM
+
+Representa el contenido lógico.
 
 Contiene:
 
-* Documents
-* Assets
-* Workspaces
-* Collections
+* capítulos;
+* secciones;
+* párrafos;
+* listas;
+* tablas;
+* figuras;
+* fórmulas;
+* referencias;
+* bloques de código.
+
+El UDM es la fuente de verdad del contenido.
 
 ---
 
-# Workspace
+# 10. Layout
 
-## Definición
+Describe la estructura física.
 
-Vista lógica de una Library.
+Incluye:
 
-No almacena conocimiento.
+* páginas;
+* columnas;
+* regiones;
+* encabezados;
+* pies;
+* bounding boxes;
+* reading order.
 
-Organiza conocimiento.
-
----
-
-## Puede contener
-
-* carpetas virtuales
-* filtros
-* búsquedas
-* colecciones
+Puede ignorarse durante el render.
 
 ---
 
-# Collection
+# 11. Style
 
-Agrupación lógica de documentos.
+Representa la apariencia.
 
-No modifica documentos.
+Incluye:
 
-Puede ser:
+* tipografía;
+* colores;
+* espaciado;
+* márgenes;
+* fondos;
+* alineación.
 
-* manual
-* dinámica
-
----
-
-# Document
-
-## Definición
-
-Unidad principal de conocimiento.
-
-Representa un documento importado.
+No modifica el contenido.
 
 ---
 
-## Identidad
+# 12. Annotations
 
-* UUID
+Representan información creada por el usuario.
 
----
+Tipos iniciales:
 
-## Estado
+* Highlight
+* Underline
+* Sticky Note
+* Text Note
+* Bookmark
+* Ink
+* Comment
+* Shape
+* Arrow
 
-Un documento posee:
-
-* Original
-* UDM
-* Metadata
-* Assets
-* Layout
-
----
-
-## Relaciones
-
-Pertenece a:
-
-* una Library
-
-Puede aparecer en:
-
-* múltiples Collections
-* múltiples Workspaces
-
-Posee:
-
-* Annotation
-* Assets
+Toda anotación utiliza Anchors.
 
 ---
 
-# Original Document
+# 13. Knowledge
 
-Representa el archivo importado.
+Representa conocimiento derivado.
+
+Incluye:
+
+* entidades;
+* conceptos;
+* temas;
+* relaciones;
+* embeddings;
+* resúmenes;
+* clasificaciones;
+* backlinks;
+* etiquetas.
+
+Puede regenerarse.
+
+---
+
+# 14. Provenance
+
+Describe el origen.
+
+Incluye:
+
+* archivo original;
+* formato;
+* OCR;
+* importador;
+* historial de procesamiento;
+* migraciones.
+
+Garantiza trazabilidad completa.
+
+---
+
+# 15. History
+
+Registra la evolución.
+
+Incluye:
+
+* versiones;
+* cambios;
+* operaciones;
+* eventos.
+
+Nunca elimina información histórica.
+
+---
+
+# 16. Assets
+
+Representan recursos binarios independientes.
+
+Ejemplos:
+
+* imágenes;
+* audio;
+* vídeo;
+* SVG;
+* datasets;
+* adjuntos.
+
+Un Asset puede pertenecer a múltiples Knowledge Objects.
+
+La identidad del Asset se basa en checksum.
+
+---
+
+# 17. Collections
+
+Agrupan Knowledge Objects.
 
 Características:
 
-* solo lectura
-* inmutable
-* referencia permanente
+* no duplican contenido;
+* no alteran identidad;
+* pueden anidarse;
+* pueden contener reglas.
 
-No forma parte del UDM.
-
----
-
-# UDM Document
-
-Representación canónica del conocimiento.
-
-Está compuesto por nodos.
+Un Knowledge Object puede pertenecer a múltiples Collections.
 
 ---
 
-# UDM Node
+# 18. Workspaces
 
-Unidad básica del conocimiento.
+Representan espacios de trabajo.
+
+Un Workspace organiza el trabajo del usuario mediante:
+
+* Collections;
+* filtros;
+* búsquedas;
+* paneles;
+* vistas.
+
+No modifican el contenido persistente.
+
+---
+
+# 19. Knowledge Graph
+
+Representa relaciones entre elementos.
+
+Puede relacionar:
+
+* Knowledge Objects;
+* nodos UDM;
+* entidades;
+* conceptos;
+* Assets;
+* anotaciones.
+
+Es derivado.
+
+No constituye la fuente de verdad.
+
+---
+
+# 20. Jobs
+
+Representan procesos largos.
 
 Ejemplos:
 
-* Heading
-* Paragraph
-* List
-* Table
-* Figure
-* Formula
-* Quote
-* Code
-* Footnote
+* OCR;
+* importación;
+* indexación;
+* generación de embeddings;
+* sincronización;
+* exportación.
+
+Todo Job posee estado.
 
 ---
 
-## Relaciones
+# 21. Plugins
 
-Un nodo puede contener otros nodos.
+Extienden capacidades.
 
-Forma un árbol.
+Pueden aportar:
 
----
+* importadores;
+* renderizadores;
+* exportadores;
+* motores OCR;
+* proveedores IA;
+* herramientas.
 
-# Asset
-
-Representa un recurso asociado.
-
-Ejemplos:
-
-* imagen
-* vídeo
-* audio
-* miniatura
-* OCR
-* PDF original
+Nunca modifican directamente el dominio.
 
 ---
 
-# Metadata
+# 22. Relaciones
 
-Información descriptiva.
-
-Ejemplos:
-
-* título
-* autores
-* idioma
-* etiquetas
-* fechas
-* hash
-
----
-
-# Annotation
-
-Representa una interacción del usuario.
-
-Nunca modifica el documento.
-
----
-
-## Tipos
-
-* Highlight
-* Ink
-* Bookmark
-* Sticky Note
-* Text Note
-
----
-
-## Relaciones
-
-Toda Annotation pertenece a:
-
-* un Document
-
-y
-
-* un UDM Node
-
-Nunca a una página.
-
----
-
-# Highlight
-
-Representa texto resaltado.
-
-Posee:
-
-* color
-* transparencia
-* rango
-
----
-
-# Ink
-
-Representa escritura manuscrita.
-
----
-
-# Sticky Note
-
-Nota visual.
-
-Puede contener:
-
-* texto
-* dibujo
-
----
-
-# Bookmark
-
-Marca una posición del conocimiento.
-
----
-
-# Tag
-
-Etiqueta reutilizable.
-
-Puede asociarse a:
-
-* Documents
-* Collections
-* Annotations
-
----
-
-# Search Query
-
-Representa una búsqueda realizada por el usuario.
-
-Puede almacenarse.
-
-Puede reutilizarse.
-
----
-
-# Search Result
-
-Resultado de una consulta.
-
-Siempre referencia objetos del dominio.
-
-Nunca texto plano.
-
----
-
-# Plugin
-
-Extensión del sistema.
-
-Tipos:
-
-* Importer
-* Exporter
-* Renderer
-* OCR
-* AI
-* Tool
-
----
-
-# Relaciones principales
-
-<pre class="overflow-visible! px-0!" data-start="4185" data-end="4375"><div class="relative w-full mt-4 mb-1"><div class=""><div class="contents"><div class="relative"><div class="h-full min-h-0 min-w-0"><div class="h-full min-h-0 min-w-0"><div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl"><div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback"><div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1"></div><div class="relative"><div class="pe-11 pt-3"><div class="relative z-0 flex max-w-full"><div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr"><div class="cm-scroller"><pre class="cm-content q9tKkq_readonly m-0"><code><span>
+```text
 Library
+    │
+    ├──────────────┐
+    ▼              ▼
+Knowledge Object   Collection
+        │              │
+        │              │
+        └──────┬───────┘
+               ▼
+          Workspace
 
-├── Workspace
+Knowledge Object
+        │
+        ├── UDM
+        ├── Metadata
+        ├── Layout
+        ├── Style
+        ├── Knowledge
+        ├── Provenance
+        ├── History
+        └── Asset References
 
-├── Collection
-
-├── Document
-
-│ ├── Original Document
-
-│ ├── UDM
-
-│ │ └── UDM Node
-
-│ ├── Metadata
-
-│ ├── Layout
-
-│ ├── Assets
-
-│ └── Annotation
-
-└── Plugin
-</span></code></pre></div></div></div></div></div></div></div></div></div><div class=""><div class=""></div></div></div></div></div></div></pre>
-
----
-
-# Cardinalidades
-
-Una Library
-
-→ contiene muchos Documents.
-
-Un Document
-
-→ posee un único Original Document.
-
-Un Document
-
-→ posee un único UDM.
-
-Un UDM
-
-→ contiene muchos UDM Nodes.
-
-Un Document
-
-→ posee muchas Annotation.
-
-Una Annotation
-
-→ referencia un único UDM Node.
-
-Un Document
-
-→ posee muchos Assets.
-
-Una Collection
-
-→ contiene muchos Documents.
-
-Un Document
-
-→ puede pertenecer a muchas Collections.
+Knowledge Object
+        │
+        ▼
+Knowledge Graph
+```
 
 ---
 
-# Invariantes del dominio
+# 23. Reglas del Dominio
 
-## Library
-
-Existe una única Source of Truth.
-
----
-
-## Document
-
-Nunca pierde su identidad.
-
----
-
-## Original Document
-
-Nunca se modifica.
+1. Existe exactamente un UDM por Knowledge Object.
+2. Todo Knowledge Object posee identidad permanente.
+3. Todo Knowledge Object se almacena como un `.kdoc`.
+4. Todo Asset posee identidad independiente.
+5. El UDM constituye la fuente de verdad del contenido.
+6. El Knowledge Graph es derivado.
+7. Los Assets nunca se duplican.
+8. Collections y Workspaces no modifican el contenido.
+9. Toda anotación referencia un Anchor.
+10. Toda modificación es versionable.
+11. Toda modificación es trazable.
+12. Todo componente del dominio es independiente de la plataforma.
 
 ---
 
-## UDM
+# 24. Evolución
 
-Siempre representa el conocimiento vigente.
+El dominio está diseñado para admitir nuevos tipos de Knowledge Objects sin modificar la arquitectura.
 
----
+Ejemplos futuros:
 
-## Annotation
+* Podcasts.
+* Vídeos.
+* Bases de conocimiento.
+* Proyectos.
+* Wikis.
+* Cuadernos científicos.
+* Objetos definidos por plugins.
 
-Nunca modifica el UDM.
-
----
-
-## Layout
-
-Puede regenerarse.
-
----
-
-## Search Index
-
-Puede regenerarse.
+Todos compartirán el mismo modelo de dominio.
 
 ---
 
-## Cache
+# 25. Estado
 
-Nunca contiene información única.
+Este documento define el modelo conceptual oficial de KnowledgeOS.
 
-
-# Document Version
-
-## Definición
-
-Representa una versión del procesamiento interno de un documento.
-
-No representa una nueva versión del documento original.
-
-Permite regenerar el UDM cuando evolucionan los algoritmos de importación.
-
-## Identidad
-
-- UUID
-- Processing Version
-- Created At
-
-## Relaciones
-
-Pertenece a un único Document.
-
-Genera un único UDM.
-
----
-
-# Reference
-
-## Definición
-
-Representa una referencia explícita contenida en un documento.
-
-Puede corresponder a:
-
-- referencia bibliográfica
-- DOI
-- URL
-- referencia cruzada
-- nota enlazada
-
-Las referencias forman parte del conocimiento del documento.
-
----
-
-# Job
-
-## Definición
-
-Representa una tarea de larga duración ejecutada por el sistema.
-
-## Tipos
-
-- Import
-- OCR
-- Index
-- Export
-- Sync
-- AI
-
-## Estado
-
-- Pending
-- Running
-- Completed
-- Failed
-- Cancelled
-
-Los Jobs pertenecen al dominio porque representan procesos observables por el usuario.
-
----
-
-# Knowledge Graph
-
-## Definición
-
-Modelo derivado que representa relaciones entre elementos del conocimiento.
-
-Se construye a partir del UDM.
-
-Puede regenerarse completamente.
-
-No reemplaza al UDM.
-
-## Componentes
-
-- Graph Node
-- Graph Edge
-
-## Relaciones
-
-Puede conectar:
-
-- Documents
-- UDM Nodes
-- References
-- Annotations
+Cualquier modificación estructural del dominio deberá aprobarse mediante un Architecture Decision Record (ADR).

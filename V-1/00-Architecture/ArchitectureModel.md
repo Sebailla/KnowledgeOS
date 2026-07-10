@@ -1,9 +1,9 @@
 
-# ArchitectureModel.md
+# Architecture Model
 
 **Proyecto:** KnowledgeOS
 
-**Versión:** 1.0
+**Versión:** 2.0
 
 **Estado:** Congelado
 
@@ -11,434 +11,525 @@
 
 # 1. Objetivo
 
-Definir la organización interna de KnowledgeOS mediante componentes arquitectónicos independientes, responsabilidades bien delimitadas y reglas estrictas de dependencia.
+Este documento define la arquitectura lógica de KnowledgeOS.
 
-Este documento describe la arquitectura conceptual del sistema.
+Su propósito es establecer la organización del sistema, la separación de responsabilidades y las reglas arquitectónicas que deberán respetarse durante toda la vida del proyecto.
 
-No define tecnologías concretas.
-
----
-
-# 2. Principios arquitectónicos
-
-## 2.1 UDM First
-
-El Universal Document Model (UDM) es el núcleo de la arquitectura.
-
-Todo componente opera sobre el UDM.
+Las decisiones específicas se documentan mediante ADR.
 
 ---
 
-## 2.2 Separación de responsabilidades
+# 2. Filosofía Arquitectónica
 
-Cada componente posee una única responsabilidad claramente definida.
+KnowledgeOS se construye siguiendo cinco principios fundamentales.
 
----
+* Modularidad.
+* Bajo acoplamiento.
+* Alta cohesión.
+* Offline First.
+* Evolución incremental.
 
-## 2.3 Bajo acoplamiento
-
-Los componentes no acceden al estado interno de otros componentes.
-
-Toda interacción se realiza mediante interfaces públicas.
-
----
-
-## 2.4 Alta cohesión
-
-Las funcionalidades relacionadas permanecen dentro del mismo componente.
+El sistema debe poder crecer durante muchos años sin requerir reescrituras masivas.
 
 ---
 
-## 2.5 Independencia tecnológica
+# 3. Arquitectura General
 
-La arquitectura no depende de un lenguaje, framework o base de datos.
+KnowledgeOS adopta una arquitectura basada en un **Modular Monolith**.
 
----
+```text
+KnowledgeOS
 
-## 2.6 Offline First
-
-Toda funcionalidad esencial debe operar sin conexión.
-
----
-
-## 2.7 Extensibilidad
-
-Las nuevas capacidades deberán incorporarse sin modificar el núcleo del sistema.
-
----
-
-# 3. Modelo arquitectónico
-
-KnowledgeOS está organizado mediante motores (Engines).
-
-Cada Engine representa un dominio funcional.
-
-```
-KnowledgeOS Core
-
-├── Import Engine
-├── Library Engine
-├── UDM Engine
-├── Layout Engine
-├── Annotation Engine
-├── Search Engine
-├── Render Engine
-├── AI Engine
-├── Sync Engine
-└── Plugin Engine
+├── Kernel
+├── Engines
+├── Contracts
+├── Infrastructure
+└── UI
 ```
 
-Los Engines constituyen el núcleo del sistema.
+Cada módulo posee una única responsabilidad claramente definida.
+
+La comunicación entre módulos ocurre únicamente mediante contratos públicos.
 
 ---
 
-# 4. Engines
+# 4. Capas Arquitectónicas
 
-## 4.1 Import Engine
-
-### Responsabilidad
-
-Transformar documentos externos al UDM.
-
-### Entradas
-
-- PDF
-- EPUB
-- DOCX
-- HTML
-- CHM
-- Markdown
-- TXT
-- Imágenes
-
-### Salidas
-
-- UDM
-- Layout Model
-- Assets
-- Metadatos
-
----
-
-## 4.2 Library Engine
-
-### Responsabilidad
-
-Administrar la biblioteca documental.
-
-Gestiona:
-
-- documentos
-- assets
-- índices
-- colecciones
-- workspaces
-
-No interpreta contenido.
-
----
-
-## 4.3 UDM Engine
-
-### Responsabilidad
-
-Administrar el Universal Document Model.
-
-Es el núcleo lógico del sistema.
-
-Ningún componente modifica directamente el UDM.
-
----
-
-## 4.4 Layout Engine
-
-### Responsabilidad
-
-Mantener la representación visual del documento original.
-
-No almacena contenido.
-
-No almacena anotaciones.
-
----
-
-## 4.5 Annotation Engine
-
-### Responsabilidad
-
-Administrar todas las anotaciones.
-
-Tipos iniciales:
-
-- Highlight
-- Ink
-- Bookmark
-- Sticky Note
-- Text Note
-
-Las anotaciones nunca modifican el UDM.
-
----
-
-## 4.6 Search Engine
-
-### Responsabilidad
-
-Indexar el conocimiento.
-
-Permite:
-
-- búsqueda textual
-- búsqueda estructural
-- búsqueda semántica
-
-Opera únicamente sobre el UDM.
-
----
-
-## 4.7 Render Engine
-
-### Responsabilidad
-
-Construir representaciones visuales.
-
-Renderizadores iniciales:
-
-- Libro
-- Editor
-- Revista
-- Paper
-- Web
-
-No almacena estado.
-
----
-
-## 4.8 AI Engine
-
-### Responsabilidad
-
-Proporcionar capacidades de inteligencia artificial.
-
-Ejemplos:
-
-- resumen
-- preguntas
-- clasificación
-- explicación
-- relaciones
-
-La IA nunca modifica directamente el UDM.
-
----
-
-## 4.9 Sync Engine
-
-### Responsabilidad
-
-Sincronizar bibliotecas.
-
-No interpreta documentos.
-
-No realiza OCR.
-
-No renderiza.
-
----
-
-## 4.10 Plugin Engine
-
-### Responsabilidad
-
-Permitir la incorporación de nuevas capacidades.
-
-Ejemplos:
-
-- importadores
-- exportadores
-- renderizadores
-- IA
-- OCR
-
----
-
-# 5. Modelos del sistema
-
-La arquitectura utiliza modelos independientes.
-
-## Universal Document Model
-
-Representa conocimiento.
-
----
-
-## Layout Model
-
-Representa estructura visual.
-
----
-
-## Annotation Model
-
-Representa interacción del usuario.
-
----
-
-## Search Index
-
-Representa índices de búsqueda.
-
----
-
-## Asset Model
-
-Representa recursos externos.
-
----
-
-Los modelos nunca se mezclan.
-
----
-
-# 6. Flujo de información
-
-```
-Documento
+```text
+Presentation
 
 ↓
 
-Import Engine
+Application
+
+↓
+
+Domain
+
+↓
+
+Infrastructure
+```
+
+## Presentation
+
+Contiene exclusivamente la interfaz de usuario.
+
+Ejemplos:
+
+* macOS
+* iPadOS
+* iPhone
+* Web
+
+No contiene reglas de negocio.
+
+---
+
+## Application
+
+Orquesta los casos de uso.
+
+Gestiona:
+
+* Commands
+* Queries
+* Events
+* Jobs
+* Workflows
+
+No contiene detalles de persistencia.
+
+---
+
+## Domain
+
+Representa el conocimiento del negocio.
+
+Aquí viven:
+
+* Knowledge Object
+* UDM
+* Knowledge Graph
+* reglas del dominio
+* modelos
+* contratos
+
+Es completamente independiente de tecnologías.
+
+---
+
+## Infrastructure
+
+Implementa servicios concretos.
+
+Ejemplos:
+
+* SQLite
+* NAS
+* OCR
+* IA
+* almacenamiento
+* red
+* sincronización
+
+Puede reemplazarse sin modificar el dominio.
+
+---
+
+# 5. Núcleo del Sistema
+
+El núcleo está formado por cuatro conceptos.
+
+```text
+Knowledge Object
 
 ↓
 
 UDM
 
-├── Layout Model
+↓
 
-├── Assets
-
-├── Search Index
-
-├── Annotation Model
+Knowledge Graph
 
 ↓
 
-Render Engine
-
-↓
-
-Interfaz
+Assets
 ```
 
-Toda interacción comienza y termina en el UDM.
+## Knowledge Object
+
+Unidad persistente administrada por la Library.
+
+Representa cualquier elemento de conocimiento.
 
 ---
 
-# 7. Dependencias
+## UDM
 
-## Permitidas
+Representa el contenido estructurado.
 
-Import → UDM
-
-Annotation → UDM
-
-Layout → UDM
-
-Search → UDM
-
-Render → UDM
-
-AI → UDM
-
-Sync → Library
-
-Plugins → Interfaces públicas
+Es la fuente de verdad del contenido.
 
 ---
 
-## Prohibidas
+## Knowledge Graph
 
-Render → Documento original
+Representa relaciones entre objetos.
 
-IA → Documento original
+Es derivado.
 
-Search → PDF
-
-Annotation → Layout
-
-Layout → Annotation
-
-UI → Base de datos
-
-UI → Documento original
+Puede reconstruirse.
 
 ---
 
-# 8. Persistencia
+## Assets
 
-La persistencia es responsabilidad exclusiva del Library Engine.
+Representan recursos binarios compartidos.
 
-Los demás Engines desconocen el mecanismo de almacenamiento.
-
----
-
-# 9. Comunicación
-
-Los Engines interactúan mediante contratos.
-
-Nunca mediante acceso directo al estado interno.
+No forman parte física del `.kdoc`.
 
 ---
 
-# 10. Errores
+# 6. Arquitectura por Engines
 
-Cada Engine administra sus propios errores.
+La funcionalidad se divide en Engines independientes.
 
-No propaga excepciones específicas de implementación.
+```text
+Kernel
 
-Expone únicamente errores del dominio.
+├── Library Engine
+├── Import Engine
+├── Search Engine
+├── Render Engine
+├── Annotation Engine
+├── AI Engine
+├── Sync Engine
+├── Export Engine
+└── Plugin Engine
+```
 
----
+Cada Engine posee:
 
-# 11. Seguridad
+* API pública.
+* Modelo interno.
+* Eventos.
+* Commands.
+* Queries.
 
-El núcleo no depende de servicios externos.
-
-Las funciones remotas son opcionales.
-
----
-
-# 12. Extensibilidad
-
-Todo componente extensible utilizará interfaces públicas.
-
-El núcleo permanecerá estable.
-
----
-
-# 13. Restricciones
-
-Está prohibido:
-
-- compartir estado mutable entre Engines
-- acceder directamente al documento original
-- modificar el UDM fuera del UDM Engine
-- acoplar la arquitectura a una tecnología específica
-- depender de un proveedor de IA
+Ningún Engine accede directamente a la implementación interna de otro.
 
 ---
 
-# 14. Decisiones congeladas
+# 7. Kernel
 
-1. La arquitectura está organizada por Engines.
-2. El UDM es el centro del sistema.
-3. Todos los Engines operan sobre el UDM.
-4. El documento original sólo participa durante la importación.
-5. El Render Engine nunca modifica el conocimiento.
-6. El Annotation Engine nunca modifica el contenido.
-7. El Layout Model es independiente del UDM.
-8. El Search Engine indexa el UDM.
-9. La IA consume el UDM.
-10. El núcleo permanece independiente de tecnologías concretas.
-11. Todo acceso entre componentes se realiza mediante contratos.
-12. El sistema debe permanecer extensible mediante Plugins.
+El Kernel proporciona servicios comunes.
+
+Responsabilidades:
+
+* Command Bus.
+* Query Bus.
+* Event Bus.
+* Scheduler.
+* Jobs.
+* Configuración.
+* Dependency Injection.
+* Logging.
+* Observabilidad.
+
+El Kernel no implementa reglas del dominio.
+
+---
+
+# 8. Library Engine
+
+Responsabilidad:
+
+Administrar Knowledge Objects.
+
+Gestiona:
+
+* creación;
+* apertura;
+* actualización;
+* eliminación;
+* organización;
+* colecciones;
+* workspaces.
+
+Nunca interpreta formatos externos.
+
+---
+
+# 9. Import Engine
+
+Responsabilidad:
+
+Transformar fuentes externas en Knowledge Objects.
+
+Proceso:
+
+```text
+Physical Source
+
+↓
+
+Import
+
+↓
+
+UDM
+
+↓
+
+.kdoc
+
+↓
+
+Library
+```
+
+---
+
+# 10. Render Engine
+
+Responsabilidad:
+
+Construir representaciones visuales.
+
+Nunca modifica el contenido.
+
+Renderizadores previstos:
+
+* Editor
+* Book
+* Paper
+* Magazine
+* Web
+* Original
+
+Todos consumen el mismo UDM.
+
+---
+
+# 11. Search Engine
+
+Responsabilidad:
+
+Localizar conocimiento.
+
+Utiliza:
+
+* índices textuales;
+* índices semánticos;
+* Knowledge Graph;
+* metadatos.
+
+Los índices son reconstruibles.
+
+---
+
+# 12. Annotation Engine
+
+Responsabilidad:
+
+Administrar información creada por el usuario.
+
+Las anotaciones:
+
+* son independientes;
+* poseen identidad;
+* son versionables;
+* utilizan Anchors.
+
+---
+
+# 13. AI Engine
+
+Responsabilidad:
+
+Enriquecer Knowledge Objects.
+
+Puede:
+
+* resumir;
+* traducir;
+* clasificar;
+* generar embeddings;
+* extraer entidades;
+* responder preguntas.
+
+Nunca modifica automáticamente el contenido del UDM.
+
+---
+
+# 14. Sync Engine
+
+Responsabilidad:
+
+Sincronizar bibliotecas.
+
+Características:
+
+* incremental;
+* offline;
+* tolerante a fallos;
+* reanudable.
+
+La Source of Truth inicial es el NAS.
+
+---
+
+# 15. Export Engine
+
+Responsabilidad:
+
+Generar formatos derivados.
+
+Ejemplos:
+
+* Markdown
+* HTML
+* PDF
+* EPUB
+
+El contenido exportado siempre proviene del UDM.
+
+---
+
+# 16. Plugin Engine
+
+Responsabilidad:
+
+Extender capacidades.
+
+Tipos previstos:
+
+* importadores;
+* exportadores;
+* renderizadores;
+* OCR;
+* IA;
+* herramientas.
+
+Toda interacción ocurre mediante contratos públicos.
+
+---
+
+# 17. Comunicación
+
+Los Engines nunca invocan implementaciones internas.
+
+Toda comunicación utiliza:
+
+* Commands.
+* Queries.
+* Events.
+* DTOs.
+
+No existen dependencias circulares.
+
+---
+
+# 18. Persistencia
+
+```text
+Knowledge Object
+
+↓
+
+.kdoc
+
+↓
+
+SQLite
+```
+
+Los Assets se almacenan externamente.
+
+La Database contiene únicamente información operacional.
+
+---
+
+# 19. Source of Truth
+
+Existe una única Source of Truth por biblioteca.
+
+Inicialmente:
+
+NAS.
+
+Cada dispositivo mantiene una copia local para trabajar offline.
+
+---
+
+# 20. Inteligencia Artificial
+
+La IA constituye una capacidad adicional.
+
+Puede utilizar:
+
+* modelos locales;
+* modelos remotos;
+* múltiples proveedores.
+
+Toda integración ocurre mediante un Provider Manager desacoplado.
+
+---
+
+# 21. Escalabilidad
+
+La arquitectura debe permitir:
+
+* nuevos importadores;
+* nuevos renderizadores;
+* nuevos modelos de IA;
+* nuevos plugins;
+* nuevas plataformas.
+
+Sin modificar el dominio.
+
+---
+
+# 22. Restricciones
+
+No existen dependencias directas entre Engines.
+
+No existen referencias a tecnologías dentro del dominio.
+
+Los formatos originales nunca forman parte del modelo interno.
+
+Los Assets no se duplican.
+
+Los índices son reconstruibles.
+
+La caché es descartable.
+
+Todo cambio persistente debe ser trazable.
+
+---
+
+# 23. Decisiones arquitectónicas fundamentales
+
+1. Modular Monolith.
+2. Engine-Based Architecture.
+3. Knowledge Object como unidad persistente.
+4. `.kdoc` como formato nativo.
+5. SQLite como implementación del formato `.kdoc`.
+6. UDM como representación canónica del contenido.
+7. Knowledge Graph como modelo derivado.
+8. Assets externos con deduplicación por checksum.
+9. Offline First.
+10. NAS como Source of Truth.
+11. Comunicación mediante Commands, Queries y Events.
+12. Plugins mediante contratos públicos.
+13. IA desacoplada mediante proveedores intercambiables.
+14. Toda evolución estructural se realizará mediante ADR.
+
+---
+
+# 24. Estado
+
+La arquitectura definida en este documento constituye la base oficial de KnowledgeOS.
+
+Las modificaciones posteriores deberán aprobarse mediante un nuevo Architecture Decision Record (ADR).

@@ -2,153 +2,330 @@
 
 **Proyecto:** KnowledgeOS
 
-**Versión:** 1.0
+**Versión:** 2.0
 
 **Estado:** Congelado
 
 ---
 
-# Objetivo
+# 1. Objetivo
 
-Definir los atributos de calidad que guiarán todas las decisiones arquitectónicas.
+Este documento define los atributos de calidad que guían el diseño, la implementación y la evolución de KnowledgeOS.
 
----
+Estos atributos tienen la misma importancia que los requisitos funcionales.
 
-# QA-01 Mantenibilidad
-
-La arquitectura debe facilitar la evolución del sistema.
-
-Prioridad: Muy Alta.
+Cuando exista conflicto entre funcionalidades y calidad, deberá evaluarse el impacto arquitectónico antes de implementar cambios.
 
 ---
 
-# QA-02 Extensibilidad
+# 2. Prioridad
 
-Debe ser posible incorporar nuevas capacidades sin modificar el núcleo.
+Los atributos de calidad se priorizan en el siguiente orden:
 
-Prioridad: Muy Alta.
-
----
-
-# QA-03 Rendimiento
-
-La interacción con documentos debe ser fluida incluso en bibliotecas grandes.
-
-Prioridad: Alta.
-
----
-
-# QA-04 Escalabilidad
-
-La arquitectura debe soportar el crecimiento de documentos, anotaciones y assets.
-
-Prioridad: Alta.
+| Prioridad | Atributo                    |
+| --------- | --------------------------- |
+| 1         | Integridad del conocimiento |
+| 2         | Confiabilidad               |
+| 3         | Offline First               |
+| 4         | Rendimiento                 |
+| 5         | Mantenibilidad              |
+| 6         | Extensibilidad              |
+| 7         | Usabilidad                  |
+| 8         | Escalabilidad               |
+| 9         | Observabilidad              |
+| 10        | Portabilidad                |
 
 ---
 
-# QA-05 Disponibilidad
+# 3. Integridad del conocimiento
 
-Las funciones esenciales deben estar disponibles sin conexión.
+## Objetivo
 
-Prioridad: Muy Alta.
+El conocimiento nunca debe perderse ni corromperse.
 
----
+### Escenario
 
-# QA-06 Confiabilidad
+**Fuente**
 
-Los documentos y anotaciones no deben perderse ante errores del sistema.
+Usuario.
 
-Prioridad: Muy Alta.
+**Evento**
 
----
+Importa un libro de 2.000 páginas.
 
-# QA-07 Seguridad
+**Respuesta esperada**
 
-La arquitectura debe proteger la información del usuario.
+El Knowledge Object permanece consistente incluso ante fallos inesperados.
 
-Prioridad: Muy Alta.
+### Medidas
 
----
-
-# QA-08 Portabilidad
-
-El núcleo deberá poder ejecutarse en múltiples plataformas.
-
-Prioridad: Alta.
+* Todo `.kdoc` es transaccional.
+* Todo Asset posee checksum.
+* Todo cambio queda registrado.
+* Toda corrupción es detectable.
 
 ---
 
-# QA-09 Testabilidad
+# 4. Confiabilidad
 
-Cada Engine debe poder probarse de forma independiente.
+## Objetivo
 
-Prioridad: Alta.
+El sistema debe recuperarse automáticamente de errores previsibles.
 
----
+### Escenario
 
-# QA-10 Observabilidad
+Durante una sincronización el equipo pierde energía.
 
-La arquitectura debe facilitar diagnóstico, trazabilidad y monitoreo.
+### Respuesta esperada
 
-Prioridad: Media.
+La biblioteca permanece consistente y la sincronización continúa desde el último punto válido.
 
----
+### Medidas
 
-# QA-11 Consistencia
-
-Todas las vistas deben representar exactamente el mismo conocimiento.
-
-Prioridad: Muy Alta.
-
----
-
-# QA-12 Interoperabilidad
-
-La arquitectura debe permitir importar y exportar múltiples formatos.
-
-Prioridad: Alta.
+* Journal.
+* WAL.
+* Transacciones.
+* Reanudación.
 
 ---
 
-# QA-13 Evolución
+# 5. Offline First
 
-Las decisiones presentes no deben impedir futuras capacidades.
+## Objetivo
 
-Prioridad: Muy Alta.
+Toda funcionalidad esencial debe operar sin Internet.
 
----
+### Escenario
 
-# Prioridad Global
+El usuario trabaja durante varios días sin conexión.
 
-| Atributo          | Prioridad |
-| ----------------- | --------- |
-| Mantenibilidad    | Muy Alta  |
-| Extensibilidad    | Muy Alta  |
-| Disponibilidad    | Muy Alta  |
-| Confiabilidad     | Muy Alta  |
-| Seguridad         | Muy Alta  |
-| Consistencia      | Muy Alta  |
-| Rendimiento       | Alta      |
-| Escalabilidad     | Alta      |
-| Portabilidad      | Alta      |
-| Interoperabilidad | Alta      |
-| Testabilidad      | Alta      |
-| Observabilidad    | Media     |
+### Respuesta esperada
+
+Puede:
+
+* importar;
+* leer;
+* anotar;
+* buscar;
+* organizar;
+* exportar.
+
+La sincronización ocurre posteriormente.
 
 ---
 
-# Atributos Congelados
+# 6. Rendimiento
 
-1. Mantenibilidad.
-2. Extensibilidad.
-3. Rendimiento.
-4. Escalabilidad.
-5. Disponibilidad.
-6. Confiabilidad.
-7. Seguridad.
-8. Portabilidad.
-9. Testabilidad.
-10. Observabilidad.
-11. Consistencia.
-12. Interoperabilidad.
-13. Evolución.
+## Objetivo
+
+La biblioteca debe sentirse inmediata.
+
+### Escenarios
+
+Abrir un Knowledge Object.
+
+Objetivo:
+
+< 500 ms para documentos habituales.
+
+---
+
+Buscar texto.
+
+Objetivo:
+
+< 150 ms.
+
+---
+
+Abrir biblioteca.
+
+Objetivo:
+
+< 2 segundos.
+
+---
+
+Cambiar de Renderer.
+
+Objetivo:
+
+< 200 ms.
+
+---
+
+Scroll continuo.
+
+Objetivo:
+
+60 FPS cuando el hardware lo permita.
+
+---
+
+# 7. Escalabilidad
+
+KnowledgeOS debe soportar bibliotecas muy grandes.
+
+Objetivos iniciales.
+
+* 500.000 Knowledge Objects.
+* millones de Assets.
+* millones de anotaciones.
+* cientos de millones de nodos UDM.
+
+La arquitectura no debe requerir rediseños para alcanzar estos valores.
+
+---
+
+# 8. Mantenibilidad
+
+## Objetivo
+
+Agregar funcionalidades nuevas debe requerir modificaciones mínimas.
+
+### Medidas
+
+* Engines independientes.
+* Contratos públicos.
+* Bajo acoplamiento.
+* ADR obligatorios.
+* Modular Monolith.
+
+---
+
+# 9. Extensibilidad
+
+## Objetivo
+
+Permitir evolución durante muchos años.
+
+Ejemplos.
+
+* nuevos importadores;
+* nuevos renderizadores;
+* nuevos modelos IA;
+* nuevos plugins.
+
+Sin modificar el núcleo.
+
+---
+
+# 10. Usabilidad
+
+El usuario debe concentrarse en el conocimiento.
+
+No en la herramienta.
+
+Principios.
+
+* interfaz consistente;
+* baja carga cognitiva;
+* acciones reversibles;
+* feedback inmediato;
+* navegación fluida.
+
+---
+
+# 11. Portabilidad
+
+El dominio no depende de:
+
+* SwiftUI;
+* AppKit;
+* UIKit;
+* SQLite;
+* proveedores IA.
+
+Debe poder reutilizarse en cualquier plataforma.
+
+---
+
+# 12. Observabilidad
+
+Toda operación importante genera información diagnóstica.
+
+Incluye.
+
+* Logs.
+* Eventos.
+* Métricas.
+* Journal.
+* Trazas.
+
+Nunca datos sensibles del usuario sin consentimiento.
+
+---
+
+# 13. Seguridad
+
+Objetivos.
+
+* integridad;
+* autenticidad;
+* confidencialidad cuando corresponda.
+
+El sistema debe minimizar la exposición de información personal.
+
+Las integraciones externas deben requerir autorización explícita.
+
+---
+
+# 14. Recuperabilidad
+
+Ante fallos deberá ser posible:
+
+* reconstruir índices;
+* reconstruir el Knowledge Graph;
+* reconstruir la caché;
+* restaurar backups;
+* continuar sincronizaciones.
+
+Nunca perder información persistente.
+
+---
+
+# 15. Compatibilidad
+
+KnowledgeOS deberá mantener compatibilidad entre versiones mediante:
+
+* migraciones;
+* versionado del UDM;
+* versionado del `.kdoc`;
+* versionado de contratos públicos.
+
+---
+
+# 16. Testabilidad
+
+Toda lógica del dominio debe ser comprobable mediante pruebas automatizadas.
+
+El dominio no dependerá de infraestructura para ejecutar pruebas.
+
+---
+
+# 17. Accesibilidad
+
+Las interfaces deberán soportar:
+
+* modo oscuro;
+* alto contraste;
+* escalado tipográfico;
+* navegación mediante teclado;
+* VoiceOver;
+* Apple Pencil cuando corresponda.
+
+---
+
+# 18. Medición
+
+Cada atributo de calidad deberá contar con métricas verificables durante el desarrollo.
+
+Las regresiones deberán detectarse mediante pruebas automatizadas y herramientas de observabilidad.
+
+---
+
+# 19. Estado
+
+Este documento define los atributos de calidad oficiales de KnowledgeOS.
+
+Todas las decisiones de diseño deberán justificar cómo contribuyen a preservar o mejorar estos atributos.

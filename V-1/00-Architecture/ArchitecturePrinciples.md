@@ -3,138 +3,228 @@
 
 **Proyecto:** KnowledgeOS
 
-**Versión:** 1.0
+**Versión:** 2.0
 
 **Estado:** Congelado
 
 ---
 
-# Objetivo
+# 1. Objetivo
 
-Definir los principios fundamentales que rigen toda la arquitectura de KnowledgeOS.
+Este documento define los principios arquitectónicos obligatorios de KnowledgeOS.
 
-Todo componente, decisión arquitectónica o implementación deberá respetar estos principios.
+Los principios representan reglas permanentes que deberán respetarse durante toda la evolución del proyecto.
 
----
-
-# AP-01 UDM First
-
-El Universal Document Model (UDM) es el núcleo del sistema.
-
-Toda capacidad opera sobre el UDM.
-
-Ningún componente trabaja directamente sobre el documento original.
+Toda decisión futura deberá alinearse con estos principios o justificarse mediante un ADR.
 
 ---
 
-# AP-02 Offline First
+# 2. Principios Fundamentales
 
-Todas las funciones esenciales deben funcionar sin conexión.
+## AP-01 — Knowledge Object First
 
-La conectividad es una mejora, no un requisito.
+Toda unidad persistente administrada por KnowledgeOS es un Knowledge Object.
 
----
-
-# AP-03 Source of Truth Única
-
-Cada biblioteca posee una única fuente de verdad.
-
-Todos los demás almacenamientos son derivados.
+Los formatos originales nunca forman parte del modelo interno.
 
 ---
 
-# AP-04 Inmutabilidad del contenido
+## AP-02 — Offline First
 
-El contenido importado nunca se modifica.
+El sistema debe funcionar completamente sin conexión.
 
-Las interacciones del usuario generan modelos independientes.
-
----
-
-# AP-05 Separación de Modelos
-
-El sistema mantiene modelos independientes para:
-
-- Conocimiento (UDM)
-- Layout
-- Anotaciones
-- Índices
-- Assets
-
-Ningún modelo reemplaza a otro.
+La conectividad amplía capacidades, pero no constituye un requisito para el funcionamiento normal.
 
 ---
 
-# AP-06 Arquitectura por Engines
+## AP-03 — Source of Truth Única
 
-Cada dominio funcional se implementa mediante un Engine.
+Cada Library posee una única Source of Truth.
 
-Cada Engine posee una única responsabilidad.
+Inicialmente será el NAS del usuario.
 
----
-
-# AP-07 Bajo Acoplamiento
-
-Los Engines no comparten estado interno.
-
-La comunicación se realiza exclusivamente mediante contratos públicos.
+Las copias locales son únicamente copias de trabajo.
 
 ---
 
-# AP-08 Alta Cohesión
+## AP-04 — El Original Nunca se Modifica
 
-Cada componente contiene únicamente responsabilidades relacionadas con su dominio.
+Los archivos originales permanecen siempre intactos.
 
----
-
-# AP-09 Contratos Explícitos
-
-Toda interacción entre componentes debe realizarse mediante interfaces claramente definidas.
+KnowledgeOS nunca altera el contenido del archivo importado.
 
 ---
 
-# AP-10 Extensibilidad
+## AP-05 — UDM como Modelo Canónico
 
-Las nuevas capacidades deberán incorporarse mediante extensiones siempre que sea posible.
+Todo Knowledge Object posee exactamente un UDM.
 
-El núcleo permanecerá estable.
-
----
-
-# AP-11 Independencia Tecnológica
-
-La arquitectura no depende de tecnologías concretas.
-
-Los detalles tecnológicos pertenecen a la implementación.
+El UDM constituye la representación oficial del contenido.
 
 ---
 
-# AP-12 Privacidad por Diseño
+## AP-06 — Separación entre Contenido y Presentación
 
-El usuario mantiene el control sobre sus documentos.
+Contenido, Layout, Style, Annotation y Knowledge representan capas independientes.
 
-La arquitectura prioriza el procesamiento local.
-
----
-
-# AP-13 Simplicidad
-
-Ante dos soluciones equivalentes se seleccionará la más simple.
+Ninguna modifica automáticamente a otra.
 
 ---
 
-# Principios Congelados
+## AP-07 — Knowledge Graph Derivado
 
-1. UDM First.
-2. Offline First.
-3. Source of Truth única.
-4. Contenido inmutable.
-5. Separación de modelos.
-6. Arquitectura por Engines.
-7. Bajo acoplamiento.
-8. Alta cohesión.
-9. Contratos explícitos.
-10. Extensibilidad.
-11. Independencia tecnológica.
-12. Privacidad por diseño.
-13. Simplicidad.
+El Knowledge Graph nunca constituye la fuente de verdad.
+
+Siempre puede reconstruirse a partir del UDM y de las anotaciones.
+
+---
+
+## AP-08 — Assets Compartidos
+
+Los recursos binarios poseen identidad propia.
+
+Nunca se duplican.
+
+Se reutilizan mediante referencias.
+
+---
+
+## AP-09 — Modular Monolith
+
+El sistema se implementa inicialmente como un Modular Monolith.
+
+Cada módulo puede evolucionar sin afectar a los demás.
+
+---
+
+## AP-10 — Engine Based Architecture
+
+Toda funcionalidad pertenece a un único Engine.
+
+Un Engine posee una única responsabilidad principal.
+
+---
+
+## AP-11 — Contratos Públicos
+
+Los Engines colaboran exclusivamente mediante:
+
+* Commands
+* Queries
+* Events
+* DTOs
+
+Nunca mediante implementaciones internas.
+
+---
+
+## AP-12 — Bajo Acoplamiento
+
+Los módulos conocen únicamente contratos públicos.
+
+Las implementaciones permanecen encapsuladas.
+
+---
+
+## AP-13 — Alta Cohesión
+
+Cada módulo agrupa responsabilidades relacionadas.
+
+No existen módulos multipropósito.
+
+---
+
+## AP-14 — Persistencia Transparente
+
+El dominio no conoce:
+
+* SQLite
+* NAS
+* archivos
+* red
+* APIs externas
+
+Toda persistencia pertenece a Infrastructure.
+
+---
+
+## AP-15 — IA Opcional
+
+La inteligencia artificial constituye una capacidad adicional.
+
+KnowledgeOS debe seguir siendo completamente funcional sin IA.
+
+---
+
+## AP-16 — IA Desacoplada
+
+Los modelos de IA son intercambiables.
+
+El sistema nunca depende de un proveedor específico.
+
+---
+
+## AP-17 — Eventos Inmutables
+
+Todo evento representa un hecho ocurrido.
+
+Los eventos nunca se modifican.
+
+---
+
+## AP-18 — Versionado Permanente
+
+Todo elemento persistente puede versionarse.
+
+Las migraciones nunca destruyen información.
+
+---
+
+## AP-19 — Extensibilidad
+
+Toda funcionalidad adicional deberá implementarse mediante Plugins o nuevos Engines.
+
+Nunca modificando el núcleo sin justificación arquitectónica.
+
+---
+
+## AP-20 — Evolución Controlada
+
+Toda modificación arquitectónica deberá aprobarse mediante un Architecture Decision Record.
+
+No se permiten cambios estructurales ad hoc.
+
+---
+
+# 3. Aplicación
+
+Estos principios son obligatorios para:
+
+* diseño;
+* implementación;
+* pruebas;
+* documentación;
+* plugins;
+* APIs;
+* modelos de datos.
+
+---
+
+# 4. Prioridad
+
+Cuando dos principios entren en conflicto, prevalecerán en el siguiente orden:
+
+1. Integridad del conocimiento.
+2. Preservación del contenido original.
+3. Offline First.
+4. Simplicidad del dominio.
+5. Extensibilidad.
+6. Rendimiento.
+
+---
+
+# 5. Estado
+
+Este documento constituye la referencia oficial de los principios arquitectónicos de KnowledgeOS.
+
+Toda excepción deberá documentarse mediante un ADR.
