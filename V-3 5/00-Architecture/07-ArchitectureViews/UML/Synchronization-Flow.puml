@@ -1,0 +1,58 @@
+@startuml UML-SYNCHRONIZATION-FLOW
+title KnowledgeOS — Synchronization Flow
+caption Architecture V3.0
+
+skinparam shadowing false
+autonumber
+
+actor User
+participant "Local Client" as Client
+participant "Sync Engine" as Sync
+participant "Local Durable Replica" as Replica
+participant "Synchronization Integration" as Integration
+database "NAS Library
+Source of Truth" as NAS
+
+User -> Client : Continue working offline or online
+Client -> Replica : Persist local changes
+
+Client -> Sync : Trigger synchronization
+Sync -> Sync : Create Synchronization Session
+Sync -> Replica : Read local change set
+Sync -> Integration : Request remote state discovery
+Integration -> NAS : Read canonical state and metadata
+NAS --> Integration : Canonical state snapshot / change set
+Integration --> Sync : Remote state result
+
+Sync -> Sync : Compare identities, versions and provenance
+
+alt No conflict
+  Sync -> Integration : Transfer validated local changes
+  Integration -> NAS : Apply canonical mutation
+  NAS --> Integration : Commit result
+  Integration --> Sync : Canonical commit confirmed
+  Sync -> Replica : Update local replica and sync markers
+else Automatic reconciliation allowed
+  Sync -> Sync : Apply deterministic reconciliation policy
+  Sync -> Integration : Submit reconciled mutation
+  Integration -> NAS : Apply canonical mutation
+  NAS --> Integration : Commit result
+  Integration --> Sync : Canonical commit confirmed
+  Sync -> Replica : Update local replica
+else Manual conflict required
+  Sync -> Replica : Persist conflict state
+  Sync --> Client : Report conflict requiring user action
+end
+
+alt NAS unavailable
+  Sync -> Replica : Preserve pending synchronization state
+  Sync --> Client : Enter Local-Only / degraded sync state
+end
+
+note over Replica,NAS
+  The NAS remains the canonical Library authority.
+  The local replica supports Offline First operation.
+end note
+
+footer KnowledgeOS Architecture | UML | Version 3.0
+@enduml

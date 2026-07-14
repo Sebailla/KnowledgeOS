@@ -1,0 +1,55 @@
+@startuml C4-Deployment-Native-NAS-Providers
+title KnowledgeOS — C4 Deployment View
+caption Native Devices, NAS and Optional Providers — Architecture V3.0
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+
+node "Mac" as mac {
+  artifact "KnowledgeOS macOS App" as macapp
+  database "Local Durable Replica" as macreplica
+  artifact "Derived Local State" as macderived
+}
+
+node "iPhone" as phone {
+  artifact "KnowledgeOS iPhone App" as phoneapp
+  database "Local Durable Replica" as phonereplica
+}
+
+node "iPad" as tablet {
+  artifact "KnowledgeOS iPad App" as ipadapp
+  database "Local Durable Replica" as ipadreplica
+}
+
+node "User-controlled Network Storage" as storage {
+  database "NAS Library
+Source of Truth" as nas
+}
+
+cloud "Optional External Providers" as providers {
+  component "Remote AI" as remoteai
+  component "OCR" as ocr
+  component "Other governed services" as others
+}
+
+macapp <--> macreplica
+macapp --> macderived
+phoneapp <--> phonereplica
+ipadapp <--> ipadreplica
+
+macapp <--> nas : Sync when reachable
+phoneapp <--> nas : Sync when reachable
+ipadapp <--> nas : Sync when reachable
+
+macapp ..> providers : Optional
+phoneapp ..> providers : Optional
+ipadapp ..> providers : Optional
+
+note bottom of nas
+  Canonical Library authority.
+  Device replicas support offline work
+  and reconcile when connectivity returns.
+end note
+
+footer KnowledgeOS Architecture | C4 Model | Version 3.0
+@enduml

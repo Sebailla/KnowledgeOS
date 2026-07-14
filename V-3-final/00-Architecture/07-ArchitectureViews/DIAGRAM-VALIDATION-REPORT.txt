@@ -1,0 +1,44 @@
+KnowledgeOS Architecture V3 — Diagram Validation
+Date: 2026-07-14T19:05:48Z
+
+Java:
+openjdk version "26.0.1" 2026-04-21
+OpenJDK Runtime Environment Homebrew (build 26.0.1)
+OpenJDK 64-Bit Server VM Homebrew (build 26.0.1, mixed mode, sharing)
+
+Graphviz:
+dot - graphviz version 15.1.0 (20260618.0150)
+
+PlantUML:
+PlantUML version 1.2026.6 / 6287b33 [2026-06-08 16:02:56 UTC]
+(GPL source distribution)
+
+Build Version: 1.2026.6
+Git Commit: 6287b33
+Compile Time: 2026-06-08 16:02:56 UTC
+
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: UTF-8
+Language: es
+Country: AR
+ 
+PLANTUML_LIMIT_SIZE: 4096
+
+GraphViz: dot - graphviz version 15.1.0 (20260618.0150)
+Installation seems OK. File generation OK
+
+Sources: 9
+
+PASS: C4/diagrams/deployment/C4-Deployment-Native-NAS-Providers.puml
+PASS: C4/diagrams/level1/C4-L1-SystemContext.puml
+PASS: C4/diagrams/level2/C4-L2-Containers.puml
+PASS: C4/diagrams/level3/C4-L3-PlatformEngines.puml
+PASS: UML/Background-Job-State-Machine.puml
+PASS: UML/Import-Pipeline.puml
+PASS: UML/Publication-Acquisition-Flow.puml
+PASS: UML/Runtime-Lifecycle.puml
+PASS: UML/Synchronization-Flow.puml
+
+Expected SVG files: 9
+Generated SVG files: 9

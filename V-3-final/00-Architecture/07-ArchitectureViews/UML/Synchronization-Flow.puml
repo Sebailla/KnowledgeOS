@@ -1,0 +1,33 @@
+@startuml UML-SYNCHRONIZATION-FLOW
+title KnowledgeOS — Personal State Synchronization Flow
+caption Architecture V3.0 — iCloud / CloudKit Profile
+
+skinparam shadowing false
+autonumber
+
+actor User
+participant "Apple Device A" as A
+database "Local Personal State A" as StateA
+participant "Sync Engine A" as SyncA
+participant "iCloud / CloudKit" as Cloud
+participant "Sync Engine B" as SyncB
+database "Local Personal State B" as StateB
+participant "Apple Device B" as B
+
+User -> A : Create annotation or update progress
+A -> StateA : Persist personal change
+A -> SyncA : Schedule personal-state synchronization
+SyncA -> Cloud : Upload governed personal-state change
+Cloud --> SyncA : Acknowledge accepted change
+
+Cloud -> SyncB : Deliver remote personal-state change
+SyncB -> StateB : Reconcile and persist
+SyncB --> B : Personal state updated
+
+note over A, B
+  Publication payload acquisition is not part of this flow.
+  The NAS Master Library is not a personal-state sync peer.
+end note
+
+footer KnowledgeOS Architecture | UML | Version 3.0
+@enduml

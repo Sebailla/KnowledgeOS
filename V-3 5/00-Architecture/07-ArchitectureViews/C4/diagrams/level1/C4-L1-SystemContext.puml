@@ -1,0 +1,45 @@
+@startuml C4-L1-SystemContext
+title KnowledgeOS — C4 Level 1 — System Context
+caption Architecture V3.0
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam defaultTextAlignment center
+
+actor "User" as user
+
+rectangle "KnowledgeOS" as kos {
+  note right
+    Personal knowledge platform
+    Offline First
+    Native-first
+  end note
+}
+
+database "NAS
+Library Source of Truth" as nas
+cloud "Remote AI Services
+Optional" as remote_ai
+node "Local AI Models
+Optional" as local_ai
+cloud "OCR Services
+Optional" as ocr
+cloud "External Import Sources" as sources
+cloud "Export Destinations" as destinations
+
+user --> kos : Manages and explores knowledge
+kos <--> nas : Reads, writes and synchronizes Library state
+kos --> remote_ai : Optional governed AI requests
+kos --> local_ai : Optional local inference
+kos --> ocr : Optional OCR requests
+kos <-- sources : Imports content
+kos --> destinations : Exports content
+
+note bottom of nas
+  Canonical Library authority.
+  Local replicas may continue
+  operating while offline.
+end note
+
+footer KnowledgeOS Architecture | C4 Model | Version 3.0
+@enduml

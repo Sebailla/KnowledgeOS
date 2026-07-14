@@ -1,0 +1,62 @@
+@startuml UML-RUNTIME-LIFECYCLE
+title KnowledgeOS — Runtime Lifecycle
+caption Architecture V3.0
+
+skinparam shadowing false
+
+[*] --> Created
+
+Created --> Initializing
+Initializing --> Validating
+Validating --> Recovering : recovery required
+Validating --> Ready : validation complete
+Recovering --> Ready : recovery complete
+
+Ready --> Foreground : user-visible activation
+Foreground --> Background : application backgrounded
+Background --> Foreground : application activated
+Background --> Suspended : platform suspension
+Suspended --> Recovering : process resumes with recovery
+Suspended --> Foreground : resumable state still valid
+
+Ready --> Degraded : optional capability unavailable
+Foreground --> Degraded : capability degradation
+Background --> Degraded : capability degradation
+Degraded --> Ready : capability restored
+Degraded --> Foreground : restored while active
+Degraded --> Background : restored while backgrounded
+
+Created --> Crashed
+Initializing --> Crashed
+Validating --> Crashed
+Recovering --> Crashed
+Ready --> Crashed
+Foreground --> Crashed
+Background --> Crashed
+Suspended --> Crashed
+Degraded --> Crashed
+
+Created --> ShuttingDown
+Initializing --> ShuttingDown
+Validating --> ShuttingDown
+Recovering --> ShuttingDown
+Ready --> ShuttingDown
+Foreground --> ShuttingDown
+Background --> ShuttingDown
+Degraded --> ShuttingDown
+
+ShuttingDown --> Terminated
+Crashed --> Terminated
+Terminated --> [*]
+
+note right of Ready
+  Foundational safe operation is available.
+  Optional capabilities may still be unavailable.
+end note
+
+note right of Suspended
+  In-memory progress is not assumed durable.
+end note
+
+footer KnowledgeOS Architecture | UML | Version 3.0
+@enduml

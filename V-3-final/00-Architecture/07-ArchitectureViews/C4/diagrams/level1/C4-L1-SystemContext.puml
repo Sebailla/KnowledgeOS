@@ -1,0 +1,34 @@
+@startuml C4-L1-SystemContext
+title KnowledgeOS — C4 Level 1 — System Context
+caption Architecture V3.0 — Master Library and Personal Sync Profile
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam defaultTextAlignment center
+
+actor "User" as user
+rectangle "KnowledgeOS Clients\nmacOS / iPhone / iPad" as clients
+node "KnowledgeOS Server\non NAS" as server
+database "NAS Master Library\nMaster Catalog + Source Publications" as master
+cloud "iCloud / CloudKit\nPersonal State Synchronization" as icloud
+cloud "Optional External Services\nAI / OCR / Export" as external
+
+user --> clients : Reads, annotates and manages local knowledge
+clients --> server : Browse Master Catalog and acquire publications
+server <--> master : Manages master catalog and source publications
+clients <--> icloud : Synchronize personal state among Apple devices
+clients --> external : Optional governed requests
+
+note right of master
+  No personal annotations,
+  reading progress or personal
+  knowledge state are stored here.
+end note
+
+note bottom of clients
+  Each device has a selective local Library.
+  It is not a replica of the NAS Master Library.
+end note
+
+footer KnowledgeOS Architecture | C4 Model | Version 3.0
+@enduml

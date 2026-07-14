@@ -1,0 +1,54 @@
+@startuml C4-L2-Containers
+title KnowledgeOS — C4 Level 2 — Containers
+caption Architecture V3.0 — Master Library and Personal Sync Profile
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+
+actor "User" as user
+
+package "Apple Device Clients" {
+  rectangle "macOS Application" as mac
+  rectangle "iPhone Application" as iphone
+  rectangle "iPad Application" as ipad
+  database "Selective Local Libraries\nDevice-specific publications" as local
+  database "Personal State\nAnnotations, progress, metadata, relationships" as personal
+}
+
+package "NAS" {
+  rectangle "KnowledgeOS Server" as server
+  database "Master Library\nCatalog + Source Publications" as master
+}
+
+cloud "iCloud / CloudKit\nPersonal State Sync" as icloud
+cloud "Optional External Providers" as providers
+
+user --> mac
+user --> iphone
+user --> ipad
+
+mac --> local
+iphone --> local
+ipad --> local
+
+mac --> personal
+iphone --> personal
+ipad --> personal
+
+mac --> server : Browse and acquire
+iphone --> server : Browse and acquire
+ipad --> server : Browse and acquire
+server <--> master : Master Library management
+
+personal <--> icloud : Personal-state convergence
+mac --> providers : Optional
+iphone --> providers : Optional
+ipad --> providers : Optional
+
+note bottom of local
+  Contains only publications acquired
+  for each device. Not a NAS replica.
+end note
+
+footer KnowledgeOS Architecture | C4 Model | Version 3.0
+@enduml

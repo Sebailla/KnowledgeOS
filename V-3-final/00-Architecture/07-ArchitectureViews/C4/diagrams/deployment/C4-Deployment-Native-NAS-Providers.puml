@@ -1,0 +1,61 @@
+@startuml C4-Deployment-Native-NAS-Providers
+title KnowledgeOS — C4 Deployment View
+caption Architecture V3.0 — NAS Server, Selective Local Libraries and iCloud Personal Sync
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+
+node "Mac" as mac {
+  artifact "KnowledgeOS macOS App" as macapp
+  database "Selective Local Library" as maclib
+  database "Local Personal State" as macpersonal
+}
+
+node "iPhone" as phone {
+  artifact "KnowledgeOS iPhone App" as phoneapp
+  database "Selective Local Library" as phonelib
+  database "Local Personal State" as phonepersonal
+}
+
+node "iPad" as tablet {
+  artifact "KnowledgeOS iPad App" as ipadapp
+  database "Selective Local Library" as ipadlib
+  database "Local Personal State" as ipadpersonal
+}
+
+node "NAS" as nasnode {
+  artifact "KnowledgeOS Server" as server
+  database "Master Library\nCatalog + Source Publications" as master
+}
+
+cloud "iCloud / CloudKit" as icloud
+cloud "Optional External Providers" as providers
+
+macapp <--> maclib
+phoneapp <--> phonelib
+ipadapp <--> ipadlib
+
+macapp <--> macpersonal
+phoneapp <--> phonepersonal
+ipadapp <--> ipadpersonal
+
+macapp --> server : Browse catalog / acquire publication
+phoneapp --> server : Browse catalog / acquire publication
+ipadapp --> server : Browse catalog / acquire publication
+server <--> master
+
+macpersonal <--> icloud : Personal-state sync
+phonepersonal <--> icloud : Personal-state sync
+ipadpersonal <--> icloud : Personal-state sync
+
+macapp ..> providers : Optional
+phoneapp ..> providers : Optional
+ipadapp ..> providers : Optional
+
+note bottom of master
+  Master publication authority only.
+  No personal reading or annotation state.
+end note
+
+footer KnowledgeOS Architecture | C4 Model | Version 3.0
+@enduml

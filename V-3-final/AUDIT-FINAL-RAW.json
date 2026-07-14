@@ -1,0 +1,758 @@
+{
+  "broken_links": [],
+  "metadata_missing": [],
+  "empty_files": [],
+  "pattern_hits": {
+    "Provider singular path": [],
+    "PublicContracts path": [],
+    "Dependency-Injection filename": [],
+    "Dependency_Injection filename": [],
+    "ADR README missing path": []
+  },
+  "cross_cutting_hits": {
+    "NAS as source of truth": [
+      [
+        "00-Architecture/01-Foundation/ArchitectureConstraints.md",
+        91,
+        "* the Source of Truth is the user's NAS."
+      ],
+      [
+        "00-Architecture/01-Foundation/ProductVision.md",
+        260,
+        "Initially, the Source of Truth is the user's NAS."
+      ],
+      [
+        "00-Architecture/05-Integration/README.md",
+        826,
+        "The NAS is the primary intended Source of Truth for the KnowledgeOS Library."
+      ],
+      [
+        "00-Architecture/05-Integration/README.md",
+        2316,
+        "* The NAS is the primary intended Library Source of Truth."
+      ],
+      [
+        "00-Architecture/05-Integration/README.md",
+        2667,
+        "The NAS remains the primary intended Source of Truth for the KnowledgeOS Library."
+      ],
+      [
+        "00-Architecture/07-ArchitectureViews/README.md",
+        949,
+        "The NAS shall be represented consistently as the configured Library Source of Truth where applicable."
+      ],
+      [
+        "00-Architecture/07-ArchitectureViews/README.md",
+        2038,
+        "* The NAS Source of Truth is represented consistently."
+      ],
+      [
+        "00-Architecture/07-ArchitectureViews/README.md",
+        2168,
+        "NAS Source of Truth, Offline First behavior, Provider boundaries, Plugin boundaries, Execution semantics and trust boundaries are represented consistently."
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureBacklog.md",
+        1199,
+        "Transport decision preserving NAS Source of Truth and Offline First behavior."
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureBacklog.md",
+        1491,
+        "The NAS is the configured Library Source of Truth."
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureBacklog.md",
+        1865,
+        "The primary architecture defines the NAS as the configured Library Source of Truth."
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureBacklog.md",
+        1889,
+        "This item does not authorize changing the current NAS Source of Truth architecture."
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureBacklog.md",
+        2077,
+        "* A possible future Cloud Source of Truth does not change the current NAS Source of Truth architecture."
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureBacklog.md",
+        2099,
+        "* interpret AB-028 as approval to replace the NAS Source of Truth;"
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureBacklog.md",
+        2188,
+        "A possible future alternative Source of Truth does not change the approved NAS-based primary Library architecture."
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureDecisionMatrix.md",
+        500,
+        "For the primary Library architecture, this includes preserving the NAS as the configured Library Source of Truth."
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureReview-v3.0.md",
+        304,
+        "* NAS-backed Library Source of Truth;"
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureReview-v3.0.md",
+        317,
+        "* NAS Source of Truth is explicit."
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureReview-v3.0.md",
+        672,
+        "* Storage README aligns with Library and NAS Source of Truth;"
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureReview-v3.0.md",
+        942,
+        "# 26. NAS Source of Truth"
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureReview-v3.0.md",
+        946,
+        "The NAS is consistently defined as the configured primary Library Source of Truth."
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureReview-v3.0.md",
+        1559,
+        "* explicit NAS Source of Truth;"
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureReview-v3.0.md",
+        1897,
+        "* The NAS remains the configured Library Source of Truth."
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureV3MigrationPlan.md",
+        764,
+        "* NAS Source of Truth;"
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureVocabulary.md",
+        636,
+        "For the primary KnowledgeOS Library architecture, the NAS is the configured Library Source of Truth."
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureVocabulary.md",
+        658,
+        "Within the primary KnowledgeOS architecture, the NAS serves as the configured Library Source of Truth."
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureVocabulary.md",
+        2644,
+        "The NAS is the configured Library Source of Truth within the primary KnowledgeOS architecture."
+      ],
+      [
+        "00-Architecture/07-ArchitectureViews/ADR/ADR-004-Library-Source-of-Truth.md",
+        25,
+        "For the primary KnowledgeOS architecture, the configured NAS shall be the Library Source of Truth. Devices maintain governed local replicas and caches. A local replica may contain durable unsynchronized changes but does not silently become a competing Source of Truth. Cloud or alternative canonical modes require a future explicit architectural decision."
+      ],
+      [
+        "00-Architecture/07-ArchitectureViews/ADR/ADR-004-Library-Source-of-Truth.md",
+        68,
+        "This ADR establishes **NAS as Primary Library Source of Truth** as an active architectural decision for KnowledgeOS V3."
+      ],
+      [
+        "00-Architecture/07-ArchitectureViews/C4/README.md",
+        51,
+        "* The NAS-backed Library remains the configured Source of Truth."
+      ],
+      [
+        "00-Architecture/06-Execution/Messaging/Queries.md",
+        2565,
+        "A Query requiring current Source of Truth state may fail or degrade when the NAS is unavailable."
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/CacheStrategy.md",
+        1285,
+        "The NAS is the Library Source of Truth."
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/CacheStrategy.md",
+        2352,
+        "* NAS caches preserve Source of Truth identity and synchronization state."
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/CacheStrategy.md",
+        2498,
+        "The NAS continues to be the Library Source of Truth."
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/PerformanceModel.md",
+        1336,
+        "The NAS is the Library Source of Truth but shall not be assumed to have local-disk latency."
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/PerformanceModel.md",
+        2078,
+        "The NAS remains the Library Source of Truth while local state, caches and replicas isolate interactive work from unnecessary network latency."
+      ],
+      [
+        "00-Architecture/06-Execution/Reliability/Checkpointing.md",
+        1961,
+        "Checkpointing operates Offline First and does not redefine the NAS-backed Library Source of Truth."
+      ],
+      [
+        "00-Architecture/06-Execution/Reliability/Observability.md",
+        1548,
+        "Observability about NAS availability shall not redefine Source of Truth semantics."
+      ],
+      [
+        "00-Architecture/06-Execution/Reliability/Recovery.md",
+        1306,
+        "Recovery shall preserve the configured NAS-backed Library Source of Truth semantics."
+      ],
+      [
+        "00-Architecture/06-Execution/Reliability/Recovery.md",
+        2493,
+        "Library Recovery preserves NAS-backed Source of Truth semantics while allowing valid local state to remain available during disconnection according to policy."
+      ],
+      [
+        "00-Architecture/05-Integration/DataExchange/ExportProtocols.md",
+        1775,
+        "A NAS destination may also be the Library Source of Truth."
+      ],
+      [
+        "00-Architecture/05-Integration/DataExchange/ImportProtocols.md",
+        1972,
+        "A NAS may provide source documents or act as the Library Source of Truth."
+      ],
+      [
+        "00-Architecture/05-Integration/ExternalServices/EventIntegration.md",
+        2568,
+        "The NAS remains the Library Source of Truth according to the storage architecture."
+      ],
+      [
+        "00-Architecture/05-Integration/ExternalServices/MCP.md",
+        866,
+        "The NAS is the Library Source of Truth."
+      ],
+      [
+        "00-Architecture/05-Integration/ExternalServices/OAuth.md",
+        896,
+        "OAuth credentials shall not be stored in the NAS Library merely because the NAS is the Library Source of Truth."
+      ],
+      [
+        "00-Architecture/05-Integration/ExternalServices/OAuth.md",
+        898,
+        "The NAS is the Source of Truth for Library knowledge."
+      ],
+      [
+        "00-Architecture/05-Integration/ExternalServices/OAuth.md",
+        2072,
+        "* Credentials are not stored on the NAS merely because the NAS is the Library Source of Truth."
+      ],
+      [
+        "00-Architecture/05-Integration/ExternalServices/OAuth.md",
+        2177,
+        "The NAS remains the Source of Truth for Library knowledge."
+      ],
+      [
+        "00-Architecture/05-Integration/Providers/StorageProviders.md",
+        1223,
+        "NAS may act as a Library Source of Truth only when selected by Platform policy."
+      ],
+      [
+        "00-Architecture/05-Integration/Storage/README.md",
+        224,
+        "For the primary KnowledgeOS architecture, the NAS is the intended Library Source of Truth."
+      ],
+      [
+        "00-Architecture/05-Integration/Storage/README.md",
+        247,
+        "# 10. NAS as Source of Truth"
+      ],
+      [
+        "00-Architecture/05-Integration/Storage/README.md",
+        249,
+        "The NAS is the primary intended Source of Truth for the KnowledgeOS Library."
+      ],
+      [
+        "00-Architecture/05-Integration/Storage/README.md",
+        884,
+        "A local cache or working copy shall not silently become the new Source of Truth because the NAS is unavailable."
+      ],
+      [
+        "00-Architecture/05-Integration/Storage/README.md",
+        2057,
+        "* The NAS is the primary intended Library Source of Truth."
+      ],
+      [
+        "00-Architecture/05-Integration/Storage/README.md",
+        2093,
+        "* silently replace the NAS Source of Truth with a local cache;"
+      ],
+      [
+        "00-Architecture/05-Integration/Storage/README.md",
+        2166,
+        "The NAS is the primary intended Source of Truth for the KnowledgeOS Library."
+      ],
+      [
+        "00-Architecture/05-Integration/Storage/README.md",
+        2182,
+        "NAS unavailability does not silently replace the Source of Truth."
+      ],
+      [
+        "00-Architecture/05-Integration/Storage/README.md",
+        2196,
+        "Storage Integration allows KnowledgeOS to remain portable across storage technologies while preserving user ownership, architectural boundaries and the NAS-centered Source of Truth model."
+      ],
+      [
+        "00-Architecture/05-Integration/Synchronization/README.md",
+        1064,
+        "# 65. NAS Source of Truth Semantics"
+      ],
+      [
+        "00-Architecture/05-Integration/Synchronization/README.md",
+        1066,
+        "The fact that the NAS is the Source of Truth does not eliminate the need for:"
+      ],
+      [
+        "00-Architecture/05-Integration/Synchronization/README.md",
+        1460,
+        "For the primary KnowledgeOS Library, the NAS is the intended Source of Truth."
+      ],
+      [
+        "00-Architecture/05-Integration/Synchronization/README.md",
+        1914,
+        "A remote Peer shall not receive NAS credentials merely because the NAS is the Source of Truth."
+      ],
+      [
+        "00-Architecture/05-Integration/Synchronization/README.md",
+        1986,
+        "It shall not replace the NAS Source of Truth automatically."
+      ],
+      [
+        "00-Architecture/05-Integration/Synchronization/README.md",
+        2817,
+        "* The NAS remains the intended Library Source of Truth."
+      ],
+      [
+        "00-Architecture/05-Integration/Synchronization/README.md",
+        2922,
+        "The NAS remains the primary intended Source of Truth for the Library."
+      ]
+    ],
+    "Cloud as source of truth": [
+      [
+        "00-Architecture/05-Integration/README.md",
+        2363,
+        "* treat a remote or cloud copy as Source of Truth automatically;"
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureBacklog.md",
+        1853,
+        "# 103. AB-028 — Cloud Source of Truth Alternative"
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureBacklog.md",
+        2077,
+        "* A possible future Cloud Source of Truth does not change the current NAS Source of Truth architecture."
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureReview-v3.0.md",
+        1418,
+        "* future Cloud Source of Truth alternatives;"
+      ],
+      [
+        "00-Architecture/07-ArchitectureViews/ADR/ADR-004-Library-Source-of-Truth.md",
+        25,
+        "For the primary KnowledgeOS architecture, the configured NAS shall be the Library Source of Truth. Devices maintain governed local replicas and caches. A local replica may contain durable unsynchronized changes but does not silently become a competing Source of Truth. Cloud or alternative canonical modes require a future explicit architectural decision."
+      ],
+      [
+        "00-Architecture/07-ArchitectureViews/ADR/ADR-004-Library-Source-of-Truth.md",
+        36,
+        "* Vendor cloud as mandatory Source of Truth: rejected for ownership and lock-in reasons."
+      ]
+    ],
+    "Cache canonical": [
+      [
+        "00-Architecture/06-Execution/README.md",
+        1219,
+        "Persistent caches shall be distinguishable from canonical persistence."
+      ],
+      [
+        "00-Architecture/06-Execution/README.md",
+        1225,
+        "Cache loss shall not corrupt canonical knowledge."
+      ],
+      [
+        "00-Architecture/06-Execution/README.md",
+        2223,
+        "* Caches are not canonical state."
+      ],
+      [
+        "00-Architecture/06-Execution/README.md",
+        2224,
+        "* Cache loss does not corrupt canonical knowledge."
+      ],
+      [
+        "00-Architecture/06-Execution/README.md",
+        2263,
+        "* treat cache state as canonical knowledge;"
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureReview-v3.0.md",
+        1924,
+        "* treat caches as canonical state;"
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureVocabulary.md",
+        674,
+        "A **Cache** is a replaceable optimization layer containing data that may be discarded and reconstructed without violating canonical correctness."
+      ],
+      [
+        "00-Architecture/07-ArchitectureViews/ADR/ADR-004-Library-Source-of-Truth.md",
+        25,
+        "For the primary KnowledgeOS architecture, the configured NAS shall be the Library Source of Truth. Devices maintain governed local replicas and caches. A local replica may contain durable unsynchronized changes but does not silently become a competing Source of Truth. Cloud or alternative canonical modes require a future explicit architectural decision."
+      ],
+      [
+        "00-Architecture/07-ArchitectureViews/ADR/ADR-008-Storage-Architecture.md",
+        21,
+        "KnowledgeOS requires NAS canonical storage, local durable replicas, disposable caches, temporary processing files and derived artifacts. Treating these storage roles as one undifferentiated persistence layer would create competing authority and unsafe cleanup behavior."
+      ],
+      [
+        "00-Architecture/07-ArchitectureViews/ADR/ADR-008-Storage-Architecture.md",
+        25,
+        "Storage shall distinguish canonical storage, local replica storage, cache storage, temporary storage and derived artifact storage. Storage access shall use governed Storage Provider contracts. The Library Engine owns Library semantics and Source-of-Truth policy; Storage Providers provide capabilities but do not select canonical authority."
+      ],
+      [
+        "00-Architecture/07-ArchitectureViews/ADR/ADR-008-Storage-Architecture.md",
+        31,
+        "* A cache cannot silently become canonical."
+      ],
+      [
+        "00-Architecture/07-ArchitectureViews/ADR/ADR-008-Storage-Architecture.md",
+        42,
+        "* A cache cannot silently become canonical."
+      ],
+      [
+        "00-Architecture/06-Execution/Concurrency/Transactions.md",
+        1273,
+        "Cache mutation does not define canonical transaction semantics."
+      ],
+      [
+        "00-Architecture/06-Execution/Concurrency/Transactions.md",
+        1275,
+        "Cache failure shall not invalidate committed canonical state."
+      ],
+      [
+        "00-Architecture/06-Execution/Messaging/Queries.md",
+        3919,
+        "Queries may read canonical state, projections, indexes, caches, operational state or external Providers according to explicit contracts."
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/CacheStrategy.md",
+        180,
+        "> Cache loss shall affect performance or availability according to policy, but shall not corrupt canonical knowledge."
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/CacheStrategy.md",
+        232,
+        "# 8. Cache Is Not Canonical State"
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/CacheStrategy.md",
+        744,
+        "It shall not make cache commit appear authoritative before canonical commit."
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/CacheStrategy.md",
+        758,
+        "Events may populate or update caches after canonical commit."
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/CacheStrategy.md",
+        886,
+        "An EventuallyConsistent cache may lag behind canonical state."
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/CacheStrategy.md",
+        1273,
+        "Persistent caches shall not be stored inside canonical Library structures unless explicitly designed and clearly separated."
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/CacheStrategy.md",
+        2072,
+        "Cache failure shall not automatically mark canonical data as unhealthy."
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/CacheStrategy.md",
+        2150,
+        "Complete cache loss shall not cause canonical data loss."
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/CacheStrategy.md",
+        2339,
+        "* Cache is not canonical state."
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/CacheStrategy.md",
+        2351,
+        "* Persistent caches are separated from canonical Library structures."
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/CacheStrategy.md",
+        2359,
+        "* Cache corruption triggers rejection and rebuild, not canonical mutation."
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/CacheStrategy.md",
+        2374,
+        "* invalidate canonical state because cache data is missing;"
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/CacheStrategy.md",
+        2379,
+        "* store cache data inside canonical structures without explicit separation;"
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/ExecutionProfiles.md",
+        1014,
+        "It shall never delete canonical knowledge as cache cleanup."
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/ExecutionProfiles.md",
+        2049,
+        "* Maintenance never deletes canonical knowledge as cache cleanup."
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/MemoryModel.md",
+        2007,
+        "Canonical knowledge remains correct independently of memory residency, cache eviction, process termination or Resource pressure."
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/MemoryModel.md",
+        2009,
+        "KnowledgeOS distinguishes active working state, canonical working state, derived state, caches, buffers, temporary processing state, runtime infrastructure and model state."
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/MemoryModel.md",
+        2025,
+        "Memory pressure triggers progressive reduction of speculative, cached and background work before critical interactive or unsaved canonical state is affected."
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/PerformanceModel.md",
+        708,
+        "Canonical knowledge shall not be deleted as a cache policy."
+      ],
+      [
+        "00-Architecture/06-Execution/Performance/PerformanceModel.md",
+        1977,
+        "* treat cache as canonical state;"
+      ],
+      [
+        "00-Architecture/06-Execution/Reliability/Checkpointing.md",
+        1933,
+        "It is not canonical knowledge, a backup, a cache, a transaction commit, a Domain Event or a log."
+      ],
+      [
+        "00-Architecture/06-Execution/Reliability/ErrorHandling.md",
+        2049,
+        "Canonical corruption is distinguished from cache, projection and derived-state corruption."
+      ],
+      [
+        "00-Architecture/06-Execution/Reliability/Recovery.md",
+        285,
+        "Recovery may rebuild caches, but canonical Recovery requires stronger semantics."
+      ],
+      [
+        "00-Architecture/06-Execution/Reliability/Recovery.md",
+        1622,
+        "Cache loss shall not trigger canonical Recovery."
+      ],
+      [
+        "00-Architecture/06-Execution/Reliability/Recovery.md",
+        2352,
+        "* use cache or missing telemetry as proof of canonical state;"
+      ],
+      [
+        "00-Architecture/06-Execution/Reliability/Recovery.md",
+        2477,
+        "Canonical state, authoritative external status, validated transaction evidence and validated Checkpoints have greater authority than logs, caches, UI state or missing telemetry."
+      ],
+      [
+        "00-Architecture/05-Integration/DataExchange/ExportProtocols.md",
+        2230,
+        "Cache loss shall never cause canonical knowledge loss."
+      ],
+      [
+        "00-Architecture/05-Integration/DataExchange/Serialization.md",
+        2207,
+        "Cache entries remain derived and non-canonical."
+      ],
+      [
+        "00-Architecture/05-Integration/DataExchange/Serialization.md",
+        2227,
+        "Cache loss shall not cause canonical knowledge loss."
+      ],
+      [
+        "00-Architecture/05-Integration/DataExchange/Serialization.md",
+        2595,
+        "* Serialized caches remain derived and non-canonical."
+      ],
+      [
+        "00-Architecture/05-Integration/Providers/StorageProviders.md",
+        405,
+        "Cache loss shall never imply loss of canonical knowledge."
+      ],
+      [
+        "00-Architecture/05-Integration/Providers/StorageProviders.md",
+        1314,
+        "Cache behavior shall not redefine canonical authority or synchronization semantics."
+      ],
+      [
+        "00-Architecture/05-Integration/Providers/StorageProviders.md",
+        1441,
+        "* canonical NAS plus device cache;"
+      ],
+      [
+        "00-Architecture/05-Integration/PublicAPI/GraphQL.md",
+        351,
+        "Query execution may populate caches or telemetry without violating canonical Query semantics."
+      ],
+      [
+        "00-Architecture/05-Integration/PublicAPI/GraphQL.md",
+        1936,
+        "Cache implementation shall not redefine canonical authority."
+      ],
+      [
+        "00-Architecture/05-Integration/Storage/README.md",
+        299,
+        "Cache loss shall not imply canonical knowledge loss."
+      ],
+      [
+        "00-Architecture/05-Integration/Storage/README.md",
+        1407,
+        "Canonical data shall never be treated as disposable cache."
+      ],
+      [
+        "00-Architecture/05-Integration/Storage/README.md",
+        2108,
+        "* treat cache data as canonical data;"
+      ]
+    ],
+    "Local replica source of truth": [
+      [
+        "00-Architecture/08-Governance/ArchitectureVocabulary.md",
+        2246,
+        "# 295. Source of Truth Versus Local Replica"
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureVocabulary.md",
+        2522,
+        "* Source of Truth remains distinct from Local Replica and Cache."
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureVocabulary.md",
+        2646,
+        "Source of Truth, Local Replica and Cache remain distinct."
+      ],
+      [
+        "00-Architecture/07-ArchitectureViews/ADR/ADR-004-Library-Source-of-Truth.md",
+        25,
+        "For the primary KnowledgeOS architecture, the configured NAS shall be the Library Source of Truth. Devices maintain governed local replicas and caches. A local replica may contain durable unsynchronized changes but does not silently become a competing Source of Truth. Cloud or alternative canonical modes require a future explicit architectural decision."
+      ]
+    ],
+    "Engine provider direct coupling": [
+      [
+        "00-Architecture/07-ArchitectureViews/README.md",
+        987,
+        "Platform Engines shall not appear directly coupled to Provider implementations unless the View explicitly represents the adapter boundary."
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureReview-v3.0.md",
+        551,
+        "* Engines do not directly own Provider implementations."
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureReview-v3.0.md",
+        1030,
+        "Engine documents and diagrams shall not show direct dependencies on Provider-specific implementations."
+      ],
+      [
+        "00-Architecture/07-ArchitectureViews/ADR/ADR-005-Engine-Based-Architecture.md",
+        25,
+        "Each major Platform capability shall be owned by a named Engine with explicit responsibilities, contracts, lifecycle, invariants and prohibited behavior. Engines coordinate through approved Kernel and contract mechanisms. Engines do not directly own concrete Providers and do not bypass Integration boundaries."
+      ]
+    ],
+    "Job workflow conflation": [],
+    "UDM presentation ownership": [
+      [
+        "00-Architecture/01-Foundation/ArchitecturePrinciples.md",
+        521,
+        "These principles constitute the foundation upon which the Universal Document Model (UDM), the Document Presentation Model (DPM), the Kernel, the Platform and every future subsystem of KnowledgeOS are designed, implemented and evolved."
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureVocabulary.md",
+        2550,
+        "* redefine UDM as a presentation model;"
+      ],
+      [
+        "00-Architecture/02-Domain/DPM/Mapping/AnchorMapping.md",
+        22,
+        "This document defines the canonical mapping model between Anchors in the Universal Document Model (UDM) and their visual representations within the Document Presentation Model (DPM)."
+      ],
+      [
+        "00-Architecture/02-Domain/DPM/Mapping/AssetMapping.md",
+        22,
+        "This document defines the canonical mapping model between Asset Nodes in the Universal Document Model (UDM) and their visual projections within the Document Presentation Model (DPM)."
+      ],
+      [
+        "00-Architecture/02-Domain/DPM/Mapping/UDMMapping.md",
+        21,
+        "This document defines the canonical mapping model between the Universal Document Model (UDM) and the Document Presentation Model (DPM)."
+      ]
+    ],
+    "DPM semantic authority": [
+      [
+        "00-Architecture/08-Governance/ArchitectureReview-v3.0.md",
+        987,
+        "Import, Render, Annotation and Export documents shall not allow DPM to redefine canonical semantic content."
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureVocabulary.md",
+        407,
+        "DPM shall not redefine canonical semantic content."
+      ],
+      [
+        "00-Architecture/08-Governance/ArchitectureVocabulary.md",
+        2551,
+        "* redefine DPM as canonical semantic content;"
+      ],
+      [
+        "00-Architecture/02-Domain/DPM/README.md",
+        23,
+        "The DPM preserves how knowledge is spatially and visually organized without making presentation technology part of canonical semantic content."
+      ],
+      [
+        "00-Architecture/02-Domain/DPM/README.md",
+        468,
+        "A DPM may evolve independently when presentation changes without changing canonical semantic content."
+      ]
+    ]
+  },
+  "engine_presence": {
+    "AI": true,
+    "Annotation": true,
+    "Export": true,
+    "Import": true,
+    "Knowledge": true,
+    "Library": true,
+    "Plugin": true,
+    "Render": true,
+    "Search": true,
+    "Sync": true
+  },
+  "ab_statuses": {
+    "AB-001": "Accepted",
+    "AB-002": "Accepted",
+    "AB-003": "Resolved",
+    "AB-004": "Resolved",
+    "AB-005": "Resolved"
+  }
+}

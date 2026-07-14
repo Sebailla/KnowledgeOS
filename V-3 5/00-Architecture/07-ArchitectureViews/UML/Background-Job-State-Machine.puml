@@ -1,0 +1,54 @@
+@startuml UML-BACKGROUND-JOB-STATE-MACHINE
+title KnowledgeOS — Background Job State Machine
+caption Architecture V3.0
+
+skinparam shadowing false
+
+[*] --> Created
+Created --> Accepted : durable acceptance succeeds
+Created --> Failed : acceptance rejected
+
+Accepted --> Waiting : dependency or schedule pending
+Accepted --> Scheduled : immediately eligible
+
+Waiting --> Scheduled : conditions satisfied
+Waiting --> Cancelled : cancellation resolved
+Waiting --> Failed : permanent dependency failure
+
+Scheduled --> Running : Attempt acquires ownership
+Scheduled --> Cancelled : cancelled before dispatch
+
+Running --> Completed : durable effects established
+Running --> RetryPending : retryable Attempt failure
+Running --> Suspended : checkpointed interruption
+Running --> Cancelled : cancellation resolved
+Running --> Failed : permanent failure
+Running --> RecoveryRequired : unknown outcome / lease loss
+
+RetryPending --> Scheduled : retry policy permits
+RetryPending --> Failed : retry budget exhausted
+RetryPending --> Cancelled : cancellation resolved
+
+Suspended --> Scheduled : resume creates new Attempt
+Suspended --> Cancelled : cancellation resolved
+Suspended --> RecoveryRequired : checkpoint invalid
+
+RecoveryRequired --> Scheduled : reconciliation permits retry
+RecoveryRequired --> Completed : reconciliation confirms success
+RecoveryRequired --> Failed : reconciliation confirms failure
+RecoveryRequired --> Cancelled : explicit cancellation outcome
+
+Completed --> [*]
+Failed --> [*]
+Cancelled --> [*]
+
+note right of Running
+  Every execution or retry uses a distinct Attempt Identity.
+end note
+
+note right of RecoveryRequired
+  Unknown outcomes are never treated as safe blind retry.
+end note
+
+footer KnowledgeOS Architecture | UML | Version 3.0
+@enduml

@@ -1,0 +1,58 @@
+@startuml UML-IMPORT-PIPELINE
+title KnowledgeOS — Import Pipeline
+caption Architecture V3.0
+
+skinparam shadowing false
+autonumber
+
+actor User
+participant "Import Engine" as ImportEngine
+participant "Data Exchange / Import Protocol" as Protocol
+participant "OCR Provider" as OCR
+participant "UDM Processing" as UDM
+participant "DPM Processing" as DPM
+participant "Library Engine" as Library
+participant "Job System" as Jobs
+participant "Search Engine" as Search
+participant "AI Engine" as AI
+
+User -> ImportEngine : Select source for import
+ImportEngine -> Protocol : Open and validate source
+Protocol --> ImportEngine : Normalized source stream
+
+alt OCR required
+  ImportEngine -> OCR : Request OCR processing
+  OCR --> ImportEngine : Recognized content and layout evidence
+end
+
+ImportEngine -> UDM : Build semantic and structural model
+UDM --> ImportEngine : Validated UDM
+
+ImportEngine -> DPM : Build presentation and layout model
+DPM --> ImportEngine : Validated DPM
+
+ImportEngine -> Library : Commit Knowledge Object, UDM, DPM and Assets
+Library --> ImportEngine : Canonical commit confirmed
+
+ImportEngine --> User : Basic document available
+
+ImportEngine -> Jobs : Schedule derived processing
+
+par Search indexing
+  Jobs -> Search : Build lexical and structural indexes
+else Embeddings / semantic enrichment
+  Jobs -> AI : Generate optional embeddings or AI-derived metadata
+else Additional reconstruction
+  Jobs -> DPM : Generate previews or derived presentation artifacts
+end
+
+note over ImportEngine, Library
+  Canonical availability does not wait for every derived job.
+end note
+
+note over Jobs, AI
+  Derived work is rebuildable and must not redefine canonical meaning silently.
+end note
+
+footer KnowledgeOS Architecture | UML | Version 3.0
+@enduml
