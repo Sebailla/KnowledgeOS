@@ -1,16 +1,306 @@
-# 05-Persistence README
 
-## Scope
+# Master Library Persistence
 
-This folder contains the persistence artifacts for the KnowledgeOS V-3 Master Library: the on-disk layout of a Master Library, the catalog schema, the storage strategy for source artifacts, and the storage strategy for local libraries maintained by clients. Together they define how state is durably represented on disk.
+**Project:** KnowledgeOS
 
-## Index
+**Section:** Implementation
 
-- [MasterLibraryLayout](./MasterLibraryLayout.md)
-- [CatalogSchema](./CatalogSchema.md)
-- [SourceStorage](./SourceStorage.md)
-- [LocalLibraryStorage](./LocalLibraryStorage.md)
+**Module:** Master Library
 
-## How to use this section
+**Layer:** Persistence
 
-The files inside this section are drafts to be filled in during planning. The Master Library layout and catalog schema describe the authoritative state on the server; Source Storage describes how artifacts are durably stored; Local Library Storage describes what clients keep on their own disk. Update them as the persistence design matures.
+**Document:** README
+
+**Version:** 1.0
+
+**Status:** Approved
+
+**Architecture Baseline:** KnowledgeOS Architecture V3.0 + Amendment V3.0-001
+
+---
+
+# 1. Purpose
+
+This section defines the complete persistence architecture of the KnowledgeOS Master Library.
+
+Persistence is responsible for storing, protecting, validating and recovering every authoritative resource managed by the NAS-hosted Master Library.
+
+Unlike client devices, the Master Library is the only authoritative repository for publications.
+
+It is therefore designed to maximize:
+
+* integrity
+* recoverability
+* deterministic behavior
+* auditability
+* long-term maintainability
+
+---
+
+# 2. Scope
+
+This section specifies:
+
+* physical directory layout
+* catalog database
+* publication storage
+* cover storage
+* metadata persistence
+* identities
+* credentials
+* manifests
+* audit records
+* migrations
+* backups
+* recovery
+* consistency validation
+* locking
+* transactions
+* checksums
+* staging
+* integrity validation
+
+It also defines the persistence model used by Reader clients where necessary.
+
+---
+
+# 3. Architectural Principles
+
+The persistence layer follows the principles defined by Architecture V3:
+
+* Master Library is authoritative.
+* Reader libraries are disposable.
+* Publications are immutable.
+* SourceVersion is immutable.
+* Personal state never belongs to the Master Library.
+* Storage is deterministic.
+* Storage must be inspectable.
+* Storage shall survive application upgrades.
+* Storage shall survive operating-system upgrades.
+* Storage shall remain independent of any database engine.
+
+---
+
+# 4. Persistence Layers
+
+The persistence architecture is divided into independent layers.
+
+```text
+Persistence
+
+├── Identity
+
+├── Metadata
+
+├── Catalog
+
+├── Publications
+
+├── Covers
+
+├── Audit
+
+├── Credentials
+
+├── Recovery
+
+├── Staging
+
+└── Client Storage
+```
+
+Each layer has one clearly defined responsibility.
+
+---
+
+# 5. Storage Categories
+
+The Master Library stores only authoritative information.
+
+Categories include:
+
+* Library identity
+* Server identity
+* Publication metadata
+* Catalog
+* Source files
+* Covers
+* Administrative configuration
+* Registered devices
+* Credentials
+* Audit logs
+* Migration state
+* Recovery markers
+
+It never stores:
+
+* annotations
+* highlights
+* bookmarks
+* reading progress
+* favorites
+* personal collections
+* personal tags
+
+Those belong exclusively to client devices.
+
+---
+
+# 6. Storage Objectives
+
+The persistence layer is optimized for:
+
+* correctness
+* recoverability
+* transparency
+* deterministic recovery
+* human inspection
+* reproducible backups
+* long-term compatibility
+
+It is not optimized for maximum write throughput.
+
+---
+
+# 7. Separation of Concerns
+
+Persistence never contains business rules.
+
+It only guarantees:
+
+* durability
+* consistency
+* atomicity where required
+* identity preservation
+* recoverability
+
+Business validation belongs to the Domain layer.
+
+---
+
+# 8. Immutable vs Mutable Data
+
+Immutable:
+
+* publications
+* SourceVersion payloads
+* historical audit records
+
+Mutable:
+
+* metadata
+* catalog
+* covers
+* configuration
+* credentials
+* registered devices
+
+Each category follows different persistence rules.
+
+---
+
+# 9. Physical Independence
+
+The persistence model does not depend on:
+
+* SQLite
+* PostgreSQL
+* MySQL
+* any NAS vendor
+* filesystem implementation
+
+Concrete technologies are implementation details.
+
+---
+
+# 10. Persistence Documents
+
+This section is composed of the following specifications:
+
+```text
+README.md
+
+StorageArchitecture.md
+
+DirectoryLayout.md
+
+CatalogDatabase.md
+
+CatalogSchema.md
+
+SourceStorage.md
+
+CoverStorage.md
+
+Manifest.md
+
+IdentityStorage.md
+
+CredentialStorage.md
+
+AuditStorage.md
+
+Migrations.md
+
+BackupRestore.md
+
+Recovery.md
+
+Transactions.md
+
+Locking.md
+
+Consistency.md
+
+Integrity.md
+
+Checksums.md
+
+LocalReaderCache.md
+
+LocalLibraryStorage.md
+
+AcquisitionStorage.md
+
+StagingStorage.md
+```
+
+Each document specifies one persistence subsystem.
+
+---
+
+# 11. Relationship with Other Modules
+
+This section depends on:
+
+* Domain
+* Technical Design
+* Contracts
+
+It provides services to:
+
+* Application
+* HTTP API
+* Background Jobs
+* Import Pipeline
+* Acquisition Engine
+* Catalog Engine
+* Administration Engine
+
+---
+
+# 12. Persistence Philosophy
+
+The storage model follows one guiding rule:
+
+> If a knowledgeable administrator inspects the Master Library on disk, its structure should be understandable without reverse engineering proprietary formats.
+
+The Master Library is intended to remain portable, inspectable and durable for decades.
+
+---
+
+# 13. Status
+
+**Approved**
+
+This document serves as the entry point for every persistence specification of the KnowledgeOS Master Library.
