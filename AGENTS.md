@@ -1,4486 +1,1153 @@
-> **KnowledgeOS AI Operational Manual**
 
-> This document defines the mandatory operational behavior for every
-> Artificial Intelligence agent working inside the KnowledgeOS repository.
->
-> Version: 1.0
->
-> Status: Draft
->
-> Repository: KnowledgeOS
->
-> Owner: KnowledgeOS Architecture
-
-
-PART I
-KNOWLEDGEOS REPOSITORY CONSTITUTION
-
-1. Purpose
-
-The purpose of this document is to define the operational rules that govern every Artificial Intelligence agent working within the KnowledgeOS repository.
-
-This document is not an architectural specification.
-
-It is not an implementation guide.
-
-It is not a software design document.
-
-Instead, it defines how an AI agent shall work.
-
-Every modification performed by an AI agent shall comply with the rules defined here.
-
-These rules are mandatory.
-
-Compliance is not optional.
-
-Whenever an instruction conflicts with this document, the conflict shall be resolved according to the priority rules defined later in this document.
-
-2. Philosophy
-
-KnowledgeOS is a long-term engineering project.
-
-It is expected to evolve continuously over many years.
-
-Its architecture shall outlive programming languages, frameworks, libraries and AI models.
-
-For this reason, every AI agent shall prioritize long-term architectural integrity over short-term implementation convenience.
-
-Temporary productivity gains shall never justify architectural degradation.
-
-Every modification shall preserve the conceptual integrity of the system.
-
-Architecture is considered a permanent asset.
-
-Source code is considered one implementation of that architecture.
-
-Documentation is considered part of the product itself.
-
-3. Mission of the Repository
-
-The repository exists to describe, implement, validate and evolve KnowledgeOS.
-
-The repository is the authoritative engineering specification of the platform.
-
-Every document, diagram, ADR, source file and test contributes to a single coherent engineering model.
-
-Nothing inside the repository shall exist without a purpose.
-
-Every artifact shall contribute to one or more of the following objectives:
-
-define architecture;
-implement architecture;
-validate architecture;
-explain architecture;
-evolve architecture.
-
-Anything outside those objectives should not exist inside the repository.
-
-4. Architectural Authority
-
-The architecture defines the implementation.
-
-The implementation never defines the architecture.
-
-This principle is absolute.
-
-Whenever implementation exposes architectural deficiencies, the architecture shall be corrected first.
-
-Only after the architectural correction has been approved may the implementation evolve.
-
-An implementation shall never silently redefine the architecture.
-
-Likewise, documentation shall never be modified merely to justify an existing implementation.
-
-Architecture always leads.
-
-Implementation always follows.
-
-5. Repository Values
-
-Every AI agent shall preserve the following values during every task.
-
-5.1 Consistency
-
-The repository shall behave as a single coherent engineering system.
-
-Terminology shall remain consistent.
-
-Concepts shall never be duplicated.
-
-Definitions shall remain unique.
-
-Naming conventions shall remain stable.
-
-Architectural language shall remain uniform across the repository.
-
-5.2 Clarity
-
-Every artifact shall be understandable.
-
-Complexity is acceptable.
-
-Confusion is not.
-
-When a concept becomes difficult to understand, documentation shall be improved before additional complexity is introduced.
-
-5.3 Simplicity
-
-KnowledgeOS favors simple architecture over clever architecture.
-
-Solutions shall be as simple as possible while satisfying all architectural requirements.
-
-Artificial complexity shall be avoided.
-
-Premature optimization shall be avoided.
-
-Overengineering shall be avoided.
-
-5.4 Maintainability
-
-Every modification shall improve or preserve maintainability.
-
-Short-term implementation convenience shall never reduce long-term maintainability.
-
-Future contributors shall always be considered.
-
-5.5 Evolvability
-
-KnowledgeOS is designed for continuous evolution.
-
-New capabilities shall extend existing architecture instead of replacing it whenever possible.
-
-Backward architectural compatibility shall be preserved whenever feasible.
-
-Architectural rewrites require explicit justification through an approved ADR.
-
-5.6 User Ownership
-
-The user owns all knowledge managed by KnowledgeOS.
-
-KnowledgeOS never owns user knowledge.
-
-Every subsystem shall preserve this principle.
-
-Data portability is mandatory.
-
-Vendor lock-in is prohibited.
-
-5.7 Privacy
-
-Privacy is a fundamental architectural value.
-
-Artificial Intelligence shall never require remote execution unless explicitly requested.
-
-Local execution is preferred whenever technically feasible.
-
-The repository shall never evolve toward unnecessary centralization of user information.
-
-5.8 Determinism
-
-Whenever technically feasible:
-
-identical inputs,
-identical configuration,
-identical versions,
-
-shall produce identical outputs.
-
-Deterministic behavior improves testing, synchronization, reproducibility and debugging.
-
-5.9 Documentation First
-
-Documentation is not generated after implementation.
-
-Documentation defines implementation.
-
-Every important architectural concept shall exist as documentation before becoming source code.
-
-Undocumented architecture does not officially exist.
-
-5.10 Engineering Discipline
-
-Every modification shall be intentional.
-
-Every architectural decision shall be traceable.
-
-Every important decision shall be reviewable.
-
-Every approved decision shall remain discoverable.
-
-The repository shall never evolve through undocumented assumptions.
-
-6. Applicability
-
-This document applies to every artifact contained in the repository.
-
-Including, but not limited to:
-
-Markdown documentation
-ADRs
-Architecture specifications
-Domain documentation
-Kernel documentation
-Platform documentation
-Integration documentation
-Implementation documentation
-Source code
-Build scripts
-Deployment scripts
-UML diagrams
-C4 diagrams
-Test suites
-Configuration files
-Plugin SDK
-Examples
-Developer tooling
-
-No directory is exempt.
-
-No file is exempt.
-
-No AI agent is exempt.
-
-
-## Estado
-
-Con esto queda completada la **Parte I – Repository Constitution**.
-
-Esta primera parte establece la filosofía y los principios operativos. La siguiente, **Part II – Repository Overview**, describirá en detalle la estructura del repositorio, el propósito de cada directorio y el orden obligatorio en que un agente debe comprender KnowledgeOS antes de realizar cualquier modificación. Esa será la base que permitirá a Codex y otros agentes orientarse correctamente dentro del proyecto.
-
-
-# PART II
-
-# REPOSITORY OVERVIEW
+# AGENTS.md
+
+**Project:** KnowledgeOS
+**Document:** Repository Agent Guide
+**Version:** 1.0
+**Status:** Approved
+**Scope:** Entire repository
+**Owner:** KnowledgeOS Team
 
 ---
 
-# 7. Repository Philosophy
+# 1. Purpose
 
-KnowledgeOS shall be treated as a long-lived engineering system.
+This document is the mandatory entry point for every human or AI agent working in the KnowledgeOS repository.
 
-The repository is not a collection of independent projects.
+Its purpose is to explain:
 
-It is a single architectural system composed of multiple layers, each with a clearly defined responsibility.
+* how the repository is organized;
+* where authoritative information lives;
+* which documents must be read before making changes;
+* how architectural and implementation decisions are governed;
+* how local `AGENTS.md` files refine repository-wide rules;
+* how work must be analyzed, executed and validated.
 
-Every directory exists because it represents a specific architectural concern.
+This document does not replace the architecture documentation.
 
-AI agents shall never interpret the repository as a flat collection of files.
-
-Instead, they shall understand it as a hierarchy of engineering knowledge.
-
-Every modification shall preserve this hierarchy.
-
----
-
-# 8. Repository Organization
-
-The repository is organized into multiple architectural layers.
-
-Each layer has a specific purpose.
-
-Each layer depends only on lower-level concepts according to the architectural model.
-
-The repository shall evolve by extending these layers instead of creating parallel structures.
-
-The major repository areas are:
-
-• Governance
-
-• Architecture
-
-• Domain
-
-• Kernel
-
-• Platform
-
-• Integration
-
-• Implementation
-
-• Infrastructure
-
-Each area owns its own documentation.
-
-Each area defines its own responsibilities.
-
-AI agents shall understand these responsibilities before making modifications.
+It provides the operational rules required to navigate and modify the repository safely.
 
 ---
 
-# 9. Repository Reading Order
+# 2. Scope
 
-Before performing any architectural or implementation task, every AI agent shall understand the project.
+These instructions apply to:
 
-Understanding always precedes modification.
+* AI coding agents;
+* AI documentation agents;
+* AI review agents;
+* human contributors;
+* maintainers;
+* external collaborators;
+* automated repository tooling.
 
-The mandatory reading order is:
+They apply to every repository area, including:
 
-1. AGENTS.md
-2. README.md
-3. ProductVision.md
-4. ArchitecturePrinciples.md
-5. ArchitectureConstraints.md
-6. ArchitectureModel.md
-7. QualityAttributes.md
-8. Approved ADRs
-9. Domain documentation
-10. Kernel documentation
-11. Platform documentation
-12. Integration documentation
-13. Implementation documentation
-
-Skipping steps is prohibited.
-
-When sufficient context cannot be obtained, the AI agent shall stop and request additional information.
-
----
-
-# 10. Repository Layers
-
-## 10.1 Governance
-
-Governance defines how the architecture evolves.
-
-Typical contents include:
-
-- Architecture reviews
-- Decision matrices
-- Documentation standards
-- Migration plans
-- Vocabulary
-- Architectural governance
-
-Governance never defines implementation.
-
-Governance defines how implementation shall evolve.
+* architecture;
+* governance;
+* domain;
+* kernel;
+* platform;
+* integration;
+* execution;
+* architecture views;
+* implementation;
+* testing;
+* operations;
+* generated artifacts.
 
 ---
 
-## 10.2 Foundation
+# 3. Repository Authority
 
-Foundation defines the permanent architectural principles.
+The repository is the authoritative memory of KnowledgeOS.
 
-Typical contents include:
+Architecture, implementation decisions, contracts, diagrams and operational procedures shall be preserved in version-controlled repository artifacts.
 
-- Product Vision
-- Architecture Principles
-- Constraints
-- Quality Attributes
-- Architecture Model
+Conversation history, AI memory, external notes and temporary workspaces are not authoritative.
 
-These documents rarely change.
+When information conflicts, the following precedence applies:
 
-Every architectural decision depends on them.
+1. approved architectural decisions;
+2. approved governance documents;
+3. frozen foundation documents;
+4. normative architecture documentation;
+5. public contracts;
+6. implementation documentation;
+7. implementation code;
+8. tests;
+9. comments;
+10. conversational context.
 
----
+Code shall not silently override approved architecture.
 
-## 10.3 Domain
-
-The Domain layer defines the conceptual model of KnowledgeOS.
-
-It contains no implementation.
-
-Instead, it defines:
-
-- concepts
-- identities
-- relationships
-- semantics
-- knowledge structures
-- lifecycle
-
-The Domain is independent from technologies.
-
-Technologies may evolve.
-
-The Domain should remain stable.
+When code and architecture disagree, the inconsistency shall be reported and resolved explicitly.
 
 ---
 
-## 10.4 Kernel
+# 4. Repository Structure
 
-The Kernel defines the runtime foundation.
+KnowledgeOS is organized into two primary areas:
 
-It coordinates the execution of the platform.
+```text
+00-Architecture/
+01-Implementation/
+```
 
-Typical responsibilities include:
+`00-Architecture/` defines the product architecture, domain, kernel, platform, integrations, execution model, architectural views and governance.
 
-- Dependency Injection
-- Event Bus
-- Command Bus
-- Query Bus
-- Scheduler
-- Workflow Engine
-- Configuration
-- Logging
-- Observability
+`01-Implementation/` defines how approved architecture is converted into executable systems, applications, modules, services, clients, persistence models, tests and operational procedures.
 
-The Kernel shall remain independent from business features.
+The architecture defines what the system is and the rules it must preserve.
+
+The implementation defines how those rules are realized.
+
+Implementation shall conform to architecture.
 
 ---
 
-## 10.5 Platform
+# 5. Mandatory Reading Order
 
-Platform contains the engines responsible for user-visible capabilities.
+Before modifying the repository, every agent shall read the minimum required context.
+
+## 5.1 Repository-level reading
+
+The mandatory initial order is:
+
+1. `AGENTS.md`
+2. root `README.md`, when present
+3. the nearest local `AGENTS.md`
+4. the nearest module `README.md`
+
+## 5.2 Architecture reading
+
+Before making architectural or cross-module changes, read:
+
+1. `00-Architecture/01-Foundation/ProductVision.md`
+2. `00-Architecture/01-Foundation/ArchitecturePrinciples.md`
+3. `00-Architecture/01-Foundation/ArchitectureConstraints.md`
+4. `00-Architecture/01-Foundation/ArchitectureModel.md`
+5. `00-Architecture/01-Foundation/QualityAttributes.md`
+6. `00-Architecture/08-Governance/ArchitectureFreeze-v3.0.md`
+7. relevant ADRs under `00-Architecture/07-ArchitectureViews/ADR/`
+8. relevant architecture module documentation
+9. relevant diagrams
+
+## 5.3 Implementation reading
+
+Before modifying implementation documentation or code, read:
+
+1. `01-Implementation/00-Governance/README.md`
+2. `01-Implementation/00-Governance/ImplementationStrategy.md`
+3. `01-Implementation/00-Governance/DefinitionOfDone.md`
+4. `01-Implementation/00-Governance/ModuleDevelopmentLifecycle.md`
+5. the implementation module `README.md`
+6. the module `AGENTS.md`
+7. the module charter, when present
+8. requirements
+9. technical design
+10. domain model
+11. contracts
+12. persistence documentation
+13. testing strategy
+14. operational requirements
+
+The complete repository shall not be loaded unnecessarily.
+
+Agents shall retrieve only the context required for the current task.
+
+---
+
+# 6. Local AGENTS.md Hierarchy
+
+KnowledgeOS uses distributed agent instructions.
+
+A local `AGENTS.md` applies to the directory in which it is located and all descendant directories, unless a deeper `AGENTS.md` overrides or refines it.
+
+Instruction precedence is:
+
+1. root `AGENTS.md`;
+2. parent directory `AGENTS.md`;
+3. nearest local `AGENTS.md`;
+4. task-specific approved documentation.
+
+Local files may strengthen repository rules.
+
+Local files shall not weaken architectural invariants, approved ADRs, governance rules or repository-wide prohibitions.
+
+When two instructions conflict, the stricter rule applies unless an approved architectural decision explicitly resolves the conflict.
+
+---
+
+# 7. Core Architectural Invariants
+
+Every change shall preserve the following invariants.
+
+## 7.1 User ownership
+
+Knowledge belongs to the user.
+
+The platform shall not create avoidable dependencies that prevent access, migration, export or long-term preservation.
+
+## 7.2 NAS as authoritative source
+
+The Master Library hosted on the NAS is the authoritative source of truth for shared knowledge.
+
+Local libraries, caches and application state shall not silently replace the Master Library as the authoritative repository.
+
+## 7.3 Offline-first operation
+
+Core user workflows shall remain available without continuous network connectivity.
+
+Network access enhances the system but shall not be a mandatory prerequisite for ordinary local work.
+
+## 7.4 Open and portable knowledge
+
+Knowledge shall remain exportable and representable through documented, portable formats whenever practical.
+
+## 7.5 Stable identity
+
+Knowledge objects, documents, assets, nodes, annotations and relationships shall preserve stable identities across storage, synchronization, processing and presentation.
+
+## 7.6 Domain independence
+
+The Domain shall remain independent from:
+
+* UI frameworks;
+* persistence frameworks;
+* operating systems;
+* network protocols;
+* external providers;
+* vendor-specific services;
+* implementation technologies.
+
+## 7.7 Kernel neutrality
+
+The Kernel provides execution mechanisms.
+
+It shall not contain product-specific business logic.
+
+## 7.8 Engine isolation
+
+Platform Engines shall preserve explicit responsibilities and controlled boundaries.
+
+An Engine shall not access another Engine's internal state.
+
+Cross-Engine interaction shall use approved contracts, commands, queries or events.
+
+## 7.9 Public contracts
+
+Interactions across architectural boundaries shall use explicit and versioned contracts.
+
+Internal implementation details shall not become accidental public APIs.
+
+## 7.10 AI independence
+
+KnowledgeOS shall not depend on one AI provider, model or execution environment.
+
+AI integrations shall remain replaceable through provider abstractions and public contracts.
+
+## 7.11 Deterministic behavior
+
+Operations that are expected to be deterministic shall produce reproducible results when given equivalent inputs, configuration and execution conditions.
+
+## 7.12 Idempotency
+
+Operations that may be repeated because of retries, synchronization, recovery or distributed execution shall define idempotent behavior where required.
+
+## 7.13 Traceability
+
+Important decisions and changes shall remain traceable to:
+
+* requirements;
+* architectural documents;
+* ADRs;
+* contracts;
+* tests;
+* implementation artifacts.
+
+## 7.14 Documentation authority
+
+Approved documentation is part of the system.
+
+Outdated, contradictory or missing documentation is an engineering defect.
+
+---
+
+# 8. Prohibited Actions
+
+Agents shall not:
+
+* modify the frozen architecture without an approved amendment process;
+* silently reinterpret Product Vision;
+* overwrite approved ADRs;
+* introduce undocumented architectural concepts;
+* duplicate an existing concept under a different name;
+* place business logic in the Kernel;
+* introduce implementation technology into the Domain;
+* bypass UDM or DPM where they are architecturally required;
+* bypass public contracts between modules;
+* create direct Engine-to-Engine internal dependencies;
+* make local storage authoritative when the Master Library must remain authoritative;
+* create vendor lock-in without an approved decision;
+* introduce hidden network requirements into offline-first workflows;
+* remove traceability between architecture, implementation and testing;
+* generate code before required design and contracts exist;
+* mark work complete when documentation, validation or tests remain inconsistent;
+* edit generated diagram output as if it were the source;
+* invent files, modules, decisions or requirements to fill perceived gaps.
+
+When required information is missing, the agent shall identify the gap explicitly.
+
+---
+
+# 9. Mandatory Work Process
+
+Every task shall follow this process.
+
+## 9.1 Understand
+
+Determine:
+
+* the requested outcome;
+* the affected repository area;
+* the authoritative documents;
+* the relevant local instructions;
+* the expected deliverables.
+
+## 9.2 Recover context
+
+Read the minimum documents required to understand the task.
+
+Do not rely solely on previous conversations or model memory.
+
+## 9.3 Analyze impact
+
+Identify potential impact on:
+
+* Product Vision;
+* architecture principles;
+* architecture constraints;
+* quality attributes;
+* ADRs;
+* Domain;
+* Kernel;
+* Platform;
+* Integration;
+* Execution;
+* public contracts;
+* persistence;
+* synchronization;
+* security;
+* testing;
+* operations;
+* diagrams;
+* documentation.
+
+## 9.4 Plan
+
+Define:
+
+* files to create;
+* files to modify;
+* files to review;
+* dependencies;
+* validation steps;
+* acceptance criteria.
+
+The plan shall remain proportional to the task.
+
+## 9.5 Validate before modification
+
+Before changing a concept, verify that:
+
+* it does not already exist;
+* its authoritative owner is known;
+* its name follows repository vocabulary;
+* its architectural layer is correct;
+* its dependencies follow allowed directions;
+* no ADR prohibits the change.
+
+## 9.6 Execute
+
+Make the smallest coherent change that fully satisfies the task.
+
+Do not mix unrelated refactoring with the requested work.
+
+## 9.7 Review
+
+Review the result for:
+
+* correctness;
+* architectural compliance;
+* terminology consistency;
+* completeness;
+* internal contradictions;
+* accidental duplication;
+* broken references;
+* missing tests;
+* missing documentation;
+* obsolete diagrams.
+
+## 9.8 Verify
+
+Run all applicable validation mechanisms.
 
 Examples include:
 
-- Library Engine
-- Search Engine
-- Import Engine
-- Export Engine
-- AI Engine
-- Annotation Engine
-- Render Engine
-- Plugin Engine
+* test suites;
+* linters;
+* formatters;
+* static analysis;
+* schema validation;
+* contract tests;
+* diagram compilation;
+* documentation checks;
+* architecture compliance checks.
 
-Every Platform engine is isolated.
+## 9.9 Report
 
-Engines communicate through public contracts.
+The final report shall state:
 
-Direct dependencies between engines shall be minimized.
-
----
-
-## 10.6 Integration
-
-Integration defines every interaction with external systems.
-
-Typical responsibilities include:
-
-- Public APIs
-- External Providers
-- OAuth
-- MCP
-- Webhooks
-- Data Exchange
-- Plugin SDK
-
-Integration shall isolate the platform from external dependencies.
+* what changed;
+* which files changed;
+* why the change was made;
+* what was validated;
+* unresolved limitations or risks.
 
 ---
 
-## 10.7 Implementation
+# 10. Architecture Change Rules
 
-Implementation contains the executable software.
+A change is architectural when it modifies or introduces:
 
-Implementation realizes the architecture.
+* system boundaries;
+* architectural layers;
+* Domain semantics;
+* Kernel responsibilities;
+* Engine responsibilities;
+* public contracts;
+* persistence authority;
+* synchronization strategy;
+* identity semantics;
+* event semantics;
+* execution guarantees;
+* deployment topology;
+* security boundaries;
+* provider abstractions;
+* plugin capabilities;
+* compatibility guarantees.
 
-Implementation never redefines architecture.
+Architectural changes require:
 
-If implementation and architecture diverge, architecture shall be reviewed before implementation changes continue.
+1. impact analysis;
+2. review of existing ADRs;
+3. identification of affected documents;
+4. an amendment or new ADR when required;
+5. updates to affected diagrams;
+6. architecture validation;
+7. explicit approval.
 
----
-
-# 11. Repository Navigation Rules
-
-AI agents shall navigate the repository intentionally.
-
-They shall never search randomly.
-
-Navigation shall always begin from the architectural level.
-
-The expected navigation flow is:
-
-Vision
-
-↓
-
-Architecture
-
-↓
-
-Domain
-
-↓
-
-Kernel
-
-↓
-
-Platform
-
-↓
-
-Integration
-
-↓
-
-Implementation
-
-↓
-
-Code
-
-Reverse navigation is discouraged.
-
-Code shall never become the primary source of architectural understanding.
+Implementation shall not precede approval when the change affects frozen architecture.
 
 ---
 
-# 12. Ownership of Information
+# 11. ADR Rules
 
-Every important concept shall have exactly one owner.
+Approved ADRs are immutable historical records.
 
-Examples:
+They shall not be rewritten to conceal architectural evolution.
 
-Product goals belong to ProductVision.md.
+When a decision changes:
 
-Architectural principles belong to ArchitecturePrinciples.md.
+* create a new ADR;
+* mark the previous ADR as superseded when applicable;
+* preserve the original decision;
+* document the rationale for the new decision;
+* update references and diagrams.
 
-Constraints belong to ArchitectureConstraints.md.
+Minor corrections that do not alter meaning may be handled according to governance rules.
 
-Quality requirements belong to QualityAttributes.md.
+Every proposed architectural decision shall include:
 
-Architectural decisions belong to ADRs.
-
-Domain concepts belong to Domain documentation.
-
-Execution behavior belongs to Kernel documentation.
-
-Platform capabilities belong to Platform documentation.
-
-Implementation details belong to the Implementation layer.
-
-AI agents shall never duplicate definitions.
-
-Instead, documents shall reference the authoritative source.
-
----
-
-# 13. Cross References
-
-KnowledgeOS documentation is intentionally interconnected.
-
-AI agents shall preserve all cross references.
-
-Whenever a document changes, every dependent document shall be reviewed.
-
-Broken references are considered documentation defects.
-
-Implicit relationships should become explicit whenever appropriate.
+* context;
+* decision;
+* alternatives considered;
+* consequences;
+* trade-offs;
+* affected components;
+* migration implications;
+* compatibility implications;
+* validation criteria.
 
 ---
 
-# 14. Repository Evolution
+# 12. Documentation Rules
 
-The repository is expected to grow continuously.
+Documentation shall be:
 
-Growth shall occur through extension.
+* precise;
+* explicit;
+* internally consistent;
+* version controlled;
+* traceable;
+* readable without conversational context.
 
-Not through duplication.
+Each document shall have one primary responsibility.
 
-Not through fragmentation.
+Documents shall not duplicate normative definitions owned elsewhere.
 
-Whenever a new capability is introduced, the AI agent shall determine:
+When referring to an existing concept, use a reference rather than redefining it.
 
-• Does the capability already fit an existing module?
+Normative terms shall be used consistently:
 
-• Should an existing document be extended?
+* `SHALL` indicates a mandatory requirement;
+* `SHALL NOT` indicates a prohibition;
+* `SHOULD` indicates a strong recommendation;
+* `SHOULD NOT` indicates a discouraged practice;
+* `MAY` indicates an allowed option.
 
-• Is a new document required?
+Documentation changes shall preserve established terminology.
 
-• Is an ADR required?
-
-Creating unnecessary documents is discouraged.
-
-Creating parallel architectures is prohibited.
-
----
-
-# End of Part II
-
-
-
-
-# PART III
-
-# AI OPERATIONAL WORKFLOW
+Repository vocabulary is authoritative.
 
 ---
 
-# 15. General Workflow
+# 13. Diagram Rules
 
-Every AI agent shall follow the same operational workflow.
+Diagram source files are authoritative.
 
-No task shall skip any phase.
+Rendered files are derived artifacts.
 
-The workflow is mandatory regardless of the size of the requested modification.
+C4 diagrams shall be used for architecture structure and system decomposition.
 
-The operational workflow consists of the following phases:
+UML diagrams shall be used for behavior, interaction, state, lifecycle and detailed structural modeling.
 
-1. Understand
-2. Analyze
-3. Plan
-4. Validate
-5. Execute
-6. Review
-7. Verify
-8. Deliver
+Every diagram shall:
 
-Each phase shall be completed before the next phase begins.
+* represent one clear purpose;
+* preserve one appropriate abstraction level;
+* use repository terminology;
+* remain synchronized with documentation;
+* compile successfully;
+* avoid undocumented architecture.
 
----
+When architecture changes, affected diagrams shall be reviewed.
 
-# 16. Phase 1 — Understand
-
-Before modifying any artifact, the AI agent shall understand the user's request.
-
-Understanding means identifying:
-
-- the objective;
-- the affected subsystem;
-- the architectural scope;
-- the impacted documentation;
-- the implementation impact;
-- the expected deliverable.
-
-The AI agent shall never begin implementation while the objective remains ambiguous.
-
-If ambiguity exists, clarification shall be requested before proceeding.
+Diagram validation shall use the repository validation tooling.
 
 ---
 
-# 17. Phase 2 — Analyze
+# 14. Dependency Direction
 
-After understanding the request, the AI agent shall analyze the current repository.
+The expected conceptual dependency direction is:
 
-The analysis shall identify:
-
-- existing documentation;
-- existing architecture;
-- existing ADRs;
-- existing implementations;
-- existing interfaces;
-- existing dependencies;
-- existing terminology.
-
-Existing solutions shall always be preferred over creating new concepts.
-
-The repository shall be extended rather than duplicated.
-
----
-
-# 18. Phase 3 — Architectural Impact Assessment
-
-Before modifying any document or source code, the AI agent shall determine whether the request affects:
-
-- architecture;
-- domain;
-- kernel;
-- platform;
-- integration;
-- implementation;
-- deployment;
-- documentation.
-
-Every affected layer shall be identified.
-
-The impact assessment shall be completed before any modification begins.
-
----
-
-# 19. Phase 4 — Planning
-
-Every non-trivial modification shall begin with a plan.
-
-The plan shall identify:
-
-- affected files;
-- new files;
-- obsolete files;
-- required reviews;
-- required ADRs;
-- implementation sequence;
-- validation strategy.
-
-The plan shall minimize repository disruption.
-
----
-
-# 20. Phase 5 — Validation Before Change
-
-Before modifying any artifact, the AI agent shall verify:
-
-- terminology consistency;
-- architectural consistency;
-- naming consistency;
-- document ownership;
-- dependency direction;
-- compatibility with existing architecture.
-
-Changes shall not begin until these validations succeed.
-
----
-
-# 21. Phase 6 — Execution
-
-Implementation shall be incremental.
-
-Large modifications shall be divided into coherent steps.
-
-Each step shall preserve repository consistency.
-
-The repository shall remain in a valid state after every completed step.
-
-Partial implementations that temporarily break architecture are prohibited.
-
----
-
-# 22. Phase 7 — Internal Review
-
-Every completed modification shall be reviewed before delivery.
-
-The review shall verify:
-
-- correctness;
-- consistency;
-- readability;
-- maintainability;
-- architectural alignment;
-- terminology.
-
-The AI agent shall review its own work before presenting it.
-
----
-
-# 23. Phase 8 — Final Verification
-
-Before considering a task complete, the AI agent shall verify:
-
-- all requested objectives were achieved;
-- no unrelated artifacts were modified;
-- terminology remains consistent;
-- cross references remain valid;
-- documentation remains coherent;
-- architecture remains intact.
-
-Completion shall never be assumed.
-
-Completion shall be verified.
-
----
-
-# 24. Completion Criteria
-
-A task is complete only when:
-
-- implementation is finished;
-- documentation is updated;
-- architecture remains consistent;
-- validation succeeds;
-- review succeeds.
-
-Otherwise the task remains incomplete.
-
----
-
-# 25. Working Principles
-
-Every AI agent shall:
-
-Read before writing.
-
-Understand before modifying.
-
-Review before delivering.
-
-Validate before approving.
-
-Think before acting.
-
-These principles apply to every repository artifact.
-
----
-
-# 26. Incremental Work
-
-Large tasks shall be divided into small coherent steps.
-
-Each step shall:
-
-- have a clear objective;
-- produce a valid repository state;
-- preserve architectural consistency;
-- be independently reviewable.
-
-Incremental evolution is preferred over massive changes.
-
----
-
-# 27. Architectural Safety
-
-Whenever uncertainty exists, the AI agent shall choose the safest architectural alternative.
-
-The AI agent shall never invent missing architecture.
-
-The AI agent shall never infer undocumented behavior.
-
-The AI agent shall never silently redefine concepts.
-
-When uncertainty cannot be resolved, work shall stop until clarification is obtained.
-
----
-
-# 28. Repository Integrity During Work
-
-The repository shall remain internally consistent throughout the entire task.
-
-Every intermediate state shall be considered potentially reviewable.
-
-The AI agent shall avoid introducing temporary inconsistencies with the intention of correcting them later.
-
-Consistency is required continuously, not only at the end of the task.
-
----
-
-# 29. Operational Priorities
-
-When multiple objectives compete, the following priority order shall be applied:
-
-1. Repository integrity
-2. Architectural consistency
-3. Correctness
-4. Maintainability
-5. Simplicity
-6. Performance
-7. Productivity
-
-Lower priorities shall never compromise higher priorities.
-
----
-
-# End of Part III
-
-
-# PART IV
-
-# ENGINEERING STANDARDS
-
----
-
-# 30. Engineering Philosophy
-
-KnowledgeOS is an engineering-first project.
-
-Every implementation shall be the result of an intentional engineering decision.
-
-The repository shall evolve through disciplined engineering rather than iterative experimentation.
-
-AI agents shall always favor correctness, consistency and maintainability over implementation speed.
-
-Every modification shall improve the overall quality of the repository.
-
----
-
-# 31. Engineering Principles
-
-Every engineering decision shall preserve the following principles.
-
-## 31.1 Correctness
-
-Correct behavior always has priority over optimization.
-
-Software that is fast but incorrect is considered defective.
-
----
-
-## 31.2 Simplicity
-
-Prefer the simplest solution that satisfies all architectural requirements.
-
-Complexity shall only be introduced when justified by measurable architectural benefits.
-
----
-
-## 31.3 Consistency
-
-Solutions shall resemble existing repository patterns.
-
-New concepts shall not introduce unnecessary diversity.
-
-Consistency reduces maintenance costs.
-
----
-
-## 31.4 Explicitness
-
-Implicit behavior shall be minimized.
-
-Configuration is preferred over hidden conventions.
-
-Naming shall clearly express intent.
-
----
-
-## 31.5 Separation of Concerns
-
-Every module shall have one primary responsibility.
-
-Responsibilities shall not overlap.
-
-When overlap is detected, architecture shall be reviewed.
-
----
-
-## 31.6 Loose Coupling
-
-Components shall communicate through explicit contracts.
-
-Hidden dependencies are prohibited.
-
-Knowledge of internal implementation details shall remain localized.
-
----
-
-## 31.7 High Cohesion
-
-Every component shall group closely related responsibilities.
-
-Unrelated behavior shall not be accumulated in the same module.
-
----
-
-## 31.8 Testability
-
-Every component shall be designed to allow independent verification.
-
-Design decisions that prevent testing shall be considered architectural defects.
-
----
-
-# 32. Engineering Constraints
-
-AI agents shall never optimize for short-term convenience at the expense of long-term architecture.
-
-Examples of prohibited decisions include:
-
-- introducing duplicate models;
-- bypassing public interfaces;
-- creating undocumented dependencies;
-- embedding business rules in infrastructure;
-- introducing circular dependencies;
-- duplicating validation logic.
-
----
-
-# 33. Architectural Boundaries
-
-The repository is divided into architectural boundaries.
-
-Each boundary owns specific responsibilities.
-
-Crossing architectural boundaries shall occur only through documented contracts.
-
-Internal implementation details shall never leak across boundaries.
-
----
-
-# 34. Layer Dependency Rules
-
-Dependencies shall always point downward.
-
-The allowed dependency direction is:
-
+```text
 Foundation
-
-↓
-
+    ↓
 Domain
-
-↓
-
-Kernel
-
-↓
-
-Platform
-
-↓
-
-Integration
-
-↓
-
+    ↓
+Kernel abstractions and execution mechanisms
+    ↓
+Platform Engines
+    ↓
+Integration contracts and adapters
+    ↓
 Implementation
+    ↓
+Infrastructure and external systems
+```
 
-Reverse dependencies are prohibited unless explicitly approved by an ADR.
+This representation does not authorize arbitrary downward or upward dependencies.
 
----
-
-# 35. Public Contracts
-
-Every public interface shall be treated as a contract.
-
-Changes affecting public contracts shall be evaluated for backward compatibility.
-
-Breaking public contracts requires explicit architectural review.
-
-Whenever possible, compatibility shall be preserved.
-
----
-
-# 36. Backward Compatibility
-
-KnowledgeOS favors evolutionary architecture.
-
-Existing functionality shall remain operational whenever technically feasible.
-
-Breaking changes shall be:
-
-- intentional;
-- documented;
-- justified;
-- traceable.
-
-Unexpected breaking changes are prohibited.
-
----
-
-# 37. Extensibility
-
-Every subsystem shall be designed assuming future extensions.
-
-AI agents shall avoid implementations that prevent future evolution.
-
-Extension points shall be preferred over modifications to stable core behavior.
-
----
-
-# 38. Reuse
-
-Before creating new components, AI agents shall verify whether existing components already satisfy the requirement.
-
-Repository duplication is prohibited.
-
-Extension is preferred over replication.
-
----
-
-# 39. Technical Debt
-
-Technical debt shall never be introduced silently.
-
-When technical debt is unavoidable, it shall be:
-
-- documented;
-- localized;
-- justified;
-- scheduled for removal.
-
-Undocumented technical debt is prohibited.
-
----
-
-# 40. Performance
-
-Performance optimization shall be evidence-based.
-
-AI agents shall never sacrifice maintainability for speculative performance improvements.
-
-Premature optimization is discouraged.
-
-Critical performance decisions shall be documented.
-
----
-
-# 41. Reliability
-
-Reliability is a primary quality attribute.
-
-Systems shall behave predictably under both normal and exceptional conditions.
-
-Failure scenarios shall be considered during design.
-
-Recovery mechanisms shall be explicit.
-
----
-
-# 42. Error Handling
-
-Errors are part of the architecture.
-
-They shall never be ignored.
-
-Every subsystem shall define:
-
-- expected failures;
-- unexpected failures;
-- recovery strategy;
-- propagation rules;
-- logging policy.
-
-Silent failures are prohibited.
-
----
-
-# 43. Logging
-
-Logging exists to support diagnostics.
-
-Logs shall provide meaningful information.
-
-AI agents shall avoid:
-
-- duplicated logging;
-- noisy logging;
-- ambiguous messages;
-- missing contextual information.
-
----
-
-# 44. Observability
-
-Every important subsystem shall expose sufficient information for diagnosis.
-
-Observability includes:
-
-- logs;
-- metrics;
-- traces;
-- health information;
-- execution context.
-
-Observability shall be designed rather than added later.
-
----
-
-# 45. Deterministic Engineering
-
-Engineering decisions shall maximize reproducibility.
-
-Whenever possible:
-
-- builds;
-- tests;
-- documentation;
-- generated artifacts;
-- processing pipelines;
-
-shall produce deterministic results.
-
-Non-deterministic behavior shall be explicitly justified.
-
----
-
-# End of Part IV
-
-
-
-# PART V
-
-# DOCUMENTATION STANDARDS
-
----
-
-# 46. Documentation Philosophy
-
-Documentation is a first-class engineering artifact.
-
-It is not generated after implementation.
-
-It is not supplementary material.
-
-Documentation defines the architecture, describes the engineering intent, and provides the authoritative specification for implementation.
-
-Every important engineering decision shall be documented.
-
-Every implementation shall be traceable to documentation.
-
-Documentation and implementation shall evolve together.
-
----
-
-# 47. Documentation Objectives
-
-Documentation exists to:
-
-- define architecture;
-- communicate engineering decisions;
-- preserve institutional knowledge;
-- support implementation;
-- support maintenance;
-- support future evolution;
-- support AI agents;
-- support human contributors.
-
-Documentation shall never exist merely to satisfy a process requirement.
-
-Every document shall have a clear engineering purpose.
-
----
-
-# 48. Documentation Quality
-
-Every document shall be:
-
-- technically correct;
-- internally consistent;
-- complete within its scope;
-- unambiguous;
-- maintainable;
-- reviewable;
-- traceable.
-
-Partial specifications are discouraged.
-
-Ambiguous specifications are prohibited.
-
----
-
-# 49. Documentation Language
-
-All engineering documentation shall be written in English.
-
-The language shall be:
-
-- professional;
-- precise;
-- objective;
-- concise;
-- technically accurate.
-
-Marketing language shall be avoided.
-
-Informal expressions shall be avoided.
-
-Humor shall not appear in engineering documentation.
-
----
-
-# 50. Document Ownership
-
-Every document shall have exactly one responsibility.
-
-A document shall not attempt to define unrelated concepts.
-
-If the scope becomes too broad, the document shall be divided into multiple documents.
-
-The repository shall favor modular documentation.
-
----
-
-# 51. Standard Document Metadata
-
-Every engineering document shall begin with a standard metadata section.
-
-The metadata shall contain at least:
-
-Project
-
-Section
-
-Document
-
-Version
-
-Status
-
-Author
-
-Last Updated
-
-Owner
-
-Related ADRs
-
-Related Documents
-
-The metadata shall remain synchronized throughout the lifecycle of the document.
-
----
-
-# 52. Document Status
-
-Every document shall explicitly define its maturity.
-
-Allowed status values are:
-
-Draft
-
-The document is under active development.
-
-Review
-
-The document is considered complete but awaits architectural approval.
-
-Approved
-
-The document is authoritative.
-
-Deprecated
-
-The document is obsolete but retained for historical reasons.
-
-Archived
-
-The document is no longer part of the active architecture.
-
-Unknown status values are prohibited.
-
----
-
-# 53. Versioning
-
-Every document shall define its own version.
-
-Major versions indicate architectural changes.
-
-Minor versions indicate content improvements.
-
-Patch versions indicate editorial corrections.
-
-Version numbers shall evolve intentionally.
-
-Version history shall remain traceable.
-
----
-
-# 54. Scope Definition
-
-Every document shall explicitly define its scope.
-
-The scope shall answer:
-
-What does this document define?
-
-What does this document not define?
-
-Which repository area owns this document?
-
-Which documents depend on it?
-
-Scope boundaries shall be explicit.
-
----
-
-# 55. Normative Language
-
-Normative statements shall use consistent terminology.
-
-Mandatory requirements shall use:
-
-SHALL
-
-Mandatory prohibitions shall use:
-
-SHALL NOT
-
-Recommendations shall use:
-
-SHOULD
-
-Optional behavior shall use:
-
-MAY
-
-Informal wording such as:
-
-maybe
-
-normally
-
-usually
-
-probably
-
-is discouraged.
-
----
-
-# 56. Writing Style
-
-Documentation shall prioritize precision.
-
-Paragraphs shall be short.
-
-Concepts shall be introduced before being referenced.
-
-Examples shall follow definitions.
-
-Definitions shall precede rules.
-
-Rules shall precede implementation details.
-
----
-
-# 57. Terminology
-
-Each concept shall have one canonical name.
-
-Synonyms shall be avoided.
-
-Terminology shall remain stable throughout the repository.
-
-If terminology changes, all affected documents shall be updated.
-
-Mixed terminology is prohibited.
-
----
-
-# 58. Cross References
-
-Documents shall reference other documents instead of duplicating content.
-
-Cross references shall always point to the authoritative definition.
-
-Broken references shall be corrected immediately.
-
-References shall remain stable whenever possible.
-
----
-
-# 59. Examples
-
-Examples shall illustrate concepts.
-
-Examples shall not define architecture.
-
-Examples shall be clearly distinguishable from normative content.
-
-Whenever possible, examples shall be realistic.
-
-Artificial examples shall be minimized.
-
----
-
-# 60. Diagrams
-
-Every diagram shall have:
-
-Title
-
-Identifier
-
-Version
-
-Purpose
-
-Owner
-
-Source document
-
-Diagrams are architectural artifacts.
-
-They shall evolve together with their corresponding documentation.
-
----
-
-# 61. Tables
-
-Tables shall summarize information.
-
-Normative requirements shall remain in the text.
-
-Tables shall never replace formal specifications.
-
----
-
-# 62. Code Samples
-
-Code samples exist only to explain concepts.
-
-They shall never become the authoritative specification.
-
-Examples shall remain minimal.
-
-Examples shall compile whenever reasonably possible.
-
-Pseudo-code shall be explicitly identified.
-
----
-
-# 63. Artificial Intelligence Generated Content
-
-AI-generated documentation shall be reviewed before approval.
-
-AI assistance shall never replace architectural review.
-
-Every AI-generated document shall preserve:
-
-- terminology;
-- consistency;
-- architectural intent;
-- repository conventions.
-
----
-
-# 64. Documentation Evolution
-
-Documentation shall evolve continuously.
-
-Changes shall improve clarity.
-
-Changes shall preserve historical consistency.
-
-Large structural modifications shall be justified.
-
-Documentation rewrites require architectural review.
-
----
-
-# 65. Documentation Completeness
-
-A document is considered complete only when:
-
-its purpose is defined;
-
-its scope is explicit;
-
-its terminology is consistent;
-
-its references are valid;
-
-its architectural intent is unambiguous;
-
-its implementation implications are documented.
-
-Incomplete documentation shall remain in Draft status.
-
----
-
-# End of Part V
-
-
-# PART VI
-
-# ARCHITECTURAL DECISION FRAMEWORK
-
----
-
-# 66. Architectural Responsibility
-
-Every AI agent acts as an engineering contributor.
-
-It does not act as an autonomous architect.
-
-The AI agent shall preserve the existing architecture unless an explicit request authorizes architectural evolution.
-
-Whenever architectural evolution is required, the AI agent shall document the rationale before proposing modifications.
-
-Architecture shall evolve intentionally.
-
-Architecture shall never evolve accidentally.
-
----
-
-# 67. Principle of Architectural Preservation
-
-The first responsibility of every AI agent is to preserve the conceptual integrity of KnowledgeOS.
-
-Before proposing a modification, the AI agent shall determine whether the existing architecture already provides an adequate solution.
-
-Existing architecture shall always be preferred over introducing new concepts.
-
-Creating new abstractions is the last option.
-
----
-
-# 68. Decision Hierarchy
-
-Every engineering decision shall be evaluated using the following hierarchy.
-
-1. Product Vision
-2. Architectural Principles
-3. Architecture Constraints
-4. Approved ADRs
-5. Domain Model
-6. Architecture Model
-7. Existing Repository Structure
-8. Implementation
-
-Lower levels shall never contradict higher levels.
-
-When conflicts exist, the higher level always prevails.
-
----
-
-# 69. Architectural Analysis
-
-Before modifying the repository, the AI agent shall answer the following questions.
-
-Does this functionality already exist?
-
-Does a similar concept already exist?
-
-Can an existing document be extended?
-
-Can an existing subsystem be reused?
-
-Will this change introduce duplication?
-
-Will this change increase coupling?
-
-Will this change violate an architectural invariant?
-
-If any answer is uncertain, the AI agent shall investigate before continuing.
-
----
-
-# 70. Architectural Impact Assessment
-
-Every significant modification shall include an architectural impact assessment.
-
-The assessment shall identify:
-
-- affected subsystems;
-- affected documents;
-- affected interfaces;
-- affected contracts;
-- affected ADRs;
-- affected diagrams;
-- affected implementations.
-
-The assessment shall be completed before implementation begins.
-
----
-
-# 71. Creation of New Concepts
-
-New architectural concepts shall be created only when all existing concepts have been evaluated.
-
-Creating a new concept requires demonstrating that:
-
-the concept is unique;
-
-the concept cannot be represented by existing architecture;
-
-the concept has long-term value;
-
-the concept improves the repository.
-
-Unnecessary abstractions are prohibited.
-
----
-
-# 72. Extending Existing Concepts
-
-Whenever possible, existing concepts shall evolve instead of being replaced.
-
-Extension is preferred over duplication.
-
-Extension is preferred over parallel implementations.
-
-Extension is preferred over architectural rewrites.
-
----
-
-# 73. Architectural Consistency
-
-Consistency has higher priority than innovation.
-
-Innovative solutions are welcome only when they improve the architecture without reducing consistency.
-
-Repository-wide consistency shall always be preserved.
-
----
-
-# 74. Architectural Boundaries
-
-Every subsystem owns its own responsibilities.
-
-The AI agent shall respect subsystem boundaries.
-
-Business logic shall not migrate into infrastructure.
-
-Infrastructure shall not define business concepts.
-
-Presentation shall not redefine domain concepts.
-
-Cross-layer leakage is prohibited.
-
----
-
-# 75. Dependency Evaluation
-
-Before introducing a dependency, the AI agent shall determine:
-
-why the dependency is necessary;
-
-whether an existing dependency already satisfies the requirement;
-
-whether dependency inversion is preferable;
-
-whether a public contract should replace direct coupling.
-
-Dependencies shall remain intentional.
-
----
-
-# 76. Duplication Detection
-
-Before creating any artifact, the AI agent shall search for:
-
-similar documents;
-
-similar interfaces;
-
-similar concepts;
-
-similar terminology;
-
-similar implementations.
-
-Repository duplication shall be eliminated whenever possible.
-
----
-
-# 77. Naming Evaluation
-
-Names are architectural assets.
-
-Before introducing a new name, the AI agent shall verify:
-
-consistency with repository terminology;
-
-clarity;
-
-uniqueness;
-
-future scalability.
-
-Names shall describe concepts rather than implementations.
-
-Technology-specific names shall be avoided unless unavoidable.
-
----
-
-# 78. Architectural Evolution
-
-Architecture evolves incrementally.
-
-Large architectural rewrites shall be exceptional.
-
-Every architectural evolution shall preserve:
-
-identity;
-
-consistency;
-
-traceability;
-
-maintainability.
-
-Evolution without documentation is prohibited.
-
----
-
-# 79. Architectural Review
-
-Every significant architectural proposal shall answer:
-
-Why is this change necessary?
-
-Why is the current solution insufficient?
-
-What alternatives were considered?
-
-What trade-offs exist?
-
-Which documents are affected?
-
-Which ADRs are affected?
-
-How will the repository evolve after the change?
-
-Architectural reasoning shall always accompany architectural modifications.
-
----
-
-# 80. Architectural Completion
-
-An architectural task is complete only when:
-
-all affected documents are updated;
-
-cross references remain valid;
-
-terminology remains consistent;
-
-repository structure remains coherent;
-
-architectural integrity is preserved;
-
-implementation remains aligned with architecture.
-
-Otherwise, the task shall remain open.
-
----
-
-# End of Part VI
-
-
-
-# PART VII
-
-# VERSION CONTROL STANDARDS
-
----
-
-# 81. Purpose
-
-Version control preserves the engineering history of KnowledgeOS.
-
-Git is not merely a backup mechanism.
-
-It is the authoritative record of architectural evolution, implementation decisions, documentation changes, and software development.
-
-Every commit becomes part of the permanent engineering history of the project.
-
-AI agents shall therefore treat every commit as an engineering artifact.
-
----
-
-# 82. General Principles
-
-Every modification committed to the repository shall be:
-
-- intentional;
-- traceable;
-- reviewable;
-- reproducible;
-- reversible.
-
-Repository history shall remain understandable by both humans and AI agents.
-
-History rewriting shall be exceptional.
-
----
-
-# 83. Branching Strategy
-
-KnowledgeOS follows a branch-based development model.
-
-The primary branches are:
-
-- main
-- develop
-
-Additional branches shall be created for isolated work.
-
-Typical branch categories include:
-
-feature/
-
-bugfix/
-
-refactor/
-
-documentation/
-
-architecture/
-
-experiment/
-
-release/
-
-hotfix/
-
-Examples:
-
-feature/annotation-engine
-
-bugfix/search-index
-
-architecture/plugin-sdk
-
-documentation/domain-model
-
-Branch names shall be short, descriptive, and lowercase.
-
----
-
-# 84. Main Branch
-
-The **main** branch represents the stable state of the repository.
-
-The main branch shall always be:
-
-- buildable;
-- internally consistent;
-- documented;
-- reviewable.
-
-Direct development on main is prohibited except under explicitly authorized maintenance scenarios.
-
----
-
-# 85. Develop Branch
-
-The **develop** branch integrates completed work before release.
-
-Features shall be merged into develop only after:
-
-documentation review;
-
-architectural validation;
-
-successful testing;
-
-repository consistency verification.
-
-Develop shall remain deployable whenever possible.
-
----
-
-# 86. Feature Branches
-
-Every significant task shall be developed in an independent branch.
-
-A feature branch shall have a single primary objective.
-
-Long-lived feature branches are discouraged.
-
-Feature branches shall be merged promptly after completion.
-
----
-
-# 87. Experimental Branches
-
-Research activities may use experiment branches.
-
-Experimental work shall never redefine stable architecture.
-
-Before merging experimental work, the following shall be evaluated:
-
-architectural value;
-
-maintenance cost;
-
-compatibility;
-
-future evolution.
-
-Rejected experiments shall remain isolated.
-
----
-
-# 88. Commit Philosophy
-
-Commits represent engineering milestones.
-
-A commit shall describe one coherent logical change.
-
-Large unrelated changes shall be divided into multiple commits.
-
-Commits shall never combine unrelated concerns.
-
----
-
-# 89. Commit Size
-
-Small commits are preferred.
-
-Each commit shall remain understandable without requiring repository-wide analysis.
-
-Massive commits shall be avoided unless they represent well-defined architectural milestones.
-
----
-
-# 90. Commit Messages
-
-Commit messages shall describe intent rather than implementation details.
-
-Preferred structure:
-
-<type></type>: concise summary
-
-Examples:
-
-docs: complete Platform README
-
-feat: add annotation engine
-
-fix: resolve synchronization conflict
-
-refactor: simplify event dispatcher
-
-architecture: introduce Provider abstraction
-
-The summary shall remain under approximately 72 characters whenever practical.
-
----
-
-# 91. Commit Types
-
-The preferred commit types are:
-
-architecture
-
-docs
-
-feat
-
-fix
-
-refactor
-
-perf
-
-test
-
-build
-
-ci
-
-chore
-
-release
-
-Each commit shall use exactly one primary type.
-
----
-
-# 92. Commit Quality
-
-Every commit shall leave the repository in a consistent state.
-
-Commits introducing temporary failures are prohibited.
-
-Incomplete work shall remain in the working branch until it satisfies repository quality standards.
-
----
-
-# 93. Pull Requests
-
-Every Pull Request shall have a clearly defined objective.
-
-The description shall include:
-
-purpose;
-
-scope;
-
-affected areas;
-
-architectural impact;
-
-documentation impact;
-
-testing performed;
-
-related ADRs.
-
-Large Pull Requests shall be avoided whenever possible.
-
----
-
-# 94. Review Requirements
-
-Before approval, every Pull Request shall be reviewed for:
-
-architectural consistency;
-
-documentation consistency;
-
-terminology;
-
-coding standards;
-
-dependency direction;
-
-repository integrity.
-
-Approval shall indicate that reviewers understand the proposed evolution.
-
----
-
-# 95. Merge Strategy
-
-Merge commits shall preserve repository history.
-
-Squashing may be used for noisy development history.
-
-Rebasing may be used before review.
-
-Force pushing shared branches is discouraged.
-
----
-
-# 96. Conflict Resolution
-
-Merge conflicts shall be resolved intentionally.
-
-Automatic conflict resolution shall never replace architectural analysis.
-
-When conflicts affect architecture, documentation shall be reviewed before merging.
-
----
-
-# 97. Tags and Releases
-
-Released versions shall be identified using semantic versioning.
-
-Version tags shall correspond to stable repository states.
-
-Release notes shall summarize:
-
-major architectural changes;
-
-new capabilities;
-
-breaking changes;
-
-migration guidance;
-
-relevant ADRs.
-
----
-
-# 98. Traceability
-
-Every important engineering change shall be traceable.
-
-Whenever applicable, commits shall reference:
-
-ADRs;
-
-issues;
-
-roadmap items;
-
-milestones;
-
-architectural reviews.
-
-Traceability shall remain intact throughout the lifetime of the repository.
-
----
-
-# 99. Repository History
-
-Repository history is part of the product.
-
-History shall remain:
-
-accurate;
-
-understandable;
-
-complete;
+Each module's documentation defines its specific permitted dependencies.
 
-reviewable.
+General rules:
 
-Artificial history rewriting shall be minimized.
+* Domain shall not depend on implementation;
+* Domain shall not depend on infrastructure;
+* Kernel shall not depend on Platform;
+* Platform shall not expose internal state across Engine boundaries;
+* Integration shall adapt external systems to approved internal contracts;
+* implementation shall conform to architecture;
+* infrastructure shall remain replaceable where required by architecture.
 
-Historical context shall never be discarded without justification.
+Dependency cycles across architectural boundaries are prohibited unless explicitly approved.
 
 ---
 
-# 100. Version Control Completion
+# 15. Domain Rules
 
-A version control task is complete only when:
+The Domain defines the meaning of KnowledgeOS.
 
-the repository builds successfully;
+Domain work shall preserve:
 
-documentation is synchronized;
+* UDM;
+* DPM;
+* Knowledge Objects;
+* Identity;
+* Knowledge Graph;
+* lifecycle semantics;
+* provenance;
+* relationships;
+* validation rules.
 
-history remains coherent;
+Domain documentation shall not include:
 
-branch strategy is respected;
+* database-specific schemas;
+* UI framework concepts;
+* network implementation;
+* provider APIs;
+* platform-specific code;
+* deployment details.
 
-traceability is preserved;
+Changes to identity, serialization, graph semantics, node types or lifecycle rules require cross-model review.
 
-review requirements are satisfied.
-
----
-
-# End of Part VII
-
-
-
-# PART VIII
-
-# AI COLLABORATION PROTOCOL
-
----
-
-# 101. Purpose
-
-KnowledgeOS is designed to be developed collaboratively by both human engineers and multiple AI agents.
-
-AI collaboration shall be intentional.
-
-The repository shall never depend on the behavior of a specific AI model.
-
-Instead, every AI agent shall follow the same engineering rules defined by this document.
-
-The objective is to ensure that different AI systems produce compatible engineering results.
-
----
-
-# 102. AI Neutrality
-
-The repository is AI-independent.
-
-No architectural decision shall assume the use of a particular model.
-
-KnowledgeOS shall remain compatible with:
-
-- ChatGPT
-- Codex
-- Claude Code
-- Gemini CLI
-- Cursor
-- Kimi Code
-- Aider
-- Future AI systems
-
-This document defines the expected behavior independently of the underlying model.
-
----
-
-# 103. Human Authority
-
-The human maintainer is the final architectural authority.
-
-AI agents provide analysis, proposals, implementation and review.
-
-AI agents do not approve architectural decisions.
-
-Architectural approval always belongs to the repository owner.
-
-Whenever uncertainty exists, the AI agent shall defer the decision to the human maintainer.
-
----
-
-# 104. AI Roles
-
-An AI agent may perform one or more of the following roles.
-
-Architect
-
-Defines or evolves architecture.
-
-Engineer
-
-Implements approved architecture.
-
-Reviewer
-
-Reviews existing work.
-
-Documenter
-
-Produces engineering documentation.
-
-Researcher
-
-Investigates technologies.
-
-Refactoring Assistant
-
-Improves maintainability.
-
-Validator
-
-Verifies consistency.
-
-Planner
-
-Produces implementation plans.
-
-Each response shall implicitly operate under one or more of these roles.
-
-Role switching shall be intentional.
-
----
-
-# 105. Session Independence
-
-AI sessions are temporary.
-
-The repository is permanent.
-
-No important engineering knowledge shall exist only inside a conversation.
-
-Every relevant conclusion shall eventually be reflected inside the repository.
-
-Conversation history shall never become the primary source of project knowledge.
-
----
-
-# 106. Context Recovery
-
-Before beginning work, an AI agent shall reconstruct project context by reading the repository.
-
-Context recovery shall begin with:
-
-AGENTS.md
-
-followed by the architectural reading order defined earlier.
-
-The repository shall always provide sufficient context for a newly introduced AI agent.
-
----
-
-# 107. Knowledge Preservation
-
-Whenever a conversation produces an important engineering decision, that decision shall be transferred into the repository.
-
-Examples include:
-
-new architectural principles;
-
-new engineering constraints;
-
-approved terminology;
-
-new workflows;
-
-new conventions;
-
-approved implementation strategies.
-
-Important decisions shall never remain conversation-only knowledge.
-
----
-
-# 108. Context Transfer
-
-When work continues in another AI system, the repository shall serve as the transfer mechanism.
-
-AI agents shall avoid producing hidden assumptions.
-
-Every important assumption shall be documented.
-
-The objective is that another AI agent can continue the work without requiring previous conversations.
-
----
-
-# 109. AI Collaboration Rules
-
-AI agents shall collaborate through repository artifacts.
-
-They shall never rely upon undocumented conversation context.
-
-Collaboration shall occur through:
-
-documentation;
-
-ADRs;
-
-source code;
-
-diagrams;
-
-comments;
-
-commit history.
-
-Repository artifacts are the official communication channel.
-
----
-
-# 110. Preventing Conflicting Decisions
-
-Before proposing a new architectural decision, an AI agent shall verify:
-
-whether a similar decision already exists;
-
-whether an ADR already covers the topic;
-
-whether documentation already defines the concept.
-
-Duplicate architectural decisions are prohibited.
-
----
-
-# 111. Responsibility Boundaries
-
-AI agents shall modify only the scope required by the requested task.
-
-Unrelated architectural improvements shall be proposed separately.
-
-Large unsolicited repository rewrites are prohibited.
-
-Scope discipline preserves reviewability.
-
----
-
-# 112. Conflict Resolution Between AI Agents
-
-When different AI agents propose conflicting solutions, the conflict shall be resolved according to the following priority:
-
-Product Vision
-
-↓
-
-Architecture Principles
-
-↓
-
-Architecture Constraints
-
-↓
-
-Approved ADRs
-
-↓
-
-Architecture Model
-
-↓
-
-Domain Model
-
-↓
-
-Repository Standards
-
-↓
-
-Implementation
-
-Personal preferences shall never determine architectural decisions.
-
----
-
-# 113. AI Review Protocol
-
-Whenever possible, significant work should be reviewed by a second AI agent before human approval.
-
-The reviewing AI shall evaluate:
-
-architectural consistency;
-
-terminology;
-
-correctness;
-
-maintainability;
-
-repository standards;
-
-documentation quality.
-
-The reviewer shall not rewrite the work unless requested.
-
-Its primary responsibility is evaluation.
-
----
-
-# 114. AI Specialization
-
-Different AI systems possess different strengths.
-
-KnowledgeOS encourages specialization.
-
-Examples include:
-
-architecture review;
-
-documentation generation;
-
-implementation;
-
-code review;
-
-testing;
-
-performance analysis;
-
-research.
-
-The repository shall support specialized contributions without compromising consistency.
-
----
-
-# 115. Long-Term Memory
-
-Long-term project memory belongs to the repository.
-
-Conversation memory is temporary.
-
-Whenever important knowledge is produced, the repository shall become its permanent home.
-
-The repository is the collective memory of the project.
-
----
-
-# 116. AI Transparency
-
-Whenever an AI agent makes assumptions, those assumptions shall be explicit.
-
-Whenever uncertainty exists, uncertainty shall be communicated.
-
-Whenever alternatives exist, they shall be identified.
-
-Hidden reasoning shall never influence repository architecture.
-
----
-
-# 117. AI Completion
-
-An AI contribution is considered complete only when:
-
-the repository contains the resulting knowledge;
-
-documentation has been updated;
-
-affected artifacts remain consistent;
-
-future AI agents can understand the modification without requiring prior conversations.
-
 ---
-
-# End of Part VIII
-
 
-
-# PART IX
-
-# REPOSITORY STRUCTURE STANDARDS
-
----
+# 16. Kernel Rules
 
-# 118. Purpose
+The Kernel provides shared execution mechanisms.
 
-The repository structure defines the physical organization of KnowledgeOS.
+Its responsibilities include mechanisms such as:
 
-A well-defined directory structure improves:
+* commands;
+* queries;
+* events;
+* workflows;
+* jobs;
+* scheduling;
+* configuration;
+* dependency injection;
+* logging;
+* observability.
 
-- discoverability;
-- maintainability;
-- scalability;
-- collaboration;
-- architectural consistency.
+The Kernel shall not:
 
-Repository organization is part of the architecture.
+* define user-facing product features;
+* contain Engine-specific business logic;
+* depend on Platform implementations;
+* depend on external service providers;
+* encode UI behavior.
 
-Directory organization shall never be considered an implementation detail.
+Kernel APIs shall remain generic, stable and testable.
 
 ---
 
-# 119. Repository Organization Principles
+# 17. Platform Rules
 
-The repository shall follow these principles.
+Platform Engines implement product capabilities over the Domain and Kernel.
 
-## Architecture Before Technology
+Each Engine shall have:
 
-Directories shall represent architectural responsibilities rather than programming languages or frameworks.
+* explicit responsibilities;
+* explicit boundaries;
+* documented inputs and outputs;
+* public contracts;
+* lifecycle rules;
+* failure behavior;
+* observability requirements;
+* test requirements.
 
-Incorrect:
+Engines shall not share internal mutable state.
 
-Backend/
+Communication shall occur through approved mechanisms.
 
-Frontend/
+A new Engine requires architectural justification and review.
 
-Swift/
-
-Rust/
-
-Correct:
-
-Foundation/
-
-Domain/
-
-Kernel/
-
-Platform/
-
-Integration/
-
-Implementation/
-
-Technology changes.
-
-Architecture remains.
-
 ---
-
-## Responsibility-Based Organization
 
-Every directory shall own one primary responsibility.
-
-Directories shall not accumulate unrelated artifacts.
-
-If a directory begins to contain multiple unrelated concerns, it shall be reorganized.
-
----
+# 18. Integration Rules
 
-## Predictable Navigation
+Integration connects KnowledgeOS to:
 
-Every engineer and every AI agent shall be able to locate information without searching the entire repository.
+* external services;
+* providers;
+* public APIs;
+* plugins;
+* storage systems;
+* synchronization systems;
+* import and export protocols.
 
-The location of a document shall be predictable from its responsibility.
+Integration code and documentation shall:
 
-Predictability has higher priority than personal preference.
+* preserve internal architectural boundaries;
+* validate external input;
+* translate external formats into canonical internal contracts;
+* prevent provider-specific semantics from leaking into the Domain;
+* define versioning and compatibility;
+* define failure and retry behavior;
+* preserve security and privacy requirements.
 
 ---
 
-# 120. Root Directory Rules
+# 19. Execution Rules
 
-The repository root shall remain intentionally small.
+Execution documentation defines runtime guarantees.
 
-Only repository-wide artifacts belong at the root.
+Changes affecting execution shall review:
 
-Typical examples include:
+* concurrency;
+* ordering;
+* transactions;
+* locking;
+* retries;
+* idempotency;
+* determinism;
+* caching;
+* resource management;
+* background jobs;
+* lifecycle;
+* scheduling;
+* recovery;
+* observability.
 
-AGENTS.md
+Concurrency assumptions shall never remain implicit.
 
-README.md
+Failure behavior shall be documented.
 
-LICENSE
+Retry behavior shall not create duplicate side effects.
 
-CHANGELOG.md
-
-ROADMAP.md
-
-CONTRIBUTING.md
-
-CODE_OF_CONDUCT.md
-
-SECURITY.md
-
-.gitignore
-
-Directory indexes
-
-Build configuration
-
-Global scripts
-
-The repository root shall never become a miscellaneous storage location.
-
 ---
-
-# 121. Directory Responsibilities
-
-Every top-level directory shall have a clearly documented responsibility.
-
-Example:
-
-00-Governance
-
-Defines repository governance.
-
-01-Foundation
 
-Defines permanent architectural principles.
+# 20. Implementation Rules
 
-02-Domain
+Implementation shall begin only when the required context exists.
 
-Defines business concepts.
+Depending on the module, this may include:
 
-03-Kernel
+* scope;
+* requirements;
+* use cases;
+* acceptance criteria;
+* technical design;
+* domain model;
+* contracts;
+* persistence design;
+* security requirements;
+* testing strategy;
+* operational design.
 
-Defines runtime infrastructure.
+Implementation code shall not become the place where missing architecture is invented.
 
-04-Platform
+When implementation exposes an architectural gap, work shall return to the appropriate architecture or design document.
 
-Defines functional engines.
-
-05-Integration
-
-Defines external interaction.
-
-06-Implementation
-
-Contains executable software.
-
-07-Infrastructure
-
-Defines deployment.
-
-No directory shall exist without a documented purpose.
-
 ---
 
-# 122. Directory Independence
+# 21. Contract Rules
 
-Directories shall minimize dependencies on sibling directories.
+Contracts define boundaries.
 
-Whenever possible:
+Contracts shall be:
 
-higher layers depend on lower layers;
+* explicit;
+* versioned;
+* validated;
+* testable;
+* backward-compatible where required;
+* independent from internal implementation details.
 
-siblings communicate through public contracts;
+Breaking changes require:
 
-cross-directory coupling remains explicit.
+* impact analysis;
+* versioning decision;
+* migration strategy;
+* compatibility documentation;
+* contract tests;
+* consumer review.
 
-Hidden dependencies are prohibited.
+Shared contract types shall have one authoritative definition.
 
 ---
 
-# 123. README Requirement
+# 22. Persistence Rules
 
-Every directory shall contain a README.md.
+Persistence shall preserve:
 
-The README defines:
+* identity;
+* integrity;
+* provenance;
+* checksums;
+* consistency;
+* recoverability;
+* authoritative ownership;
+* migration safety.
 
-purpose;
+Persistence models shall not redefine Domain semantics.
 
-responsibilities;
+Database schemas, file layouts and storage implementations are implementation artifacts.
 
-scope;
+They shall map to approved Domain and architecture concepts.
 
-contained documents;
+Destructive migrations require explicit review, backups and recovery planning.
 
-relationships;
-
-navigation guidance.
-
-A directory without documentation is considered incomplete.
-
 ---
-
-# 124. File Placement
 
-Every artifact shall have exactly one canonical location.
+# 23. Synchronization Rules
 
-The AI agent shall determine:
+Synchronization shall preserve:
 
-Where does this artifact belong?
+* authoritative ownership;
+* stable identity;
+* conflict semantics;
+* ordering guarantees;
+* idempotency;
+* retry safety;
+* partial failure recovery;
+* offline operation;
+* data integrity.
 
-Does a similar artifact already exist?
+Synchronization shall not silently discard user knowledge.
 
-Is another document the correct owner?
+Conflicts shall be detectable and governed by documented resolution rules.
 
-Multiple copies of the same concept are prohibited.
-
 ---
-
-# 125. Naming Conventions
-
-Names shall be:
-
-descriptive;
 
-stable;
+# 24. Testing Rules
 
-technology-neutral whenever possible.
+Tests are required engineering artifacts.
 
-Avoid:
+The applicable test strategy may include:
 
-Temp.md
+* unit tests;
+* integration tests;
+* contract tests;
+* end-to-end tests;
+* synchronization tests;
+* recovery tests;
+* migration tests;
+* performance tests;
+* security tests;
+* architecture compliance tests.
 
-NewDocument.md
+Tests shall verify requirements and contracts, not accidental implementation details.
 
-Notes2.md
+A change is incomplete when required tests are missing or failing.
 
-FinalFinal.md
+Generated test data shall not expose sensitive information.
 
-Preferred examples:
-
-ArchitectureModel.md
-
-Synchronization.md
-
-PluginContracts.md
-
-IdentityModel.md
-
-Document names are architectural assets.
-
 ---
-
-# 126. File Granularity
-
-Each document shall describe one primary concept.
 
-Documents exceeding their conceptual scope should be divided.
+# 25. Security Rules
 
-Documents that are too small should be merged when appropriate.
+Security shall be considered in every relevant change.
 
-The repository shall avoid both monolithic documentation and excessive fragmentation.
+Review areas include:
 
----
-
-# 127. Directory Evolution
+* authentication;
+* authorization;
+* secret management;
+* input validation;
+* data exposure;
+* local storage;
+* network transport;
+* external integrations;
+* plugin permissions;
+* auditability;
+* backup protection;
+* recovery access.
 
-Repository organization shall evolve gradually.
+Secrets shall never be committed to the repository.
 
-Large directory restructurings require architectural review.
+External input shall be treated as untrusted.
 
-Moving files solely for aesthetic reasons is discouraged.
+Security boundaries shall remain explicit.
 
-Repository stability has value.
-
 ---
-
-# 128. Deprecation
 
-Deprecated files shall not disappear immediately.
+# 26. Privacy Rules
 
-Instead they shall:
+KnowledgeOS manages personal knowledge.
 
-be marked as Deprecated;
+Agents shall preserve privacy by design.
 
-reference their replacement;
+AI, OCR, indexing, telemetry, synchronization and external services shall not receive user data unless permitted by architecture, configuration and user consent.
 
-remain traceable;
+Local processing shall be preferred when privacy requirements demand it.
 
-be removed only after migration.
+Sensitive data shall not be included in logs, fixtures or examples.
 
-Historical continuity shall be preserved.
-
 ---
-
-# 129. Archiving
 
-Archived artifacts represent historical knowledge.
+# 27. Observability Rules
 
-Archived artifacts:
+Observable systems shall provide enough information to understand behavior without exposing sensitive content.
 
-shall not be modified;
+Relevant modules shall define:
 
-shall remain readable;
+* logs;
+* metrics;
+* traces;
+* health checks;
+* correlation identifiers;
+* error classification;
+* alerting signals.
 
-shall preserve original context;
+Observability shall support diagnosis, recovery and capacity planning.
 
-shall reference newer replacements whenever available.
+Logging shall not replace error handling.
 
-Archives preserve engineering history.
-
 ---
 
-# 130. Generated Artifacts
+# 28. Generated Artifacts
 
-Generated files shall remain separated from manually maintained artifacts.
+Generated artifacts include:
 
-Generated content shall never become the authoritative source.
+* rendered diagrams;
+* generated documentation;
+* generated schemas;
+* generated code;
+* compiled assets;
+* reports;
+* temporary validation output.
 
-The authoritative source shall always be editable by humans.
-
----
+Source artifacts remain authoritative.
 
-# 131. Repository Cleanliness
+Generated artifacts shall be reproducible.
 
-The repository shall remain clean.
+Agents shall not manually edit generated output unless the repository explicitly identifies it as an editable source.
 
 Temporary files shall not be committed.
 
-Editor-specific files shall not be committed.
-
-Build artifacts shall not be committed unless explicitly required.
-
-Examples include:
-
-cache/
-
-tmp/
-
-dist/
-
-build/
-
-coverage/
-
-DerivedData/
-
-Generated artifacts belong outside architectural documentation whenever possible.
-
----
-
-# 132. Discoverability
-
-A contributor unfamiliar with the repository shall be able to locate any important document within a few navigation steps.
-
-Repository organization shall optimize discoverability rather than personal workflow.
-
-If important artifacts become difficult to locate, repository organization shall be reviewed.
-
----
-
-# 133. Structural Integrity
-
-Every structural modification shall preserve:
-
-clarity;
-
-predictability;
-
-architectural alignment;
-
-documentation consistency;
-
-repository navigation.
-
-Repository structure is a long-term architectural asset.
-
-It shall evolve carefully.
-
----
-
-# End of Part IX
-
-
-
-
-# PART X
-
-# ARCHITECTURE DECISION RECORD (ADR) FRAMEWORK
-
----
-
-# 134. Purpose
-
-Architecture evolves through intentional decisions.
-
-Every significant architectural decision shall be documented.
-
-Architecture Decision Records (ADRs) are the official mechanism for recording those decisions.
-
-ADRs preserve the engineering rationale behind the architecture.
-
-They explain not only what was decided, but also why it was decided.
-
-Implementation without documented architectural reasoning is discouraged.
-
----
-
-# 135. Objectives
-
-The ADR process exists to:
-
-- preserve architectural knowledge;
-- document engineering rationale;
-- avoid repeated discussions;
-- communicate trade-offs;
-- support future contributors;
-- enable long-term architectural evolution.
-
-ADRs are permanent engineering artifacts.
-
----
-
-# 136. When an ADR is Required
-
-An ADR shall be created whenever a decision affects one or more of the following:
-
-- architecture;
-- repository organization;
-- domain model;
-- public contracts;
-- storage model;
-- synchronization strategy;
-- security architecture;
-- deployment architecture;
-- plugin model;
-- integration strategy;
-- API design principles;
-- extensibility mechanisms;
-- technology adoption with long-term impact.
-
-When in doubt, create an ADR.
-
-The cost of documenting an architectural decision is lower than the cost of rediscovering it.
-
----
-
-# 137. When an ADR is NOT Required
-
-An ADR is normally unnecessary for:
-
-- bug fixes;
-- spelling corrections;
-- documentation improvements;
-- implementation optimizations;
-- refactoring without architectural impact;
-- test improvements;
-- build configuration updates;
-- dependency version updates without architectural consequences.
-
-The deciding criterion is architectural significance rather than implementation effort.
-
----
-
-# 138. ADR Lifecycle
-
-Every ADR shall progress through explicit lifecycle states.
-
-The permitted states are:
-
-Proposed
-
-The decision is under discussion.
-
-Accepted
-
-The decision has been approved.
-
-Implemented
-
-The decision has been realized.
-
-Superseded
-
-A newer ADR replaces it.
-
-Deprecated
-
-The decision is no longer recommended.
-
-Rejected
-
-The proposal was intentionally discarded.
-
-Historical ADRs shall never be deleted.
-
----
-
-# 139. ADR Numbering
-
-Each ADR shall receive a permanent sequential identifier.
-
-Example:
-
-ADR-0001
-
-ADR-0002
-
-ADR-0003
-
-Numbers shall never be reused.
-
-Numbers shall never change.
-
-Gaps in numbering are acceptable.
-
-Stability is more important than continuity.
-
----
-
-# 140. ADR Metadata
-
-Every ADR shall begin with standard metadata.
-
-Minimum metadata includes:
-
-ADR Number
-
-Title
-
-Status
-
-Version
-
-Date
-
-Author
-
-Approver
-
-Related Documents
-
-Supersedes
-
-Superseded By
-
-Affected Components
-
----
-
-# 141. ADR Structure
-
-Every ADR shall contain the following sections.
-
-Purpose
-
-Context
-
-Problem Statement
-
-Decision
-
-Alternatives Considered
-
-Consequences
-
-Trade-offs
-
-Migration Strategy (if applicable)
-
-Implementation Impact
-
-Documentation Impact
-
-References
-
-The structure shall remain consistent throughout the repository.
-
----
-
-# 142. Context
-
-The context shall explain:
-
-why the decision became necessary;
-
-which constraints existed;
-
-which assumptions were made;
-
-which architectural goals were considered.
-
-Context shall describe the engineering situation before the decision.
-
----
-
-# 143. Decision
-
-The Decision section shall contain a precise statement.
-
-It shall avoid unnecessary discussion.
-
-The decision shall be explicit.
-
-Ambiguous decisions are prohibited.
-
----
-
-# 144. Alternatives
-
-Every significant ADR shall describe the principal alternatives that were evaluated.
-
-Each alternative shall explain:
-
-advantages;
-
-disadvantages;
-
-reasons for rejection.
-
-Recording rejected alternatives preserves valuable engineering knowledge.
-
----
-
-# 145. Consequences
-
-Every ADR shall describe its consequences.
-
-Positive consequences.
-
-Negative consequences.
-
-Known limitations.
-
-Future opportunities.
-
-Expected maintenance impact.
-
-Architectural consequences shall always be documented.
-
----
-
-# 146. Trade-offs
-
-Every architectural decision involves trade-offs.
-
-Trade-offs shall be made explicit.
-
-The ADR shall identify:
-
-what was gained;
-
-what was sacrificed;
-
-which risks remain acceptable.
-
-Engineering decisions shall never appear free of cost.
-
----
-
-# 147. Superseding ADRs
-
-Architecture evolves.
-
-When an ADR replaces another:
-
-the previous ADR shall remain unchanged;
-
-its status shall become Superseded;
-
-the replacing ADR shall reference it explicitly.
-
-History shall remain traceable.
-
----
-
-# 148. ADR Relationships
-
-ADRs shall reference:
-
-Product Vision;
-
-Architecture Principles;
-
-Architecture Constraints;
-
-Architecture Model;
-
-Quality Attributes;
-
-related ADRs;
-
-affected documentation.
-
-Architectural decisions shall never exist in isolation.
-
----
-
-# 149. Repository Synchronization
-
-Whenever an ADR is accepted, the AI agent shall verify whether additional artifacts require updates.
-
-Examples include:
-
-documentation;
-
-C4 diagrams;
-
-domain model;
-
-kernel documentation;
-
-platform documentation;
-
-integration contracts;
-
-implementation guides.
-
-Accepting an ADR without synchronizing repository documentation is prohibited.
-
----
-
-# 150. ADR Review
-
-Before approval, every ADR shall be reviewed for:
-
-architectural consistency;
-
-repository impact;
-
-terminology;
-
-trade-off analysis;
-
-future maintainability;
-
-consistency with previous ADRs.
-
-Review shall evaluate both the decision and its reasoning.
-
----
-
-# 151. ADR Completion
-
-An ADR is complete only when:
-
-its decision is explicit;
-
-its rationale is documented;
-
-its alternatives are recorded;
-
-its consequences are identified;
-
-affected documentation has been synchronized;
-
-cross references are valid;
-
-repository consistency has been preserved.
-
----
-
-# End of Part X
-
-
-
-# PART XI
-
-# ARCHITECTURAL INVARIANTS
-
----
-
-# 152. Purpose
-
-Architectural Invariants define the permanent characteristics of KnowledgeOS.
-
-Unlike implementation decisions, architectural invariants are not expected to change during the lifetime of the project.
-
-They represent the non-negotiable properties that preserve the identity, integrity and long-term vision of the platform.
-
-Every architectural proposal shall be evaluated against these invariants.
-
-No implementation may intentionally violate an architectural invariant.
-
----
-
-# 153. Definition
-
-An architectural invariant is a property that shall remain true regardless of:
-
-- programming language;
-- framework;
-- storage technology;
-- deployment model;
-- operating system;
-- AI provider;
-- implementation strategy.
-
-Architectural invariants outlive technologies.
-
----
-
-# 154. Invariant Evaluation
-
-Before accepting any architectural change, the AI agent shall verify that every invariant remains satisfied.
-
-If a proposed modification violates an invariant, one of the following shall occur:
-
-- reject the proposal;
-- redesign the proposal;
-- explicitly redefine the invariant through formal architectural governance.
-
-Architectural invariants shall never be bypassed.
-
----
-
-# 155. Invariant 1 — User Ownership
-
-All knowledge belongs to the user.
-
-KnowledgeOS manages knowledge.
-
-It never owns it.
-
-The platform shall never create dependencies that prevent users from accessing, exporting, migrating or deleting their information.
-
----
-
-# 156. Invariant 2 — NAS as Source of Truth
-
-The Master Library stored on the NAS is the authoritative repository of user knowledge.
-
-Local devices maintain synchronized working copies.
-
-Cloud services may facilitate synchronization.
-
-They shall never become the authoritative storage.
-
-Every synchronization strategy shall preserve the authority of the NAS.
-
----
-
-# 157. Invariant 3 — Offline First
-
-The platform shall remain operational without Internet connectivity.
-
-Internet access extends functionality.
-
-It shall never be required for core knowledge management.
-
-Core workflows shall continue operating offline.
-
----
-
-# 158. Invariant 4 — Local First Processing
-
-Whenever technically feasible, processing shall occur locally.
-
-Remote services shall be used only when they provide clear value beyond local capabilities.
-
-Privacy-sensitive operations should remain local whenever practical.
-
----
-
-# 159. Invariant 5 — AI Independence
-
-Artificial Intelligence is a replaceable capability.
-
-KnowledgeOS shall never depend on a specific AI model or provider.
-
-Every AI integration shall be abstracted behind provider-independent interfaces.
-
-Providers may evolve without affecting repository architecture.
-
----
-
-# 160. Invariant 6 — Domain Independence
-
-The Domain defines business knowledge.
-
-It shall remain independent from:
-
-programming languages;
-
-frameworks;
-
-databases;
-
-UI technologies;
-
-deployment environments.
-
-Technology shall implement the Domain.
-
-Technology shall never define it.
-
----
-
-# 161. Invariant 7 — Kernel Neutrality
-
-The Kernel provides generic runtime capabilities.
-
-It shall not contain business rules.
-
-It shall not depend on Platform Engines.
-
-It shall remain reusable across the entire platform.
-
----
-
-# 162. Invariant 8 — Engine Isolation
-
-Platform Engines are autonomous functional units.
-
-Each Engine owns its responsibilities.
-
-Direct Engine-to-Engine dependencies shall be minimized.
-
-Communication shall occur through documented contracts.
-
----
-
-# 163. Invariant 9 — Public Contracts
-
-Subsystem communication shall occur through explicit public contracts.
-
-Internal implementation details shall remain private.
-
-Breaking public contracts requires explicit architectural approval.
-
----
-
-# 164. Invariant 10 — Stable Identity
-
-Every Knowledge Object possesses a stable identity.
-
-Identity shall remain independent from:
-
-storage location;
-
-file names;
-
-database identifiers;
-
-presentation;
-
-serialization format.
-
-Identity shall survive synchronization, migration and export.
-
----
-
-# 165. Invariant 11 — Knowledge Preservation
-
-Knowledge shall never be lost because of architectural evolution.
-
-Migration shall preserve:
-
-content;
-
-metadata;
-
-relationships;
-
-history;
-
-identity.
-
-Backward compatibility shall be preferred whenever technically feasible.
-
----
-
-# 166. Invariant 12 — Open Representation
-
-Knowledge shall use documented, portable and inspectable representations.
-
-Open formats are preferred.
-
-Proprietary formats shall never become mandatory for accessing user knowledge.
-
----
-
-# 167. Invariant 13 — Deterministic Processing
-
-Equivalent inputs shall produce equivalent outputs whenever possible.
-
-Non-deterministic behavior shall be explicitly identified and justified.
-
-Deterministic processing improves reproducibility and debugging.
-
----
-
-# 168. Invariant 14 — Documentation Authority
-
-Architecture is defined by documentation.
-
-Implementation realizes documentation.
-
-Implementation shall never become the authoritative architectural specification.
-
-When discrepancies exist, architecture shall be reviewed before implementation diverges further.
-
----
-
-# 169. Invariant 15 — Traceability
-
-Every significant engineering decision shall remain traceable.
-
-Traceability shall connect:
-
-Product Vision;
-
-Architecture Principles;
-
-ADRs;
-
-documentation;
-
-implementation;
-
-tests;
-
-release history.
-
-The engineering rationale shall never disappear.
-
----
-
-# 170. Invariant 16 — Extensibility
-
-KnowledgeOS shall evolve through extension rather than modification of stable foundations.
-
-Extension points shall be preferred over invasive architectural changes.
-
-The architecture shall facilitate future capabilities without requiring fundamental redesign.
-
----
-
-# 171. Invariant 17 — Repository as Collective Memory
-
-The repository is the permanent memory of the project.
-
-Important engineering knowledge shall not remain exclusively inside conversations, meetings or personal notes.
-
-All long-term knowledge shall eventually become repository knowledge.
-
----
-
-# 172. Invariant 18 — Architectural Integrity
-
-Every modification shall preserve the conceptual integrity of the platform.
-
-Local optimizations shall never compromise global architecture.
-
-Short-term convenience shall never outweigh long-term consistency.
-
----
-
-# 173. Invariant Compliance
-
-Every architectural review shall explicitly verify compliance with all architectural invariants.
-
-Whenever an invariant appears to be violated, the review shall identify:
-
-- the affected invariant;
-- the reason for the conflict;
-- possible alternatives;
-- the recommended resolution.
-
-No implementation shall knowingly violate an accepted architectural invariant.
-
----
-
-# End of Part XI
-
-
-# ============================================================================
-
-# PART XII
-
-# ARCHITECTURE MODELING FRAMEWORK
-
-# ============================================================================
-
----
-
-# 174. Purpose
-
-Architecture is a model before it is an implementation.
-
-KnowledgeOS shall describe its architecture using standardized engineering models.
-
-These models provide a common language for humans and AI agents.
-
-Every architectural artifact shall belong to one or more architecture models.
-
-Architecture models shall remain synchronized with implementation throughout the lifetime of the project.
-
----
-
-# 175. Objectives
-
-The Architecture Modeling Framework exists to:
-
-• describe the system from multiple viewpoints;
-
-• reduce architectural ambiguity;
-
-• support long-term evolution;
-
-• simplify onboarding;
-
-• facilitate AI collaboration;
-
-• improve engineering communication;
-
-• preserve architectural consistency.
-
-Models are engineering artifacts.
-
-Models are not illustrations.
-
----
-
-# 176. Modeling Philosophy
-
-Models describe reality.
-
-They do not replace reality.
-
-Every model exists for a specific engineering purpose.
-
-Different models explain different aspects of the system.
-
-No single model attempts to explain the entire platform.
-
-Instead, the architecture emerges from the combination of multiple complementary models.
-
----
-
-# 177. Canonical Architecture Models
-
-KnowledgeOS recognizes the following canonical architecture models.
-
-Foundation Models
-
-Product Vision
-
-Architecture Principles
-
-Architecture Constraints
-
-Architecture Model
-
-Quality Attributes
-
-Domain Models
-
-Universal Document Model (UDM)
-
-Document Presentation Model (DPM)
-
-Knowledge Object Model
-
-Knowledge Graph
-
-Identity Model
-
-Kernel Models
-
-Execution Model
-
-Event Model
-
-Workflow Model
-
-Dependency Model
-
-Platform Models
-
-Engine Models
-
-Capability Models
-
-Service Models
-
-Integration Models
-
-Public Contracts
-
-Plugin SDK
-
-Provider Model
-
-External Service Model
-
-Infrastructure Models
-
-Deployment
-
-Storage
-
-Synchronization
-
-Security
-
-Observability
-
-Each model has exactly one authoritative document.
-
----
-
-# 178. Single Source of Truth
-
-Every engineering concept shall have one authoritative model.
-
-Examples:
-
-Identity
-
-→ Identity Model
-
-Synchronization
-
-→ Synchronization documentation
-
-Knowledge Graph
-
-→ Knowledge Graph documentation
-
-Plugin Contracts
-
-→ Plugin SDK
-
-Public API
-
-→ Public Contracts
-
-Duplicate architectural definitions are prohibited.
-
----
-
-# 179. Model Ownership
-
-Every model owns its concepts.
-
-Models shall not redefine concepts owned by other models.
-
-Instead, they shall reference the authoritative source.
-
-Model ownership prevents architectural fragmentation.
-
----
-
-# 180. Model Evolution
-
-Architecture models evolve independently.
-
-Changes to one model shall trigger an impact analysis on related models.
-
-AI agents shall verify:
-
-affected diagrams;
-
-affected ADRs;
-
-affected documentation;
-
-affected implementations.
-
-Models shall remain synchronized.
-
----
-
-# 181. Model Relationships
-
-Architecture models form a dependency graph.
-
-The dependency direction shall always be explicit.
-
-Foundation
-
-↓
-
-Domain
-
-↓
-
-Kernel
-
-↓
-
-Platform
-
-↓
-
-Integration
-
-↓
-
-Implementation
-
-No model may depend upon a higher abstraction level.
-
----
-
-# 182. Model Consistency
-
-Every architectural review shall verify:
-
-terminology consistency;
-
-relationship consistency;
-
-dependency consistency;
-
-ownership consistency;
-
-identity consistency.
-
-Contradictory models are considered architectural defects.
-
----
-
-# 183. Model Granularity
-
-Each model shall describe one conceptual level.
-
-Models shall neither become excessively broad nor unnecessarily fragmented.
-
-Whenever a model exceeds its intended scope, it shall be divided into specialized models.
-
----
-
-# 184. Model Validation
-
-Every architecture model shall answer the following questions:
-
-What problem does this model solve?
-
-What concepts does it define?
-
-What concepts does it intentionally exclude?
-
-Which documents depend upon it?
-
-Which ADRs influence it?
-
-Which implementation artifacts realize it?
-
-If these questions cannot be answered, the model is incomplete.
-
----
-
-# 185. Architectural Views
-
-KnowledgeOS architecture shall be represented through multiple complementary views.
-
-Typical views include:
-
-Conceptual View
-
-Logical View
-
-Functional View
-
-Runtime View
-
-Deployment View
-
-Information View
-
-Integration View
-
-Security View
-
-Operational View
-
-No single view shall attempt to replace all others.
-
----
-
-# 186. Traceability Between Models
-
-Every model shall remain traceable.
-
-Traceability shall connect:
-
-Product Vision
-
-↓
-
-Architecture Principles
-
-↓
-
-Architecture Constraints
-
-↓
-
-Architecture Models
-
-↓
-
-ADRs
-
-↓
-
-Implementation
-
-↓
-
-Tests
-
-↓
-
-Documentation
-
-↓
-
-Releases
-
-The architectural chain shall remain complete.
-
----
-
-# 187. Model Stability
-
-Stable models shall evolve slowly.
-
-Experimental concepts shall remain outside stable architecture until validated.
-
-Architectural stability is considered a quality attribute.
-
----
-
-# 188. Model Lifecycle
-
-Each architecture model shall define its lifecycle.
-
-Typical states include:
-
-Draft
-
-Review
-
-Approved
-
-Deprecated
-
-Archived
-
-Lifecycle state shall be explicit.
-
----
-
-# 189. Model Governance
-
-The repository owner is responsible for approving architecture models.
-
-AI agents may:
-
-propose;
-
-review;
-
-extend;
-
-validate;
-
-refactor;
-
-document.
-
-AI agents shall never silently redefine an approved model.
-
-Architectural governance remains under human authority.
-
----
-
-# 190. Completion Criteria
-
-An architecture model is considered complete when:
-
-its purpose is explicit;
-
-its ownership is clear;
-
-its terminology is consistent;
-
-its relationships are documented;
-
-its dependencies are defined;
-
-its implementation mapping is understood;
-
-its references are synchronized.
-
----
-
-# End of Part XII
-
-
-
-
-# ============================================================================
-
-# PART XIII
-
-# ARCHITECTURAL MODELING STANDARDS
-
-# ============================================================================
-
----
-
-# 191. Purpose
-
-Architectural diagrams are engineering specifications.
-
-They are not illustrations.
-
-Every diagram shall communicate architectural information with precision, consistency and traceability.
-
-Diagrams complement documentation.
-
-Documentation explains architecture.
-
-Diagrams visualize architecture.
-
-Neither replaces the other.
-
----
-
-# 192. Objectives
-
-The modeling standards exist to:
-
-• establish a common visual language;
-
-• improve architectural communication;
-
-• simplify reviews;
-
-• facilitate AI reasoning;
-
-• maintain synchronization between documentation and implementation;
-
-• reduce ambiguity.
-
----
-
-# 193. Canonical Modeling Languages
-
-KnowledgeOS adopts standardized modeling languages.
-
-Each language has a defined responsibility.
-
-The approved languages are:
-
-• C4 Model
-
-• UML
-
-• Entity Relationship Diagrams (ER)
-
-• BPMN
-
-• State Diagrams
-
-• Sequence Diagrams
-
-• Activity Diagrams
-
-• Component Diagrams
-
-• Deployment Diagrams
-
-Additional notations require architectural approval.
-
----
-
-# 194. Modeling Philosophy
-
-Every model answers one engineering question.
-
-No model attempts to answer every question.
-
-Models shall remain focused.
-
-A diagram becomes incorrect when it attempts to describe multiple abstraction levels simultaneously.
-
----
-
-# 195. Canonical Modeling Stack
-
-KnowledgeOS adopts the following hierarchy.
-
-Business View
-
-↓
-
-Architecture View
-
-↓
-
-Domain View
-
-↓
-
-Runtime View
-
-↓
-
-Deployment View
-
-↓
-
-Infrastructure View
-
-Each layer refines the previous one.
-
-None replaces another.
-
----
-
-# 196. C4 Model
-
-The C4 Model is the primary architectural notation.
-
-KnowledgeOS shall maintain the following diagram hierarchy.
-
-Level 1
-
-System Context
-
-Level 2
-
-Containers
-
-Level 3
-
-Components
-
-Level 4
-
-Code
-
-Level 5 (Repository Extension)
-
-Repository Architecture
-
-Level 6 (Repository Extension)
-
-Knowledge Models
-
-Repository-specific extensions shall remain compatible with the original C4 philosophy.
-
----
-
-# 197. C4 Principles
-
-Every C4 diagram shall:
-
-have one purpose;
-
-have one abstraction level;
-
-avoid implementation details inappropriate for its level;
-
-remain readable;
-
-remain synchronized with documentation.
-
----
-
-# 198. UML Usage
-
-UML shall be used when behavioral precision is required.
-
-Typical examples include:
-
-class diagrams;
-
-sequence diagrams;
-
-activity diagrams;
-
-state machines;
-
-package diagrams;
-
-deployment diagrams.
-
-UML complements C4.
-
-It does not replace it.
-
----
-
-# 199. Entity Relationship Models
-
-Entity Relationship diagrams describe persistence.
-
-ER diagrams shall never define business rules.
-
-They describe:
-
-entities;
-
-attributes;
-
-relationships;
-
-cardinalities;
-
-constraints.
-
-Business semantics belong to the Domain documentation.
-
----
-
-# 200. BPMN
-
-Business Process Model and Notation shall describe workflows.
-
-BPMN diagrams define:
-
-activities;
-
-participants;
-
-events;
-
-gateways;
-
-business flows.
-
-Implementation details shall remain outside BPMN.
-
----
-
-# 201. Sequence Diagrams
-
-Sequence diagrams describe interactions over time.
-
-They shall identify:
-
-participants;
-
-messages;
-
-execution order;
-
-alternative flows;
-
-exception handling.
-
-Sequence diagrams shall remain technology-independent whenever possible.
-
 ---
 
-# 202. State Diagrams
+# 29. Repository Hygiene
 
-State diagrams describe lifecycle behavior.
+Agents shall preserve repository cleanliness.
 
-Every state shall define:
+Do not commit:
 
-entry conditions;
+* editor state;
+* operating-system metadata;
+* temporary files;
+* untracked generated output;
+* credentials;
+* local caches;
+* build artifacts unless explicitly required;
+* duplicate documentation;
+* obsolete experimental files.
 
-exit conditions;
+Renames and moves shall preserve references and history where practical.
 
-valid transitions;
+Deprecated content shall be clearly marked or removed according to governance rules.
 
-terminal states.
-
-Invalid transitions shall never be omitted.
-
----
-
-# 203. Activity Diagrams
-
-Activity diagrams describe procedural logic.
-
-Activities shall remain implementation-independent whenever practical.
-
-Complex algorithms belong to implementation documentation.
-
 ---
 
-# 204. Component Diagrams
+# 30. Change Scope
 
-Component diagrams describe software organization.
+Every change shall have a coherent scope.
 
-Components shall expose only public interfaces.
+Agents shall avoid:
 
-Internal implementation shall remain hidden.
+* unrelated formatting changes;
+* opportunistic rewrites;
+* broad renaming without necessity;
+* hidden architectural changes;
+* speculative abstractions;
+* premature optimization;
+* new dependencies without justification.
 
-Dependencies shall remain explicit.
+The preferred change is the smallest complete change that preserves long-term consistency.
 
 ---
 
-# 205. Deployment Diagrams
+# 31. Completion Criteria
 
-Deployment diagrams describe execution environments.
+A task is complete only when:
 
-They shall identify:
+* the requested outcome is satisfied;
+* architecture remains consistent;
+* local instructions were followed;
+* terminology is correct;
+* documentation is updated;
+* diagrams are updated when required;
+* contracts are updated when required;
+* tests are added or updated;
+* validations pass;
+* no known contradiction remains;
+* limitations are documented;
+* affected files are identified;
+* traceability is preserved.
 
-nodes;
+Partial implementation shall not be presented as complete.
 
-containers;
-
-services;
-
-storage;
-
-communication paths;
-
-external systems.
-
-Deployment diagrams shall remain synchronized with Infrastructure documentation.
-
 ---
-
-# 206. Diagram Metadata
-
-Every diagram shall define:
 
-Identifier
+# 32. Agent Communication
 
-Title
+Agents shall communicate clearly and factually.
 
-Version
+They shall:
 
-Status
+* distinguish verified facts from assumptions;
+* report missing context;
+* identify architectural impact;
+* explain unresolved risks;
+* avoid claiming validation that was not performed;
+* avoid inventing repository state;
+* avoid presenting speculative decisions as approved.
 
-Author
+When unable to complete a task, the agent shall state exactly what was completed and what remains unresolved.
 
-Owner
-
-Related Documents
-
-Related ADRs
-
-Last Updated
-
-Metadata shall remain synchronized.
-
 ---
-
-# 207. Diagram Naming
-
-Diagram identifiers shall be stable.
-
-Recommended examples:
 
-C4-L1-SystemContext
+# 33. Local Instruction Files
 
-C4-L2-Containers
+The repository shall progressively introduce local `AGENTS.md` files in high-responsibility areas.
 
-C4-L3-LibraryEngine
+Recommended locations include:
 
-UML-Sequence-Synchronization
+```text
+00-Architecture/AGENTS.md
 
-ER-MasterLibrary
+00-Architecture/02-Domain/AGENTS.md
 
-Names shall remain descriptive.
+00-Architecture/03-Kernel/AGENTS.md
 
----
-
-# 208. Diagram Ownership
+00-Architecture/04-Platform/AGENTS.md
 
-Every diagram belongs to one authoritative document.
+00-Architecture/05-Integration/AGENTS.md
 
-Documentation owns diagrams.
+00-Architecture/06-Execution/AGENTS.md
 
-Diagrams do not own documentation.
+00-Architecture/07-ArchitectureViews/AGENTS.md
 
-Ownership prevents duplication.
+00-Architecture/08-Governance/AGENTS.md
 
----
+01-Implementation/AGENTS.md
 
-# 209. Diagram Evolution
+01-Implementation/01-MasterLibrary/AGENTS.md
 
-Whenever documentation changes, related diagrams shall be reviewed.
+01-Implementation/02-DesktopApplication/AGENTS.md
+```
 
-Whenever implementation changes architecture, affected diagrams shall be updated.
+Additional local files shall be added only when they provide meaningful module-specific guidance.
 
-Outdated diagrams are architectural defects.
+They shall not be created mechanically in every directory.
 
 ---
-
-# 210. Diagram Review
 
-Before approval, every diagram shall be reviewed for:
+# 34. Initial Navigation by Task Type
 
-correct abstraction level;
+## Architecture task
 
-terminology consistency;
+Read:
 
-architectural consistency;
+```text
+AGENTS.md
+00-Architecture/AGENTS.md
+01-Foundation/
+08-Governance/
+relevant ADRs
+relevant architecture module
+relevant diagrams
+```
 
-dependency correctness;
+## Domain task
 
-readability;
+Read:
 
-traceability.
+```text
+AGENTS.md
+00-Architecture/02-Domain/AGENTS.md
+00-Architecture/02-Domain/README.md
+relevant Domain model
+related ADRs
+related serialization and validation rules
+```
 
-Visual beauty shall never outweigh engineering accuracy.
+## Kernel task
 
----
-
-# 211. AI Responsibilities
+Read:
 
-AI agents shall:
+```text
+AGENTS.md
+00-Architecture/03-Kernel/AGENTS.md
+KernelArchitecture.md
+relevant Kernel mechanism
+related execution documentation
+related ADRs
+```
 
-generate diagrams;
+## Platform Engine task
 
-review diagrams;
+Read:
 
-validate consistency;
+```text
+AGENTS.md
+00-Architecture/04-Platform/AGENTS.md
+00-Architecture/04-Platform/README.md
+target Engine README.md
+related Domain models
+related Kernel mechanisms
+related contracts
+related ADRs
+```
 
-identify obsolete diagrams;
+## Integration task
 
-propose updates.
+Read:
 
-AI agents shall never invent undocumented architecture solely to complete a diagram.
+```text
+AGENTS.md
+00-Architecture/05-Integration/AGENTS.md
+00-Architecture/05-Integration/README.md
+target integration documents
+related public contracts
+related providers
+related security requirements
+```
 
----
+## Master Library implementation task
 
-# 212. Diagram Repository
+Read:
 
-All diagrams shall remain version controlled.
+```text
+AGENTS.md
+01-Implementation/AGENTS.md
+01-Implementation/01-MasterLibrary/AGENTS.md
+ImplementationCharter.md
+README.md
+relevant requirements
+technical design
+domain model
+contracts
+persistence
+tests
+operations
+```
 
-Source files are authoritative.
+## Desktop application task
 
-Generated images are derived artifacts.
+Read:
 
-Source files shall always be preserved.
+```text
+AGENTS.md
+01-Implementation/AGENTS.md
+01-Implementation/02-DesktopApplication/AGENTS.md
+README.md
+requirements
+application architecture
+workspace architecture
+desktop UI architecture
+related Platform Engines
+related contracts
+```
 
 ---
-
-# 213. Completion Criteria
-
-A diagram is complete only when:
 
-its purpose is explicit;
+# 35. Final Rule
 
-its abstraction level is correct;
+Before changing KnowledgeOS, understand the system.
 
-its terminology is consistent;
+Before introducing a concept, verify that it does not already exist.
 
-its metadata is complete;
+Before implementing behavior, confirm that its architecture and contracts are defined.
 
-its documentation is synchronized;
+Before declaring completion, validate the entire affected path.
 
-its implementation mapping is understood.
+KnowledgeOS shall evolve through explicit, traceable and coherent engineering decisions.
 
 ---
 
-# End of Part XIII
+# End of AGENTS.md
