@@ -1,505 +1,493 @@
 # Knowledge Graph
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Knowledge Graph
-
-**Document:** README
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Knowledge Graph  
+**Document:** README  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This section defines the Knowledge Graph architecture of KnowledgeOS.
+This document defines the domain contract for the KnowledgeOS Knowledge Graph.
 
-The Knowledge Graph provides graph-oriented projections and relationships over canonical knowledge represented by Knowledge Objects and the Universal Document Model (UDM).
+The Knowledge Graph provides a unified, queryable projection of relationships among canonical documentary knowledge, personal knowledge, external references and derived semantic interpretations.
 
-The Knowledge Graph supports:
+It does not replace the Universal Document Model, Personal Knowledge, Knowledge Objects or source publications. It connects them while preserving identity, provenance and scoped authority.
 
-* navigation;
-* discovery;
-* semantic retrieval;
-* relationship analysis;
-* ontology-aware reasoning;
-* explainable derived connections.
+## 2. Scope
 
-The graph does not replace canonical knowledge.
+This document defines:
 
----
-
-# 2. Scope
-
-The Knowledge Graph architecture governs:
-
-* graph projections;
-* explicit Domain Relationships;
-* semantic relationships;
-* ontology concepts;
-* graph traversal;
-* graph-derived metadata;
-* graph consistency;
-* graph lifecycle;
-* graph reconstruction.
+- graph concepts;
+- vertex and edge identity;
+- graph layers;
+- authority boundaries;
+- projection;
+- synchronization implications;
+- temporal behavior;
+- external references;
+- reasoning;
+- validation;
+- rebuildability.
 
 It does not define:
 
-* one graph database technology;
-* one vector database technology;
-* canonical document storage;
-* presentation layout;
-* Provider-specific AI behavior;
-* Public API query syntax.
+- a graph database;
+- a query language implementation;
+- a search index;
+- an embedding engine;
+- an AI provider;
+- persistence topology;
+- user-interface graph visualization.
 
-Detailed graph semantics are defined primarily in `../UDM/Graph/`.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-# 3. Core Principle
-
-The fundamental principle is:
-
-> The Knowledge Graph is a governed projection of canonical knowledge and relationships, not an independent competing Source of Truth.
-
-The complementary principle is:
-
-> Every graph element shall remain traceable to canonical Domain identity, explicit provenance or an identified derived inference.
-
----
-
-# 4. Architectural Position
+## 4. Architectural Position
 
 ```text
-Knowledge Library
+Source Publications
         │
         ▼
-Knowledge Objects
+      UDM
         │
-        ├── UDM Nodes
-        ├── Relationships
-        ├── Metadata
-        └── Provenance
-                │
-                ▼
-       Knowledge Graph Projection
+        ├──────────────┐
+        ▼              ▼
+Canonical Graph   Derived Semantic Graph
+        ▲              ▲
+        │              │
+Personal Knowledge ────┘
+        │
+        ▼
+Personal Graph
 ```
 
-The Knowledge Graph is derived from canonical Domain state.
+The Knowledge Graph is a projection and integration domain.
 
-Graph implementations may be rebuilt without changing the canonical Knowledge Objects from which they derive.
+The canonical sources remain:
 
----
+- Master Library publications;
+- UDM canonical semantic representations;
+- Personal Knowledge;
+- approved external references.
 
-# 5. Graph Sources
+Graph persistence is derived and rebuildable.
 
-Knowledge Graph content may originate from:
+## 5. Core Concepts
 
-* Knowledge Object Relationships;
-* UDM structural relationships;
-* UDM semantic relationships;
-* Anchors;
-* Assets;
-* Sources;
-* Ontology classification;
-* approved derived inferences;
-* user-created links.
+### 5.1 Vertex
 
-Every origin shall remain distinguishable.
+A vertex represents a stable domain identity.
 
----
+Vertices MAY represent:
 
-# 6. Explicit Relationships
+- Knowledge Objects;
+- UDM documents;
+- UDM nodes;
+- works;
+- expressions;
+- manifestations;
+- source items;
+- authors;
+- organizations;
+- places;
+- events;
+- concepts;
+- claims;
+- evidence;
+- annotations;
+- notes;
+- collections;
+- external resources.
 
-Explicit Relationships are canonical relationships intentionally represented in the Domain model.
+A vertex SHALL reuse the authoritative domain identity whenever one exists.
+
+### 5.2 Edge
+
+An edge represents a typed relationship between two vertices.
+
+Every edge contains:
+
+- immutable identity;
+- relationship type;
+- source identity;
+- target identity;
+- direction;
+- authority layer;
+- provenance;
+- evidence;
+- confidence when inferred;
+- validity interval when applicable;
+- lifecycle state.
+
+### 5.3 Graph Layer
+
+KnowledgeOS separates graph information by authority.
+
+| Layer | Meaning | Authority |
+|---|---|---|
+| Canonical | Source-backed publication semantics | Master Library / UDM |
+| Personal | User-created relationships and interpretations | User |
+| Derived | Machine-generated or rule-derived relationships | Processing component |
+| External | Unresolved or referenced external knowledge | External namespace |
+| Operational | Temporary execution and indexing information | No domain authority |
+
+These layers MAY be queried together but SHALL NOT be collapsed.
+
+## 6. Graph Model
+
+The Knowledge Graph is a directed, typed, temporal multigraph.
+
+```text
+KnowledgeGraph
+├── graphVersion
+├── projectionProfile
+├── vertices{}
+├── edges{}
+├── ontologyRefs[]
+├── provenance
+├── validationManifest
+└── extensionData{}
+```
+
+Multiple edges MAY connect the same vertices when they differ by type, provenance, authority, evidence or temporal validity.
+
+Containment in UDM is not replaced by graph edges. It MAY be projected for query convenience, but UDM remains canonical for document structure.
+
+## 7. Identity
+
+**KG-R001** — Every vertex MUST have a stable identity.
+
+**KG-R002** — A graph projection MUST reuse authoritative identities rather than mint duplicates.
+
+**KG-R003** — Every edge MUST have an immutable identity.
+
+**KG-R004** — External identities MUST include a namespace.
+
+**KG-R005** — Aliases MUST NOT be treated as identity equivalence without an explicit accepted mapping.
+
+**KG-R006** — Split, merge and replacement operations MUST preserve lineage.
+
+## 8. Relationship Categories
+
+The baseline relationship categories are:
+
+- structural;
+- bibliographic;
+- citation;
+- semantic;
+- evidential;
+- causal;
+- temporal;
+- spatial;
+- equivalence;
+- provenance;
+- personal;
+- inferred;
+- external mapping.
+
+Each type SHALL declare:
+
+- allowed source types;
+- allowed target types;
+- direction;
+- symmetry;
+- inverse semantics;
+- multiplicity;
+- authority constraints;
+- validation rules.
+
+## 9. Canonical Projection
+
+Canonical projection converts UDM and Knowledge Object information into graph vertices and edges.
+
+Projection SHALL be:
+
+- deterministic;
+- idempotent;
+- versioned;
+- provenance-preserving;
+- authority-preserving;
+- reversible to source references.
+
+The same canonical inputs and projection profile SHALL produce an equivalent graph.
+
+A canonical projection failure SHALL NOT modify UDM or Knowledge Objects.
+
+## 10. Personal Graph
+
+The Personal Graph contains user-created relationships such as:
+
+- manually related items;
+- collections;
+- reading lists;
+- conceptual maps;
+- notes linked to publications;
+- annotations linked to claims;
+- personal classifications;
+- learning paths.
+
+Personal relationships belong to the user.
+
+They MAY synchronize among Local Libraries through the approved personal-state synchronization profile.
+
+They SHALL NOT be written to the NAS Master Library.
+
+## 11. Derived Graph
+
+The Derived Graph contains relationships generated by:
+
+- deterministic rules;
+- ontology reasoning;
+- entity resolution;
+- similarity analysis;
+- embeddings;
+- machine learning;
+- AI models;
+- recommendation systems.
+
+Derived relationships MUST record:
+
+- producing component;
+- component version;
+- input identities;
+- configuration;
+- model identity when applicable;
+- confidence;
+- execution timestamp;
+- privacy profile.
+
+Derived edges SHALL NOT become canonical automatically.
+
+User confirmation normally creates Personal Knowledge rather than changing publication authority.
+
+## 12. External Graph
+
+External references MAY identify resources that are not managed by KnowledgeOS.
 
 Examples include:
 
-* cites;
-* references;
-* contains;
-* derives from;
-* annotates;
-* supersedes;
-* is related to.
+- DOI;
+- ISBN;
+- ORCID;
+- Wikidata;
+- PubMed;
+- Crossref;
+- GitHub;
+- web URLs;
+- external ontology identifiers.
 
-Explicit Relationships are governed by `../KnowledgeObject/Relationships.md` and `../UDM/Graph/RelationshipModel.md`.
+External vertices SHALL preserve namespace and resolution status.
 
----
+An unresolved external reference remains valid.
 
-# 7. Derived Relationships
+External availability SHALL NOT determine local graph validity.
 
-Derived Relationships are generated by deterministic processing, semantic analysis or AI-assisted inference.
+## 13. Ontology
 
-Derived Relationships shall preserve:
+The Knowledge Graph uses the UDM ontology and approved extension ontologies.
 
-* derivation method;
-* provenance;
-* confidence where applicable;
-* model or rule Version where relevant;
-* creation time;
-* invalidation conditions.
+Ontology concepts and predicates SHALL have stable identifiers.
 
-Derived Relationships shall not silently become canonical user assertions.
+Extensions SHALL:
 
----
+- use unique namespaces;
+- declare versions;
+- define compatibility;
+- preserve core semantics;
+- avoid overriding core predicates.
 
-# 8. Graph Projections
+Ontology mappings SHALL distinguish:
 
-KnowledgeOS may produce multiple graph projections for different purposes.
+- exact match;
+- close match;
+- broader;
+- narrower;
+- related;
+- unresolved candidate.
 
-Examples include:
+## 14. Temporal Behavior
 
-* Knowledge Object graph;
-* citation graph;
-* concept graph;
-* document-structure graph;
-* annotation graph;
-* source-provenance graph;
-* semantic-neighborhood graph.
+Edges MAY include validity intervals.
 
-One projection shall not be assumed to contain the complete meaning of another.
+The graph distinguishes:
 
----
+- when a represented relationship was valid;
+- when it was asserted;
+- when it was acquired;
+- when it was processed;
+- when it was synchronized.
 
-# 9. Vertices
+Processing time SHALL NOT overwrite semantic event time.
 
-Vertices may represent:
+Historical edges MAY remain queryable after becoming inactive.
 
-* Knowledge Objects;
-* UDM Nodes;
-* Semantic Nodes;
-* Assets;
-* Anchors;
-* Sources;
-* Concepts;
-* Versions.
+## 15. Synchronization
 
-Vertex identity shall derive from stable Domain identity.
+Only graph information belonging to Personal Knowledge participates in personal synchronization.
 
----
+Canonical graph information is rebuilt from local acquired publications and UDM.
 
-# 10. Edges
+Derived graph information is regenerated according to local policy.
 
-Edges represent explicit or derived Relationships.
+Publication acquisition and graph synchronization are separate operations.
 
-Edges shall preserve:
+The NAS Master Library SHALL NOT receive the Personal Graph.
 
-* Relationship type;
-* direction where applicable;
-* source identity;
-* target identity;
-* provenance;
-* temporal validity where applicable;
-* confidence for inferred relationships.
+## 16. Search and Query
 
----
+Search and query engines MAY consume the Knowledge Graph.
 
-# 11. Ontology
+The Domain does not prescribe a query language.
 
-Ontology defines the governed concepts and classifications used to interpret graph elements.
+A query result SHALL preserve:
 
-Ontology is governed by `../UDM/Graph/Ontology.md`.
+- vertex and edge identities;
+- authority layer;
+- provenance;
+- confidence;
+- temporal context.
 
-Ontology shall remain version-aware and shall not be inferred solely from visual graph labels.
+Ranking SHALL NOT change graph authority.
 
----
+## 17. Reasoning
 
-# 12. Semantic Reasoning
+Reasoning MAY derive additional edges or vertices.
 
-Semantic reasoning derives additional knowledge from:
+Deterministic reasoning SHALL be reproducible for fixed inputs and rule versions.
 
-* canonical relationships;
-* ontology rules;
-* metadata;
-* semantic annotations;
-* approved inference methods.
+Probabilistic or AI-assisted reasoning SHALL preserve uncertainty.
 
-Semantic reasoning is governed by `../UDM/Graph/SemanticReasoning.md`.
+Conflicting derived conclusions MAY coexist.
 
-Reasoning output shall remain explainable and distinguishable from source facts.
+A reasoning result without evidence or processing provenance is invalid.
 
----
+## 18. Rebuildability
 
-# 13. Embeddings
+Graph databases, adjacency indexes, materialized views and caches are derived infrastructure.
 
-Embeddings may support semantic retrieval and graph enrichment.
+They MUST be reconstructible from:
 
-Embeddings are derived state.
+- UDM;
+- Knowledge Objects;
+- Personal Knowledge;
+- approved external references;
+- versioned projection rules.
 
-They shall preserve sufficient metadata to identify:
+Loss of graph infrastructure SHALL NOT imply loss of authoritative knowledge.
 
-* source content;
-* model;
-* model Version;
-* dimensionality;
-* generation policy;
-* invalidation requirements.
+## 19. Validation
 
-Embeddings are governed by `../UDM/Graph/EmbeddingModel.md`.
+Validation SHALL verify:
 
----
+- unique identities;
+- endpoint resolution;
+- relationship type compatibility;
+- multiplicity;
+- symmetry;
+- inverse semantics;
+- authority layer;
+- provenance;
+- evidence;
+- temporal coherence;
+- ontology compatibility;
+- extension namespaces.
 
-# 14. Graph Authority
+Invalid derived graph data MAY be discarded and regenerated.
 
-The graph may accelerate or enrich:
+Invalid Personal Knowledge SHALL be preserved for recovery when possible.
 
-* Search;
-* navigation;
-* recommendation;
-* reasoning;
-* visualization.
+## 20. Core Invariants
 
-The graph shall not become an undocumented canonical authority for knowledge that cannot be traced back to:
+**KG-I001** — Every edge has valid source and target identities.
 
-* canonical relationships;
-* user acceptance;
-* governed derived inference.
+**KG-I002** — Authority layers remain distinguishable.
 
----
+**KG-I003** — Graph storage is not canonical knowledge.
 
-# 15. Graph Storage
+**KG-I004** — Projection preserves domain identity.
 
-The architecture does not require one graph-storage technology.
+**KG-I005** — Derived inference never becomes source fact automatically.
 
-Possible implementations may include:
+**KG-I006** — Personal relationships never enter the NAS Master Library.
 
-* relational projections;
-* embedded graph indexes;
-* specialized graph stores;
-* in-memory projections;
-* hybrid indexes.
+**KG-I007** — Projection is deterministic and idempotent.
 
-Storage implementation shall remain replaceable according to the Integration and Platform contracts.
+**KG-I008** — Provenance is mandatory.
 
----
+**KG-I009** — External mappings preserve namespace.
 
-# 16. Graph Lifecycle
+**KG-I010** — Deleting a derived graph projection does not delete its sources.
 
-A graph projection may be:
+## 21. Failure Handling
 
-* Missing;
-* Building;
-* Ready;
-* Stale;
-* Rebuilding;
-* Degraded;
-* Failed.
+Graph projection failures SHALL be isolated from canonical persistence.
 
-A stale or unavailable projection shall not invalidate canonical Knowledge Objects.
+Unresolved vertices or edges MAY be represented when their unresolved status is explicit.
 
----
+Relationship conflicts SHALL preserve alternatives and evidence.
 
-# 17. Graph Construction
+Graph repair SHALL NOT invent missing authority or provenance.
 
-Graph construction shall:
+## 22. Extension Model
 
-1. read canonical Domain state;
-2. validate source identities;
-3. apply declared projection rules;
-4. record provenance;
-5. validate graph consistency;
-6. publish the new projection atomically or through a recoverable replacement protocol.
+Plugins MAY contribute:
 
----
+- namespaced vertex types;
+- namespaced relationship types;
+- ontology mappings;
+- projection rules;
+- validators;
+- query capabilities.
 
-# 18. Incremental Updates
+Extensions SHALL NOT:
 
-Incremental graph updates may be used when:
+- override core identity;
+- bypass authority;
+- modify UDM privately;
+- write Personal Knowledge to the Master Library;
+- introduce executable graph payloads.
 
-* affected canonical identities are known;
-* ordering requirements are preserved;
-* duplicate processing is safe;
-* invalidation semantics are explicit.
+## 23. Example
 
-When incremental correctness cannot be established, the projection shall be rebuilt.
+```text
+Vertex: work:the-origin-of-species
+Vertex: person:charles-darwin
+Vertex: annotation:user-123-note-4
 
----
+Edge:
+  type: authoredBy
+  source: work:the-origin-of-species
+  target: person:charles-darwin
+  layer: canonical
+  provenance: source-metadata
 
-# 19. Graph Consistency
+Edge:
+  type: personallyRelatedTo
+  source: annotation:user-123-note-4
+  target: work:the-origin-of-species
+  layer: personal
+  provenance: user-action
+```
 
-Graph consistency requires:
+## 24. Related Documents
 
-* valid vertex identity;
-* valid edge endpoints;
-* compatible Relationship types;
-* no orphaned canonical references unless explicitly permitted;
-* provenance for derived elements;
-* compatible ontology Version.
+- `../UDM/Graph/GraphModel.md`
+- `../UDM/Graph/RelationshipModel.md`
+- `../UDM/Graph/Ontology.md`
+- `../UDM/Graph/SemanticReasoning.md`
+- `../KnowledgeObject/Relationships.md`
+- `../KnowledgeObject/Provenance.md`
+- `../Identity/README.md`
+- `../../04-Platform/Search/README.md`
+- `../../04-Platform/AI/README.md`
+- `../../04-Platform/Sync/README.md`
 
----
+## 25. Status
 
-# 20. Graph and Search
-
-The Search Engine may consume Knowledge Graph projections.
-
-Search remains a Platform capability.
-
-The Knowledge Graph does not own:
-
-* ranking policy;
-* query orchestration;
-* result presentation;
-* Search user experience.
-
----
-
-# 21. Graph and AI
-
-AI may assist with:
-
-* entity extraction;
-* relationship suggestion;
-* concept classification;
-* semantic clustering.
-
-AI-generated graph content shall be:
-
-* marked as derived;
-* provenance-aware;
-* confidence-aware where relevant;
-* reviewable where user acceptance is required.
-
----
-
-# 22. Graph and Synchronization
-
-Canonical Relationships and accepted graph-related Domain state shall synchronize according to the Synchronization architecture.
-
-Disposable graph projections may be rebuilt locally and need not synchronize as canonical data unless explicitly required.
-
----
-
-# 23. Graph and Versioning
-
-Graph projections shall identify the canonical Version or revision from which they were built.
-
-A graph built from obsolete canonical state shall be marked Stale.
-
----
-
-# 24. Graph and Privacy
-
-Graph projections may reveal sensitive associations not obvious from individual documents.
-
-Graph access, telemetry and external processing shall follow:
-
-* User Ownership;
-* authorization;
-* privacy policy;
-* Plugin Capability boundaries;
-* Provider data-exposure rules.
-
----
-
-# 25. Failure Semantics
-
-Graph failure may cause:
-
-* degraded Search;
-* unavailable semantic navigation;
-* delayed reasoning;
-* projection rebuild.
-
-Graph failure shall not corrupt or delete canonical Knowledge Objects.
-
----
-
-# 26. Testing Requirements
-
-The Knowledge Graph shall be tested for:
-
-* deterministic projection where required;
-* rebuild from canonical state;
-* incremental update correctness;
-* stale-state detection;
-* invalid edge rejection;
-* provenance preservation;
-* ontology compatibility;
-* derived-versus-canonical distinction;
-* privacy and authorization boundaries.
-
----
-
-# 27. Knowledge Graph Invariants
-
-The following invariants apply.
-
-* Canonical Knowledge Objects remain authoritative.
-* Graph projections are derived and rebuildable unless explicitly promoted through Domain semantics.
-* Every persistent graph element has stable traceable identity.
-* Explicit and derived Relationships remain distinguishable.
-* Derived inference preserves provenance.
-* AI-generated graph content does not silently become canonical fact.
-* Embeddings remain derived state.
-* A stale graph does not invalidate canonical knowledge.
-* Graph storage technology does not define Domain semantics.
-* Search may consume graph projections but does not transfer ownership to the graph.
-* Disposable projections need not synchronize as canonical state.
-
----
-
-# 28. Prohibited Behaviors
-
-KnowledgeOS shall never:
-
-* treat the Knowledge Graph as an independent competing Source of Truth;
-* create graph vertices without traceable identity;
-* create persistent derived edges without provenance;
-* present AI-inferred relationships as confirmed user facts silently;
-* let graph-storage technology redefine Domain Relationship semantics;
-* delete canonical knowledge because a projection failed;
-* synchronize disposable graph indexes as though they were canonical state unnecessarily;
-* hide ontology incompatibility;
-* treat embeddings as canonical source content;
-* allow Plugins unrestricted access to sensitive graph relationships.
-
----
-
-# 29. Related Documents
-
-## Domain
-
-* `../DomainModel.md`
-* `../KnowledgeObject/Relationships.md`
-* `../KnowledgeObject/Provenance.md`
-* `../UDM/Graph/GraphModel.md`
-* `../UDM/Graph/RelationshipModel.md`
-* `../UDM/Graph/Ontology.md`
-* `../UDM/Graph/SemanticReasoning.md`
-* `../UDM/Graph/EmbeddingModel.md`
-
-## Platform
-
-* `../../04-Platform/Knowledge/README.md`
-* `../../04-Platform/Search/README.md`
-* `../../04-Platform/AI/README.md`
-
-## Integration
-
-* `../../05-Integration/Synchronization/README.md`
-
-## Execution
-
-* `../../06-Execution/Reliability/Recovery.md`
-* `../../06-Execution/Performance/CacheStrategy.md`
-
----
-
-# 30. Status
-
-**Approved**
-
-This document defines the Knowledge Graph architecture of KnowledgeOS.
-
-The Knowledge Graph provides governed, traceable and rebuildable graph projections over canonical Knowledge Objects, UDM structures and Relationships.
-
-Explicit relationships, derived relationships, ontology classifications, embeddings and AI-assisted inferences remain distinguishable.
-
-The Knowledge Graph enhances navigation, Search, analysis and semantic reasoning without becoming a competing Source of Truth or weakening canonical Domain integrity.
+This document is the rector domain specification for the KnowledgeOS Knowledge Graph V4.

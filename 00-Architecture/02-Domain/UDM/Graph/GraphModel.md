@@ -1,327 +1,87 @@
+# UDM Graph Model
 
-# Graph Model
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Universal Document Model
-
-**Document:** Graph Model
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Universal Document Model  
+**Document:** GraphModel  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the conceptual graph model derived from the Universal Document Model (UDM).
+Specify the typed semantic graph projected from UDM.
 
-The Graph Model provides graph projections of canonical knowledge for navigation, reasoning, visualization and analysis.
+## 2. Scope
 
-The graph is never the canonical representation.
+Applies to semantic graph projection and graph-consuming capabilities.
 
-The UDM remains the single source of truth.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. A requirement identified by an invariant or rule identifier is testable and applies to every conforming implementation unless the rule explicitly limits its scope.
 
-# 2. Scope
 
-The Graph Model defines:
+## 4. Context and Responsibilities
 
-* graph projections;
-* graph elements;
-* graph construction;
-* graph consistency;
-* graph lifecycle.
+The graph is a directed typed multigraph with canonical, personal, derived and external authority layers.
 
-It does not define storage technologies.
+## 5. Conceptual Model
 
----
+Vertices use stable domain identities. Edges use relationship identities. Graph persistence is replaceable and projection is deterministic.
 
-# 3. Design Goals
+## 6. Normative Requirements
 
-The Graph Model shall:
+**GRAPHMODEL-R001** — Graph projection MUST be idempotent.
 
-* remain deterministic;
-* be completely derived;
-* remain reproducible;
-* support multiple graph projections;
-* remain independent from storage engines;
-* support future graph technologies.
+**GRAPHMODEL-R002** — Every edge MUST identify its authority layer.
 
----
+**GRAPHMODEL-R003** — Derived edges MUST NOT masquerade as source assertions.
 
-# 4. Design Philosophy
+**GRAPHMODEL-R004** — Graph storage MUST be rebuildable from authoritative inputs.
 
-The graph represents relationships.
+**GRAPHMODEL-R005** — Vertex identity MUST reuse domain identity where available.
 
-The UDM represents knowledge.
+**GRAPHMODEL-R006** — Projection rules MUST be versioned.
 
-The graph may always be reconstructed from the UDM.
+## 7. Invariants
 
-Therefore:
+**GRAPHMODEL-I001** — Every edge has valid endpoints.
 
-The graph is disposable.
+**GRAPHMODEL-I002** — Provenance is preserved.
 
-The UDM is authoritative.
+**GRAPHMODEL-I003** — Authority layers do not collapse.
 
----
+**GRAPHMODEL-I004** — Graph persistence is not canonical knowledge.
 
-# 5. Conceptual Architecture
+## 8. Failure and Edge Cases
 
-```text
-Knowledge Object
-        │
-        ▼
-Universal Document Model
-        │
-        ▼
-Projection Engine
-        │
-        ▼
-Graph Projection
-```
+A conforming implementation SHALL fail explicitly when it cannot preserve identity, provenance, semantic meaning or authority boundaries. It SHALL NOT repair uncertain input by silently inventing facts. Recoverable ambiguity MAY be represented through confidence, alternatives, unresolved references or validation findings.
 
-Graph construction never modifies the UDM.
+Failures SHALL be categorized as structural, semantic, compatibility, provenance, security or processing failures. Each failure SHALL identify the affected entity and the violated rule.
 
----
+## 9. Examples
 
-# 6. Graph Elements
+Rebuilding the graph database from the same UDM and projection rules yields an equivalent graph.
 
-Every graph consists of:
+## 10. Compatibility and Evolution
 
-```text
-Graph
+Changes to this contract SHALL follow semantic versioning at the specification level. Backward-compatible additions MAY introduce optional fields, types or relationships. Changes that alter required semantics, identity rules, authority boundaries or canonical interpretation require a major version.
 
-├── Vertices
-├── Edges
-├── Labels
-├── Properties
-└── Metadata
-```
+Unknown optional extensions SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-These elements are projections of UDM components.
+## 11. Security and Privacy Considerations
 
----
+Implementations SHALL treat imported data, extension payloads, external identifiers and generated semantic assertions as untrusted until validated. Personal Knowledge and restricted source material MUST respect scoped authority and execution policy. Remote processing MUST NOT occur without applicable authorization.
 
-# 7. Vertices
+## 12. Related Documents
 
-Vertices may represent:
+- `../UDM.md`
+- `RelationshipModel.md`
+- `Ontology.md`
+- `../Core/Identity.md`
 
-* Knowledge Objects;
-* Nodes;
-* Semantic Nodes;
-* Anchors;
-* Assets;
-* Concepts.
+## 13. Status
 
-Vertex identity derives from immutable identifiers.
-
----
-
-# 8. Edges
-
-Edges are projections of Relationships.
-
-Edges preserve:
-
-* direction;
-* type;
-* provenance;
-* temporal validity;
-* confidence.
-
-Edges never exist without a corresponding Relationship.
-
----
-
-# 9. Labels
-
-Labels classify graph elements.
-
-Examples include:
-
-* Person;
-* Concept;
-* Observation;
-* Citation;
-* Definition;
-* Topic.
-
-Labels originate from the Ontology.
-
----
-
-# 10. Properties
-
-Graph properties enrich graph queries.
-
-Examples:
-
-* confidence;
-* timestamps;
-* language;
-* ontology identifiers;
-* namespaces.
-
-Properties never replace canonical data.
-
----
-
-# 11. Graph Projections
-
-The UDM may generate multiple graph projections.
-
-Examples:
-
-* Semantic Graph;
-* Citation Graph;
-* Dependency Graph;
-* Timeline Graph;
-* Taxonomy Graph;
-* Navigation Graph;
-* Annotation Graph.
-
-Each projection serves a specific purpose.
-
----
-
-# 12. Projection Rules
-
-Every graph projection declares:
-
-* source nodes;
-* source relationships;
-* inclusion rules;
-* exclusion rules;
-* transformation rules.
-
-Projection rules are deterministic.
-
----
-
-# 13. Projection Lifecycle
-
-```text
-UDM Updated
-      │
-      ▼
-Projection Invalidated
-      │
-      ▼
-Projection Rebuilt
-      │
-      ▼
-Projection Available
-```
-
-Graph projections may be regenerated at any time.
-
----
-
-# 14. Graph Consistency
-
-A graph projection is valid only if:
-
-* every vertex references an existing UDM element;
-* every edge references an existing Relationship;
-* every identifier is valid;
-* every projection rule is satisfied.
-
-Consistency is verified automatically.
-
----
-
-# 15. Temporal Graphs
-
-Graph projections may incorporate temporal semantics.
-
-Examples:
-
-* historical graphs;
-* valid-time graphs;
-* event graphs;
-* evolution graphs.
-
-Temporal reasoning derives from the Temporal Model.
-
----
-
-# 16. Graph Identity
-
-Each projection owns:
-
-* ProjectionID;
-* ProjectionType;
-* ProjectionVersion;
-* GenerationTimestamp.
-
-Projection identity does not replace the identity of projected elements.
-
----
-
-# 17. Relationship to Platform Engines
-
-| Engine           | Responsibility                          |
-| ---------------- | --------------------------------------- |
-| Knowledge Engine | Builds graph projections                |
-| Search Engine    | Traverses graph projections             |
-| AI Engine        | Consumes and enriches graph projections |
-| Render Engine    | Visualizes graph projections            |
-| Export Engine    | Exports graph representations           |
-
-The Projection Engine is responsible for maintaining graph projections.
-
----
-
-# 18. Relationship to Other Documents
-
-The Graph Model depends on:
-
-* RelationshipModel.md
-* Ontology.md
-* EmbeddingModel.md
-* TemporalModel.md
-* SemanticNodes.md
-
-The UDM remains authoritative.
-
----
-
-# 19. Graph Invariants
-
-The following invariants apply.
-
-* Graphs are derived.
-* Graphs are reproducible.
-* Graphs are disposable.
-* The UDM remains authoritative.
-* Graph projections never modify canonical knowledge.
-* Graph projections preserve immutable identifiers.
-* Multiple graph projections may coexist.
-
----
-
-# 20. Related Documents
-
-* RelationshipModel.md
-* Ontology.md
-* EmbeddingModel.md
-* ../Nodes/SemanticNodes.md
-* ../Core/TemporalModel.md
-* ../../KnowledgeObject/Relationships.md
-
----
-
-# 21. Status
-
-**Approved**
-
-This document defines the Graph Model of the Universal Document Model.
-
-Graphs are deterministic projections derived from canonical knowledge, enabling semantic navigation, reasoning and analysis while preserving the UDM as the single source of truth.
+This document is part of the KnowledgeOS UDM V4 release-candidate baseline. It becomes frozen after architectural review and validation against the complete Domain package.

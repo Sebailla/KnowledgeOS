@@ -1,346 +1,87 @@
-# Asset Nodes
+# UDM Asset Reference Nodes
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Universal Document Model
-
-**Document:** Asset Nodes
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Universal Document Model  
+**Document:** AssetNodes  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Asset Nodes of the Universal Document Model (UDM).
+Specify semantic references to images, audio, video, datasets and attachments.
 
-Asset Nodes provide the canonical representation of binary resources within structured knowledge.
+## 2. Scope
 
-They reference Assets owned by the Asset Repository.
+Applies to canonical UDM instances, processors, validators and serializers.
 
-They never contain binary data.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. A requirement identified by an invariant or rule identifier is testable and applies to every conforming implementation unless the rule explicitly limits its scope.
 
-# 2. Design Goals
 
-Asset Nodes shall:
+## 4. Context and Responsibilities
 
-* represent binary resources logically;
-* remain independent of storage technologies;
-* preserve canonical structure;
-* support deterministic rendering;
-* support synchronization;
-* support long-term preservation.
+Asset nodes represent identity, media type, role, checksum, source reference, accessibility metadata and available renditions. Binary content is managed outside UDM.
 
----
+## 5. Conceptual Model
 
-# 3. Design Philosophy
+Renditions are derived artifacts. Semantic description belongs to UDM; crop, coordinates and layout belong to DPM unless semantically meaningful.
 
-Asset Nodes represent references.
+## 6. Normative Requirements
 
-Assets represent resources.
+**ASSETNODES-R001** — Asset references MUST use stable identity.
 
-The two concepts are intentionally independent.
+**ASSETNODES-R002** — Checksums SHOULD be recorded when bytes are available.
 
-The UDM models logical knowledge.
+**ASSETNODES-R003** — Binary storage paths MUST NOT be canonical domain values.
 
-The Asset Repository stores binary resources.
+**ASSETNODES-R004** — Every rendition MUST record derivation provenance.
 
----
+**ASSETNODES-R005** — Accessibility descriptions SHOULD be preserved.
 
-# 4. Conceptual Architecture
+**ASSETNODES-R006** — Remote asset URIs MUST be validated under security policy.
 
-```text
-Knowledge Object
-        │
-        ▼
-Asset Repository
-        │
-        ▼
-Asset
-        │
-        ▼
-Asset Reference
-        │
-        ▼
-Asset Node
-        │
-        ▼
-Structural Tree
-```
+## 7. Invariants
 
-Asset Nodes never own Assets.
+**ASSETNODES-I001** — Asset identity is independent of storage location.
 
----
+**ASSETNODES-I002** — Renditions do not replace source assets.
 
-# 5. Asset Categories
+**ASSETNODES-I003** — Presentation placement is external.
 
-The UDM supports multiple Asset Node categories.
+**ASSETNODES-I004** — Missing assets remain explicitly unresolved.
 
-```text
-Asset Node
+## 8. Failure and Edge Cases
 
-├── Image
-├── Audio
-├── Video
-├── PDF
-├── Attachment
-├── Dataset
-├── Font
-├── Embedded Resource
-└── Custom Asset
-```
+A conforming implementation SHALL fail explicitly when it cannot preserve identity, provenance, semantic meaning or authority boundaries. It SHALL NOT repair uncertain input by silently inventing facts. Recoverable ambiguity MAY be represented through confidence, alternatives, unresolved references or validation findings.
 
-Extensions may introduce additional Asset Node types.
+Failures SHALL be categorized as structural, semantic, compatibility, provenance, security or processing failures. Each failure SHALL identify the affected entity and the violated rule.
 
----
+## 9. Examples
 
-# 6. Image
+An original TIFF and a generated JPEG preview share a source/derivation relationship but have distinct rendition identities.
 
-Represents a logical image.
+## 10. Compatibility and Evolution
 
-Typical examples:
+Changes to this contract SHALL follow semantic versioning at the specification level. Backward-compatible additions MAY introduce optional fields, types or relationships. Changes that alter required semantics, identity rules, authority boundaries or canonical interpretation require a major version.
 
-* photographs;
-* diagrams;
-* illustrations;
-* scanned pages;
-* screenshots.
+Unknown optional extensions SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-Rendering is renderer-dependent.
+## 11. Security and Privacy Considerations
 
-Identity is renderer-independent.
+Implementations SHALL treat imported data, extension payloads, external identifiers and generated semantic assertions as untrusted until validated. Personal Knowledge and restricted source material MUST respect scoped authority and execution policy. Remote processing MUST NOT occur without applicable authorization.
 
----
+## 12. Related Documents
 
-# 7. Audio
+- `../Core/NodeModel.md`
+- `../Core/NodeTypes.md`
+- `../Core/Identity.md`
+- `../Validation/ValidationRules.md`
 
-Represents referenced audio.
+## 13. Status
 
-Examples:
-
-* interviews;
-* lectures;
-* voice notes;
-* podcasts.
-
-Playback behavior belongs to the Render Engine.
-
----
-
-# 8. Video
-
-Represents referenced video.
-
-Examples:
-
-* educational videos;
-* demonstrations;
-* scientific recordings.
-
-Temporal navigation is handled by the Render Engine.
-
----
-
-# 9. PDF
-
-Represents the original imported PDF.
-
-The canonical knowledge remains in the UDM.
-
-The PDF is preserved as an Asset for fidelity, auditing and export.
-
----
-
-# 10. Dataset
-
-Represents structured external data.
-
-Examples:
-
-* CSV;
-* JSON;
-* XML;
-* scientific datasets;
-* tabular observations.
-
-Datasets remain immutable Assets.
-
----
-
-# 11. Attachment
-
-Represents supplementary resources.
-
-Examples:
-
-* appendices;
-* source files;
-* supplementary material;
-* laboratory reports.
-
-Attachments preserve provenance.
-
----
-
-# 12. Embedded Resources
-
-Represents embedded binary content extracted during import.
-
-Examples:
-
-* embedded SVG;
-* embedded fonts;
-* embedded icons;
-* embedded multimedia.
-
-Embedded resources remain independent Assets.
-
----
-
-# 13. Asset Reference
-
-Every Asset Node references exactly one Asset Reference.
-
-The reference contains:
-
-* AssetID;
-* AssetRole;
-* MediaType;
-* IntegrityHash;
-* RepositoryIdentifier.
-
-The Asset Reference uniquely identifies the binary resource.
-
----
-
-# 14. Canonical Rules
-
-Asset Nodes never contain:
-
-* binary data;
-* file streams;
-* encoded media.
-
-The canonical representation contains references only.
-
----
-
-# 15. Rendering
-
-Render Engines resolve Asset References.
-
-Typical workflow:
-
-```text
-Asset Node
-      │
-      ▼
-Asset Reference
-      │
-      ▼
-Asset Repository
-      │
-      ▼
-Binary Resource
-```
-
-Rendering never changes the UDM.
-
----
-
-# 16. Synchronization
-
-Synchronization operates independently on:
-
-* Asset Nodes;
-* Asset References;
-* Binary Assets.
-
-This enables:
-
-* lazy synchronization;
-* incremental synchronization;
-* bandwidth optimization.
-
----
-
-# 17. Versioning
-
-Asset Nodes maintain independent version history.
-
-Typical revisions include:
-
-* alternative role;
-* presentation hints;
-* additional metadata.
-
-The referenced Asset remains immutable.
-
----
-
-# 18. Provenance
-
-Every Asset Node preserves:
-
-* Asset origin;
-* import process;
-* extraction history;
-* repository reference.
-
-The Asset itself maintains its own preservation metadata.
-
----
-
-# 19. Invariants
-
-The following invariants apply.
-
-* Asset Nodes never embed binary resources.
-* Every Asset Node references exactly one Asset.
-* Asset identity is immutable.
-* Asset Nodes remain renderer-independent.
-* Asset Nodes remain storage-independent.
-* Binary resources remain external.
-
----
-
-# 20. Relationship to Other Layers
-
-| Layer            | Relationship                              |
-| ---------------- | ----------------------------------------- |
-| Structural Layer | Hosted by structural nodes                |
-| Content Layer    | May appear inline or as block content     |
-| Semantic Layer   | May be semantically enriched              |
-| Annotation Layer | May receive annotations                   |
-| Graph Layer      | May participate in semantic relationships |
-
-Asset Nodes participate in the UDM without owning binary content.
-
----
-
-# 21. Related Documents
-
-* ../../KnowledgeObject/Assets.md
-* ContentNodes.md
-* StructuralNodes.md
-* Anchors.md
-* Core/Identity.md
-* Graph/RelationshipModel.md
-
----
-
-# 22. Status
-
-**Approved**
-
-This document defines the Asset Nodes of the Universal Document Model.
-
-Asset Nodes provide the canonical representation of binary resources through stable references to immutable Assets stored in the Asset Repository.
+This document is part of the KnowledgeOS UDM V4 release-candidate baseline. It becomes frozen after architectural review and validation against the complete Domain package.

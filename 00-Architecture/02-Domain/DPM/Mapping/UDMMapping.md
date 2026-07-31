@@ -1,280 +1,92 @@
-# UDM Mapping
+# UDM–DPM Mapping
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Document Presentation Model
-
-**Document:** UDM Mapping
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Document Presentation Model  
+**Document:** UDMMapping  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the canonical mapping model between the Universal Document Model (UDM) and the Document Presentation Model (DPM).
+Specify correspondence between semantic UDM entities and DPM presentation entities.
 
-The mapping establishes how canonical knowledge is projected into presentation without introducing dependencies between the two models.
+## 2. Scope
 
-The mapping is deterministic, versionable and reversible.
+Applies to DPM/UDM integration, rendering, annotation and export.
 
----
+## 3. Normative Language
 
-# 2. Scope
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Rules identified by stable identifiers are testable requirements for conforming implementations.
 
-The UDM Mapping governs:
 
-* projection of canonical knowledge into presentation;
-* references between UDM and DPM;
-* synchronization of both models;
-* version compatibility;
-* mapping integrity.
+## 4. Context and Responsibility
 
-The mapping never duplicates canonical knowledge.
+Mappings connect identities and anchors while preserving the authority boundary between meaning and presentation.
 
----
+## 5. Conceptual Model
 
-# 3. Design Goals
+A mapping declares source and target references, correspondence kind, coverage, direction, confidence, evidence and provenance.
 
-The UDM Mapping shall:
+## 6. Normative Requirements
 
-* preserve complete separation between UDM and DPM;
-* remain deterministic;
-* support multiple presentation projections;
-* support version evolution;
-* remain renderer-independent;
-* remain extensible.
+**UDMMAPPING-R001** — Every mapping MUST identify valid UDM and DPM scopes.
 
----
+**UDMMAPPING-R002** — Correspondence kind MUST be exact, partial, aggregate, split, inferred, generated or unresolved.
 
-# 4. Design Philosophy
+**UDMMAPPING-R003** — Mappings MUST NOT transfer DPM attributes into UDM automatically.
 
-The UDM owns knowledge.
+**UDMMAPPING-R004** — Inferred mappings MUST record confidence.
 
-The DPM owns presentation.
+**UDMMAPPING-R005** — One-to-many and many-to-one mappings MUST be explicit.
 
-The Mapping connects both models.
+**UDMMAPPING-R006** — Mapping updates MUST preserve lineage.
 
-Neither model depends directly on the other.
+**UDMMAPPING-R007** — Unresolved mappings MUST remain representable.
 
----
+## 7. Invariants
 
-# 5. Conceptual Architecture
+**UDMMAPPING-I001** — UDM identity remains semantic authority.
 
-```text
-Knowledge Object
-        │
-        ├──────────────┐
-        │              │
-        ▼              ▼
-      UDM            DPM
-        ▲              ▲
-        └── UDM Mapping ┘
-```
+**UDMMAPPING-I002** — DPM identity remains presentation authority.
 
-The Mapping acts as the canonical bridge between both models.
+**UDMMAPPING-I003** — Mappings are traceable.
 
----
+**UDMMAPPING-I004** — Mapping cardinality is explicit.
 
-# 6. Mapping Units
+## 8. Processing and Lifecycle Considerations
 
-A Mapping connects:
+Presentation data is an immutable snapshot within a DPM version. Changes create a new version or a new derived view. Runtime caches, UI selection, window state and renderer-specific objects are never canonical DPM state.
 
-* one or more UDM Nodes;
-* one or more Presentation Nodes.
+Processors SHALL record inputs, configuration, implementation version, confidence where applicable and complete provenance. Reprocessing MAY replace derived presentation artifacts but SHALL preserve stable identities when presentation continuity remains.
 
-Mappings express projection, not ownership.
+## 9. Failure and Edge Cases
 
----
+A conforming implementation SHALL represent ambiguity explicitly. It MUST NOT invent coordinates, reading order, style semantics or UDM mappings without evidence. Partial reconstruction MAY be published only when validation marks unresolved regions and the consuming capability supports incomplete DPM.
 
-# 7. Projection Model
+Security-sensitive inputs such as external style references, fonts, URLs and extension payloads SHALL be validated before use.
 
-Presentation is a projection of canonical knowledge.
+## 10. Examples
 
-Examples include:
+One UDM paragraph may map to two text frames when it continues across columns.
 
-* one UDM Node → one Presentation Node;
-* one UDM Node → many Presentation Nodes;
-* many UDM Nodes → one Presentation Node;
-* filtered projections;
-* summarized projections.
+## 11. Compatibility and Evolution
 
-The UDM remains authoritative.
+Backward-compatible changes MAY add optional attributes, types or mapping strategies. Changes that alter spatial semantics, identity, coordinate interpretation, reading-order meaning or UDM/DPM authority boundaries require a major version.
 
----
+Unknown optional extensions SHOULD be preserved. Unknown required semantics MUST produce an explicit incompatibility result.
 
-# 8. Mapping Identity
+## 12. Related Documents
 
-Every Mapping owns:
+- `../DPM.md`
+- `../../UDM/UDM.md`
+- `AnchorMapping.md`
+- `AssetMapping.md`
+- `../Validation/ConsistencyRules.md`
 
-* MappingID;
-* KnowledgeObjectID;
-* UDMVersionID;
-* DPMVersionID;
-* MappingVersionID.
+## 13. Status
 
-Identity is immutable.
-
----
-
-# 9. Mapping Relationships
-
-Mappings reference:
-
-* UDM Node IDs;
-* Presentation Node IDs;
-* Anchor IDs (when applicable);
-* Asset IDs (when applicable).
-
-References are logical.
-
-No ownership is transferred.
-
----
-
-# 10. Synchronization
-
-Mappings synchronize compatible versions of:
-
-* the UDM;
-* the DPM.
-
-Synchronization never modifies either model.
-
-It updates only the Mapping layer.
-
----
-
-# 11. Multiple Projections
-
-The same UDM Node may participate in multiple Presentation Nodes.
-
-Examples include:
-
-* table of contents;
-* chapter summary;
-* preview cards;
-* search snippets;
-* comparison views.
-
-Each projection remains traceable to its canonical origin.
-
----
-
-# 12. Partial Presentation
-
-Not every UDM Node must appear in every DPM.
-
-Presentation may intentionally omit elements for a given experience.
-
-Canonical knowledge remains preserved in the UDM.
-
----
-
-# 13. Bidirectional Resolution
-
-The Mapping supports deterministic navigation:
-
-* UDM → DPM;
-* DPM → UDM.
-
-Navigation never implies ownership.
-
-It resolves references only.
-
----
-
-# 14. Version Compatibility
-
-Mappings are version-aware.
-
-Every Mapping explicitly references:
-
-* compatible UDM Version;
-* compatible DPM Version.
-
-Version mismatches invalidate the Mapping.
-
----
-
-# 15. Provenance
-
-Every Mapping records provenance including:
-
-* creation process;
-* synchronization history;
-* mapping revisions;
-* validation events.
-
-Mapping provenance is independent of UDM and DPM provenance.
-
----
-
-# 16. Relationship to Assets
-
-Mappings may reference Asset Nodes.
-
-Assets remain owned by the UDM.
-
-Presentation determines their placement through the DPM.
-
----
-
-# 17. Relationship to Anchors
-
-Mappings may associate Presentation Nodes with UDM Anchors.
-
-Anchor identity remains owned by the UDM.
-
-The Mapping resolves correspondence without redefining anchors.
-
----
-
-# 18. Validation
-
-A valid Mapping shall satisfy:
-
-* existing UDM references;
-* existing DPM references;
-* compatible versions;
-* deterministic projections;
-* complete referential integrity.
-
----
-
-# 19. Invariants
-
-The following invariants apply:
-
-* the UDM remains the authoritative knowledge model;
-* the DPM remains the authoritative presentation model;
-* the Mapping owns no canonical knowledge;
-* the Mapping owns no presentation elements;
-* references are deterministic;
-* navigation is reversible.
-
----
-
-# 20. Related Documents
-
-* ../../UDM/UDM.md
-* ../DPM.md
-* AssetMapping.md
-* AnchorMapping.md
-* ../../KnowledgeObject/KnowledgeObject.md
-
----
-
-# 21. Status
-
-**Approved**
-
-This document defines the canonical mapping model between the Universal Document Model and the Document Presentation Model.
-
-The UDM Mapping provides deterministic, version-aware and renderer-independent projections while preserving the complete architectural separation between knowledge and presentation.
+This document is part of the KnowledgeOS DPM V4 release-candidate baseline. It becomes frozen after complete Domain review and conformance validation.

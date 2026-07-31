@@ -1,259 +1,103 @@
-# Node Attributes
+# UDM Node Attribute Model
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Universal Document Model
-
-**Document:** Node Attributes
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Universal Document Model  
+**Document:** NodeAttributes  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the common attribute model shared by every node in the Universal Document Model (UDM).
+Specify typed attributes, namespaces, missing-value semantics and inheritance.
 
-Attributes describe the properties of a node.
+## 2. Scope
 
-They do not define:
+Applies to all node attributes and extension attributes.
 
-* structural relationships;
-* behavior;
-* rendering;
-* processing.
+## 3. Normative Language
 
-Those concerns are specified elsewhere.
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. A requirement identified by an invariant or rule identifier is testable and applies to every conforming implementation unless the rule explicitly limits its scope.
 
----
 
-# 2. Design Goals
+## 4. Context and Responsibilities
 
-The attribute model shall:
+Attributes describe semantic properties. They do not store rendering state or persistence metadata.
 
-* remain deterministic;
-* remain extensible;
-* remain strongly typed;
-* support validation;
-* support versioning;
-* support backward compatibility.
+Supported logical value classes include string, boolean, integer, decimal, identifier, URI, date/time, duration, language tag, measurement, list, set and structured record.
 
----
-
-# 3. Attribute Categories
-
-Every attribute belongs to exactly one category.
+## 5. Conceptual Model
 
 ```text
-Node Attributes
-
-├── Identity
-├── Classification
-├── Structural
-├── Semantic
-├── Capability
-├── Rendering
-├── Extension
-└── System
+AttributeDefinition
+├── name
+├── namespace
+├── valueType
+├── cardinality
+├── required
+├── inherited
+├── defaultPolicy
+└── validationRules[]
 ```
 
----
+## 6. Normative Requirements
 
-# 4. Identity Attributes
+**NODEATTRIBUTES-R001** — Attribute names MUST be unique within a node and namespace.
 
-Mandatory.
+**NODEATTRIBUTES-R002** — Values MUST conform to the declared logical type.
 
-| Attribute | Description                 |
-| --------- | --------------------------- |
-| NodeID    | Immutable node identifier   |
-| VersionID | Current node version        |
-| CreatedAt | Creation timestamp          |
-| UpdatedAt | Last modification timestamp |
+**NODEATTRIBUTES-R003** — Missing, unknown and explicit null MUST remain distinguishable.
 
-Identity attributes are immutable except timestamps defined by version evolution.
+**NODEATTRIBUTES-R004** — Measurements MUST declare a unit.
 
----
+**NODEATTRIBUTES-R005** — Machine-generated values MUST include method provenance when required by the attribute definition.
 
-# 5. Classification Attributes
+**NODEATTRIBUTES-R006** — Core attributes MUST NOT be redefined by extensions.
 
-Describe the role of the node.
+**NODEATTRIBUTES-R007** — Presentation-only properties MUST be represented in DPM, not UDM.
 
-Mandatory.
+## 7. Invariants
 
-| Attribute | Description             |
-| --------- | ----------------------- |
-| Category  | Primary category        |
-| Type      | Official node type      |
-| Variant   | Optional specialization |
+**NODEATTRIBUTES-I001** — Attribute interpretation is deterministic.
 
-Classification is immutable.
+**NODEATTRIBUTES-I002** — No implicit inheritance occurs unless declared.
 
----
+**NODEATTRIBUTES-I003** — Uncertainty is never replaced by fabricated precision.
 
-# 6. Structural Attributes
+**NODEATTRIBUTES-I004** — Unknown optional attributes are preserved when possible.
 
-Describe the node position inside the structural tree.
+**NODEATTRIBUTES-I005** — Attribute values do not contain executable code.
 
-Typical attributes:
+## 8. Failure and Edge Cases
 
-* ParentID
-* ChildOrder
-* ChildCount
-* Depth
-* Path
+A conforming implementation SHALL fail explicitly when it cannot preserve identity, provenance, semantic meaning or authority boundaries. It SHALL NOT repair uncertain input by silently inventing facts. Recoverable ambiguity MAY be represented through confidence, alternatives, unresolved references or validation findings.
 
-Structural attributes support deterministic traversal.
+Failures SHALL be categorized as structural, semantic, compatibility, provenance, security or processing failures. Each failure SHALL identify the affected entity and the violated rule.
 
----
+## 9. Examples
 
-# 7. Semantic Attributes
+A date may preserve `originalExpression: "Spring 1998"`, normalized range and precision. It must not be silently converted to an invented exact day.
 
-Describe knowledge-related information.
+## 10. Compatibility and Evolution
 
-Examples:
+Changes to this contract SHALL follow semantic versioning at the specification level. Backward-compatible additions MAY introduce optional fields, types or relationships. Changes that alter required semantics, identity rules, authority boundaries or canonical interpretation require a major version.
 
-* Language
-* Confidence
-* ReadingDirection
-* Domain
-* OntologyReference
-* SemanticRole
+Unknown optional extensions SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-Semantic attributes never alter canonical content.
+## 11. Security and Privacy Considerations
 
----
+Implementations SHALL treat imported data, extension payloads, external identifiers and generated semantic assertions as untrusted until validated. Personal Knowledge and restricted source material MUST respect scoped authority and execution policy. Remote processing MUST NOT occur without applicable authorization.
 
-# 8. Capability Attributes
+## 12. Related Documents
 
-Capabilities indicate what operations are permitted on the node.
+- `NodeModel.md`
+- `TypeSystem.md`
+- `TemporalModel.md`
+- `../Validation/ValidationRules.md`
 
-Examples:
+## 13. Status
 
-* Searchable
-* Annotatable
-* Selectable
-* Editable
-* Versioned
-* Exportable
-* Renderable
-* Indexable
-
-Capabilities express permissions and supported behaviors.
-
-They do not implement behavior.
-
----
-
-# 9. Rendering Attributes
-
-Optional rendering hints.
-
-Examples:
-
-* PreferredRenderer
-* PreferredLayout
-* ReadingPriority
-* DisplayRole
-* Collapsible
-
-Render Engines may ignore these attributes.
-
-Canonical knowledge remains unaffected.
-
----
-
-# 10. Extension Attributes
-
-Plugins may introduce additional attributes.
-
-Requirements:
-
-* namespace isolation;
-* explicit schema version;
-* backward compatibility.
-
-Extensions shall never override official attributes.
-
----
-
-# 11. System Attributes
-
-Reserved for internal platform use.
-
-Examples:
-
-* IntegrityHash
-* ValidationState
-* SerializationVersion
-* MigrationState
-
-These attributes are managed exclusively by the platform.
-
----
-
-# 12. Attribute Constraints
-
-Every attribute shall define:
-
-* name;
-* category;
-* data type;
-* cardinality;
-* mutability;
-* validation rule.
-
-No attribute may exist without an explicit definition.
-
----
-
-# 13. Attribute Evolution
-
-Attributes evolve through versioning.
-
-Rules:
-
-* existing attributes are never redefined;
-* deprecated attributes remain readable;
-* new attributes shall preserve compatibility.
-
-Breaking changes require a new UDM version.
-
----
-
-# 14. Relationship to Other Documents
-
-This document defines common attributes.
-
-Specific node types may introduce additional attributes as defined in:
-
-* StructuralNodes.md
-* InlineNodes.md
-* SemanticNodes.md
-* AnnotationNodes.md
-* AssetNodes.md
-
----
-
-# 15. Related Documents
-
-* NodeModel.md
-* TypeSystem.md
-* NodeTypes.md
-* ValidationRules.md
-* Serialization.md
-
----
-
-# 16. Status
-
-**Approved**
-
-This document defines the universal attribute model shared by every node in the Universal Document Model.
-
-Every node shall expose attributes according to the categories and rules defined in this specification.
+This document is part of the KnowledgeOS UDM V4 release-candidate baseline. It becomes frozen after architectural review and validation against the complete Domain package.

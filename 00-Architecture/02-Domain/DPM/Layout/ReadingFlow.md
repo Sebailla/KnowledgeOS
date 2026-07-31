@@ -1,286 +1,92 @@
+# Reading Flow Model
 
-# Reading Flow
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Document Presentation Model
-
-**Document:** Reading Flow
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Document Presentation Model  
+**Document:** ReadingFlow  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Reading Flow model of the Document Presentation Model (DPM).
+Specify ordered traversal of presentation content.
 
-Reading Flow specifies the logical sequence in which presentation elements are intended to be consumed.
+## 2. Scope
 
-Reading Flow is independent of physical layout.
+Applies to DPM layout analysis, reconstruction, rendering and validation.
 
-It preserves the author's intended reading experience.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Rules identified by stable identifiers are testable requirements for conforming implementations.
 
-# 2. Scope
 
-Reading Flow governs:
+## 4. Context and Responsibility
 
-* logical reading order;
-* continuation across columns;
-* continuation across pages;
-* nested reading sequences;
-* alternative reading paths.
+A reading flow is an explicit sequence or graph of presentation nodes for a declared purpose, language, audience or accessibility mode.
 
-It does not describe physical position.
+## 5. Conceptual Model
 
-Physical relationships are defined by the Layout Graph.
+Primary, alternate and accessible flows may coexist. Flow order is independent of z-order, containment and coordinates.
 
----
+## 6. Normative Requirements
 
-# 3. Design Goals
+**READINGFLOW-R001** — Every published DPM SHOULD define a primary reading flow when readable content exists.
 
-Reading Flow shall:
+**READINGFLOW-R002** — Flow members MUST resolve.
 
-* preserve intended reading order;
-* remain renderer-independent;
-* remain deterministic;
-* support adaptive layouts;
-* support multiple writing systems;
-* remain compatible with accessibility technologies.
+**READINGFLOW-R003** — A node MAY participate in multiple flows.
 
----
+**READINGFLOW-R004** — Language direction MUST be considered.
 
-# 4. Design Philosophy
+**READINGFLOW-R005** — Inferred order MUST record confidence.
 
-Presentation layout and reading order are different concerns.
+**READINGFLOW-R006** — Cycles MUST be explicitly allowed for interactive navigation or rejected.
 
-Visual adjacency does not imply reading sequence.
+**READINGFLOW-R007** — Accessible flow MUST preserve mapped UDM semantic sequence where possible.
 
-Reading Flow explicitly represents how information should be consumed.
+## 7. Invariants
 
----
+**READINGFLOW-I001** — Order is explicit.
 
-# 5. Conceptual Model
+**READINGFLOW-I002** — Flow identity is stable.
 
-```text
-Presentation Elements
-        │
-        ▼
-Reading Flow Graph
-        │
-        ▼
-Reading Sequence
-```
+**READINGFLOW-I003** — Z-order does not imply reading order.
 
-Reading Flow is an ordered traversal model.
+**READINGFLOW-I004** — Ambiguity remains representable.
 
----
+## 8. Processing and Lifecycle Considerations
 
-# 6. Reading Units
+Presentation data is an immutable snapshot within a DPM version. Changes create a new version or a new derived view. Runtime caches, UI selection, window state and renderer-specific objects are never canonical DPM state.
 
-Reading Flow connects logical reading units.
+Processors SHALL record inputs, configuration, implementation version, confidence where applicable and complete provenance. Reprocessing MAY replace derived presentation artifacts but SHALL preserve stable identities when presentation continuity remains.
 
-Examples include:
+## 9. Failure and Edge Cases
 
-* title;
-* heading;
-* paragraph;
-* figure;
-* caption;
-* table;
-* equation;
-* sidebar;
-* footnote.
+A conforming implementation SHALL represent ambiguity explicitly. It MUST NOT invent coordinates, reading order, style semantics or UDM mappings without evidence. Partial reconstruction MAY be published only when validation marks unresolved regions and the consuming capability supports incomplete DPM.
 
-Each reading unit references one or more Presentation Nodes.
+Security-sensitive inputs such as external style references, fonts, URLs and extension payloads SHALL be validated before use.
 
----
+## 10. Examples
 
-# 7. Reading Relationships
+A magazine page may visually interleave pull quotes, but the accessible flow can omit decorative repetition and follow article semantics.
 
-The following relationships are defined:
+## 11. Compatibility and Evolution
 
-* START_OF_FLOW
-* END_OF_FLOW
-* NEXT_IN_FLOW
-* PREVIOUS_IN_FLOW
-* CONTINUES_IN
-* RETURNS_TO
-* BRANCHES_TO
-* MERGES_FROM
+Backward-compatible changes MAY add optional attributes, types or mapping strategies. Changes that alter spatial semantics, identity, coordinate interpretation, reading-order meaning or UDM/DPM authority boundaries require a major version.
 
-These relationships define reading progression.
+Unknown optional extensions SHOULD be preserved. Unknown required semantics MUST produce an explicit incompatibility result.
 
----
+## 12. Related Documents
 
-# 8. Flow Boundaries
+- `../DPM.md`
+- `../Core/PresentationNodeModel.md`
+- `LayoutGraph.md`
+- `ReadingFlow.md`
+- `../Validation/ConsistencyRules.md`
 
-Reading Flows may begin or end at:
+## 13. Status
 
-* document;
-* page;
-* region;
-* column;
-* nested presentation group.
-
-Boundaries are logical.
-
----
-
-# 9. Multi-Column Reading
-
-Reading Flow explicitly defines how columns are traversed.
-
-Examples include:
-
-* left column → right column;
-* top column → bottom column;
-* right-to-left layouts;
-* vertical writing systems.
-
-Column position alone is insufficient.
-
----
-
-# 10. Multi-Page Reading
-
-Reading Flow preserves continuity across pages.
-
-Examples include:
-
-* continued paragraphs;
-* continued figures;
-* continued tables;
-* continued code listings.
-
-Page breaks do not interrupt logical reading.
-
----
-
-# 11. Alternative Reading Paths
-
-A document may define alternative reading experiences.
-
-Examples include:
-
-* simplified reading;
-* academic reading;
-* presentation mode;
-* accessibility mode.
-
-Alternative paths reference the same canonical presentation.
-
----
-
-# 12. Accessibility
-
-Reading Flow shall provide a deterministic traversal suitable for:
-
-* screen readers;
-* keyboard navigation;
-* voice interfaces;
-* assistive technologies.
-
-Accessibility shall never depend solely on visual position.
-
----
-
-# 13. Relationship to Layout Graph
-
-Reading Flow complements the Layout Graph.
-
-The Layout Graph defines spatial organization.
-
-Reading Flow defines traversal order.
-
-Neither replaces the other.
-
----
-
-# 14. Relationship to Pages
-
-Pages provide visual organization.
-
-Reading Flow may cross page boundaries without interruption.
-
----
-
-# 15. Relationship to Regions
-
-Reading Flow traverses Regions according to logical sequence.
-
-Region order is not inferred from geometry.
-
----
-
-# 16. Relationship to Columns
-
-Columns contribute to Reading Flow.
-
-The Reading Flow model explicitly defines how readers move between columns.
-
----
-
-# 17. Relationship to the UDM
-
-Reading Flow references Presentation Nodes mapped to canonical UDM elements.
-
-Reading Flow never modifies:
-
-* canonical knowledge;
-* semantic relationships;
-* provenance;
-* annotations.
-
----
-
-# 18. Validation
-
-A valid Reading Flow shall satisfy:
-
-* one or more valid entry points;
-* deterministic ordering;
-* no unreachable reading units;
-* no invalid cycles;
-* valid references to Presentation Nodes.
-
----
-
-# 19. Invariants
-
-The following invariants apply:
-
-* Reading Flow defines logical traversal only;
-* visual position does not determine reading order;
-* every referenced Presentation Node exists;
-* traversal is deterministic;
-* Reading Flow is renderer-independent.
-
----
-
-# 20. Related Documents
-
-* LayoutGraph.md
-* Pages.md
-* Regions.md
-* Columns.md
-* SpatialRelationships.md
-* ../Core/PresentationNodeModel.md
-
----
-
-# 21. Status
-
-**Approved**
-
-This document defines the Reading Flow model of the Document Presentation Model.
-
-Reading Flow preserves the logical reading sequence independently of physical layout, ensuring deterministic traversal, adaptive rendering and accessibility across all supported presentation experiences.
+This document is part of the KnowledgeOS DPM V4 release-candidate baseline. It becomes frozen after complete Domain review and conformance validation.

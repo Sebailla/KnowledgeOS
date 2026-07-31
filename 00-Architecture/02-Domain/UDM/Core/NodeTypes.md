@@ -1,321 +1,100 @@
+# UDM Node Type Catalogue
 
-# Node Types
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Universal Document Model
-
-**Document:** Node Types
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Universal Document Model  
+**Document:** NodeTypes  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the official catalog of node types supported by the Universal Document Model (UDM).
+Define the core node families, baseline types and classification rules.
 
-It specifies:
+## 2. Scope
 
-* available node types;
-* category classification;
-* structural role;
-* parent-child constraints;
-* extensibility rules.
+Defines type taxonomy. Family-specific contracts are refined under `Nodes/`.
 
-Behavior is defined in dedicated specifications.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. A requirement identified by an invariant or rule identifier is testable and applies to every conforming implementation unless the rule explicitly limits its scope.
 
-# 2. Design Goals
 
-The node catalog shall:
+## 4. Context and Responsibilities
 
-* remain deterministic;
-* remain extensible;
-* avoid duplicate semantics;
-* separate structure from behavior;
-* preserve backward compatibility.
+Core families are Structural, Content, Inline, Semantic, Asset Reference and Annotation Reference.
 
----
+Classification is evidence-based. Processors choose the most specific justified type and record confidence when classification is inferred.
 
-# 3. Node Classification Model
+## 5. Conceptual Model
 
-Every node is classified using three dimensions.
+| Family | Representative types |
+|---|---|
+| Structural | document, part, chapter, section, appendix |
+| Content | paragraph, heading, list, table, figure, codeBlock |
+| Inline | text, emphasis, link, citation, term, formulaInline |
+| Semantic | person, organization, place, event, concept, claim |
+| Asset | imageAsset, audioAsset, videoAsset, datasetAsset |
+| Annotation Reference | annotationTarget, annotationReference |
 
-```text
-Category
+## 6. Normative Requirements
 
-↓
+**NODETYPES-R001** — A node MUST belong to exactly one primary family.
 
-Type
+**NODETYPES-R002** — A primary type MUST be registered and versioned.
 
-↓
+**NODETYPES-R003** — Processors MUST NOT infer semantic specificity solely from visual styling.
 
-Variant
-```
+**NODETYPES-R004** — Unknown source structures MUST be preserved using defined fallback types.
 
-Example:
+**NODETYPES-R005** — Extension types MUST use globally unique namespaces.
 
-```text
-Category
-    Structural
+**NODETYPES-R006** — Traits MUST NOT contradict the primary family.
 
-Type
-    Paragraph
+**NODETYPES-R007** — Deprecated types MUST remain resolvable during their compatibility window.
 
-Variant
-    Scientific Paragraph
-```
+## 7. Invariants
 
-Variants extend behavior without redefining the base type.
+**NODETYPES-I001** — Type identity is stable.
 
----
+**NODETYPES-I002** — Core type semantics cannot be overridden.
 
-# 4. Structural Node Types
+**NODETYPES-I003** — Unknown types remain preservable.
 
-These nodes organize the logical structure.
+**NODETYPES-I004** — Classification uncertainty remains explicit.
 
-| Type        | Purpose                         |
-| ----------- | ------------------------------- |
-| Document    | Root of the document tree       |
-| FrontMatter | Preliminary information         |
-| BackMatter  | Closing information             |
-| Chapter     | Major division                  |
-| Section     | Logical subdivision             |
-| Subsection  | Nested subdivision              |
-| Paragraph   | Primary text container          |
-| List        | Ordered or unordered collection |
-| ListItem    | Item within a list              |
-| Table       | Tabular structure               |
-| TableRow    | Row within a table              |
-| TableCell   | Cell within a table             |
-| Figure      | Visual container                |
-| Caption     | Description of another node     |
-| Quote       | Quoted content                  |
-| Footnote    | Supplementary note              |
-| Sidebar     | Secondary content               |
-| Callout     | Highlighted information         |
-| Separator   | Logical division                |
+**NODETYPES-I005** — Presentation and semantic type systems remain separate.
 
----
+## 8. Failure and Edge Cases
 
-# 5. Content Node Types
+A conforming implementation SHALL fail explicitly when it cannot preserve identity, provenance, semantic meaning or authority boundaries. It SHALL NOT repair uncertain input by silently inventing facts. Recoverable ambiguity MAY be represented through confidence, alternatives, unresolved references or validation findings.
 
-These nodes represent information.
+Failures SHALL be categorized as structural, semantic, compatibility, provenance, security or processing failures. Each failure SHALL identify the affected entity and the violated rule.
 
-| Type       | Purpose                   |
-| ---------- | ------------------------- |
-| Text       | Plain text                |
-| Code       | Source code               |
-| InlineCode | Inline code fragment      |
-| Formula    | Mathematical formula      |
-| Equation   | Display equation          |
-| Citation   | Reference citation        |
-| Reference  | Cross-reference           |
-| Hyperlink  | External or internal link |
-| Symbol     | Individual symbol         |
-| Emoji      | Emoji representation      |
+## 9. Examples
 
----
+Bold text is not automatically a heading. A visually large line becomes a heading only when structural evidence supports that classification.
 
-# 6. Semantic Node Types
+## 10. Compatibility and Evolution
 
-These nodes enrich meaning.
+Changes to this contract SHALL follow semantic versioning at the specification level. Backward-compatible additions MAY introduce optional fields, types or relationships. Changes that alter required semantics, identity rules, authority boundaries or canonical interpretation require a major version.
 
-| Type             | Purpose                   |
-| ---------------- | ------------------------- |
-| Entity           | Generic entity            |
-| Person           | Human entity              |
-| Organization     | Organization              |
-| Location         | Geographic entity         |
-| Concept          | Abstract concept          |
-| Topic            | Subject classification    |
-| Taxon            | Biological classification |
-| ChemicalCompound | Chemistry                 |
-| MedicalTerm      | Medicine                  |
-| Keyword          | Search keyword            |
-| Definition       | Formal definition         |
+Unknown optional extensions SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-Semantic nodes never modify canonical content.
+## 11. Security and Privacy Considerations
 
----
+Implementations SHALL treat imported data, extension payloads, external identifiers and generated semantic assertions as untrusted until validated. Personal Knowledge and restricted source material MUST respect scoped authority and execution policy. Remote processing MUST NOT occur without applicable authorization.
 
-# 7. Annotation Node Types
+## 12. Related Documents
 
-These nodes represent user-generated information.
+- `TypeSystem.md`
+- `NodeModel.md`
+- `../Nodes/ContentNodes.md`
+- `../Nodes/SemanticNodes.md`
 
-| Type       | Purpose             |
-| ---------- | ------------------- |
-| Highlight  | Highlighted content |
-| Note       | User note           |
-| StickyNote | Floating annotation |
-| Bookmark   | Navigation marker   |
-| Ink        | Handwriting         |
-| Drawing    | Freehand drawing    |
-| Comment    | Comment             |
-| Review     | Review annotation   |
+## 13. Status
 
----
-
-# 8. Asset Node Types
-
-Asset nodes reference external binary resources.
-
-| Type       | Purpose             |
-| ---------- | ------------------- |
-| Image      | Image reference     |
-| Audio      | Audio reference     |
-| Video      | Video reference     |
-| PDF        | Original PDF        |
-| Attachment | Generic attachment  |
-| Dataset    | External dataset    |
-| Archive    | Compressed resource |
-| Font       | Font resource       |
-
-Asset nodes never embed binary content.
-
----
-
-# 9. Virtual Node Types
-
-Virtual nodes are generated dynamically.
-
-| Type            | Purpose                |
-| --------------- | ---------------------- |
-| TableOfContents | Generated TOC          |
-| SearchResult    | Search hit             |
-| NavigationTree  | Navigation hierarchy   |
-| Preview         | Preview representation |
-| Summary         | Generated summary      |
-| Outline         | Generated outline      |
-| ReadingProgress | Reading state          |
-
-Virtual nodes are never serialized as canonical content.
-
----
-
-# 10. Parent Constraints
-
-Each node declares its valid parent types.
-
-Example:
-
-| Node      | Valid Parents     |
-| --------- | ----------------- |
-| Paragraph | Section, Chapter  |
-| Section   | Chapter, Document |
-| TableRow  | Table             |
-| TableCell | TableRow          |
-| Caption   | Figure            |
-| Highlight | Paragraph, Text   |
-| Image     | Figure, Paragraph |
-
-Validation rules are defined separately.
-
----
-
-# 11. Child Constraints
-
-Each node declares its permitted children.
-
-Example:
-
-| Node      | Allowed Children                          |
-| --------- | ----------------------------------------- |
-| Document  | Chapter, Section, FrontMatter, BackMatter |
-| Chapter   | Section, Paragraph                        |
-| Section   | Paragraph, Table, Figure, List            |
-| Paragraph | Text, InlineCode, Hyperlink, Citation     |
-| Table     | TableRow                                  |
-| TableRow  | TableCell                                 |
-
----
-
-# 12. Required Attributes
-
-Every node shall declare:
-
-* NodeID;
-* Category;
-* Type;
-* Version;
-* Attributes.
-
-Optional attributes depend on specialization.
-
----
-
-# 13. Extensibility
-
-New node types may be introduced through extensions.
-
-Extensions shall:
-
-* declare Category;
-* declare Type;
-* define parent constraints;
-* define child constraints;
-* define validation rules.
-
-Existing node types shall never be modified.
-
----
-
-# 14. Reserved Types
-
-The following identifiers are reserved.
-
-* Root
-* Null
-* Unknown
-* Invalid
-
-Reserved identifiers shall not be reused.
-
----
-
-# 15. Relationship to Other Documents
-
-Behavior is specified in:
-
-* ValidationRules.md
-* ProcessingPipeline.md
-* Serialization.md
-
-Semantic meaning is specified in:
-
-* Ontology.md
-* RelationshipModel.md
-
-Type inheritance is defined in:
-
-* TypeSystem.md
-
----
-
-# 16. Related Documents
-
-* TypeSystem.md
-* NodeAttributes.md
-* StructuralNodes.md
-* InlineNodes.md
-* SemanticNodes.md
-* AnnotationNodes.md
-* AssetNodes.md
-
----
-
-# 17. Status
-
-**Approved**
-
-This document defines the official catalog of node types supported by the Universal Document Model.
-
-Every canonical UDM representation shall use only node types defined or formally extended according to this specification.
+This document is part of the KnowledgeOS UDM V4 release-candidate baseline. It becomes frozen after architectural review and validation against the complete Domain package.

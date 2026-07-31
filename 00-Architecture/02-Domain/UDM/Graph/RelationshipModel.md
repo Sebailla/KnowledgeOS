@@ -1,323 +1,87 @@
+# UDM Relationship Model
 
-# Relationship Model
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Universal Document Model
-
-**Document:** Relationship Model
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Universal Document Model  
+**Document:** RelationshipModel  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the relationship model used within the Universal Document Model (UDM).
+Specify typed edges between nodes, entities, Knowledge Objects and external resources.
 
-Relationships connect nodes, anchors and semantic concepts without modifying the structural hierarchy.
+## 2. Scope
 
-They are first-class domain objects.
+Applies to semantic graph projection and graph-consuming capabilities.
 
----
+## 3. Normative Language
 
-# 2. Scope
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. A requirement identified by an invariant or rule identifier is testable and applies to every conforming implementation unless the rule explicitly limits its scope.
 
-The UDM Relationship Model applies exclusively to relationships inside a single Knowledge Object.
 
-Relationships between Knowledge Objects are defined separately in the Domain Relationship Model.
+## 4. Context and Responsibilities
 
----
+Relationships include structural, referential, citation, semantic, temporal, causal, evidential, equivalence, personal and derived categories.
 
-# 3. Design Goals
+## 5. Conceptual Model
 
-The Relationship Model shall:
+A relationship carries identity, type, source, target, direction, attributes, evidence anchors, provenance, authority and optional confidence.
 
-* preserve semantic meaning;
-* remain independent of rendering;
-* support graph construction;
-* preserve provenance;
-* support temporal reasoning;
-* support AI enrichment;
-* support future extensibility.
+## 6. Normative Requirements
 
----
+**RELATIONSHIPMODEL-R001** — Relationship endpoints MUST resolve or be explicitly external.
 
-# 4. Conceptual Model
+**RELATIONSHIPMODEL-R002** — Relationship types MUST declare valid endpoint types.
 
-```text
-Relationship
-│
-├── RelationshipID
-├── Source
-├── Target
-├── Type
-├── Direction
-├── Strength
-├── Confidence
-├── Evidence
-├── Temporal Validity
-├── Provenance
-└── Metadata
-```
+**RELATIONSHIPMODEL-R003** — Machine-generated relationships MUST include confidence and method provenance.
 
-Relationships are independent domain objects.
+**RELATIONSHIPMODEL-R004** — Symmetric relationships MUST declare symmetry.
 
----
+**RELATIONSHIPMODEL-R005** — Inverse semantics MUST be defined by type, not inferred from names.
 
-# 5. Relationship Endpoints
+**RELATIONSHIPMODEL-R006** — Duplicate handling MUST follow type multiplicity rules.
 
-A relationship may connect:
+## 7. Invariants
 
-* Node ↔ Node
-* Node ↔ Anchor
-* Anchor ↔ Anchor
-* Node ↔ Semantic Node
-* Semantic Node ↔ Semantic Node
-* Node ↔ Asset Node
-* Semantic Node ↔ Asset Node
+**RELATIONSHIPMODEL-I001** — Identity is immutable.
 
-Endpoints are identified through immutable IDs.
+**RELATIONSHIPMODEL-I002** — Authority is explicit.
 
----
+**RELATIONSHIPMODEL-I003** — Evidence remains traceable.
 
-# 6. Relationship Types
+**RELATIONSHIPMODEL-I004** — Personal and derived edges cannot rewrite source assertions.
 
-Relationship types express semantic intent.
+## 8. Failure and Edge Cases
 
-Examples:
+A conforming implementation SHALL fail explicitly when it cannot preserve identity, provenance, semantic meaning or authority boundaries. It SHALL NOT repair uncertain input by silently inventing facts. Recoverable ambiguity MAY be represented through confidence, alternatives, unresolved references or validation findings.
 
-* references;
-* cites;
-* supports;
-* contradicts;
-* extends;
-* derives from;
-* depends on;
-* illustrates;
-* defines;
-* explains;
-* compares;
-* translates.
+Failures SHALL be categorized as structural, semantic, compatibility, provenance, security or processing failures. Each failure SHALL identify the affected entity and the violated rule.
 
-Relationship types belong to the ontology.
+## 9. Examples
 
----
+A citation edge connects a citation inline node to a bibliography entry and references the source span as evidence.
 
-# 7. Direction
+## 10. Compatibility and Evolution
 
-Relationships declare one direction.
+Changes to this contract SHALL follow semantic versioning at the specification level. Backward-compatible additions MAY introduce optional fields, types or relationships. Changes that alter required semantics, identity rules, authority boundaries or canonical interpretation require a major version.
 
-Supported modes:
+Unknown optional extensions SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-* directed;
-* bidirectional;
-* symmetric.
+## 11. Security and Privacy Considerations
 
-Direction is explicit.
+Implementations SHALL treat imported data, extension payloads, external identifiers and generated semantic assertions as untrusted until validated. Personal Knowledge and restricted source material MUST respect scoped authority and execution policy. Remote processing MUST NOT occur without applicable authorization.
 
-It is never inferred.
+## 12. Related Documents
 
----
+- `GraphModel.md`
+- `RelationshipModel.md`
+- `Ontology.md`
+- `../Core/Identity.md`
 
-# 8. Strength
+## 13. Status
 
-Relationships may include a semantic strength.
-
-Typical values:
-
-* weak;
-* medium;
-* strong;
-* exact.
-
-Strength expresses relevance rather than truth.
-
----
-
-# 9. Confidence
-
-Confidence represents the certainty associated with the relationship.
-
-Typical origins include:
-
-* user-created;
-* imported;
-* inferred;
-* AI-generated.
-
-Confidence never determines validity.
-
----
-
-# 10. Evidence
-
-Relationships may reference supporting evidence.
-
-Evidence may include:
-
-* source citations;
-* observations;
-* experiments;
-* publications;
-* annotations;
-* external references.
-
-Evidence strengthens interpretation without modifying canonical content.
-
----
-
-# 11. Temporal Validity
-
-Relationships may define:
-
-* valid from;
-* valid until;
-* event time;
-* transaction time.
-
-Temporal semantics follow the Temporal Model.
-
----
-
-# 12. Provenance
-
-Every relationship records:
-
-* creator;
-* creation process;
-* creation time;
-* modification history;
-* synchronization history.
-
-Provenance is append-only.
-
----
-
-# 13. Metadata
-
-Optional metadata may include:
-
-* notes;
-* labels;
-* namespaces;
-* extension properties.
-
-Metadata never changes semantic intent.
-
----
-
-# 14. Identity
-
-Every relationship owns:
-
-* RelationshipID;
-* VersionID.
-
-Identity remains immutable.
-
-Version history evolves independently.
-
----
-
-# 15. Relationship Invariants
-
-The following invariants apply.
-
-* Every relationship has at least two endpoints.
-* Endpoints are immutable identifiers.
-* Relationships never modify canonical content.
-* Provenance is preserved.
-* Identity is immutable.
-* Version history is append-only.
-
----
-
-# 16. Relationship Lifecycle
-
-```text
-Created
-     │
-     ▼
-Validated
-     │
-     ▼
-Active
-     │
-     ▼
-Archived
-```
-
-Historical relationships remain queryable.
-
----
-
-# 17. Relationship Resolution
-
-Relationships are resolved using stable identifiers.
-
-No relationship depends on:
-
-* page numbers;
-* coordinates;
-* renderer state;
-* serialization format.
-
-Resolution is deterministic.
-
----
-
-# 18. Relationship to the Knowledge Graph
-
-The Knowledge Graph is generated from:
-
-* Semantic Nodes;
-* Relationships;
-* Anchors;
-* Ontology.
-
-The graph is a derived projection.
-
-The Relationship Model remains authoritative.
-
----
-
-# 19. Relationship to Platform Engines
-
-| Engine           | Responsibility                     |
-| ---------------- | ---------------------------------- |
-| Knowledge Engine | Creates and enriches relationships |
-| AI Engine        | Suggests inferred relationships    |
-| Search Engine    | Traverses relationships            |
-| Render Engine    | Visualizes relationships           |
-| Sync Engine      | Synchronizes relationship history  |
-| Export Engine    | Exports relationship data          |
-
-Relationships are shared across multiple engines.
-
----
-
-# 20. Related Documents
-
-* GraphModel.md
-* Ontology.md
-* EmbeddingModel.md
-* ../Nodes/SemanticNodes.md
-* ../Nodes/Anchors.md
-* ../Core/TemporalModel.md
-
----
-
-# 21. Status
-
-**Approved**
-
-This document defines the Relationship Model of the Universal Document Model.
-
-Relationships are first-class semantic objects that connect canonical knowledge through stable identifiers while preserving provenance, temporal validity and extensibility.
+This document is part of the KnowledgeOS UDM V4 release-candidate baseline. It becomes frozen after architectural review and validation against the complete Domain package.

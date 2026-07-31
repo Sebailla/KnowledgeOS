@@ -1,255 +1,87 @@
+# UDM Embedding Model
 
-# Embedding Model
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Universal Document Model
-
-**Document:** Embedding Model
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Universal Document Model  
+**Document:** EmbeddingModel  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the conceptual embedding model of the Universal Document Model (UDM).
+Specify embeddings as derived, rebuildable semantic artifacts.
 
-Embedding Projections provide vector representations derived from canonical knowledge.
+## 2. Scope
 
-Embeddings support semantic similarity, retrieval and machine-assisted processing.
+Applies to semantic graph projection and graph-consuming capabilities.
 
-They are never considered canonical knowledge.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. A requirement identified by an invariant or rule identifier is testable and applies to every conforming implementation unless the rule explicitly limits its scope.
 
-# 2. Scope
 
-The Embedding Model defines:
+## 4. Context and Responsibilities
 
-* embedding projections;
-* embedding lifecycle;
-* embedding provenance;
-* embedding consistency;
-* embedding evolution.
+Embeddings may represent documents, nodes, chunks, entities, personal notes or queries. They never become canonical facts.
 
-It does not define specific embedding providers or vector databases.
+## 5. Conceptual Model
 
----
+An embedding record identifies subject, model, version, dimensions, preprocessing, input fingerprint, privacy class and provenance.
 
-# 3. Design Goals
+## 6. Normative Requirements
 
-The Embedding Model shall:
+**EMBEDDINGMODEL-R001** — Embeddings MUST be treated as derived artifacts.
 
-* remain provider-independent;
-* support multiple embedding strategies;
-* preserve provenance;
-* remain reproducible;
-* support regeneration;
-* remain independent of vector technologies.
+**EMBEDDINGMODEL-R002** — Model and input provenance MUST be recorded.
 
----
+**EMBEDDINGMODEL-R003** — Stale embeddings MUST be invalidated when subject or model changes.
 
-# 4. Design Philosophy
+**EMBEDDINGMODEL-R004** — Personal embeddings MUST obey scoped authority.
 
-Canonical knowledge is represented by the UDM.
+**EMBEDDINGMODEL-R005** — Remote generation MUST require applicable authorization.
 
-Embeddings are derived semantic projections.
+**EMBEDDINGMODEL-R006** — Similarity MUST NOT be interpreted as truth.
 
-Embedding vectors are disposable.
+## 7. Invariants
 
-The UDM remains authoritative.
+**EMBEDDINGMODEL-I001** — Vectors are rebuildable.
 
----
+**EMBEDDINGMODEL-I002** — Dimensions match model contract.
 
-# 5. Conceptual Architecture
+**EMBEDDINGMODEL-I003** — Personal and publication embeddings remain distinguishable.
 
-```text
-Universal Document Model
-        │
-        ▼
-Projection Engine
-        │
-        ▼
-Embedding Projection
-        │
-        ▼
-Embedding Provider
-        │
-        ▼
-Vector Representation
-```
+**EMBEDDINGMODEL-I004** — Deletion does not delete canonical content.
 
-Embedding Providers are infrastructure components.
+## 8. Failure and Edge Cases
 
----
+A conforming implementation SHALL fail explicitly when it cannot preserve identity, provenance, semantic meaning or authority boundaries. It SHALL NOT repair uncertain input by silently inventing facts. Recoverable ambiguity MAY be represented through confidence, alternatives, unresolved references or validation findings.
 
-# 6. Embedding Targets
+Failures SHALL be categorized as structural, semantic, compatibility, provenance, security or processing failures. Each failure SHALL identify the affected entity and the violated rule.
 
-Embedding projections may represent:
+## 9. Examples
 
-* Knowledge Objects;
-* Structural Nodes;
-* Content Nodes;
-* Semantic Nodes;
-* Relationships;
-* Annotation Nodes.
+Changing the chunking policy invalidates affected embeddings even when the source document is unchanged.
 
-Each target defines its own projection strategy.
+## 10. Compatibility and Evolution
 
----
+Changes to this contract SHALL follow semantic versioning at the specification level. Backward-compatible additions MAY introduce optional fields, types or relationships. Changes that alter required semantics, identity rules, authority boundaries or canonical interpretation require a major version.
 
-# 7. Projection Categories
+Unknown optional extensions SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-Examples include:
+## 11. Security and Privacy Considerations
 
-* Search Projection;
-* Recommendation Projection;
-* Clustering Projection;
-* Similarity Projection;
-* Multimodal Projection;
-* Temporal Projection.
+Implementations SHALL treat imported data, extension payloads, external identifiers and generated semantic assertions as untrusted until validated. Personal Knowledge and restricted source material MUST respect scoped authority and execution policy. Remote processing MUST NOT occur without applicable authorization.
 
-Multiple projections may coexist.
+## 12. Related Documents
 
----
+- `GraphModel.md`
+- `RelationshipModel.md`
+- `Ontology.md`
+- `../Core/Identity.md`
 
-# 8. Provider Independence
+## 13. Status
 
-The UDM never references:
-
-* embedding dimensions;
-* model names;
-* API providers;
-* vector formats.
-
-Those concerns belong to the infrastructure layer.
-
----
-
-# 9. Projection Identity
-
-Every Embedding Projection possesses:
-
-* ProjectionID;
-* ProjectionType;
-* ProjectionVersion;
-* GenerationTimestamp;
-* Provenance.
-
-Projection identity is independent of the generated vectors.
-
----
-
-# 10. Lifecycle
-
-```text
-UDM Updated
-      │
-      ▼
-Projection Invalidated
-      │
-      ▼
-Embedding Regenerated
-      │
-      ▼
-Projection Available
-```
-
-Embedding projections are always reproducible.
-
----
-
-# 11. Provenance
-
-Every embedding projection records:
-
-* provider identifier;
-* provider version;
-* projection strategy;
-* generation timestamp;
-* source UDM version.
-
-This ensures traceability.
-
----
-
-# 12. Consistency
-
-Embedding projections remain valid only while they correspond to the current UDM revision.
-
-Changes to canonical knowledge invalidate affected projections.
-
-The Projection Engine is responsible for regeneration.
-
----
-
-# 13. Relationship to Semantic Reasoning
-
-Semantic Reasoning derives knowledge.
-
-Embedding Projections approximate semantic similarity.
-
-Embeddings never replace reasoning.
-
----
-
-# 14. Relationship to the Knowledge Graph
-
-Graph Projections organize semantic structure.
-
-Embedding Projections organize vector similarity.
-
-Both derive independently from the same UDM.
-
----
-
-# 15. Relationship to AI
-
-AI systems consume Embedding Projections.
-
-AI systems may also generate candidate semantic enrichments.
-
-Embedding vectors are inputs to AI workflows.
-
-They are not knowledge.
-
----
-
-# 16. Invariants
-
-The following invariants apply.
-
-* Embeddings are derived.
-* Embeddings are reproducible.
-* Embeddings are disposable.
-* Embeddings preserve provenance.
-* Embeddings never modify canonical knowledge.
-* The UDM remains the single source of truth.
-
----
-
-# 17. Related Documents
-
-* SemanticReasoning.md
-* GraphModel.md
-* Ontology.md
-* RelationshipModel.md
-* ../Nodes/SemanticNodes.md
-* ../../04-Platform/ProjectionEngine.md
-
----
-
-# 18. Status
-
-**Approved**
-
-This document defines the Embedding Model of the Universal Document Model.
-
-Embedding Projections provide provider-independent vector representations derived from canonical knowledge while preserving provenance, reproducibility and the UDM as the single authoritative source of truth.
+This document is part of the KnowledgeOS UDM V4 release-candidate baseline. It becomes frozen after architectural review and validation against the complete Domain package.

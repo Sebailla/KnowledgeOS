@@ -1,270 +1,90 @@
-
 # Anchor Mapping
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Document Presentation Model
-
-**Document:** Anchor Mapping
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Document Presentation Model  
+**Document:** AnchorMapping  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the canonical mapping model between Anchors in the Universal Document Model (UDM) and their visual representations within the Document Presentation Model (DPM).
+Specify mapping among source selectors, UDM anchors and DPM geometry.
 
-Anchor Mapping enables deterministic navigation between canonical knowledge and presentation while preserving stable logical references.
+## 2. Scope
 
----
+Applies to DPM/UDM integration, rendering, annotation and export.
 
-# 2. Scope
+## 3. Normative Language
 
-Anchor Mapping governs:
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Rules identified by stable identifiers are testable requirements for conforming implementations.
 
-* anchor projection;
-* presentation localization;
-* navigation;
-* annotation positioning;
-* synchronization;
-* version compatibility.
 
-Anchor Mapping never defines physical coordinates.
+## 4. Context and Responsibility
 
----
+Anchor mapping enables annotations, citations and navigation to survive between semantic and visual representations.
 
-# 3. Design Goals
+## 5. Conceptual Model
 
-Anchor Mapping shall:
+A mapping may resolve a UDM text-range anchor to one or more DPM regions and source selectors. Resolution history records changes.
 
-* preserve logical identity;
-* support deterministic navigation;
-* remain renderer-independent;
-* support adaptive layouts;
-* preserve annotation stability;
-* remain version-aware.
+## 6. Normative Requirements
 
----
+**ANCHORMAPPING-R001** — Anchor mappings MUST identify source and target versions.
 
-# 4. Design Philosophy
+**ANCHORMAPPING-R002** — Partial coverage MUST be explicit.
 
-Anchors identify logical locations.
+**ANCHORMAPPING-R003** — Re-anchoring MUST preserve previous resolutions.
 
-Presentation determines visual locations.
+**ANCHORMAPPING-R004** — Ambiguous matches MUST expose alternatives.
 
-Anchor Mapping connects both domains without coupling them.
+**ANCHORMAPPING-R005** — Geometry-only evidence MUST NOT fabricate semantic ranges.
 
----
+**ANCHORMAPPING-R006** — Composite evidence SHOULD be used for resilience.
 
-# 5. Conceptual Architecture
+## 7. Invariants
 
-```text
-Knowledge Object
-        │
-        ├──────────────┐
-        │              │
-        ▼              ▼
-      Anchor      Presentation Node
-        ▲              ▲
-        └─ Anchor Mapping ─┘
-```
+**ANCHORMAPPING-I001** — Original selectors are immutable.
 
-The Mapping resolves logical positions into presentation positions.
+**ANCHORMAPPING-I002** — Resolution history is append-only.
 
----
+**ANCHORMAPPING-I003** — Unresolved state is valid.
 
-# 6. Mapping Units
+**ANCHORMAPPING-I004** — Mapping is deterministic for fixed inputs and rules.
 
-Every Anchor Mapping connects:
+## 8. Processing and Lifecycle Considerations
 
-* one Anchor;
-* one or more Presentation Nodes.
+Presentation data is an immutable snapshot within a DPM version. Changes create a new version or a new derived view. Runtime caches, UI selection, window state and renderer-specific objects are never canonical DPM state.
 
-Mappings express correspondence.
+Processors SHALL record inputs, configuration, implementation version, confidence where applicable and complete provenance. Reprocessing MAY replace derived presentation artifacts but SHALL preserve stable identities when presentation continuity remains.
 
-Ownership remains with the UDM.
+## 9. Failure and Edge Cases
 
----
+A conforming implementation SHALL represent ambiguity explicitly. It MUST NOT invent coordinates, reading order, style semantics or UDM mappings without evidence. Partial reconstruction MAY be published only when validation marks unresolved regions and the consuming capability supports incomplete DPM.
 
-# 7. Logical Position
+Security-sensitive inputs such as external style references, fonts, URLs and extension payloads SHALL be validated before use.
 
-Anchors identify logical locations such as:
+## 10. Examples
 
-* paragraph boundaries;
-* sentence boundaries;
-* figure references;
-* table entries;
-* equations;
-* semantic regions;
-* document structure.
+A quoted-text anchor resolves to two line boxes on a page because the sentence wraps.
 
-Logical position is immutable within a given UDM version.
+## 11. Compatibility and Evolution
 
----
+Backward-compatible changes MAY add optional attributes, types or mapping strategies. Changes that alter spatial semantics, identity, coordinate interpretation, reading-order meaning or UDM/DPM authority boundaries require a major version.
 
-# 8. Presentation Resolution
+Unknown optional extensions SHOULD be preserved. Unknown required semantics MUST produce an explicit incompatibility result.
 
-Presentation Nodes determine how an Anchor is visualized.
+## 12. Related Documents
 
-Resolution may differ across:
+- `../DPM.md`
+- `../../UDM/UDM.md`
+- `AnchorMapping.md`
+- `AssetMapping.md`
+- `../Validation/ConsistencyRules.md`
 
-* page layouts;
-* themes;
-* renderers;
-* screen sizes;
-* accessibility modes.
+## 13. Status
 
-Logical identity remains unchanged.
-
----
-
-# 9. Multiple Presentations
-
-A single Anchor may resolve to multiple Presentation Nodes.
-
-Examples include:
-
-* document body;
-* table of contents;
-* search result preview;
-* split-screen comparison;
-* outline view.
-
-Each presentation remains traceable to the same Anchor.
-
----
-
-# 10. Navigation
-
-Anchor Mapping supports deterministic navigation:
-
-* Anchor → Presentation;
-* Presentation → Anchor.
-
-Navigation remains stable across layout changes.
-
----
-
-# 11. Annotation Support
-
-Annotations attach to Anchors rather than physical positions.
-
-Presentation determines where annotations are displayed.
-
-This guarantees annotation persistence across rendering environments.
-
----
-
-# 12. Adaptive Rendering
-
-Render Engines may reposition visual elements.
-
-Anchor Mapping shall continue resolving the same logical Anchor regardless of presentation changes.
-
----
-
-# 13. Relationship to the UDM
-
-Anchors remain canonical entities owned by the UDM.
-
-Anchor Mapping never modifies:
-
-* Anchor identity;
-* canonical structure;
-* provenance;
-* semantic relationships.
-
----
-
-# 14. Relationship to the DPM
-
-Presentation Nodes reference Anchors through Anchor Mapping.
-
-The DPM never owns or redefines Anchors.
-
----
-
-# 15. Relationship to Reading Flow
-
-Reading Flow determines traversal.
-
-Anchor Mapping determines correspondence.
-
-Both models complement each other.
-
----
-
-# 16. Version Compatibility
-
-Anchor Mapping explicitly references:
-
-* Anchor Version;
-* UDM Version;
-* DPM Version.
-
-Mappings are valid only for compatible versions.
-
----
-
-# 17. Provenance
-
-Every Anchor Mapping records:
-
-* creation process;
-* synchronization history;
-* mapping revisions;
-* validation events.
-
-Mapping provenance is immutable.
-
----
-
-# 18. Validation
-
-A valid Anchor Mapping shall satisfy:
-
-* existing Anchor reference;
-* existing Presentation Node reference;
-* compatible versions;
-* deterministic resolution;
-* referential integrity.
-
----
-
-# 19. Invariants
-
-The following invariants apply:
-
-* Anchors belong exclusively to the UDM;
-* Anchor Mapping owns no presentation elements;
-* Anchor Mapping owns no canonical knowledge;
-* logical identity is preserved;
-* navigation is deterministic;
-* annotations remain stable across presentation changes.
-
----
-
-# 20. Related Documents
-
-* UDMMapping.md
-* AssetMapping.md
-* ../../UDM/Nodes/Anchors.md
-* ../../KnowledgeObject/Relationships.md
-* ../Layout/ReadingFlow.md
-
----
-
-# 21. Status
-
-**Approved**
-
-This document defines the canonical mapping model between UDM Anchors and DPM Presentation Nodes.
-
-Anchor Mapping preserves stable logical references while enabling deterministic navigation, resilient annotations and renderer-independent presentation across all supported experiences.
+This document is part of the KnowledgeOS DPM V4 release-candidate baseline. It becomes frozen after complete Domain review and conformance validation.

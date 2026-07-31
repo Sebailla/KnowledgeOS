@@ -1,262 +1,107 @@
-
 # Presentation Node Model
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Document Presentation Model
-
-**Document:** Presentation Node Model
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Document Presentation Model  
+**Document:** PresentationNodeModel  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Presentation Node Model of the Document Presentation Model (DPM).
+Specify the common structure and composition behavior of every DPM presentation node.
 
-Presentation Nodes describe the visual organization of a Knowledge Object.
+## 2. Scope
 
-They represent presentation intent.
+Applies to canonical DPM documents and all conforming processors, serializers and renderers.
 
-They never represent canonical knowledge.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Rules identified by stable identifiers are testable requirements for conforming implementations.
 
-# 2. Scope
 
-Presentation Nodes define:
+## 4. Context and Responsibility
 
-* visual elements;
-* layout elements;
-* reading structure;
-* presentation hierarchy;
-* spatial organization.
+A presentation node is an independently identifiable visual object in a declared coordinate system.
 
-Canonical knowledge remains exclusively represented by the UDM.
-
----
-
-# 3. Design Goals
-
-Presentation Nodes shall:
-
-* preserve visual intent;
-* remain renderer-independent;
-* remain deterministic;
-* support reconstruction;
-* support multiple rendering experiences;
-* remain versionable.
-
----
-
-# 4. Design Philosophy
-
-A Presentation Node represents a visual element.
-
-It never represents knowledge.
-
-The UDM defines meaning.
-
-The DPM defines presentation.
-
----
-
-# 5. Conceptual Architecture
+## 5. Conceptual Model
 
 ```text
-Knowledge Object
-        │
-        ├── UDM
-        │
-        └── DPM
-               │
-               ▼
-        Presentation Nodes
+PresentationNode
+├── id
+├── type
+├── coordinateSpaceId
+├── bounds
+├── transform
+├── zIndex
+├── opacity
+├── clip?
+├── styleRefs[]
+├── parentId?
+├── childIds[]
+├── mappingIds[]
+├── provenance
+└── extensions{}
 ```
 
-Presentation Nodes compose the visual model of the document.
+## 6. Normative Requirements
 
----
+**PRESENTATIONNODE-R001** — Every presentation node MUST declare exactly one primary type.
 
-# 6. Presentation Node Categories
+**PRESENTATIONNODE-R002** — Every geometric property MUST resolve through an explicit coordinate space.
 
-Presentation Nodes belong to one primary category.
+**PRESENTATIONNODE-R003** — Containment MUST be acyclic.
 
-Examples include:
+**PRESENTATIONNODE-R004** — Sibling composition order MUST be explicit.
 
-* Page
-* Region
-* Frame
-* Column
-* Figure Area
-* Caption Area
-* Sidebar
-* Header
-* Footer
-* Floating Element
-* Decoration
+**PRESENTATIONNODE-R005** — Node changes MUST create a new DPM version.
 
-Additional categories may be introduced by extensions.
+**PRESENTATIONNODE-R006** — Runtime focus, hover and selection state MUST NOT be canonical node state.
 
----
+**PRESENTATIONNODE-R007** — Unknown optional extensions SHOULD be preserved.
 
-# 7. Identity
+## 7. Invariants
 
-Every Presentation Node possesses:
+**PRESENTATIONNODE-I001** — Identity is stable.
 
-* PresentationNodeID
-* PresentationType
-* VersionID
+**PRESENTATIONNODE-I002** — Composition is deterministic.
 
-Identity is immutable.
+**PRESENTATIONNODE-I003** — Geometry is explicit.
 
----
+**PRESENTATIONNODE-I004** — Semantic meaning is not inferred by storage shape.
 
-# 8. Hierarchy
+## 8. Processing and Lifecycle Considerations
 
-Presentation Nodes form a deterministic containment hierarchy.
+Presentation data is an immutable snapshot within a DPM version. Changes create a new version or a new derived view. Runtime caches, UI selection, window state and renderer-specific objects are never canonical DPM state.
 
-Typical hierarchy:
+Processors SHALL record inputs, configuration, implementation version, confidence where applicable and complete provenance. Reprocessing MAY replace derived presentation artifacts but SHALL preserve stable identities when presentation continuity remains.
 
-```text
-Document
-    ↓
-Page
-    ↓
-Region
-    ↓
-Presentation Element
-```
+## 9. Failure and Edge Cases
 
-Containment represents ownership only.
+A conforming implementation SHALL represent ambiguity explicitly. It MUST NOT invent coordinates, reading order, style semantics or UDM mappings without evidence. Partial reconstruction MAY be published only when validation marks unresolved regions and the consuming capability supports incomplete DPM.
 
-Spatial relationships are modeled separately.
+Security-sensitive inputs such as external style references, fonts, URLs and extension payloads SHALL be validated before use.
 
----
+## 10. Examples
 
-# 9. Layout Graph
+A text frame may contain line nodes and glyph runs while mapping to one UDM paragraph.
 
-Presentation Nodes participate in a Layout Graph.
+## 11. Compatibility and Evolution
 
-The Layout Graph represents spatial relationships such as:
+Backward-compatible changes MAY add optional attributes, types or mapping strategies. Changes that alter spatial semantics, identity, coordinate interpretation, reading-order meaning or UDM/DPM authority boundaries require a major version.
 
-* LEFT_OF
-* RIGHT_OF
-* ABOVE
-* BELOW
-* INSIDE
-* OVERLAPS
-* NEXT_IN_FLOW
+Unknown optional extensions SHOULD be preserved. Unknown required semantics MUST produce an explicit incompatibility result.
 
-The Layout Graph complements the containment hierarchy.
+## 12. Related Documents
 
----
+- `../DPM.md`
+- `PresentationNodeModel.md`
+- `PresentationTypes.md`
+- `../Validation/ValidationRules.md`
 
-# 10. Mapping to the UDM
+## 13. Status
 
-Presentation Nodes reference canonical UDM elements.
-
-Examples:
-
-* Structural Nodes
-* Content Nodes
-* Asset Nodes
-* Anchors
-
-Presentation Nodes never own canonical content.
-
----
-
-# 11. Renderer Independence
-
-Presentation Nodes do not contain:
-
-* HTML
-* CSS
-* PDF instructions
-* UI widgets
-* platform-specific rendering information
-
-Rendering engines interpret Presentation Nodes according to rendering policies.
-
----
-
-# 12. Versioning
-
-Presentation Nodes evolve independently.
-
-Changes to presentation create new presentation versions without modifying canonical knowledge.
-
----
-
-# 13. Provenance
-
-Presentation Nodes preserve:
-
-* creation source;
-* extraction process;
-* reconstruction history;
-* modification history.
-
-Presentation provenance is independent from canonical provenance.
-
----
-
-# 14. Relationship to Assets
-
-Presentation Nodes may reference Asset Nodes.
-
-Presentation determines placement.
-
-Asset ownership remains in the UDM.
-
----
-
-# 15. Relationship to Anchors
-
-Presentation Nodes may resolve visual positions through Anchors.
-
-Anchors remain defined by the UDM.
-
-Presentation Nodes never redefine Anchors.
-
----
-
-# 16. Invariants
-
-The following invariants apply:
-
-* Presentation Nodes never contain canonical knowledge.
-* Presentation Nodes preserve presentation intent.
-* Identity is immutable.
-* Presentation is renderer-independent.
-* Spatial relationships remain deterministic.
-* Every Presentation Node belongs to exactly one DPM.
-
----
-
-# 17. Related Documents
-
-* DPM.md
-* PresentationTypes.md
-* PresentationAttributes.md
-* PresentationIdentity.md
-* ../Layout/LayoutGraph.md
-* ../../UDM/UDM.md
-
----
-
-# 18. Status
-
-**Approved**
-
-This document defines the Presentation Node Model of the Document Presentation Model.
-
-Presentation Nodes describe the visual organization of a Knowledge Object while remaining independent of rendering technologies and preserving presentation intent.
+This document is part of the KnowledgeOS DPM V4 release-candidate baseline. It becomes frozen after complete Domain review and conformance validation.

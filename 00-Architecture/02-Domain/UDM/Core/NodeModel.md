@@ -1,308 +1,109 @@
-# Node Model
+# UDM Node Model
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Universal Document Model
-
-**Document:** Node Model
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Universal Document Model  
+**Document:** NodeModel  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the conceptual model shared by every node within the Universal Document Model (UDM).
+Specify the common structure, lifecycle and containment behavior of every UDM node.
 
-The Node Model establishes the common structure, identity and behavior that every node shall implement regardless of its specialization.
+## 2. Scope
 
-It is the foundation upon which the entire UDM is built.
+Applies to structural, content, inline, semantic, asset and annotation-reference node families.
 
----
+## 3. Normative Language
 
-# 2. Definition
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. A requirement identified by an invariant or rule identifier is testable and applies to every conforming implementation unless the rule explicitly limits its scope.
 
-A Node is the smallest identifiable structural element within the Universal Document Model.
 
-Every element represented in the UDM is a Node.
+## 4. Context and Responsibilities
 
-Examples include:
+A node is the smallest independently identifiable semantic unit. Nodes are immutable snapshots inside a canonical document version.
 
-* Document
-* Chapter
-* Paragraph
-* Text
-* Image
-* Formula
-* Entity
-* Highlight
-* Table
-* Citation
+Containment and relationships are distinct. Containment provides one ordered semantic hierarchy. Relationships provide cross-cutting graph semantics.
 
-All nodes share the same conceptual model.
-
----
-
-# 3. Design Goals
-
-The Node Model shall:
-
-* provide one universal representation;
-* remain technology-independent;
-* support deterministic traversal;
-* support validation;
-* support serialization;
-* support semantic enrichment;
-* support long-term evolution.
-
----
-
-# 4. Universal Structure
-
-Every node consists of the following conceptual components.
+## 5. Conceptual Model
 
 ```text
-Node
-
-├── Identity
-├── Classification
-├── Attributes
-├── Parent
-├── Children
-├── Anchors
-├── Relationships
-├── Version
-└── Metadata
+UDMNode
+├── id
+├── primaryType
+├── traits[]
+├── attributes{}
+├── provenance
+├── temporal?
+├── parentId?
+├── childIds[]
+├── anchorIds[]
+├── assetRefIds[]
+└── extensions{}
 ```
 
-Every node exposes the same logical structure.
+## 6. Normative Requirements
 
----
+**NODEMODEL-R001** — Every node MUST declare exactly one primary type.
 
-# 5. Identity
+**NODEMODEL-R002** — Every non-root contained node MUST declare exactly one parent.
 
-Every node owns exactly one immutable NodeID.
+**NODEMODEL-R003** — Containment MUST be acyclic.
 
-Properties:
+**NODEMODEL-R004** — Sibling order MUST be explicit and deterministic.
 
-* globally unique within the Knowledge Object;
-* permanent;
-* stable;
-* independent of serialization.
+**NODEMODEL-R005** — Node mutation MUST create a new document version.
 
-Identity survives every revision.
+**NODEMODEL-R006** — Runtime state MUST NOT be stored in canonical nodes.
 
----
+**NODEMODEL-R007** — Unknown optional extension data SHOULD be preserved through round trips.
 
-# 6. Classification
+**NODEMODEL-R008** — A node MUST satisfy the schema and child constraints of its primary type.
 
-Every node declares:
+## 7. Invariants
 
-* Category
-* Type
-* Variant
+**NODEMODEL-I001** — Node identity is stable.
 
-Examples:
+**NODEMODEL-I002** — The containment graph is a rooted ordered forest under the document envelope.
 
-Category
+**NODEMODEL-I003** — Semantic relationships do not replace containment.
 
-* Structural
+**NODEMODEL-I004** — Presentation geometry is absent.
 
-Type
+**NODEMODEL-I005** — Source-derived nodes preserve provenance.
 
-* Paragraph
+## 8. Failure and Edge Cases
 
-Variant
+A conforming implementation SHALL fail explicitly when it cannot preserve identity, provenance, semantic meaning or authority boundaries. It SHALL NOT repair uncertain input by silently inventing facts. Recoverable ambiguity MAY be represented through confidence, alternatives, unresolved references or validation findings.
 
-* Scientific Paragraph
+Failures SHALL be categorized as structural, semantic, compatibility, provenance, security or processing failures. Each failure SHALL identify the affected entity and the violated rule.
 
-Classification is immutable after node creation.
+## 9. Examples
 
----
+A section contains headings and paragraphs through `childIds`. A citation from a paragraph to a bibliography entry is a relationship, not a second parent-child edge.
 
-# 7. Attributes
+## 10. Compatibility and Evolution
 
-Attributes describe the node.
+Changes to this contract SHALL follow semantic versioning at the specification level. Backward-compatible additions MAY introduce optional fields, types or relationships. Changes that alter required semantics, identity rules, authority boundaries or canonical interpretation require a major version.
 
-Attributes are divided into:
+Unknown optional extensions SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-* mandatory attributes;
-* optional attributes;
-* extension attributes.
+## 11. Security and Privacy Considerations
 
-Attribute definitions are specified separately in NodeAttributes.md.
+Implementations SHALL treat imported data, extension payloads, external identifiers and generated semantic assertions as untrusted until validated. Personal Knowledge and restricted source material MUST respect scoped authority and execution policy. Remote processing MUST NOT occur without applicable authorization.
 
----
+## 12. Related Documents
 
-# 8. Parent
+- `Identity.md`
+- `NodeTypes.md`
+- `NodeAttributes.md`
+- `../Nodes/StructuralNodes.md`
+- `../Validation/ConsistencyRules.md`
 
-Every node except the Root Node has exactly one parent.
+## 13. Status
 
-Parent relationships define the structural tree.
-
-The parent reference is immutable unless the structure itself changes through a new version.
-
----
-
-# 9. Children
-
-Nodes may own zero or more children.
-
-Child order is deterministic.
-
-Ordering is part of the canonical representation.
-
----
-
-# 10. Anchors
-
-Nodes may expose stable Anchors.
-
-Anchors identify logical positions independently of rendering.
-
-Examples include:
-
-* paragraph positions;
-* sentence boundaries;
-* character ranges;
-* table cells.
-
-Anchor definitions are specified separately.
-
----
-
-# 11. Relationships
-
-Nodes may participate in semantic relationships.
-
-Relationships are references.
-
-They are not structural children.
-
-Relationship semantics are defined separately.
-
----
-
-# 12. Version
-
-Every node belongs to one node version.
-
-Node versions evolve independently from the Knowledge Object version whenever appropriate.
-
-Version history is append-only.
-
----
-
-# 13. Metadata
-
-Nodes may contain descriptive metadata.
-
-Examples include:
-
-* language;
-* style role;
-* semantic hints;
-* confidence values.
-
-Node metadata never replaces Knowledge Object metadata.
-
----
-
-# 14. Canonical Rules
-
-Every node shall satisfy the following rules.
-
-* One immutable NodeID.
-* One Category.
-* One Type.
-* One Variant (optional).
-* Zero or one Parent.
-* Deterministic Child ordering.
-* Stable identity.
-* Version awareness.
-
----
-
-# 15. Tree Participation
-
-Every node belongs to exactly one structural tree.
-
-Cycles are forbidden.
-
-Disconnected subtrees are forbidden.
-
-The Root Node is unique.
-
----
-
-# 16. Semantic Participation
-
-Nodes may simultaneously participate in semantic graphs.
-
-Tree participation and graph participation are independent.
-
-A node may have:
-
-* one parent;
-* many semantic relationships.
-
----
-
-# 17. Extensibility
-
-Specialized nodes extend the Node Model.
-
-Extensions may introduce:
-
-* additional attributes;
-* validation rules;
-* rendering hints;
-* semantic capabilities.
-
-Extensions shall never violate the universal structure.
-
----
-
-# 18. Relationship to Other Documents
-
-This document defines the common anatomy of every node.
-
-Specialization is defined by:
-
-* TypeSystem.md
-* NodeTypes.md
-* NodeAttributes.md
-
-Behavior is defined by:
-
-* ValidationRules.md
-* ProcessingPipeline.md
-* Serialization.md
-
----
-
-# 19. Related Documents
-
-* TypeSystem.md
-* NodeTypes.md
-* NodeAttributes.md
-* StructuralNodes.md
-* InlineNodes.md
-* SemanticNodes.md
-* Anchors.md
-
----
-
-# 20. Status
-
-**Approved**
-
-This document defines the universal conceptual model shared by every node in the Universal Document Model.
-
-Every node shall preserve the structure, identity and invariants established herein.
+This document is part of the KnowledgeOS UDM V4 release-candidate baseline. It becomes frozen after architectural review and validation against the complete Domain package.

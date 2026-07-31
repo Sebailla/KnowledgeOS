@@ -1,272 +1,92 @@
+# Typography Model
 
-# Typography
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Document Presentation Model
-
-**Document:** Typography
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Document Presentation Model  
+**Document:** Typography  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Typography model of the Document Presentation Model (DPM).
+Specify renderer-neutral typography and text metrics.
 
-Typography represents the presentation intent of textual content independently of any specific font family or rendering technology.
+## 2. Scope
 
-It preserves visual hierarchy while remaining renderer-independent.
+Applies to source-faithful and generated DPM style representation.
 
----
+## 3. Normative Language
 
-# 2. Scope
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Rules identified by stable identifiers are testable requirements for conforming implementations.
 
-Typography defines:
 
-* typographic roles;
-* hierarchy;
-* emphasis;
-* spacing;
-* paragraph behavior;
-* text presentation intent.
+## 4. Context and Responsibility
 
-Canonical textual content remains exclusively defined by the UDM.
+Typography describes font family references, fallback groups, size, weight, width, slant, features, language, direction, tracking, leading, baseline and text metrics.
 
----
+## 5. Conceptual Model
 
-# 3. Design Goals
+Font files remain external assets. Source font names and normalized families may coexist.
 
-Typography shall:
+## 6. Normative Requirements
 
-* preserve presentation intent;
-* remain renderer-independent;
-* remain device-independent;
-* support adaptive rendering;
-* preserve reading comfort;
-* support accessibility.
+**TYPOGRAPHY-R001** — Typography MUST use explicit units.
 
----
+**TYPOGRAPHY-R002** — Source font identity SHOULD be preserved when available.
 
-# 4. Design Philosophy
+**TYPOGRAPHY-R003** — Fallback policy MUST be declared for generated views.
 
-Typography expresses intention.
+**TYPOGRAPHY-R004** — Language and writing direction MUST be explicit when relevant.
 
-It does not prescribe implementation.
+**TYPOGRAPHY-R005** — Font features MUST use registered identifiers.
 
-The DPM defines the role of text.
+**TYPOGRAPHY-R006** — Text metrics MUST identify measurement context.
 
-Render Engines choose the most appropriate realization.
+**TYPOGRAPHY-R007** — Typography MUST NOT define UDM semantics by itself.
 
----
+## 7. Invariants
 
-# 5. Conceptual Model
+**TYPOGRAPHY-I001** — Typography is renderer-neutral.
 
-```text
-Presentation Element
-        │
-        ▼
-Typography Role
-        │
-        ▼
-Rendering Policy
-```
+**TYPOGRAPHY-I002** — Font licensing data is not executable style.
 
-Typography Roles are interpreted by rendering policies.
+**TYPOGRAPHY-I003** — Missing fonts remain resolvable through declared fallback.
 
----
+**TYPOGRAPHY-I004** — Semantic emphasis belongs to UDM when source meaning supports it.
 
-# 6. Typography Roles
+## 8. Processing and Lifecycle Considerations
 
-The DPM defines semantic typography roles.
+Presentation data is an immutable snapshot within a DPM version. Changes create a new version or a new derived view. Runtime caches, UI selection, window state and renderer-specific objects are never canonical DPM state.
 
-Examples include:
+Processors SHALL record inputs, configuration, implementation version, confidence where applicable and complete provenance. Reprocessing MAY replace derived presentation artifacts but SHALL preserve stable identities when presentation continuity remains.
 
-* Display;
-* Title;
-* Subtitle;
-* Heading Level 1;
-* Heading Level 2;
-* Heading Level 3;
-* Body;
-* Caption;
-* Quote;
-* Footnote;
-* Code;
-* Label.
+## 9. Failure and Edge Cases
 
-Roles describe presentation function rather than font selection.
+A conforming implementation SHALL represent ambiguity explicitly. It MUST NOT invent coordinates, reading order, style semantics or UDM mappings without evidence. Partial reconstruction MAY be published only when validation marks unresolved regions and the consuming capability supports incomplete DPM.
 
----
+Security-sensitive inputs such as external style references, fonts, URLs and extension payloads SHALL be validated before use.
 
-# 7. Typographic Hierarchy
+## 10. Examples
 
-Typography establishes visual hierarchy through roles.
+A source-faithful DPM records a 10.5-point Minion Pro run and a fallback group for renderers where that font is unavailable.
 
-Hierarchy expresses relative importance.
+## 11. Compatibility and Evolution
 
-The hierarchy shall remain recognizable regardless of the chosen font family.
+Backward-compatible changes MAY add optional attributes, types or mapping strategies. Changes that alter spatial semantics, identity, coordinate interpretation, reading-order meaning or UDM/DPM authority boundaries require a major version.
 
----
+Unknown optional extensions SHOULD be preserved. Unknown required semantics MUST produce an explicit incompatibility result.
 
-# 8. Typography Properties
+## 12. Related Documents
 
-Typography may define:
+- `../DPM.md`
+- `../Core/PresentationAttributes.md`
+- `Themes.md`
+- `VisualHierarchy.md`
+- `../Validation/ValidationRules.md`
 
-* emphasis;
-* relative scale;
-* weight intention;
-* style intention;
-* paragraph spacing;
-* line spacing;
-* indentation;
-* alignment policy.
+## 13. Status
 
-These properties remain abstract and renderer-independent.
-
----
-
-# 9. Font Independence
-
-The DPM never requires a specific font family.
-
-Examples of implementation mappings include:
-
-```text
-Body
-    ↓
-SF Pro Text
-```
-
-or
-
-```text
-Body
-    ↓
-Inter
-```
-
-or
-
-```text
-Body
-    ↓
-Georgia
-```
-
-All mappings satisfy the same typographic role.
-
----
-
-# 10. Accessibility
-
-Typography shall support:
-
-* scalable text;
-* dyslexia-friendly rendering;
-* high-contrast themes;
-* low-vision adaptations;
-* dynamic text sizing.
-
-Accessibility adaptations shall preserve hierarchy.
-
----
-
-# 11. Adaptive Rendering
-
-Render Engines may adapt:
-
-* font family;
-* font size;
-* line spacing;
-* paragraph spacing.
-
-The underlying typographic role remains unchanged.
-
----
-
-# 12. Relationship to Visual Hierarchy
-
-Typography contributes to Visual Hierarchy.
-
-Hierarchy combines:
-
-* typography;
-* spacing;
-* color;
-* placement.
-
-Typography alone does not define hierarchy.
-
----
-
-# 13. Relationship to Themes
-
-Themes map Typography Roles to concrete visual implementations.
-
-The DPM stores only typographic intent.
-
-Themes determine implementation details.
-
----
-
-# 14. Relationship to the UDM
-
-Typography references canonical UDM content through Presentation Nodes.
-
-Typography never modifies:
-
-* canonical meaning;
-* semantic relationships;
-* annotations;
-* provenance.
-
----
-
-# 15. Validation
-
-A valid Typography definition shall satisfy:
-
-* valid Typography Role;
-* compatible Presentation Type;
-* deterministic hierarchy;
-* supported typography properties.
-
----
-
-# 16. Invariants
-
-The following invariants apply:
-
-* Typography defines presentation only.
-* Typography never stores canonical knowledge.
-* Typography Roles are renderer-independent.
-* Hierarchy remains deterministic.
-* Font families are implementation details.
-
----
-
-# 17. Related Documents
-
-* VisualHierarchy.md
-* Themes.md
-* ColorModel.md
-* ../Core/PresentationAttributes.md
-* ../Core/PresentationTypes.md
-
----
-
-# 18. Status
-
-**Approved**
-
-This document defines the Typography model of the Document Presentation Model.
-
-Typography preserves typographic intent independently of rendering technologies, ensuring long-term consistency, accessibility and faithful presentation across all supported platforms.
+This document is part of the KnowledgeOS DPM V4 release-candidate baseline. It becomes frozen after complete Domain review and conformance validation.

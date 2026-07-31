@@ -1,285 +1,90 @@
+# Region Model
 
-# Regions
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Document Presentation Model
-
-**Document:** Regions
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Document Presentation Model  
+**Document:** Regions  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Region model of the Document Presentation Model (DPM).
+Specify spatially coherent presentation areas.
 
-Regions partition a Page into logical presentation areas.
+## 2. Scope
 
-Regions organize presentation elements while remaining independent of rendering technologies.
+Applies to DPM layout analysis, reconstruction, rendering and validation.
 
-They never contain canonical knowledge.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Rules identified by stable identifiers are testable requirements for conforming implementations.
 
-# 2. Scope
 
-Regions define:
+## 4. Context and Responsibility
 
-* logical presentation areas;
-* visual organization;
-* content grouping;
-* layout partitioning;
-* reading zones;
-* region metadata.
+Regions describe areas such as body, header, footer, margin, sidebar, column, footnote zone, figure area and overlay.
 
-Canonical content remains exclusively represented by the UDM.
+## 5. Conceptual Model
 
----
+A region has identity, geometry, role, containment, reading-flow participation and provenance. Region role is presentation-oriented and may be inferred.
 
-# 3. Design Goals
+## 6. Normative Requirements
 
-Regions shall:
+**REGIONS-R001** — Every region MUST belong to a coordinate space.
 
-* preserve presentation intent;
-* support adaptive rendering;
-* remain deterministic;
-* remain renderer-independent;
-* support complex layouts;
-* support faithful reconstruction.
+**REGIONS-R002** — Region geometry MUST be valid in that space.
 
----
+**REGIONS-R003** — Overlapping regions MUST be explicitly permitted or reported.
 
-# 4. Design Philosophy
+**REGIONS-R004** — Inferred roles MUST record confidence.
 
-A Region defines a logical presentation area.
+**REGIONS-R005** — Regions MUST NOT create semantic sections without UDM evidence.
 
-It is not a screen coordinate.
+**REGIONS-R006** — A region MAY participate in multiple reading flows.
 
-It is not a pixel rectangle.
+## 7. Invariants
 
-Its purpose is to organize presentation.
+**REGIONS-I001** — Region identity is stable.
 
----
+**REGIONS-I002** — Geometry is explicit.
 
-# 5. Conceptual Model
+**REGIONS-I003** — Role inference is traceable.
 
-```text
-Page
-    │
-    ▼
-Region
-    │
-    ▼
-Presentation Elements
-```
+**REGIONS-I004** — Containment remains acyclic.
 
-Regions group presentation elements into coherent visual areas.
+## 8. Processing and Lifecycle Considerations
 
----
+Presentation data is an immutable snapshot within a DPM version. Changes create a new version or a new derived view. Runtime caches, UI selection, window state and renderer-specific objects are never canonical DPM state.
 
-# 6. Region Identity
+Processors SHALL record inputs, configuration, implementation version, confidence where applicable and complete provenance. Reprocessing MAY replace derived presentation artifacts but SHALL preserve stable identities when presentation continuity remains.
 
-Every Region owns:
+## 9. Failure and Edge Cases
 
-* PresentationNodeID;
-* RegionType;
-* VersionID.
+A conforming implementation SHALL represent ambiguity explicitly. It MUST NOT invent coordinates, reading order, style semantics or UDM mappings without evidence. Partial reconstruction MAY be published only when validation marks unresolved regions and the consuming capability supports incomplete DPM.
 
-Identity remains immutable.
+Security-sensitive inputs such as external style references, fonts, URLs and extension payloads SHALL be validated before use.
 
----
+## 10. Examples
 
-# 7. Region Categories
+A two-column article body has one body region containing two column regions.
 
-Typical Region Types include:
+## 11. Compatibility and Evolution
 
-* Body Region;
-* Header Region;
-* Footer Region;
-* Sidebar Region;
-* Margin Region;
-* Figure Region;
-* Table Region;
-* Caption Region;
-* Navigation Region;
-* Floating Region.
+Backward-compatible changes MAY add optional attributes, types or mapping strategies. Changes that alter spatial semantics, identity, coordinate interpretation, reading-order meaning or UDM/DPM authority boundaries require a major version.
 
-Extensions may define additional Region Types.
+Unknown optional extensions SHOULD be preserved. Unknown required semantics MUST produce an explicit incompatibility result.
 
----
+## 12. Related Documents
 
-# 8. Region Composition
+- `../DPM.md`
+- `../Core/PresentationNodeModel.md`
+- `LayoutGraph.md`
+- `ReadingFlow.md`
+- `../Validation/ConsistencyRules.md`
 
-Regions may contain:
+## 13. Status
 
-* Presentation Elements;
-* nested Regions;
-* Columns;
-* Layout Containers.
-
-Regions never contain canonical UDM Nodes directly.
-
----
-
-# 9. Nested Regions
-
-Regions may be nested.
-
-Example:
-
-```text
-Body Region
-    │
-    ├── Main Column
-    ├── Sidebar
-    └── Figure Region
-```
-
-Nested Regions remain deterministic.
-
----
-
-# 10. Region Constraints
-
-A Region may declare presentation constraints.
-
-Examples include:
-
-* preferred width;
-* preferred height;
-* minimum size;
-* maximum size;
-* flexible expansion;
-* alignment policy.
-
-Constraints express presentation intent.
-
-They are not rendering instructions.
-
----
-
-# 11. Region Ordering
-
-Regions declare a deterministic ordering.
-
-Ordering supports:
-
-* reconstruction;
-* navigation;
-* reading flow generation.
-
-Ordering is independent of physical position.
-
----
-
-# 12. Relationship to Pages
-
-Every Region belongs to exactly one Page.
-
-A Page owns one or more Regions.
-
-Regions define the internal organization of a Page.
-
----
-
-# 13. Relationship to Columns
-
-Regions may contain one or more Columns.
-
-Column definitions belong to the Column model.
-
-Regions remain independent of column implementation.
-
----
-
-# 14. Relationship to Reading Flow
-
-Reading Flow traverses Regions.
-
-Spatial order and reading order are independent concepts.
-
-Reading order is defined explicitly.
-
----
-
-# 15. Relationship to Layout Graph
-
-Regions participate in the Layout Graph.
-
-Spatial relationships include:
-
-* LEFT_OF;
-* RIGHT_OF;
-* ABOVE;
-* BELOW;
-* INSIDE;
-* OVERLAPS;
-* ADJACENT_TO.
-
-The Layout Graph remains authoritative.
-
----
-
-# 16. Relationship to the UDM
-
-Regions reference canonical UDM elements through Presentation Nodes.
-
-Regions never redefine:
-
-* document meaning;
-* semantic relationships;
-* canonical structure.
-
----
-
-# 17. Validation
-
-A valid Region shall satisfy:
-
-* valid parent Page;
-* unique identity;
-* deterministic ordering;
-* valid containment;
-* valid Layout Graph participation.
-
----
-
-# 18. Invariants
-
-The following invariants apply:
-
-* every Region belongs to one Page;
-* every Region owns presentation elements only;
-* Regions never contain canonical knowledge;
-* identity is immutable;
-* containment is deterministic;
-* Regions remain renderer-independent.
-
----
-
-# 19. Related Documents
-
-* Pages.md
-* Columns.md
-* ReadingFlow.md
-* SpatialRelationships.md
-* LayoutGraph.md
-* ../Core/PresentationNodeModel.md
-
----
-
-# 20. Status
-
-**Approved**
-
-This document defines the Region model of the Document Presentation Model.
-
-Regions partition Pages into logical presentation areas while preserving presentation intent independently of rendering technologies.
+This document is part of the KnowledgeOS DPM V4 release-candidate baseline. It becomes frozen after complete Domain review and conformance validation.

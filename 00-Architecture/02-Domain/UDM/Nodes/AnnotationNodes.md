@@ -1,340 +1,87 @@
+# UDM Annotation Reference Nodes
 
-# Annotation Nodes
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Universal Document Model
-
-**Document:** Annotation Nodes
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Universal Document Model  
+**Document:** AnnotationNodes  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Annotation Nodes of the Universal Document Model (UDM).
+Specify attachment references between canonical UDM and Personal Knowledge.
 
-Annotation Nodes represent user-created knowledge associated with canonical content.
+## 2. Scope
 
-Annotations never modify canonical knowledge.
+Applies to canonical UDM instances, processors, validators and serializers.
 
-They constitute an independent knowledge layer.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. A requirement identified by an invariant or rule identifier is testable and applies to every conforming implementation unless the rule explicitly limits its scope.
 
-# 2. Design Goals
 
-Annotation Nodes shall:
+## 4. Context and Responsibilities
 
-* preserve user knowledge;
-* remain independent of rendering;
-* survive document evolution;
-* support synchronization;
-* support collaboration;
-* preserve provenance.
+Personal annotations are not canonical publication content. UDM exposes stable targets and may serialize references for exchange while ownership remains with Personal Knowledge.
 
----
+## 5. Conceptual Model
 
-# 3. Design Philosophy
+Annotation references identify annotation identity, target anchor, relationship role and authority scope. They do not import personal text into the publication layer by default.
 
-Annotations are first-class domain objects.
+## 6. Normative Requirements
 
-They are not visual decorations.
+**ANNOTATIONNODES-R001** — Annotations MUST NOT mutate source-backed nodes.
 
-They represent additional knowledge created by users.
+**ANNOTATIONNODES-R002** — Annotation identity MUST remain user-owned.
 
-Canonical knowledge remains unchanged.
+**ANNOTATIONNODES-R003** — Deleting an annotation MUST NOT create a new canonical publication version.
 
----
+**ANNOTATIONNODES-R004** — Exports that combine layers MUST preserve authority metadata.
 
-# 4. Annotation Layer
+**ANNOTATIONNODES-R005** — Annotation targets MUST use stable anchors.
 
-The annotation layer is independent of the structural tree.
+**ANNOTATIONNODES-R006** — Orphaned annotations MUST remain recoverable and explicitly unresolved.
 
-```text
-Knowledge Object
-        │
-        ▼
-Universal Document Model
-        │
-        ├── Structural Layer
-        ├── Content Layer
-        ├── Semantic Layer
-        └── Annotation Layer
-```
+## 7. Invariants
 
-Annotations reference canonical knowledge without becoming part of it.
+**ANNOTATIONNODES-I001** — Personal authority remains separate.
 
----
+**ANNOTATIONNODES-I002** — Attachment is reversible.
 
-# 5. Annotation Categories
+**ANNOTATIONNODES-I003** — Canonical publication identity is unchanged.
 
-```text
-Annotation Node
-│
-├── Highlight
-├── Note
-├── Sticky Note
-├── Bookmark
-├── Ink
-├── Drawing
-├── Comment
-├── Tag
-└── Custom Annotation
-```
+**ANNOTATIONNODES-I004** — Anchor resolution history is preserved.
 
-Extensions may define additional annotation types.
+## 8. Failure and Edge Cases
 
----
+A conforming implementation SHALL fail explicitly when it cannot preserve identity, provenance, semantic meaning or authority boundaries. It SHALL NOT repair uncertain input by silently inventing facts. Recoverable ambiguity MAY be represented through confidence, alternatives, unresolved references or validation findings.
 
-# 6. Highlight
+Failures SHALL be categorized as structural, semantic, compatibility, provenance, security or processing failures. Each failure SHALL identify the affected entity and the violated rule.
 
-Represents emphasized content.
+## 9. Examples
 
-Properties may include:
+A highlight points to a text-range anchor. If reprocessing changes offsets, re-anchoring updates resolution history without rewriting the original selector.
 
-* color;
-* style;
-* author;
-* timestamp.
+## 10. Compatibility and Evolution
 
-Highlights reference Anchors rather than text offsets.
+Changes to this contract SHALL follow semantic versioning at the specification level. Backward-compatible additions MAY introduce optional fields, types or relationships. Changes that alter required semantics, identity rules, authority boundaries or canonical interpretation require a major version.
 
----
+Unknown optional extensions SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-# 7. Note
+## 11. Security and Privacy Considerations
 
-Represents user-authored textual knowledge.
+Implementations SHALL treat imported data, extension payloads, external identifiers and generated semantic assertions as untrusted until validated. Personal Knowledge and restricted source material MUST respect scoped authority and execution policy. Remote processing MUST NOT occur without applicable authorization.
 
-Notes may contain:
+## 12. Related Documents
 
-* formatted text;
-* links;
-* references;
-* checklists;
-* embedded content.
+- `../Core/NodeModel.md`
+- `../Core/NodeTypes.md`
+- `../Core/Identity.md`
+- `../Validation/ValidationRules.md`
 
-Notes are independent Knowledge Nodes.
+## 13. Status
 
----
-
-# 8. Sticky Note
-
-Represents a floating annotation attached to one or more Anchors.
-
-Presentation is renderer-specific.
-
-Semantic meaning is canonical.
-
----
-
-# 9. Bookmark
-
-Represents a stable navigation marker.
-
-Bookmarks reference logical positions rather than pages.
-
-Bookmarks survive renderer changes.
-
----
-
-# 10. Ink
-
-Represents handwritten input.
-
-Examples:
-
-* Apple Pencil;
-* stylus;
-* freehand drawing.
-
-Ink preserves:
-
-* stroke geometry;
-* pressure;
-* timing (optional);
-* tool information.
-
-Ink references Anchors.
-
-It never references pages.
-
----
-
-# 11. Drawing
-
-Represents graphical annotations.
-
-Examples:
-
-* arrows;
-* circles;
-* diagrams;
-* freehand illustrations.
-
-Drawings are independent annotation objects.
-
----
-
-# 12. Comment
-
-Represents contextual discussion.
-
-Comments may include:
-
-* author;
-* replies;
-* timestamps;
-* status.
-
-Comment threads are versioned independently.
-
----
-
-# 13. Tag
-
-Represents user-defined classification.
-
-Tags may reference:
-
-* Knowledge Objects;
-* Nodes;
-* Anchors;
-* other Annotations.
-
-Tags support personal organization.
-
----
-
-# 14. Annotation Identity
-
-Every Annotation Node possesses:
-
-* AnnotationID;
-* VersionID;
-* Provenance;
-* Author.
-
-Annotation identity is immutable.
-
----
-
-# 15. Annotation Anchoring
-
-Annotations are attached through Anchors.
-
-```text
-Annotation
-
-↓
-
-Anchor
-
-↓
-
-Node
-```
-
-Annotations never depend on:
-
-* page numbers;
-* visual coordinates;
-* rendered positions.
-
----
-
-# 16. Annotation Versioning
-
-Annotation revisions evolve independently.
-
-Examples:
-
-* text edited;
-* highlight color changed;
-* bookmark renamed;
-* ink refined.
-
-Canonical content remains unchanged.
-
----
-
-# 17. Annotation Provenance
-
-Every annotation records:
-
-* creator;
-* creation time;
-* modification history;
-* synchronization history.
-
-Annotations preserve complete provenance.
-
----
-
-# 18. Annotation Invariants
-
-The following invariants apply.
-
-* Annotations never modify canonical knowledge.
-* Annotations always reference Anchors.
-* Annotation identity is immutable.
-* Annotation history is append-only.
-* Annotations remain renderer-independent.
-* Annotations survive synchronization.
-
----
-
-# 19. Relationship to Other Layers
-
-| Layer            | Relationship    |
-| ---------------- | --------------- |
-| Structural Layer | Anchored        |
-| Content Layer    | Anchored        |
-| Semantic Layer   | May enrich      |
-| Asset Layer      | May reference   |
-| Graph Layer      | May participate |
-
-Annotations never become structural nodes.
-
----
-
-# 20. Relationship to Platform Engines
-
-| Engine            | Responsibility                 |
-| ----------------- | ------------------------------ |
-| Annotation Engine | Owns Annotation Nodes          |
-| Render Engine     | Displays annotations           |
-| Sync Engine       | Synchronizes annotations       |
-| Search Engine     | Indexes searchable annotations |
-| AI Engine         | May analyze annotations        |
-| Export Engine     | Optionally exports annotations |
-
-The Annotation Engine is the authoritative owner of annotation behavior.
-
----
-
-# 21. Related Documents
-
-* Anchors.md
-* ContentNodes.md
-* StructuralNodes.md
-* SemanticNodes.md
-* Core/Identity.md
-* Core/TemporalModel.md
-
----
-
-# 22. Status
-
-**Approved**
-
-This document defines the Annotation Nodes of the Universal Document Model.
-
-Annotation Nodes represent independent user knowledge that augments canonical content while preserving rendering independence, synchronization stability and long-term traceability.
+This document is part of the KnowledgeOS UDM V4 release-candidate baseline. It becomes frozen after architectural review and validation against the complete Domain package.

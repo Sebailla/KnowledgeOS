@@ -1,257 +1,87 @@
-# Content Nodes
+# UDM Content Nodes
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Universal Document Model
-
-**Document:** Content Nodes
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Universal Document Model  
+**Document:** ContentNodes  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Content Nodes of the Universal Document Model (UDM).
+Specify block-level semantic content nodes.
 
-Content Nodes represent the knowledge itself.
+## 2. Scope
 
-Unlike Structural Nodes, which organize information, Content Nodes contain the information being represented.
+Applies to canonical UDM instances, processors, validators and serializers.
 
----
+## 3. Normative Language
 
-# 2. Design Goals
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. A requirement identified by an invariant or rule identifier is testable and applies to every conforming implementation unless the rule explicitly limits its scope.
 
-Content Nodes shall:
 
-* represent canonical knowledge;
-* remain independent of rendering;
-* support semantic enrichment;
-* preserve author intent;
-* support deterministic serialization.
+## 4. Context and Responsibilities
 
----
+Content nodes include paragraph, heading, blockquote, list, listItem, codeBlock, formulaBlock, table, row, cell, figure, caption, footnote, endnote, definition, example and warning.
 
-# 3. Design Philosophy
+## 5. Conceptual Model
 
-Structural Nodes organize knowledge.
+Content nodes preserve meaningful block boundaries and source order. Tables use explicit row and cell structure; figures reference assets; code and formulas preserve original and optional normalized forms.
 
-Content Nodes express knowledge.
+## 6. Normative Requirements
 
-The two concepts are intentionally independent.
+**CONTENTNODES-R001** — Content classification MUST be evidence-based.
 
----
+**CONTENTNODES-R002** — A content node MUST obey the child constraints of its type.
 
-# 4. Content Categories
+**CONTENTNODES-R003** — Tables MUST preserve logical row and cell relationships.
 
-Content Nodes are divided into two groups.
+**CONTENTNODES-R004** — Figures MUST reference assets rather than embed storage paths.
 
-```text
-Content Node
-│
-├── Inline Content
-└── Block Content
-```
+**CONTENTNODES-R005** — Generated summaries MUST NOT be inserted as source publication content.
 
-The distinction depends on structural behavior rather than visual appearance.
+**CONTENTNODES-R006** — Footnotes and citations MUST preserve target relationships and anchors.
 
----
+## 7. Invariants
 
-# 5. Inline Content
+**CONTENTNODES-I001** — Block boundaries are semantic.
 
-Inline Content exists within another structural container.
+**CONTENTNODES-I002** — Content order is deterministic.
 
-Typical parent:
+**CONTENTNODES-I003** — Binary bytes remain external.
 
-* Paragraph
+**CONTENTNODES-I004** — Generated content has separate authority.
 
-Examples include:
+## 8. Failure and Edge Cases
 
-* Text
-* InlineCode
-* Hyperlink
-* Citation
-* Reference
-* Symbol
-* Emoji
-* InlineFormula
+A conforming implementation SHALL fail explicitly when it cannot preserve identity, provenance, semantic meaning or authority boundaries. It SHALL NOT repair uncertain input by silently inventing facts. Recoverable ambiguity MAY be represented through confidence, alternatives, unresolved references or validation findings.
 
-Inline Content cannot own structural children.
+Failures SHALL be categorized as structural, semantic, compatibility, provenance, security or processing failures. Each failure SHALL identify the affected entity and the violated rule.
 
----
+## 9. Examples
 
-# 6. Block Content
+A figure node references an image asset and contains a caption node. Its position and dimensions are represented in DPM.
 
-Block Content represents autonomous content.
+## 10. Compatibility and Evolution
 
-Examples include:
+Changes to this contract SHALL follow semantic versioning at the specification level. Backward-compatible additions MAY introduce optional fields, types or relationships. Changes that alter required semantics, identity rules, authority boundaries or canonical interpretation require a major version.
 
-* CodeBlock
-* EquationBlock
-* Diagram
-* EmbeddedDocument
-* Example
-* Algorithm
-* Timeline
-* DecisionTable
+Unknown optional extensions SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-Block Content behaves as an independent structural unit.
+## 11. Security and Privacy Considerations
 
----
+Implementations SHALL treat imported data, extension payloads, external identifiers and generated semantic assertions as untrusted until validated. Personal Knowledge and restricted source material MUST respect scoped authority and execution policy. Remote processing MUST NOT occur without applicable authorization.
 
-# 7. Text
+## 12. Related Documents
 
-Text represents canonical written language.
+- `../Core/NodeModel.md`
+- `../Core/NodeTypes.md`
+- `../Core/Identity.md`
+- `../Validation/ValidationRules.md`
 
-Text nodes preserve:
+## 13. Status
 
-* original wording;
-* whitespace significance when applicable;
-* language information;
-* writing direction.
-
-Text nodes never contain formatting semantics.
-
----
-
-# 8. Code
-
-Code represents executable or descriptive source code.
-
-Properties may include:
-
-* language;
-* filename;
-* execution role;
-* line numbering.
-
-Rendering remains renderer-specific.
-
----
-
-# 9. Formula
-
-Formula represents mathematical notation.
-
-It may appear:
-
-* inline;
-* block.
-
-Both variants represent the same semantic concept.
-
-Only structural behavior differs.
-
----
-
-# 10. Citation
-
-Citation references another identifiable source.
-
-Citations preserve:
-
-* reference target;
-* citation role;
-* optional locator.
-
-Formatting is renderer-specific.
-
----
-
-# 11. Hyperlink
-
-Represents a navigable reference.
-
-Targets may include:
-
-* external resources;
-* internal anchors;
-* Knowledge Objects;
-* Nodes.
-
-Hyperlinks express navigation rather than semantics.
-
----
-
-# 12. Embedded Documents
-
-A Content Node may represent embedded structured content.
-
-Examples:
-
-* Mermaid diagram;
-* PlantUML diagram;
-* SVG;
-* LaTeX;
-* JSON example;
-* XML snippet.
-
-Embedded documents preserve their original semantics.
-
----
-
-# 13. Content Invariants
-
-The following invariants apply.
-
-* Content Nodes represent knowledge.
-* Content Nodes never organize hierarchy.
-* Content Nodes never own Semantic Nodes.
-* Content Nodes never own Annotation Nodes.
-* Content Nodes preserve canonical meaning.
-* Rendering is derived.
-
----
-
-# 14. Relationship to Structural Nodes
-
-Content Nodes always belong to Structural Nodes.
-
-They never exist independently.
-
-The structural tree owns their organization.
-
----
-
-# 15. Relationship to Semantic Nodes
-
-Semantic Nodes enrich Content Nodes.
-
-They never replace them.
-
-Content remains authoritative.
-
----
-
-# 16. Relationship to Annotation Nodes
-
-Annotations attach to Content Nodes through Anchors.
-
-Annotations never modify canonical content.
-
----
-
-# 17. Related Documents
-
-* StructuralNodes.md
-* SemanticNodes.md
-* AnnotationNodes.md
-* AssetNodes.md
-* Anchors.md
-* Core/NodeModel.md
-
----
-
-# 18. Status
-
-**Approved**
-
-This document defines the Content Nodes of the Universal Document Model.
-
-Content Nodes represent canonical knowledge independently of structural organization, rendering technologies and storage mechanisms.
+This document is part of the KnowledgeOS UDM V4 release-candidate baseline. It becomes frozen after architectural review and validation against the complete Domain package.

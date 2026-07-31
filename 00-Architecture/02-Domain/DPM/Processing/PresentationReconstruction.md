@@ -1,275 +1,92 @@
-
 # Presentation Reconstruction
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Document Presentation Model
-
-**Document:** Presentation Reconstruction
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Document Presentation Model  
+**Document:** PresentationReconstruction  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Presentation Reconstruction stage of the Document Presentation Model (DPM).
+Specify assembly of a coherent DPM from extracted and classified evidence.
 
-Presentation Reconstruction transforms the canonical DPM into an executable presentation structure suitable for rendering while preserving presentation intent.
+## 2. Scope
 
-It does not perform rendering.
+Applies to DPM-producing workflows implemented by Platform engines.
 
----
+## 3. Normative Language
 
-# 2. Scope
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Rules identified by stable identifiers are testable requirements for conforming implementations.
 
-Presentation Reconstruction governs:
 
-* presentation assembly;
-* layout reconstruction;
-* reading flow reconstruction;
-* theme preparation;
-* presentation adaptation;
-* renderer preparation.
+## 4. Context and Responsibility
 
-Rendering remains outside the scope of this stage.
+Reconstruction creates pages, regions, node containment, layout graph, reading flows, styles and UDM mappings.
 
----
+## 5. Conceptual Model
 
-# 3. Design Goals
+The process resolves conflicts under a declared profile such as source-faithful, accessible or reflowed.
 
-Presentation Reconstruction shall:
+## 6. Normative Requirements
 
-* preserve presentation intent;
-* remain renderer-independent;
-* remain deterministic;
-* support adaptive presentation;
-* support accessibility;
-* produce reproducible presentation structures.
+**PRESENTATIONRECO-R001** — Reconstruction MUST declare its purpose profile.
 
----
+**PRESENTATIONRECO-R002** — Source-faithful reconstruction MUST preserve measured geometry within declared tolerance.
 
-# 4. Design Philosophy
+**PRESENTATIONRECO-R003** — Generated reconstruction MUST distinguish generated values from source evidence.
 
-The DPM defines *what* the presentation should express.
+**PRESENTATIONRECO-R004** — Conflicts MUST produce findings rather than silent guesses.
 
-Presentation Reconstruction determines *how that intent is prepared* for rendering.
+**PRESENTATIONRECO-R005** — Publication MUST be atomic after validation.
 
-The Render Engine performs the final visual realization.
+**PRESENTATIONRECO-R006** — Compatible reconstruction SHOULD preserve presentation identities.
 
----
+**PRESENTATIONRECO-R007** — Runtime renderer state MUST NOT be included.
 
-# 5. Position in the Processing Pipeline
+## 7. Invariants
 
-Presentation Reconstruction occurs after a validated DPM is available.
+**PRESENTATIONRECO-I001** — Purpose is explicit.
 
-```text
-Validated DPM
-      │
-      ▼
-Presentation Reconstruction
-      │
-      ▼
-Presentation Tree
-      │
-      ▼
-Theme
-      │
-      ▼
-Render Engine
-```
+**PRESENTATIONRECO-I002** — Outputs are immutable.
 
-The Presentation Tree is a transient runtime structure.
+**PRESENTATIONRECO-I003** — Validation precedes publication.
 
----
+**PRESENTATIONRECO-I004** — Generated and source values remain distinguishable.
 
-# 6. Inputs
+## 8. Processing and Lifecycle Considerations
 
-Presentation Reconstruction consumes:
+Presentation data is an immutable snapshot within a DPM version. Changes create a new version or a new derived view. Runtime caches, UI selection, window state and renderer-specific objects are never canonical DPM state.
 
-* validated DPM;
-* compatible UDM;
-* active Theme;
-* rendering policies;
-* accessibility policies.
+Processors SHALL record inputs, configuration, implementation version, confidence where applicable and complete provenance. Reprocessing MAY replace derived presentation artifacts but SHALL preserve stable identities when presentation continuity remains.
 
-All inputs are immutable during reconstruction.
+## 9. Failure and Edge Cases
 
----
+A conforming implementation SHALL represent ambiguity explicitly. It MUST NOT invent coordinates, reading order, style semantics or UDM mappings without evidence. Partial reconstruction MAY be published only when validation marks unresolved regions and the consuming capability supports incomplete DPM.
 
-# 7. Outputs
+Security-sensitive inputs such as external style references, fonts, URLs and extension payloads SHALL be validated before use.
 
-Presentation Reconstruction produces a Presentation Tree containing:
+## 10. Examples
 
-* presentation hierarchy;
-* resolved reading flow;
-* layout constraints;
-* semantic style roles;
-* decoration roles;
-* interaction metadata.
+A reflowed DPM may replace fixed columns with one responsive flow while retaining mappings to the same UDM nodes.
 
-The Presentation Tree is not persisted.
+## 11. Compatibility and Evolution
 
----
+Backward-compatible changes MAY add optional attributes, types or mapping strategies. Changes that alter spatial semantics, identity, coordinate interpretation, reading-order meaning or UDM/DPM authority boundaries require a major version.
 
-# 8. Reconstruction Stages
+Unknown optional extensions SHOULD be preserved. Unknown required semantics MUST produce an explicit incompatibility result.
 
-Typical stages include:
+## 12. Related Documents
 
-1. Load validated DPM.
-2. Resolve mappings to the UDM.
-3. Resolve Reading Flow.
-4. Resolve Layout Graph.
-5. Apply Theme policies.
-6. Generate Presentation Tree.
+- `../DPM.md`
+- `LayoutAnalysis.md`
+- `Classification.md`
+- `../Validation/ValidationRules.md`
+- `../../UDM/Processing/ProcessingPipeline.md`
 
-Each stage is deterministic and independently testable.
+## 13. Status
 
----
-
-# 9. Presentation Tree
-
-The Presentation Tree is a transient representation optimized for rendering.
-
-It contains:
-
-* presentation hierarchy;
-* layout relationships;
-* style roles;
-* interaction metadata.
-
-It never becomes part of the canonical DPM.
-
----
-
-# 10. Adaptive Reconstruction
-
-Presentation Reconstruction may adapt the presentation according to:
-
-* device class;
-* viewport size;
-* accessibility requirements;
-* interaction capabilities.
-
-Adaptation shall preserve presentation intent.
-
----
-
-# 11. Theme Resolution
-
-Themes resolve abstract presentation roles into concrete presentation policies.
-
-Examples include:
-
-* typography mappings;
-* semantic color mappings;
-* spacing policies;
-* decoration policies.
-
-The canonical DPM remains unchanged.
-
----
-
-# 12. Accessibility Adaptation
-
-Accessibility adaptations may include:
-
-* increased typography scale;
-* simplified layout;
-* reduced decoration;
-* enhanced contrast;
-* optimized navigation.
-
-These adaptations affect only the reconstructed presentation.
-
----
-
-# 13. Relationship to the UDM
-
-Presentation Reconstruction references canonical knowledge through the Mapping layer.
-
-The UDM remains unchanged throughout the reconstruction process.
-
----
-
-# 14. Relationship to the DPM
-
-The DPM remains the authoritative presentation model.
-
-Presentation Reconstruction never modifies the DPM.
-
-It derives a transient runtime representation from it.
-
----
-
-# 15. Relationship to the Render Engine
-
-The Presentation Tree is consumed by Render Engines.
-
-Render Engines execute presentation.
-
-They do not reinterpret the canonical DPM.
-
----
-
-# 16. Provenance
-
-Every reconstruction may record:
-
-* reconstruction version;
-* Theme version;
-* rendering policy version;
-* execution timestamp.
-
-These records support diagnostics and reproducibility.
-
----
-
-# 17. Validation
-
-Presentation Reconstruction shall verify:
-
-* complete DPM availability;
-* valid Mapping resolution;
-* compatible Theme;
-* complete Presentation Tree generation.
-
-Invalid reconstructions shall never reach the Render Engine.
-
----
-
-# 18. Invariants
-
-The following invariants apply:
-
-* Presentation Reconstruction is deterministic;
-* the Presentation Tree is transient;
-* canonical models remain immutable;
-* Themes are interpreted but not modified;
-* rendering is performed only after reconstruction.
-
----
-
-# 19. Related Documents
-
-* LayoutAnalysis.md
-* Classification.md
-* ../Style/Themes.md
-* ../Mapping/UDMMapping.md
-* ../Layout/LayoutGraph.md
-
----
-
-# 20. Status
-
-**Approved**
-
-This document defines the Presentation Reconstruction stage of the Document Presentation Model.
-
-Presentation Reconstruction converts the canonical DPM into a transient Presentation Tree that preserves presentation intent while remaining independent of rendering technologies and execution platforms.
+This document is part of the KnowledgeOS DPM V4 release-candidate baseline. It becomes frozen after complete Domain review and conformance validation.

@@ -1,333 +1,115 @@
+# DPM Serialization Contract
 
-# DPM Serialization
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Document Presentation Model
-
-**Document:** Serialization
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Document Presentation Model  
+**Document:** Serialization  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the canonical serialization model of the Document Presentation Model (DPM).
+Specify logical exchange, deterministic encoding, precision preservation and secure deserialization for DPM.
 
-Serialization preserves presentation intent in a deterministic, portable and renderer-independent representation.
+## 2. Scope
 
-Serialization never stores rendered presentation.
+Covers envelope, geometry, graphs, styles, mappings, extensions and compatibility.
 
----
+## 3. Normative Language
 
-# 2. Scope
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Rules identified by stable identifiers are testable requirements for conforming implementations.
 
-Serialization governs:
 
-* canonical persistence;
-* synchronization;
-* interchange;
-* backup;
-* migration;
-* archival.
+## 4. Context and Responsibility
 
-Serialization does not define implementation technologies.
+The logical contract is encoding-neutral. JSON UTF-8 is the baseline interoperable representation. Alternative encodings may be used when they preserve identical meaning.
 
----
+Serialization must retain coordinate-space declarations, transforms, numeric precision, identities, ordering, style references, mappings and provenance.
 
-# 3. Design Goals
+## 5. Conceptual Model
 
-Serialization shall:
+```text
+SerializedDPM
+├── format
+├── specificationVersion
+├── presentation
+├── coordinateSpaces
+├── nodes
+├── pages
+├── regions
+├── layoutGraph
+├── readingFlows
+├── styles
+├── mappings
+├── provenance
+├── validation
+└── extensions
+```
 
-* preserve presentation intent;
-* preserve identity;
-* preserve mappings;
-* preserve provenance;
-* remain deterministic;
-* remain reversible;
-* remain technology-independent.
+## 6. Normative Requirements
 
----
+**SERIALIZATION-R001** — Internal references MUST use stable identities.
 
-# 4. Design Philosophy
+**SERIALIZATION-R002** — Numeric precision MUST be sufficient to preserve declared fidelity.
 
-Serialization preserves presentation intent.
+**SERIALIZATION-R003** — Coordinate-space metadata MUST be serialized before dependent geometry is interpreted.
 
-It never preserves renderer output.
+**SERIALIZATION-R004** — Round trips MUST preserve presentation equivalence.
 
-Rendering is reproducible from the serialized DPM.
+**SERIALIZATION-R005** — Unknown optional extension data SHOULD be preserved.
 
----
+**SERIALIZATION-R006** — Unsupported required semantics MUST produce incompatibility.
 
-# 5. Serialization Scope
+**SERIALIZATION-R007** — Deserializers MUST enforce size, nesting, path and reference limits.
 
-The following canonical elements shall be serialized:
+**SERIALIZATION-R008** — Serialized data MUST NOT contain executable renderer code.
 
-* DPM Root;
-* Presentation Nodes;
-* Presentation Types;
-* Presentation Attributes;
-* Pages;
-* Regions;
-* Columns;
-* Layout Graph;
-* Reading Flow;
-* Style Roles;
-* Mappings;
-* Version History;
-* Provenance.
+**SERIALIZATION-R009** — Canonical ordering MUST be deterministic where hashing or signing applies.
 
-Transient runtime structures are excluded.
+## 7. Invariants
 
----
+**SERIALIZATION-I001** — Runtime renderer objects are excluded.
 
-# 6. Excluded Elements
+**SERIALIZATION-I002** — Encoding does not alter meaning.
 
-The following elements shall never be serialized:
+**SERIALIZATION-I003** — References resolve or remain explicitly external.
 
-* Presentation Tree;
-* Render Engine state;
-* ViewModels;
-* HTML;
-* CSS;
-* UIKit objects;
-* SwiftUI objects;
-* React components;
-* Flutter widgets;
-* runtime caches.
+**SERIALIZATION-I004** — Geometry retains coordinate context.
 
-These elements are implementation artifacts.
+**SERIALIZATION-I005** — Authority and provenance survive round trips.
 
----
+## 8. Processing and Lifecycle Considerations
 
-# 7. Canonical Order
+Presentation data is an immutable snapshot within a DPM version. Changes create a new version or a new derived view. Runtime caches, UI selection, window state and renderer-specific objects are never canonical DPM state.
 
-Serialization shall use deterministic ordering.
+Processors SHALL record inputs, configuration, implementation version, confidence where applicable and complete provenance. Reprocessing MAY replace derived presentation artifacts but SHALL preserve stable identities when presentation continuity remains.
 
-Canonical order:
+## 9. Failure and Edge Cases
 
-1. Root
-2. Identity
-3. Pages
-4. Regions
-5. Columns
-6. Presentation Nodes
-7. Layout Graph
-8. Reading Flow
-9. Style
-10. Mappings
-11. Metadata
-12. Provenance
-13. Version History
+A conforming implementation SHALL represent ambiguity explicitly. It MUST NOT invent coordinates, reading order, style semantics or UDM mappings without evidence. Partial reconstruction MAY be published only when validation marks unresolved regions and the consuming capability supports incomplete DPM.
 
-Deterministic ordering guarantees reproducibility.
+Security-sensitive inputs such as external style references, fonts, URLs and extension payloads SHALL be validated before use.
 
----
+## 10. Examples
 
-# 8. Identity Preservation
+A transform matrix is serialized with declared numeric precision and coordinate-space reference; a renderer may convert it internally but must not change canonical meaning.
 
-Serialization preserves:
+## 11. Compatibility and Evolution
 
-* DPMID;
-* PresentationNodeID;
-* MappingID;
-* VersionID;
-* Theme Compatibility metadata.
+Backward-compatible changes MAY add optional attributes, types or mapping strategies. Changes that alter spatial semantics, identity, coordinate interpretation, reading-order meaning or UDM/DPM authority boundaries require a major version.
 
-Identifiers remain immutable.
+Unknown optional extensions SHOULD be preserved. Unknown required semantics MUST produce an explicit incompatibility result.
 
----
+## 12. Related Documents
 
-# 9. Referential Integrity
+- `../DPM.md`
+- `../Core/PresentationIdentity.md`
+- `../Mapping/UDMMapping.md`
+- `../Validation/ValidationRules.md`
 
-Every serialized reference shall remain resolvable.
+## 13. Status
 
-This includes:
-
-* Presentation Node references;
-* Layout Graph relationships;
-* Reading Flow relationships;
-* Mapping references;
-* Asset references;
-* Anchor references.
-
-Broken references invalidate the serialized representation.
-
----
-
-# 10. Style Preservation
-
-Serialization preserves presentation roles rather than implementation values.
-
-Examples include:
-
-* Typography Roles;
-* Semantic Color Roles;
-* Visual Hierarchy;
-* Decoration Roles.
-
-Concrete visual implementations remain outside the DPM.
-
----
-
-# 11. Theme Independence
-
-Themes are never serialized as part of the DPM.
-
-Only Theme compatibility requirements may be preserved.
-
-Concrete Theme implementations remain independent artifacts.
-
----
-
-# 12. Provenance Preservation
-
-Serialization preserves:
-
-* reconstruction history;
-* validation history;
-* synchronization history;
-* mapping history;
-* processing history.
-
-Provenance remains immutable.
-
----
-
-# 13. Version Preservation
-
-Serialization preserves:
-
-* DPM Version;
-* historical versions;
-* parent versions;
-* merge history;
-* compatibility metadata.
-
-Version history remains complete.
-
----
-
-# 14. Import and Export
-
-Serialization supports:
-
-* persistence;
-* synchronization;
-* migration;
-* interchange;
-* archival.
-
-Import reconstructs the canonical DPM.
-
-Export never modifies presentation intent.
-
----
-
-# 15. Deserialization
-
-Deserialization reconstructs:
-
-* presentation hierarchy;
-* Layout Graph;
-* Reading Flow;
-* Style Roles;
-* Mapping layer;
-* version history;
-* provenance.
-
-The reconstructed DPM shall be semantically equivalent to the serialized representation.
-
----
-
-# 16. Compatibility
-
-Serialization supports:
-
-* schema evolution;
-* forward compatibility;
-* backward compatibility;
-* extension compatibility.
-
-Compatibility policies are version-dependent.
-
----
-
-# 17. Validation
-
-Every deserialized DPM shall pass:
-
-* Validation Rules;
-* Consistency Rules.
-
-Invalid serialized representations shall never become authoritative.
-
----
-
-# 18. Relationship to the UDM
-
-The DPM and UDM are serialized independently.
-
-Both representations share:
-
-* KnowledgeObjectID;
-* compatible VersionIDs;
-* provenance references.
-
-Neither serialization embeds the other.
-
----
-
-# 19. Relationship to Platform
-
-Serialization defines the canonical representation.
-
-Platform implementations may persist it using:
-
-* JSON;
-* CBOR;
-* Protocol Buffers;
-* MessagePack;
-* binary formats;
-* future serialization technologies.
-
-The Domain Layer remains independent of storage implementations.
-
----
-
-# 20. Serialization Invariants
-
-The following invariants apply:
-
-* serialization is deterministic;
-* serialization is reversible;
-* presentation intent is preserved;
-* rendered presentation is never serialized;
-* renderer-specific artifacts are excluded;
-* referential integrity is maintained.
-
----
-
-# 21. Related Documents
-
-* ../Validation/ValidationRules.md
-* ../Validation/ConsistencyRules.md
-* ../Mapping/UDMMapping.md
-* ../../UDM/Serialization/Serialization.md
-
----
-
-# 22. Status
-
-**Approved**
-
-This document defines the canonical serialization model of the Document Presentation Model.
-
-Serialization preserves presentation intent independently of rendering technologies, ensuring deterministic persistence, portability, long-term evolution and complete compatibility with the Universal Document Model.
+This document is part of the KnowledgeOS DPM V4 release-candidate baseline. It becomes frozen after complete Domain review and conformance validation.

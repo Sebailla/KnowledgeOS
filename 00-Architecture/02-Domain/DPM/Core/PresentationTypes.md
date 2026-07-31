@@ -1,340 +1,91 @@
+# Presentation Type Catalogue
 
-# Presentation Types
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Document Presentation Model
-
-**Document:** Presentation Types
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Document Presentation Model  
+**Document:** PresentationTypes  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Presentation Type System of the Document Presentation Model (DPM).
+Define core presentation-node families and baseline types.
 
-Presentation Types classify visual elements according to their presentation role.
+## 2. Scope
 
-They define how visual elements participate in layout, reading flow and visual hierarchy.
+Applies to canonical DPM documents and all conforming processors, serializers and renderers.
 
-They never define canonical knowledge.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Rules identified by stable identifiers are testable requirements for conforming implementations.
 
-# 2. Scope
 
-Presentation Types classify:
+## 4. Context and Responsibility
 
-* pages;
-* layout containers;
-* reading regions;
-* visual elements;
-* decorative elements;
-* navigation elements;
-* floating elements.
+Types classify visual objects, not documentary meaning.
 
-Meaning remains defined exclusively by the UDM.
+## 5. Conceptual Model
 
----
+Families include surface, container, text, media, primitive, decoration, control and overlay.
 
-# 3. Design Goals
+Representative types are page, canvas, region, column, textFrame, lineBox, glyphRun, imagePlacement, tableGrid, rule, shape, background, overlay and clippingGroup.
 
-The Presentation Type System shall:
+## 6. Normative Requirements
 
-* classify presentation elements;
-* remain renderer-independent;
-* support layout reconstruction;
-* support multiple rendering experiences;
-* remain extensible;
-* preserve presentation intent.
+**PRESENTATIONTYPE-R001** — A presentation node MUST have one registered primary type.
 
----
+**PRESENTATIONTYPE-R002** — Type selection MUST be based on visual evidence and declared processing rules.
 
-# 4. Design Philosophy
+**PRESENTATIONTYPE-R003** — Types MUST NOT redefine UDM semantic node types.
 
-Presentation Types describe visual function.
+**PRESENTATIONTYPE-R004** — Extension types MUST use unique namespaces.
 
-They never describe semantic meaning.
+**PRESENTATIONTYPE-R005** — Unknown visual structures MUST remain representable through fallback types.
 
-The same canonical content may appear through different Presentation Types.
+**PRESENTATIONTYPE-R006** — Traits MUST NOT contradict the primary family.
 
----
+## 7. Invariants
 
-# 5. Type Hierarchy
+**PRESENTATIONTYPE-I001** — Type identity is stable.
 
-Every Presentation Node declares one primary Presentation Type.
+**PRESENTATIONTYPE-I002** — Visual and semantic taxonomies remain separate.
 
-```text
-Presentation Node
-        │
-        ▼
-Presentation Type
-        │
-        ▼
-Rendering Policy
-```
+**PRESENTATIONTYPE-I003** — Unknown extensions are preservable.
 
-Rendering policies interpret Presentation Types.
+**PRESENTATIONTYPE-I004** — Core type meaning cannot be overridden.
 
----
+## 8. Processing and Lifecycle Considerations
 
-# 6. Root Types
+Presentation data is an immutable snapshot within a DPM version. Changes create a new version or a new derived view. Runtime caches, UI selection, window state and renderer-specific objects are never canonical DPM state.
 
-The DPM defines the following root categories.
+Processors SHALL record inputs, configuration, implementation version, confidence where applicable and complete provenance. Reprocessing MAY replace derived presentation artifacts but SHALL preserve stable identities when presentation continuity remains.
 
-```text
-Presentation Type
-│
-├── Document
-├── Page
-├── Container
-├── Flow
-├── Content Area
-├── Navigation
-├── Decoration
-└── Overlay
-```
+## 9. Failure and Edge Cases
 
-Extensions may introduce additional types.
+A conforming implementation SHALL represent ambiguity explicitly. It MUST NOT invent coordinates, reading order, style semantics or UDM mappings without evidence. Partial reconstruction MAY be published only when validation marks unresolved regions and the consuming capability supports incomplete DPM.
 
----
+Security-sensitive inputs such as external style references, fonts, URLs and extension payloads SHALL be validated before use.
 
-# 7. Document Types
+## 10. Examples
 
-Document-level presentation includes:
+A visually boxed area may be a `region` or `decoration`; it is not automatically a semantic `warning`.
 
-* Book
-* Magazine
-* Scientific Paper
-* Article
-* Manual
-* Notebook
-* Presentation
-* Report
-* Poster
+## 11. Compatibility and Evolution
 
-Document Types describe the global presentation style.
+Backward-compatible changes MAY add optional attributes, types or mapping strategies. Changes that alter spatial semantics, identity, coordinate interpretation, reading-order meaning or UDM/DPM authority boundaries require a major version.
 
----
+Unknown optional extensions SHOULD be preserved. Unknown required semantics MUST produce an explicit incompatibility result.
 
-# 8. Page Types
+## 12. Related Documents
 
-Examples include:
+- `../DPM.md`
+- `PresentationNodeModel.md`
+- `PresentationTypes.md`
+- `../Validation/ValidationRules.md`
 
-* Cover
-* Title Page
-* Content Page
-* Chapter Opening
-* Appendix
-* Index
-* References
-* Blank Page
+## 13. Status
 
-Pages describe presentation organization only.
-
----
-
-# 9. Container Types
-
-Container Types organize visual space.
-
-Examples:
-
-* Region
-* Frame
-* Column
-* Grid
-* Sidebar
-* Floating Area
-* Margin Area
-
-Containers define placement, not content.
-
----
-
-# 10. Flow Types
-
-Flow Types define reading progression.
-
-Examples:
-
-* Main Flow
-* Secondary Flow
-* Parallel Flow
-* Sidebar Flow
-* Footnote Flow
-* Caption Flow
-
-Flows organize visual reading order.
-
----
-
-# 11. Content Area Types
-
-Content Areas present canonical knowledge.
-
-Examples include:
-
-* Title Area
-* Paragraph Area
-* Figure Area
-* Table Area
-* Equation Area
-* List Area
-* Quote Area
-* Code Area
-* Caption Area
-
-Content Areas reference UDM elements.
-
----
-
-# 12. Navigation Types
-
-Navigation elements include:
-
-* Header
-* Footer
-* Running Header
-* Running Footer
-* Page Number
-* Table of Contents Entry
-* Navigation Marker
-
-Navigation supports orientation without modifying canonical knowledge.
-
----
-
-# 13. Decoration Types
-
-Decorations provide visual enhancement.
-
-Examples:
-
-* Drop Cap
-* Background
-* Border
-* Separator
-* Ornament
-* Watermark
-* Highlight Band
-
-Decorations never contain canonical content.
-
----
-
-# 14. Overlay Types
-
-Overlay elements appear above the presentation layer.
-
-Examples:
-
-* Selection
-* Cursor
-* Search Result
-* Annotation Preview
-* Collaboration Indicator
-
-Overlays are transient presentation elements.
-
-They are not part of canonical knowledge.
-
----
-
-# 15. Type Inheritance
-
-Presentation Types may specialize existing types.
-
-Example:
-
-```text
-Figure Area
-        │
-        ├── Floating Figure
-        ├── Full Width Figure
-        ├── Inline Figure
-        └── Thumbnail
-```
-
-Specialization preserves the semantics of the parent type.
-
----
-
-# 16. Type Compatibility
-
-Each Presentation Type defines:
-
-* permitted parent types;
-* permitted child types;
-* supported layout behaviors;
-* supported reading flows;
-* applicable rendering policies.
-
-Compatibility rules are deterministic.
-
----
-
-# 17. Extension Types
-
-Extensions may introduce Presentation Types.
-
-Every extension type shall declare:
-
-* namespace;
-* identifier;
-* version;
-* parent type;
-* compatibility rules.
-
-Extensions shall not redefine core Presentation Types.
-
----
-
-# 18. Relationship to the UDM
-
-Presentation Types never replace UDM Types.
-
-A Presentation Type references one or more canonical UDM elements through Mapping.
-
-The UDM remains the source of truth.
-
----
-
-# 19. Invariants
-
-The following invariants apply:
-
-* every Presentation Node declares one primary Presentation Type;
-* Presentation Types classify presentation only;
-* Presentation Types never modify canonical knowledge;
-* type compatibility is deterministic;
-* core types remain immutable.
-
----
-
-# 20. Related Documents
-
-* DPM.md
-* PresentationNodeModel.md
-* PresentationAttributes.md
-* PresentationIdentity.md
-* ../Layout/LayoutGraph.md
-* ../Mapping/UDMMapping.md
-
----
-
-# 21. Status
-
-**Approved**
-
-This document defines the Presentation Type System of the Document Presentation Model.
-
-Presentation Types classify visual elements according to their presentation function while remaining independent of rendering technologies and preserving the canonical separation between presentation and knowledge.
+This document is part of the KnowledgeOS DPM V4 release-candidate baseline. It becomes frozen after complete Domain review and conformance validation.

@@ -1,266 +1,292 @@
-# Document Presentation Model (DPM)
+# Document Presentation Model Specification
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Document Presentation Model
-
-**Document:** DPM
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Document Presentation Model  
+**Document:** DPM  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-The Document Presentation Model (DPM) defines the canonical visual representation of a Knowledge Object.
+The Document Presentation Model (DPM) defines the canonical spatial, visual and reading-order representation used by KnowledgeOS to reconstruct, inspect, render and transform documentary presentations independently of source format and renderer implementation.
 
-While the Universal Document Model (UDM) represents the logical structure and meaning of knowledge, the DPM represents how that knowledge is visually organized and presented.
+DPM describes **how documentary content is presented**. It does not redefine what that content means. Semantic meaning, source-backed assertions and canonical content structure remain owned by the Universal Document Model (UDM).
 
-The DPM preserves presentation intent independently of rendering technologies.
+## 2. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Rules identified by stable identifiers are testable requirements for conforming implementations.
 
-# 2. Scope
 
-The DPM models:
-
-* page organization;
-* layout structure;
-* reading flow;
-* typography;
-* visual hierarchy;
-* decorations;
-* spatial relationships;
-* presentation metadata.
-
-It does not contain canonical knowledge.
-
-Canonical knowledge belongs exclusively to the UDM.
-
----
-
-# 3. Design Goals
-
-The DPM shall:
-
-* preserve presentation intent;
-* remain renderer-independent;
-* remain device-independent;
-* support faithful reconstruction;
-* support multiple rendering experiences;
-* preserve layout semantics;
-* support long-term evolution.
-
----
-
-# 4. Design Philosophy
-
-The UDM describes what the document means.
-
-The DPM describes how the document is visually organized.
-
-Both models describe the same Knowledge Object.
-
-Neither replaces the other.
-
----
-
-# 5. Conceptual Architecture
+## 3. Architectural Position
 
 ```text
-Knowledge Object
+Source Manifestation
         │
-        ├── Universal Document Model
-        │        │
-        │        └── Canonical Knowledge
+        ├── semantic extraction ─────────► UDM
         │
-        └── Document Presentation Model
-                 │
-                 └── Presentation Intent
+        └── layout and style analysis ───► DPM
+                                             │
+                         ┌───────────────────┼───────────────────┐
+                         ▼                   ▼                   ▼
+                     Rendering        Reflow/Export       Visual Inspection
 ```
 
-The UDM and DPM are complementary canonical models.
+UDM and DPM are complementary canonical models:
 
----
+- UDM answers what content means and how semantic units relate.
+- DPM answers where presentation units appear, how they are styled and in what visual reading sequence they are encountered.
+- Mapping contracts connect both models without collapsing them.
 
-# 6. Presentation Intent
+## 4. Design Principles
 
-Presentation intent represents the author's visual organization of information.
+### 4.1 Separation of Semantics and Presentation
 
-Examples include:
+DPM SHALL NOT redefine UDM semantics. Typography, coordinates and spatial grouping do not become semantic facts unless a UDM processor independently classifies them with evidence.
 
-* page composition;
-* column arrangement;
-* figure placement;
-* typography hierarchy;
-* captions;
-* side notes;
-* decorative elements;
-* reading sequence.
+### 4.2 Source Fidelity
 
-Presentation intent is preserved independently of rendering technology.
+DPM SHOULD preserve enough layout and style information to reconstruct a faithful representation of the source manifestation within declared tolerances.
 
----
+### 4.3 Renderer Independence
 
-# 7. Canonical Independence
+DPM SHALL remain independent of SwiftUI, AppKit, UIKit, HTML/CSS, PDFKit, canvas APIs and other renderer-specific abstractions.
 
-The DPM shall never redefine:
+### 4.4 Explicit Coordinate Systems
 
-* document meaning;
-* semantic relationships;
-* canonical structure;
-* annotations;
-* version history.
+Every spatial value SHALL identify its coordinate space, unit, origin, axes and transformation context.
 
-These responsibilities belong to the UDM.
+### 4.5 Deterministic Reconstruction
 
----
+Equivalent source inputs analyzed under the same processing versions and configuration SHALL yield equivalent DPM output.
 
-# 8. Renderer Independence
+### 4.6 Stable Presentation Identity
 
-The DPM shall not depend on:
+Pages, regions, presentation nodes and mappings SHALL have stable opaque identities when presentation continuity remains.
 
-* HTML;
-* CSS;
-* PDF;
-* EPUB;
-* SwiftUI;
-* UIKit;
-* Flutter;
-* WebView.
+### 4.7 Multiple Valid Presentations
 
-Renderers interpret the DPM.
+A UDM document MAY map to multiple DPMs: source-faithful, reflowed, accessible, responsive, print-oriented or user-generated. Each DPM declares its purpose and authority.
 
-The DPM never references renderer-specific constructs.
+### 4.8 Accessibility and Adaptability
 
----
+DPM SHALL preserve visual hierarchy and reading order while enabling alternate presentations. Source fidelity SHALL NOT prevent accessible reflow.
 
-# 9. Relationship to the UDM
+## 5. Canonical Envelope
 
-Each DPM references exactly one authoritative UDM.
+```text
+DPMDocument
+├── specificationVersion
+├── presentationId
+├── presentationVersion
+├── purpose
+├── sourceRefs[]
+├── udmDocumentRefs[]
+├── coordinateSpaces{}
+├── rootPresentationNodeIds[]
+├── presentationNodes{}
+├── pages{}
+├── regions{}
+├── layoutGraph
+├── readingFlows{}
+├── styles{}
+├── mappings{}
+├── provenance
+├── validationManifest
+└── extensions{}
+```
 
-The relationship is one-to-one.
+The structure is logical. Serialization MAY use another physical arrangement while preserving equivalent meaning.
 
-Both models share:
+## 6. Presentation Purposes
 
-* KnowledgeObjectID;
-* VersionID;
-* Provenance.
+A DPM declares one primary purpose:
 
-Each evolves independently while remaining synchronized.
+- **source-faithful:** reconstruct the acquired manifestation;
+- **reflowed:** reorganize content for variable viewport dimensions;
+- **accessible:** optimize navigation and assistive interpretation;
+- **responsive:** support breakpoint- or constraint-driven layout;
+- **print:** generate paginated output;
+- **editorial:** represent a user-created presentation;
+- **inspection:** expose extracted layout evidence;
+- **preview:** provide a reduced derived view.
 
----
+Purpose constrains validation and required fidelity.
 
-# 10. Relationship to Assets
+## 7. Coordinate Spaces
 
-The DPM references Asset Nodes defined in the UDM.
+A coordinate space declares:
 
-It never owns binary resources.
+- identity;
+- dimensionality;
+- origin;
+- axis directions;
+- unit;
+- extent;
+- transform to parent space;
+- precision;
+- source or target association.
 
-Presentation determines where Assets appear.
+Common spaces include source page, normalized page, viewport, canvas, asset-local and physical print space.
 
-Ownership remains within the UDM.
+Coordinates SHALL NOT be interpreted without their space. Normalized and absolute values are not interchangeable.
 
----
+## 8. Presentation Node System
 
-# 11. Relationship to Anchors
+Presentation nodes represent visual objects such as page containers, regions, text frames, columns, blocks, lines, glyph runs, images, rules, decorations and overlays.
 
-The DPM may resolve visual positions using Anchors.
+Each presentation node includes identity, type, bounds, transform, z-order, clipping, style references, child order, mappings and provenance.
 
-Anchors remain defined exclusively by the UDM.
+Containment describes visual composition. Spatial relationships and reading order are separate graphs.
 
-The DPM never creates canonical Anchors.
+## 9. Pages and Regions
 
----
+A page is a bounded presentation surface. It may correspond to a source page, generated print page or virtual page.
 
-# 12. Relationship to Rendering
+A region is a spatially coherent area with a presentation role, such as header, footer, body, margin, sidebar, column, figure area or footnote area.
 
-Render Engines consume:
+Pages and regions are presentation constructs. They SHALL NOT create UDM semantic structure by themselves.
 
-* UDM;
-* DPM;
-* Rendering Policies.
+## 10. Layout Graph
 
-The DPM does not render itself.
+The layout graph represents spatial and compositional relationships independently of containment. Relationships include above, below, leftOf, rightOf, overlaps, contains, alignedWith, adjacentTo, flowsTo and anchoredTo.
 
-It defines presentation semantics.
+Every edge identifies coordinate context, evidence, confidence where inferred and provenance.
 
----
+## 11. Reading Flow
 
-# 13. Relationship to Import
+A reading flow is an ordered traversal of presentation nodes for a declared audience or mode. A DPM MAY define primary, alternate, accessible and language-specific flows.
 
-During document acquisition:
+Reading order SHALL be explicit. Z-order, DOM order, coordinate order and semantic order are not assumed equivalent.
 
-* the UDM is constructed from logical content;
-* the DPM is constructed from presentation analysis.
+## 12. Style Model
 
-Both models are produced during the same import process.
+DPM style comprises typography, color, decoration, themes and visual hierarchy. Styles are declarative and renderer-neutral.
 
----
+Style values preserve source evidence and normalized values where applicable. Font files and executable styling are external assets, not embedded runtime behavior.
 
-# 14. Relationship to Export
+## 13. UDM Mapping
 
-Export processes may reconstruct:
+Mappings connect DPM presentation identities to UDM identities and anchors. They support one-to-one, one-to-many, many-to-one and unresolved relationships.
 
-* original layout;
-* adapted layouts;
-* alternative reading experiences.
+A mapping may indicate exact, partial, inferred or generated correspondence. It records provenance and confidence.
 
-The DPM provides the information required for presentation reconstruction.
+DPM mapping SHALL NOT transfer presentation properties into UDM or semantic authority into DPM.
 
----
+## 14. Asset Mapping
 
-# 15. Core Components
+Asset mappings connect visual placements or renditions to UDM asset references and source assets. Crop, transform, mask and placement belong to DPM; asset identity and semantic role belong to UDM.
 
-The DPM is composed of:
+## 15. Processing Model
 
-* Presentation Nodes;
-* Layout Graph;
-* Reading Flow;
-* Typography;
-* Visual Hierarchy;
-* Decorations;
-* Themes;
-* Spatial Relationships.
+DPM processing follows:
 
-Each component is documented independently.
+1. source inspection;
+2. page and canvas detection;
+3. region segmentation;
+4. visual primitive extraction;
+5. text-line and block formation;
+6. style extraction;
+7. column and spatial analysis;
+8. reading-flow inference;
+9. UDM mapping;
+10. reconstruction assembly;
+11. normalization;
+12. validation;
+13. publication.
 
----
+Processing is deterministic for fixed inputs and processor versions. Failed analysis SHALL NOT silently publish a complete-fidelity claim.
 
-# 16. Invariants
+## 16. Validation Model
 
-The following invariants apply:
+Validation covers envelope, identity, coordinate spaces, geometry, containment, graph references, reading flows, style references, mappings, provenance and purpose-specific fidelity.
 
-* the DPM never changes canonical knowledge;
-* presentation intent remains independent from rendering;
-* the DPM references but never owns Assets;
-* the DPM references but never owns Anchors;
-* the DPM remains deterministic;
-* the DPM remains serializable;
-* the DPM remains versionable.
+A source-faithful DPM has stricter reconstruction requirements than a preview DPM. Validation profiles SHALL declare those differences.
 
----
+## 17. Serialization
 
-# 17. Related Documents
+Serialization preserves identities, coordinate spaces, numeric precision, transforms, ordering, style references, graph edges, mappings, provenance and extensions.
 
-* ../UDM/UDM.md
-* Core/PresentationNodeModel.md
-* Layout/LayoutGraph.md
-* Style/Typography.md
-* Mapping/UDMMapping.md
+Renderer-specific object graphs and runtime caches SHALL NOT be serialized as canonical DPM.
 
----
+## 18. Authority and Derived Status
 
-# 18. Status
+A DPM is canonical for one declared presentation version, but it remains derived from source evidence or editorial actions. It is not authoritative for documentary semantics.
 
-**Approved**
+Machine-inferred layout and reading order carry processing provenance. User-edited presentations carry personal or editorial authority.
 
-This document defines the Document Presentation Model (DPM), the canonical representation of presentation intent within KnowledgeOS.
+## 19. Core Invariants
 
-The DPM complements the Universal Document Model by preserving the visual organization of knowledge while remaining independent of rendering technologies and user interfaces.
+**DPM-I001** — Every DPM has exactly one immutable presentation identity.
+
+**DPM-I002** — Every spatial value belongs to an explicit coordinate space.
+
+**DPM-I003** — Presentation containment is acyclic.
+
+**DPM-I004** — Reading order is explicit and independent of z-order.
+
+**DPM-I005** — DPM does not redefine UDM semantics.
+
+**DPM-I006** — Every UDM mapping records correspondence type and provenance.
+
+**DPM-I007** — Styles are renderer-neutral.
+
+**DPM-I008** — Runtime UI state is excluded.
+
+**DPM-I009** — Source-faithful claims are validated against declared tolerances.
+
+**DPM-I010** — Unknown optional extensions remain preservable.
+
+**DPM-I011** — Asset placement and asset identity remain separate.
+
+**DPM-I012** — Reprocessing preserves identity when visual continuity remains.
+
+## 20. Non-Goals
+
+DPM does not define:
+
+- canonical documentary semantics;
+- user interface component architecture;
+- application window state;
+- persistence databases;
+- synchronization transport;
+- graphics APIs;
+- font licensing;
+- search indexes;
+- AI provider selection;
+- source-file ownership.
+
+## 21. Conformance Classes
+
+Implementations MAY claim:
+
+- DPM Reader;
+- DPM Writer;
+- Layout Analyzer;
+- Presentation Reconstructor;
+- DPM Validator;
+- UDM/DPM Mapper;
+- DPM Renderer;
+- Extension Host.
+
+Claims SHALL state supported versions, purposes, coordinate systems and extensions.
+
+## 22. Related Documents
+
+- `README.md`
+- `Core/PresentationIdentity.md`
+- `Core/PresentationNodeModel.md`
+- `Layout/LayoutGraph.md`
+- `Layout/ReadingFlow.md`
+- `Mapping/UDMMapping.md`
+- `Processing/PresentationReconstruction.md`
+- `Serialization/Serialization.md`
+- `Validation/ValidationRules.md`
+- `../UDM/UDM.md`
+
+## 23. Status
+
+This specification is the rector document for DPM V4. Subordinate specifications refine its contracts and SHALL NOT contradict its invariants.

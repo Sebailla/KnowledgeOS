@@ -1,282 +1,90 @@
+# Decoration Model
 
-# Decorations
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Document Presentation Model
-
-**Document:** Decorations
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Document Presentation Model  
+**Document:** Decorations  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Decoration model of the Document Presentation Model (DPM).
+Specify borders, rules, shadows, backgrounds, underlines, markers and visual ornaments.
 
-Decorations describe visual elements that enrich presentation without contributing canonical knowledge.
+## 2. Scope
 
-They preserve editorial style independently of rendering technologies.
+Applies to source-faithful and generated DPM style representation.
 
----
+## 3. Normative Language
 
-# 2. Scope
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Rules identified by stable identifiers are testable requirements for conforming implementations.
 
-Decorations define:
 
-* ornamental elements;
-* visual separators;
-* background treatments;
-* framing;
-* emphasis ornaments;
-* decorative composition.
+## 4. Context and Responsibility
 
-Decorations never contain canonical knowledge.
+Decorations are visual effects associated with presentation nodes or regions. They do not automatically imply semantic meaning.
 
----
+## 5. Conceptual Model
 
-# 3. Design Goals
+Decoration records define geometry, stroke, fill, corner, pattern, shadow, layering and provenance.
 
-Decorations shall:
+## 6. Normative Requirements
 
-* preserve editorial identity;
-* remain renderer-independent;
-* support adaptive rendering;
-* remain deterministic;
-* remain optional;
-* never interfere with canonical content.
+**DECORATIONS-R001** — Decoration geometry MUST use an explicit coordinate space.
 
----
+**DECORATIONS-R002** — Decorations MUST be distinguishable from content primitives.
 
-# 4. Design Philosophy
+**DECORATIONS-R003** — Generated shadows and effects MUST declare purpose or theme origin.
 
-Decorations improve presentation.
+**DECORATIONS-R004** — Decorative elements SHOULD be excluded from accessible reading flow unless meaningful.
 
-They never modify:
+**DECORATIONS-R005** — Borders MUST NOT create semantic tables without UDM evidence.
 
-* meaning;
-* semantics;
-* reading order;
-* document structure.
+**DECORATIONS-R006** — Unknown effect extensions MUST remain isolated.
 
-Decorations are an independent presentation layer.
+## 7. Invariants
 
----
+**DECORATIONS-I001** — Decorations are presentation-only.
 
-# 5. Conceptual Model
+**DECORATIONS-I002** — Layering is explicit.
 
-```text
-Presentation Layer
-        │
-        ├── Content
-        └── Decorations
-```
+**DECORATIONS-I003** — Accessibility behavior is declared.
 
-Decorations coexist with presentation elements.
+**DECORATIONS-I004** — Effects do not change UDM identity.
 
-They never replace them.
+## 8. Processing and Lifecycle Considerations
 
----
+Presentation data is an immutable snapshot within a DPM version. Changes create a new version or a new derived view. Runtime caches, UI selection, window state and renderer-specific objects are never canonical DPM state.
 
-# 6. Decoration Categories
+Processors SHALL record inputs, configuration, implementation version, confidence where applicable and complete provenance. Reprocessing MAY replace derived presentation artifacts but SHALL preserve stable identities when presentation continuity remains.
 
-Typical Decoration Types include:
+## 9. Failure and Edge Cases
 
-* Drop Cap;
-* Separator;
-* Border;
-* Frame;
-* Background Pattern;
-* Watermark;
-* Chapter Ornament;
-* Divider;
-* Highlight Band;
-* Shadow;
-* Corner Ornament.
+A conforming implementation SHALL represent ambiguity explicitly. It MUST NOT invent coordinates, reading order, style semantics or UDM mappings without evidence. Partial reconstruction MAY be published only when validation marks unresolved regions and the consuming capability supports incomplete DPM.
 
-Extensions may define additional decoration types.
+Security-sensitive inputs such as external style references, fonts, URLs and extension payloads SHALL be validated before use.
 
----
+## 10. Examples
 
-# 7. Decorative Purpose
+A shaded box can decorate a paragraph; only UDM classification can establish that the paragraph is a warning.
 
-Every Decoration shall declare its presentation purpose.
+## 11. Compatibility and Evolution
 
-Examples include:
+Backward-compatible changes MAY add optional attributes, types or mapping strategies. Changes that alter spatial semantics, identity, coordinate interpretation, reading-order meaning or UDM/DPM authority boundaries require a major version.
 
-* visual grouping;
-* chapter transition;
-* emphasis;
-* branding;
-* orientation;
-* aesthetic enhancement.
+Unknown optional extensions SHOULD be preserved. Unknown required semantics MUST produce an explicit incompatibility result.
 
-Purpose describes intent rather than implementation.
+## 12. Related Documents
 
----
+- `../DPM.md`
+- `../Core/PresentationAttributes.md`
+- `Themes.md`
+- `VisualHierarchy.md`
+- `../Validation/ValidationRules.md`
 
-# 8. Decorative Placement
+## 13. Status
 
-Decorations may be associated with:
-
-* Document;
-* Page;
-* Region;
-* Column;
-* Presentation Element.
-
-Placement is logical and independent of absolute coordinates.
-
----
-
-# 9. Decorative Layering
-
-Decorations participate in the presentation stack.
-
-Typical layers include:
-
-* background;
-* behind content;
-* alongside content;
-* above content;
-* foreground.
-
-Layering expresses relative ordering only.
-
-Render Engines determine the concrete implementation.
-
----
-
-# 10. Decorative Behavior
-
-Decorations may define abstract behavior such as:
-
-* repeat;
-* mirror;
-* stretch;
-* tile;
-* fade;
-* appear at transitions.
-
-Behavior is declarative.
-
-It is not animation code.
-
----
-
-# 11. Adaptive Rendering
-
-Render Engines may:
-
-* simplify decorations;
-* replace decorations;
-* omit decorations;
-* substitute equivalent decorative resources.
-
-The editorial intent shall remain recognizable whenever possible.
-
----
-
-# 12. Accessibility
-
-Accessibility modes may reduce or disable Decorations.
-
-Examples include:
-
-* high-contrast mode;
-* simplified reading mode;
-* distraction-free mode;
-* low-vision adaptations.
-
-Canonical presentation remains unchanged.
-
----
-
-# 13. Relationship to Typography
-
-Decorations may reinforce typography.
-
-They never replace typographic hierarchy.
-
----
-
-# 14. Relationship to Visual Hierarchy
-
-Decorations may reinforce hierarchy.
-
-Hierarchy shall never depend exclusively on decorative elements.
-
-Removing Decorations shall not change the logical importance of content.
-
----
-
-# 15. Relationship to Themes
-
-Themes determine how Decorations are rendered.
-
-The DPM stores only decorative intent.
-
-Themes provide implementation.
-
----
-
-# 16. Relationship to the UDM
-
-Decorations reference Presentation Nodes mapped to canonical UDM elements.
-
-They never modify:
-
-* canonical content;
-* semantic meaning;
-* provenance;
-* annotations.
-
----
-
-# 17. Validation
-
-A valid Decoration shall satisfy:
-
-* valid Decoration Type;
-* valid Presentation Node association;
-* compatible decorative layer;
-* deterministic placement.
-
----
-
-# 18. Invariants
-
-The following invariants apply:
-
-* Decorations represent presentation only;
-* Decorations are optional;
-* Decorations never contain canonical knowledge;
-* Decorations remain renderer-independent;
-* Decorations preserve editorial intent.
-
----
-
-# 19. Related Documents
-
-* Typography.md
-* VisualHierarchy.md
-* ColorModel.md
-* Themes.md
-* ../Core/PresentationAttributes.md
-
----
-
-# 20. Status
-
-**Approved**
-
-This document defines the Decoration model of the Document Presentation Model.
-
-Decorations preserve editorial identity and aesthetic intent independently of rendering technologies while remaining completely separate from canonical knowledge.
+This document is part of the KnowledgeOS DPM V4 release-candidate baseline. It becomes frozen after complete Domain review and conformance validation.

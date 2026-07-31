@@ -1,295 +1,90 @@
+# Presentation Classification
 
-# Classification
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Document Presentation Model
-
-**Document:** Classification
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Document Presentation Model  
+**Document:** Classification  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Classification stage of the Document Presentation Model (DPM).
+Specify classification of visual primitives and presentation roles.
 
-Classification identifies presentation roles and structural presentation patterns during DPM construction.
+## 2. Scope
 
-It produces deterministic presentation classifications supported by evidence and confidence information.
+Applies to DPM-producing workflows implemented by Platform engines.
 
----
+## 3. Normative Language
 
-# 2. Scope
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Rules identified by stable identifiers are testable requirements for conforming implementations.
 
-Classification governs:
 
-* typography role classification;
-* region classification;
-* page classification;
-* visual hierarchy classification;
-* decoration classification;
-* presentation pattern recognition.
+## 4. Context and Responsibility
 
-Classification never performs rendering.
+Classification assigns DPM types and roles such as textFrame, imagePlacement, header region or decoration based on visual evidence.
 
----
+## 5. Conceptual Model
 
-# 3. Design Goals
+Rules may be deterministic, statistical or AI-assisted. Method, confidence and provenance are mandatory for inferred classifications.
 
-Classification shall:
+## 6. Normative Requirements
 
-* remain deterministic;
-* remain explainable;
-* remain reproducible;
-* preserve presentation intent;
-* support multiple classification strategies;
-* remain independent from specific AI technologies.
+**CLASSIFICATION-R001** — Classification MUST select the most specific justified presentation type.
 
----
+**CLASSIFICATION-R002** — Low confidence MUST remain explicit.
 
-# 4. Design Philosophy
+**CLASSIFICATION-R003** — Visual classification MUST NOT assert UDM semantics automatically.
 
-Classification produces hypotheses.
+**CLASSIFICATION-R004** — Human corrections MUST record decision provenance.
 
-Validation determines whether those hypotheses become authoritative.
+**CLASSIFICATION-R005** — Classifier changes MUST invalidate affected derived outputs.
 
-Classification is part of presentation analysis.
+**CLASSIFICATION-R006** — Fallback types MUST preserve unclassified evidence.
 
-It never modifies canonical models directly.
+## 7. Invariants
 
----
+**CLASSIFICATION-I001** — Inference is traceable.
 
-# 5. Position in the Processing Pipeline
+**CLASSIFICATION-I002** — Uncertainty is explicit.
 
-```text
-Normalized Representation
-          │
-          ▼
-Layout Analysis
-          │
-          ▼
-Classification
-          │
-          ▼
-Validation
-          │
-          ▼
-Canonical DPM
-```
+**CLASSIFICATION-I003** — Presentation and semantic classifiers remain separate.
 
-Only validated classifications become part of the canonical DPM.
+**CLASSIFICATION-I004** — Reclassification preserves lineage.
 
----
+## 8. Processing and Lifecycle Considerations
 
-# 6. Inputs
+Presentation data is an immutable snapshot within a DPM version. Changes create a new version or a new derived view. Runtime caches, UI selection, window state and renderer-specific objects are never canonical DPM state.
 
-Classification consumes:
+Processors SHALL record inputs, configuration, implementation version, confidence where applicable and complete provenance. Reprocessing MAY replace derived presentation artifacts but SHALL preserve stable identities when presentation continuity remains.
 
-* normalized representations;
-* detected layout structures;
-* presentation candidates;
-* analysis metadata;
-* optional external classifiers.
+## 9. Failure and Edge Cases
 
-Inputs remain immutable.
+A conforming implementation SHALL represent ambiguity explicitly. It MUST NOT invent coordinates, reading order, style semantics or UDM mappings without evidence. Partial reconstruction MAY be published only when validation marks unresolved regions and the consuming capability supports incomplete DPM.
 
----
+Security-sensitive inputs such as external style references, fonts, URLs and extension payloads SHALL be validated before use.
 
-# 7. Outputs
+## 10. Examples
 
-Classification produces:
+A boxed area may classify as a region with decorative border while its semantic role remains unknown.
 
-* presentation role candidates;
-* confidence values;
-* supporting evidence;
-* alternative classifications;
-* classification provenance.
+## 11. Compatibility and Evolution
 
-Outputs are candidates until validated.
+Backward-compatible changes MAY add optional attributes, types or mapping strategies. Changes that alter spatial semantics, identity, coordinate interpretation, reading-order meaning or UDM/DPM authority boundaries require a major version.
 
----
+Unknown optional extensions SHOULD be preserved. Unknown required semantics MUST produce an explicit incompatibility result.
 
-# 8. Classification Targets
+## 12. Related Documents
 
-Typical targets include:
+- `../DPM.md`
+- `LayoutAnalysis.md`
+- `Classification.md`
+- `../Validation/ValidationRules.md`
+- `../../UDM/Processing/ProcessingPipeline.md`
 
-* Typography Roles;
-* Presentation Types;
-* Page Types;
-* Region Types;
-* Decoration Types;
-* Hierarchy Levels;
-* Reading Flow hints.
+## 13. Status
 
-Extensions may define additional targets.
-
----
-
-# 9. Classification Strategies
-
-Possible strategies include:
-
-* deterministic rules;
-* heuristic analysis;
-* statistical models;
-* machine learning;
-* large language models;
-* hybrid approaches.
-
-The DPM remains independent of the chosen strategy.
-
----
-
-# 10. Confidence Model
-
-Every classification shall expose a confidence value.
-
-Confidence represents the reliability of the proposed classification.
-
-Confidence never replaces validation.
-
----
-
-# 11. Evidence Model
-
-Every classification shall include supporting evidence.
-
-Typical evidence may include:
-
-* typography characteristics;
-* spacing patterns;
-* layout organization;
-* structural position;
-* neighboring elements;
-* visual grouping.
-
-Evidence supports explainability and auditing.
-
----
-
-# 12. Alternative Classifications
-
-Classification may generate multiple candidates.
-
-Example:
-
-```text
-Candidate A
-Confidence 0.93
-
-Candidate B
-Confidence 0.81
-```
-
-Validation determines the authoritative outcome.
-
----
-
-# 13. Human Review
-
-Classification results may be reviewed manually.
-
-Human review may:
-
-* confirm;
-* reject;
-* refine;
-* replace.
-
-Reviewed results become part of provenance.
-
----
-
-# 14. Relationship to AI
-
-Artificial Intelligence may assist Classification.
-
-AI is an implementation strategy.
-
-The canonical DPM shall never depend on a particular model or provider.
-
----
-
-# 15. Provenance
-
-Every classification records:
-
-* classifier version;
-* execution timestamp;
-* evidence;
-* confidence;
-* review history.
-
-Classification provenance is immutable.
-
----
-
-# 16. Relationship to Validation
-
-Validation evaluates classification outputs.
-
-Classification never bypasses validation.
-
-Only validated classifications become authoritative.
-
----
-
-# 17. Relationship to the UDM
-
-Classification concerns presentation only.
-
-Semantic interpretation remains the responsibility of the UDM processing pipeline.
-
----
-
-# 18. Validation
-
-Classification outputs shall satisfy:
-
-* valid target type;
-* confidence availability;
-* evidence availability;
-* deterministic provenance.
-
-Incomplete classifications shall not become authoritative.
-
----
-
-# 19. Invariants
-
-The following invariants apply:
-
-* Classification produces hypotheses;
-* validation determines authority;
-* confidence is mandatory;
-* evidence is mandatory;
-* provenance is immutable;
-* AI technologies remain replaceable.
-
----
-
-# 20. Related Documents
-
-* LayoutAnalysis.md
-* PresentationReconstruction.md
-* ../Validation/ValidationRules.md
-* ../Validation/ConsistencyRules.md
-* ../../UDM/Processing/ProcessingPipeline.md
-
----
-
-# 21. Status
-
-**Approved**
-
-This document defines the Classification stage of the Document Presentation Model.
-
-Classification identifies presentation structures through deterministic, explainable and auditable processes while remaining independent of any specific artificial intelligence technology.
+This document is part of the KnowledgeOS DPM V4 release-candidate baseline. It becomes frozen after complete Domain review and conformance validation.

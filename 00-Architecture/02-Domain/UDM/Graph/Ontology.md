@@ -1,289 +1,85 @@
-# Ontology
+# UDM Ontology
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Universal Document Model
-
-**Document:** Ontology
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Universal Document Model  
+**Document:** Ontology  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the conceptual ontology of the Universal Document Model (UDM).
+Specify controlled vocabulary, namespaces and mappings.
 
-The ontology provides the official semantic vocabulary used to classify, relate and interpret knowledge represented within KnowledgeOS.
+## 2. Scope
 
-It is independent of any ontology implementation technology.
+Applies to semantic graph projection and graph-consuming capabilities.
 
----
+## 3. Normative Language
 
-# 2. Scope
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. A requirement identified by an invariant or rule identifier is testable and applies to every conforming implementation unless the rule explicitly limits its scope.
 
-The Ontology defines:
 
-* semantic concepts;
-* concept hierarchies;
-* semantic categories;
-* relationship vocabulary;
-* controlled classifications.
+## 4. Context and Responsibilities
 
-It does not define:
+The core ontology provides generic documentary concepts and predicates while supporting mappings to external or domain-specific vocabularies.
 
-* RDF;
-* OWL;
-* SKOS;
-* SPARQL;
-* graph databases.
+## 5. Conceptual Model
 
-These technologies are implementation choices.
+Mappings distinguish exactMatch, closeMatch, broader, narrower and related. Deprecation preserves identifiers and replacement mappings.
 
----
+## 6. Normative Requirements
 
-# 3. Design Goals
+**ONTOLOGY-R001** — Ontology identifiers MUST be stable.
 
-The Ontology shall:
+**ONTOLOGY-R002** — Every term MUST have one definition per version.
 
-* provide a stable semantic vocabulary;
-* remain technology-independent;
-* support multiple knowledge domains;
-* support extensibility;
-* enable semantic interoperability;
-* preserve backward compatibility.
+**ONTOLOGY-R003** — External mappings MUST record provenance.
 
----
+**ONTOLOGY-R004** — Automated mappings MUST expose confidence.
 
-# 4. Design Philosophy
+**ONTOLOGY-R005** — Extensions MUST use unique namespaces.
 
-The ontology defines meaning.
+**ONTOLOGY-R006** — Deprecated terms MUST remain resolvable.
 
-Semantic Nodes instantiate meaning.
+## 7. Invariants
 
-The UDM represents canonical knowledge.
+**ONTOLOGY-I001** — Core meaning cannot be overridden.
 
-The three concepts remain independent.
+**ONTOLOGY-I002** — Ontology evolution is versioned.
 
----
+**ONTOLOGY-I003** — Mapping does not imply identity unless declared exact and accepted.
 
-# 5. Conceptual Architecture
+## 8. Failure and Edge Cases
 
-```text
-Knowledge
-        │
-        ▼
-Content Nodes
-        │
-        ▼
-Semantic Nodes
-        │
-        ▼
-Ontology
-```
+A conforming implementation SHALL fail explicitly when it cannot preserve identity, provenance, semantic meaning or authority boundaries. It SHALL NOT repair uncertain input by silently inventing facts. Recoverable ambiguity MAY be represented through confidence, alternatives, unresolved references or validation findings.
 
-The ontology never contains document instances.
+Failures SHALL be categorized as structural, semantic, compatibility, provenance, security or processing failures. Each failure SHALL identify the affected entity and the violated rule.
 
----
+## 9. Examples
 
-# 6. Ontology Concepts
+A medical plugin can map a core `concept` to a SNOMED identifier without redefining the core node type.
 
-The ontology defines reusable concepts.
+## 10. Compatibility and Evolution
 
-Examples include:
+Changes to this contract SHALL follow semantic versioning at the specification level. Backward-compatible additions MAY introduce optional fields, types or relationships. Changes that alter required semantics, identity rules, authority boundaries or canonical interpretation require a major version.
 
-* Person;
-* Organization;
-* Scientific Work;
-* Observation;
-* Experiment;
-* Species;
-* Disease;
-* Algorithm;
-* Law;
-* Event.
+Unknown optional extensions SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-Concepts are language-independent.
+## 11. Security and Privacy Considerations
 
----
+Implementations SHALL treat imported data, extension payloads, external identifiers and generated semantic assertions as untrusted until validated. Personal Knowledge and restricted source material MUST respect scoped authority and execution policy. Remote processing MUST NOT occur without applicable authorization.
 
-# 7. Concept Hierarchies
+## 12. Related Documents
 
-Concepts may specialize other concepts.
+- `GraphModel.md`
+- `RelationshipModel.md`
+- `Ontology.md`
+- `../Core/Identity.md`
 
-Example:
+## 13. Status
 
-```text
-Entity
-│
-├── Person
-├── Organization
-├── Location
-└── Species
-```
-
-Hierarchies define semantic inheritance.
-
----
-
-# 8. Relationship Vocabulary
-
-The ontology defines the official semantic relationship vocabulary.
-
-Examples:
-
-* part of;
-* instance of;
-* subclass of;
-* cites;
-* supports;
-* contradicts;
-* explains;
-* derives from;
-* causes;
-* associated with.
-
-Relationship definitions are reusable.
-
----
-
-# 9. Controlled Vocabularies
-
-The ontology may define controlled vocabularies.
-
-Examples:
-
-* scientific disciplines;
-* biological taxonomy;
-* document genres;
-* publication types;
-* legal domains.
-
-Controlled vocabularies improve consistency.
-
----
-
-# 10. Namespaces
-
-Concepts belong to namespaces.
-
-Examples:
-
-* kos.core
-* kos.science
-* kos.medicine
-* kos.legal
-* kos.personal
-
-Namespaces avoid semantic collisions.
-
----
-
-# 11. Ontology Extensions
-
-Plugins may introduce new ontologies.
-
-Requirements:
-
-* namespace isolation;
-* explicit version;
-* documented mappings;
-* compatibility declaration.
-
-Extensions shall never redefine core concepts.
-
----
-
-# 12. Semantic Mapping
-
-Semantic Nodes reference Ontology Concepts.
-
-Example:
-
-```text
-Semantic Node
-
-↓
-
-ConceptID
-
-↓
-
-Ontology Concept
-```
-
-The mapping is stable and deterministic.
-
----
-
-# 13. Evolution
-
-The ontology evolves through:
-
-* new concepts;
-* new hierarchies;
-* new vocabularies;
-* new mappings.
-
-Existing ConceptIDs remain immutable.
-
----
-
-# 14. Relationship to AI
-
-The AI Engine may:
-
-* classify Semantic Nodes;
-* suggest Ontology Concepts;
-* identify missing concepts;
-* propose mappings.
-
-Human validation may be required depending on the workflow.
-
----
-
-# 15. Relationship to the Graph
-
-Graph labels derive from Ontology Concepts.
-
-Ontology Concepts define semantic interpretation.
-
-The Graph remains a projection.
-
----
-
-# 16. Invariants
-
-The following invariants apply.
-
-* ConceptIDs are immutable.
-* Ontology Concepts are technology-independent.
-* Semantic Nodes never redefine Concepts.
-* Namespaces are unique.
-* Backward compatibility shall be preserved.
-
----
-
-# 17. Related Documents
-
-* SemanticNodes.md
-* RelationshipModel.md
-* EmbeddingModel.md
-* GraphModel.md
-* Core/TemporalModel.md
-
----
-
-# 18. Status
-
-**Approved**
-
-This document defines the conceptual ontology of the Universal Document Model.
-
-The ontology provides the official semantic vocabulary that enables consistent interpretation, classification and reasoning across KnowledgeOS while remaining independent of any specific ontology technology.
+This document is part of the KnowledgeOS UDM V4 release-candidate baseline. It becomes frozen after architectural review and validation against the complete Domain package.

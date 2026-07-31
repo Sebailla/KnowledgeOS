@@ -1,287 +1,104 @@
+# UDM Type System
 
-# Type System
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Universal Document Model
-
-**Document:** Type System
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Universal Document Model  
+**Document:** TypeSystem  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Universal Document Model (UDM) Type System.
+Specify type identity, schemas, traits, registration, subtyping, compatibility and extension rules.
 
-The Type System provides the conceptual foundation for every node represented within the UDM.
+## 2. Scope
 
-It establishes:
+Applies to node, relationship, attribute and extension types.
 
-* node categories;
-* inheritance rules;
-* behavioral capabilities;
-* extensibility mechanisms.
+## 3. Normative Language
 
-Every UDM node shall conform to this Type System.
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. A requirement identified by an invariant or rule identifier is testable and applies to every conforming implementation unless the rule explicitly limits its scope.
 
----
 
-# 2. Design Goals
+## 4. Context and Responsibilities
 
-The Type System shall:
+The type system is nominal and registry-based. Structural resemblance alone does not establish subtype compatibility.
 
-* remain technology-independent;
-* support long-term evolution;
-* avoid type duplication;
-* preserve semantic consistency;
-* support extensibility;
-* enable deterministic processing.
+A type definition declares family, version, attributes, children, traits, relationships, invariants and serialization identity.
 
-The Type System is independent of serialization, rendering and storage.
-
----
-
-# 3. Design Philosophy
-
-The UDM classifies nodes according to **their role within the knowledge model**, not according to file formats or rendering requirements.
-
-A node is defined by what it represents in the domain, not by how it appears on screen.
-
----
-
-# 4. Root Type
-
-All UDM elements derive from a single conceptual root.
+## 5. Conceptual Model
 
 ```text
-Node
+TypeDefinition
+├── typeId
+├── version
+├── family
+├── parentTypeIds[]
+├── traits[]
+├── attributeSchema
+├── childSchema
+├── relationshipSchema
+└── invariants[]
 ```
 
-Every node shares a common behavioral contract.
+## 6. Normative Requirements
 
----
+**TYPESYSTEM-R001** — TypeId values MUST be immutable and globally unambiguous.
 
-# 5. Primary Node Categories
+**TYPESYSTEM-R002** — Core namespaces MUST NOT be overridden.
 
-The UDM defines six primary node categories.
+**TYPESYSTEM-R003** — Subtyping MUST be explicitly registered.
 
-```text
-Node
-│
-├── Structural Node
-├── Content Node
-├── Semantic Node
-├── Annotation Node
-├── Asset Node
-└── Virtual Node
-```
+**TYPESYSTEM-R004** — A backward-compatible change MUST preserve meaning of all previously valid instances.
 
-These categories are exhaustive.
+**TYPESYSTEM-R005** — Adding a required field requires a major compatibility change unless a deterministic default exists.
 
-Every node belongs to exactly one primary category.
+**TYPESYSTEM-R006** — Unknown optional types SHOULD be preserved.
 
----
+**TYPESYSTEM-R007** — Type registries MUST be deterministic and versioned.
 
-# 6. Structural Nodes
+## 7. Invariants
 
-Structural Nodes organize knowledge.
+**TYPESYSTEM-I001** — One primary type per node.
 
-Examples include:
+**TYPESYSTEM-I002** — Traits are orthogonal capabilities.
 
-* Document
-* Chapter
-* Section
-* Paragraph
-* Table
-* List
-* Quote
-* Figure
-* Footnote
+**TYPESYSTEM-I003** — Runtime classes are not domain types.
 
-Structural Nodes define hierarchy.
+**TYPESYSTEM-I004** — Compatibility claims are testable.
 
----
+**TYPESYSTEM-I005** — Extension namespaces are unique.
 
-# 7. Content Nodes
+## 8. Failure and Edge Cases
 
-Content Nodes represent the information itself.
+A conforming implementation SHALL fail explicitly when it cannot preserve identity, provenance, semantic meaning or authority boundaries. It SHALL NOT repair uncertain input by silently inventing facts. Recoverable ambiguity MAY be represented through confidence, alternatives, unresolved references or validation findings.
 
-Examples include:
+Failures SHALL be categorized as structural, semantic, compatibility, provenance, security or processing failures. Each failure SHALL identify the affected entity and the violated rule.
 
-* Text
-* Code
-* Formula
-* Equation
-* Citation
-* Reference
-* Symbol
-* Inline Math
+## 9. Examples
 
-Content Nodes carry meaning but do not organize hierarchy.
+`org.example.medical.clinicalFinding` may extend a semantic entity type, but it cannot redefine the meaning of the core `claim` type.
 
----
+## 10. Compatibility and Evolution
 
-# 8. Semantic Nodes
+Changes to this contract SHALL follow semantic versioning at the specification level. Backward-compatible additions MAY introduce optional fields, types or relationships. Changes that alter required semantics, identity rules, authority boundaries or canonical interpretation require a major version.
 
-Semantic Nodes enrich the canonical representation.
+Unknown optional extensions SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-Examples include:
+## 11. Security and Privacy Considerations
 
-* Entity
-* Concept
-* Person
-* Organization
-* Location
-* Taxon
-* Topic
-* Keyword
+Implementations SHALL treat imported data, extension payloads, external identifiers and generated semantic assertions as untrusted until validated. Personal Knowledge and restricted source material MUST respect scoped authority and execution policy. Remote processing MUST NOT occur without applicable authorization.
 
-Semantic Nodes are additive.
+## 12. Related Documents
 
-They never replace canonical content.
+- `NodeTypes.md`
+- `NodeAttributes.md`
+- `../Serialization/Serialization.md`
+- `../Validation/ValidationRules.md`
 
----
+## 13. Status
 
-# 9. Annotation Nodes
-
-Annotation Nodes represent user-generated knowledge.
-
-Examples include:
-
-* Highlight
-* Note
-* Sticky Note
-* Ink
-* Bookmark
-* Comment
-
-Annotation Nodes remain independent from canonical content.
-
----
-
-# 10. Asset Nodes
-
-Asset Nodes reference external binary resources.
-
-Examples include:
-
-* Image
-* Audio
-* Video
-* PDF
-* Dataset
-* Attachment
-
-Asset Nodes never embed binary content.
-
----
-
-# 11. Virtual Nodes
-
-Virtual Nodes are generated views that do not form part of the canonical knowledge.
-
-Examples include:
-
-* Table of Contents
-* Search Result
-* Preview
-* Generated Summary
-* Navigation Tree
-
-Virtual Nodes are ephemeral and reproducible.
-
----
-
-# 12. Type Hierarchy
-
-Each primary category may define specialized node types.
-
-```text
-Node
-    │
-    ├── Primary Category
-            │
-            ├── Specialized Type
-                    │
-                    ├── Domain Variant
-```
-
-Specialization never changes the primary category.
-
----
-
-# 13. Behavioral Capabilities
-
-Every node exposes a common set of capabilities.
-
-Mandatory capabilities include:
-
-* Identity
-* Parent Reference
-* Child Management (when applicable)
-* Attributes
-* Validation
-* Version Awareness
-
-Additional capabilities may be introduced through specialization.
-
----
-
-# 14. Type Invariants
-
-The following invariants apply.
-
-* Every node belongs to exactly one primary category.
-* Every node has one immutable NodeID.
-* Every node has one declared type.
-* Every node supports validation.
-* Every node supports version tracking.
-* Every node preserves semantic consistency.
-
----
-
-# 15. Extensibility
-
-New node types may be introduced without modifying the existing hierarchy.
-
-Extensions shall:
-
-* declare a primary category;
-* define behavioral capabilities;
-* define validation rules;
-* preserve backward compatibility.
-
-Breaking changes require a new UDM version.
-
----
-
-# 16. Relationship to Other Documents
-
-This document defines the conceptual type hierarchy.
-
-Specialized node definitions are provided in:
-
-* NodeTypes.md
-* StructuralNodes.md
-* InlineNodes.md
-* SemanticNodes.md
-* AnnotationNodes.md
-* AssetNodes.md
-
----
-
-# 17. Status
-
-**Approved**
-
-This document defines the official Type System of the Universal Document Model.
-
-Every node within the UDM shall conform to the categories, invariants and extensibility rules established herein.
+This document is part of the KnowledgeOS UDM V4 release-candidate baseline. It becomes frozen after architectural review and validation against the complete Domain package.

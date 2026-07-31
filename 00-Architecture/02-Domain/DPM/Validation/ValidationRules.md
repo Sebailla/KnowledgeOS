@@ -1,282 +1,93 @@
-# Validation Rules
+# DPM Validation Rules
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Document Presentation Model
-
-**Document:** Validation Rules
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Document Presentation Model  
+**Document:** ValidationRules  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Validation Rules of the Document Presentation Model (DPM).
+Specify machine-evaluable validity and publication-readiness rules.
 
-Validation determines whether a reconstructed DPM satisfies the canonical specification.
+## 2. Scope
 
-Validation never modifies the DPM.
+Applies to every canonical or exchange DPM.
 
-Validation only evaluates conformance.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Rules identified by stable identifiers are testable requirements for conforming implementations.
 
-# 2. Scope
 
-Validation governs:
+## 4. Context and Responsibility
 
-* Presentation Nodes;
-* Pages;
-* Regions;
-* Columns;
-* Layout Graph;
-* Reading Flow;
-* Style definitions;
-* Mapping references.
+Validation covers envelope, identities, coordinate spaces, geometry, containment, graph references, reading flows, styles, mappings, provenance and purpose profiles.
 
-Validation applies before a DPM becomes authoritative.
+## 5. Conceptual Model
 
----
+Findings are fatal, invalid, incomplete, warning or advisory. Validators are deterministic and non-mutating.
 
-# 3. Design Goals
+## 6. Normative Requirements
 
-Validation shall:
+**VALIDATIONRULES-R001** — Canonical publication MUST have no fatal, invalid or incomplete findings.
 
-* remain deterministic;
-* remain reproducible;
-* remain technology-independent;
-* guarantee canonical integrity;
-* prevent invalid presentation models.
+**VALIDATIONRULES-R002** — Every finding MUST use a stable rule ID.
 
----
+**VALIDATIONRULES-R003** — Validators MUST NOT mutate the DPM.
 
-# 4. Design Philosophy
+**VALIDATIONRULES-R004** — All geometry MUST reference valid coordinate spaces.
 
-Validation verifies.
+**VALIDATIONRULES-R005** — Every internal identity reference MUST resolve.
 
-It never repairs.
+**VALIDATIONRULES-R006** — Purpose-specific profiles MUST declare required fidelity.
 
-It never infers.
+**VALIDATIONRULES-R007** — Unknown required extensions MUST prevent publication.
 
-It never reconstructs.
+**VALIDATIONRULES-R008** — Warnings MAY remain only when explicitly accepted.
 
-Its responsibility is limited to determining whether a DPM conforms to the specification.
+## 7. Invariants
 
----
+**VALIDATIONRULES-I001** — Validation is deterministic.
 
-# 5. Validation Pipeline
+**VALIDATIONRULES-I002** — Severity meaning is stable.
 
-```text
-Candidate DPM
-      │
-      ▼
-Validation Rules
-      │
-      ▼
-Consistency Rules
-      │
-      ▼
-Authoritative DPM
-```
+**VALIDATIONRULES-I003** — Reports are serializable.
 
-Every authoritative DPM passes both stages.
+**VALIDATIONRULES-I004** — Validation cannot create semantic authority.
 
----
+## 8. Processing and Lifecycle Considerations
 
-# 6. Validation Targets
+Presentation data is an immutable snapshot within a DPM version. Changes create a new version or a new derived view. Runtime caches, UI selection, window state and renderer-specific objects are never canonical DPM state.
 
-Validation applies to:
+Processors SHALL record inputs, configuration, implementation version, confidence where applicable and complete provenance. Reprocessing MAY replace derived presentation artifacts but SHALL preserve stable identities when presentation continuity remains.
 
-* Presentation Nodes;
-* Presentation Types;
-* Presentation Attributes;
-* Layout Graph;
-* Reading Flow;
-* Typography Roles;
-* Decorations;
-* Semantic Color Roles;
-* Themes;
-* Mappings.
+## 9. Failure and Edge Cases
 
-Each target is validated independently.
+A conforming implementation SHALL represent ambiguity explicitly. It MUST NOT invent coordinates, reading order, style semantics or UDM mappings without evidence. Partial reconstruction MAY be published only when validation marks unresolved regions and the consuming capability supports incomplete DPM.
 
----
+Security-sensitive inputs such as external style references, fonts, URLs and extension payloads SHALL be validated before use.
 
-# 7. Structural Validation
+## 10. Examples
 
-Structural validation verifies:
+A missing coordinate space is invalid; a source-faithful page whose measured bounds exceed tolerance may be incomplete or invalid according to profile.
 
-* valid hierarchy;
-* valid containment;
-* valid identities;
-* valid parent-child relationships;
-* required elements.
+## 11. Compatibility and Evolution
 
----
+Backward-compatible changes MAY add optional attributes, types or mapping strategies. Changes that alter spatial semantics, identity, coordinate interpretation, reading-order meaning or UDM/DPM authority boundaries require a major version.
 
-# 8. Layout Validation
+Unknown optional extensions SHOULD be preserved. Unknown required semantics MUST produce an explicit incompatibility result.
 
-Layout validation verifies:
+## 12. Related Documents
 
-* valid Pages;
-* valid Regions;
-* valid Columns;
-* valid spatial relationships;
-* valid Layout Graph references.
+- `../DPM.md`
+- `ValidationRules.md`
+- `../Core/PresentationNodeModel.md`
+- `../Mapping/UDMMapping.md`
 
----
+## 13. Status
 
-# 9. Reading Flow Validation
-
-Reading Flow validation verifies:
-
-* valid entry points;
-* valid exits;
-* deterministic traversal;
-* reachable presentation nodes;
-* absence of invalid cycles.
-
----
-
-# 10. Style Validation
-
-Style validation verifies:
-
-* valid Typography Roles;
-* valid hierarchy levels;
-* valid semantic color roles;
-* valid decoration definitions;
-* compatible Theme mappings.
-
----
-
-# 11. Mapping Validation
-
-Mapping validation verifies:
-
-* existing UDM references;
-* existing Presentation references;
-* valid Asset mappings;
-* valid Anchor mappings;
-* compatible versions.
-
----
-
-# 12. Identity Validation
-
-Validation verifies:
-
-* unique PresentationNodeIDs;
-* unique Page identities;
-* unique Region identities;
-* unique Mapping identities.
-
-Identity conflicts invalidate the DPM.
-
----
-
-# 13. Version Validation
-
-Validation verifies compatibility between:
-
-* DPM Version;
-* UDM Version;
-* Mapping Versions;
-* Theme Version requirements.
-
-Version incompatibilities invalidate the model.
-
----
-
-# 14. Provenance Validation
-
-Validation verifies the existence of required provenance information.
-
-Missing provenance prevents canonical publication.
-
----
-
-# 15. Validation Results
-
-Every validation produces:
-
-* status;
-* diagnostics;
-* failed rules;
-* warnings;
-* execution metadata.
-
-Results are immutable.
-
----
-
-# 16. Failure Policy
-
-Validation failures never modify the candidate DPM.
-
-Possible outcomes include:
-
-* Accepted;
-* Accepted with warnings;
-* Rejected.
-
-Rejected DPMs never become authoritative.
-
----
-
-# 17. Relationship to Processing
-
-Validation follows Layout Analysis and Classification.
-
-Processing produces candidates.
-
-Validation determines authority.
-
----
-
-# 18. Relationship to Consistency Rules
-
-Validation Rules evaluate individual elements.
-
-Consistency Rules evaluate the complete presentation model.
-
-Both stages are mandatory.
-
----
-
-# 19. Invariants
-
-The following invariants apply:
-
-* Validation never modifies the DPM;
-* Validation is deterministic;
-* Validation is reproducible;
-* every authoritative DPM has passed validation;
-* rejected DPMs never become canonical.
-
----
-
-# 20. Related Documents
-
-* ConsistencyRules.md
-* ../Processing/LayoutAnalysis.md
-* ../Processing/Classification.md
-* ../Layout/LayoutGraph.md
-* ../../UDM/Validation/ValidationRules.md
-
----
-
-# 21. Status
-
-**Approved**
-
-This document defines the Validation Rules of the Document Presentation Model.
-
-Validation determines whether a candidate DPM satisfies the canonical specification while remaining deterministic, reproducible and independent of rendering technologies.
+This document is part of the KnowledgeOS DPM V4 release-candidate baseline. It becomes frozen after complete Domain review and conformance validation.

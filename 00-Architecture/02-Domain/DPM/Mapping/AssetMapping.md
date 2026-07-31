@@ -1,290 +1,90 @@
-
 # Asset Mapping
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Document Presentation Model
-
-**Document:** Asset Mapping
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Document Presentation Model  
+**Document:** AssetMapping  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the canonical mapping model between Asset Nodes in the Universal Document Model (UDM) and their visual projections within the Document Presentation Model (DPM).
+Specify correspondence between semantic asset references, source assets and visual placements.
 
-Asset Mapping preserves asset identity while allowing multiple presentation representations.
+## 2. Scope
 
-Assets remain canonical resources owned exclusively by the UDM.
+Applies to DPM/UDM integration, rendering, annotation and export.
 
----
+## 3. Normative Language
 
-# 2. Scope
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Rules identified by stable identifiers are testable requirements for conforming implementations.
 
-Asset Mapping governs:
 
-* asset projection;
-* asset presentation;
-* asset reuse;
-* projection identity;
-* synchronization;
-* presentation consistency.
+## 4. Context and Responsibility
 
-Asset Mapping never owns binary resources.
+UDM owns asset semantic identity and role. DPM owns placement, crop, transform, clipping and visual rendition selection.
 
----
+## 5. Conceptual Model
 
-# 3. Design Goals
+Mappings connect asset reference, source or rendition identity and one or more presentation nodes.
 
-Asset Mapping shall:
+## 6. Normative Requirements
 
-* preserve asset identity;
-* support multiple projections;
-* remain deterministic;
-* remain renderer-independent;
-* preserve provenance;
-* support version evolution.
+**ASSETMAPPING-R001** — Every placement MUST reference a valid asset or explicit unresolved source.
 
----
+**ASSETMAPPING-R002** — Crop and transform MUST be DPM properties.
 
-# 4. Design Philosophy
+**ASSETMAPPING-R003** — Derived renditions MUST preserve generation provenance.
 
-Assets exist once.
+**ASSETMAPPING-R004** — One asset MAY have multiple placements.
 
-Presentation may reference them many times.
+**ASSETMAPPING-R005** — A visual placement MUST NOT redefine semantic asset role.
 
-Presentation never duplicates Assets.
+**ASSETMAPPING-R006** — Missing renditions MUST permit fallback when policy allows.
 
-Every visual representation is a projection.
+## 7. Invariants
 
----
+**ASSETMAPPING-I001** — Asset identity is storage-independent.
 
-# 5. Conceptual Architecture
+**ASSETMAPPING-I002** — Placement identity is presentation-specific.
 
-```text
-Knowledge Object
-        │
-        ├──────────────┐
-        │              │
-        ▼              ▼
-     Asset Node     Presentation Node
-        ▲              ▲
-        └── Asset Mapping ──┘
-```
+**ASSETMAPPING-I003** — Renditions remain derived.
 
-Asset Mapping connects canonical resources with presentation projections.
+**ASSETMAPPING-I004** — Mappings preserve source lineage.
 
----
+## 8. Processing and Lifecycle Considerations
 
-# 6. Mapping Units
+Presentation data is an immutable snapshot within a DPM version. Changes create a new version or a new derived view. Runtime caches, UI selection, window state and renderer-specific objects are never canonical DPM state.
 
-Every Asset Mapping connects:
+Processors SHALL record inputs, configuration, implementation version, confidence where applicable and complete provenance. Reprocessing MAY replace derived presentation artifacts but SHALL preserve stable identities when presentation continuity remains.
 
-* one Asset Node;
-* one or more Presentation Nodes.
+## 9. Failure and Edge Cases
 
-Mappings describe projection only.
+A conforming implementation SHALL represent ambiguity explicitly. It MUST NOT invent coordinates, reading order, style semantics or UDM mappings without evidence. Partial reconstruction MAY be published only when validation marks unresolved regions and the consuming capability supports incomplete DPM.
 
-Ownership remains in the UDM.
+Security-sensitive inputs such as external style references, fonts, URLs and extension payloads SHALL be validated before use.
 
----
+## 10. Examples
 
-# 7. Projection Types
+One figure image appears in the article body and again as a thumbnail; both placements map to the same UDM asset reference.
 
-Typical projections include:
+## 11. Compatibility and Evolution
 
-* Full-size presentation;
-* Thumbnail;
-* Cover image;
-* Inline figure;
-* Floating figure;
-* Sidebar illustration;
-* Search preview;
-* Timeline preview;
-* Gallery item.
+Backward-compatible changes MAY add optional attributes, types or mapping strategies. Changes that alter spatial semantics, identity, coordinate interpretation, reading-order meaning or UDM/DPM authority boundaries require a major version.
 
-Extensions may introduce additional projection types.
+Unknown optional extensions SHOULD be preserved. Unknown required semantics MUST produce an explicit incompatibility result.
 
----
+## 12. Related Documents
 
-# 8. Asset Identity
+- `../DPM.md`
+- `../../UDM/UDM.md`
+- `AnchorMapping.md`
+- `AssetMapping.md`
+- `../Validation/ConsistencyRules.md`
 
-Every Asset Mapping references:
+## 13. Status
 
-* AssetID;
-* PresentationNodeID;
-* MappingID;
-* MappingVersionID.
-
-Asset identity is never modified.
-
----
-
-# 9. Multiple Projections
-
-A single Asset may participate in multiple Presentation Nodes.
-
-Each projection may define:
-
-* presentation role;
-* scale policy;
-* cropping policy;
-* visibility policy;
-* interaction policy.
-
-These policies affect presentation only.
-
----
-
-# 10. Projection Independence
-
-Every projection is independent.
-
-Changing one projection shall never modify:
-
-* the Asset;
-* other projections;
-* canonical metadata.
-
----
-
-# 11. Presentation Policies
-
-Presentation policies may describe:
-
-* preferred placement;
-* preferred size class;
-* visibility conditions;
-* interaction capabilities;
-* adaptive behavior.
-
-Policies remain declarative.
-
----
-
-# 12. Adaptive Rendering
-
-Render Engines may adapt projections by:
-
-* resizing;
-* simplifying;
-* replacing previews;
-* changing visual density.
-
-The referenced Asset remains unchanged.
-
----
-
-# 13. Relationship to Themes
-
-Themes influence how Assets are presented.
-
-Examples include:
-
-* borders;
-* shadows;
-* framing;
-* captions;
-* spacing.
-
-Theme changes never modify Asset Mapping.
-
----
-
-# 14. Relationship to the UDM
-
-Assets remain canonical UDM entities.
-
-Asset Mapping never modifies:
-
-* binary content;
-* metadata;
-* provenance;
-* ownership.
-
----
-
-# 15. Relationship to the DPM
-
-Presentation Nodes reference Assets through Asset Mapping.
-
-Presentation Nodes never own binary resources.
-
----
-
-# 16. Version Compatibility
-
-Asset Mapping is version-aware.
-
-Mappings reference:
-
-* Asset Version;
-* UDM Version;
-* DPM Version.
-
-Only compatible versions may be associated.
-
----
-
-# 17. Provenance
-
-Every Asset Mapping records:
-
-* creation process;
-* synchronization history;
-* projection history;
-* mapping revisions.
-
-Mapping provenance is immutable.
-
----
-
-# 18. Validation
-
-A valid Asset Mapping shall satisfy:
-
-* existing Asset reference;
-* existing Presentation Node reference;
-* compatible versions;
-* deterministic projection;
-* complete referential integrity.
-
----
-
-# 19. Invariants
-
-The following invariants apply:
-
-* every Asset belongs to the UDM;
-* every projection references an existing Asset;
-* Asset Mapping owns no binary resources;
-* projections are deterministic;
-* multiple projections never duplicate Assets.
-
----
-
-# 20. Related Documents
-
-* UDMMapping.md
-* AnchorMapping.md
-* ../../UDM/Nodes/AssetNodes.md
-* ../../KnowledgeObject/Assets.md
-* ../Layout/LayoutGraph.md
-
----
-
-# 21. Status
-
-**Approved**
-
-This document defines the canonical mapping model between Asset Nodes and Presentation Nodes.
-
-Asset Mapping preserves asset identity while enabling multiple deterministic visual projections across renderers, themes and presentation experiences.
+This document is part of the KnowledgeOS DPM V4 release-candidate baseline. It becomes frozen after complete Domain review and conformance validation.

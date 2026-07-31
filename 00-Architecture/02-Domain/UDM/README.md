@@ -1,321 +1,102 @@
-# Universal Document Model
+# UDM Package Guide
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Universal Document Model
-
-**Document:** README
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Universal Document Model  
+**Document:** README  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This section defines the Universal Document Model (UDM), the canonical representation of structured knowledge within KnowledgeOS.
+Define the package boundaries, reading order, ownership and maintenance rules for the complete UDM specification.
 
-The UDM provides a technology-independent model capable of representing information originating from any supported Knowledge Source.
+## 2. Scope
 
-Every imported Knowledge Object contains exactly one UDM.
+Applies to all documents and subdirectories under `02-Domain/UDM`.
 
----
+## 3. Normative Language
 
-# 2. Scope
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. A requirement identified by an invariant or rule identifier is testable and applies to every conforming implementation unless the rule explicitly limits its scope.
 
-The UDM defines:
 
-* the canonical structure of knowledge;
-* the node system;
-* structural semantics;
-* inline semantics;
-* annotations;
-* assets;
-* anchors;
-* serialization;
-* validation;
-* graph relationships;
-* processing rules.
+## 4. Context and Responsibilities
 
-It does not define:
+This package owns the canonical semantic representation of documentary knowledge. It depends only on Foundation and Domain contracts. Kernel and Platform components implement or consume these contracts but SHALL NOT redefine them.
 
-* rendering;
-* storage technologies;
-* synchronization;
-* search indexes;
-* AI models.
+The rector document is `UDM.md`. All other files refine one bounded topic. When wording appears to conflict, the most specific normative rule applies unless it contradicts a rector invariant.
 
-Those concerns belong to other architectural sections.
-
----
-
-# 3. Objectives
-
-The Universal Document Model has six primary objectives.
-
-## Canonical Representation
-
-Represent every Knowledge Object through a single logical model.
-
----
-
-## Structural Preservation
-
-Preserve the logical organization of imported knowledge independently of its source format.
-
----
-
-## Semantic Preservation
-
-Maintain the meaning of the original knowledge.
-
----
-
-## Rendering Independence
-
-Support multiple visual representations from the same canonical model.
-
----
-
-## Long-Term Preservation
-
-Remain stable across decades while allowing controlled evolution.
-
----
-
-## Extensibility
-
-Support future node types and semantic capabilities without breaking compatibility.
-
----
-
-# 4. Architectural Position
-
-The UDM is a component of the Knowledge Object.
+## 5. Conceptual Model
 
 ```text
-Knowledge Library
-        │
-        ▼
-Knowledge Object
-        │
-        ▼
-Universal Document Model
+UDM/
+├── UDM.md
+├── Core/
+├── Nodes/
+├── Graph/
+├── Processing/
+├── Serialization/
+└── Validation/
 ```
 
-The UDM is not a standalone document.
+Recommended reading order is `UDM.md`, Core, Nodes, Graph, Processing, Serialization and Validation. Changes follow dependency order and require cross-document validation.
 
-It exists only within a Knowledge Object.
+## 6. Normative Requirements
 
----
+**README-R001** — The package SHALL remain independent of storage engines, UI frameworks, network transports and AI providers.
 
-# 5. Conceptual Architecture
+**README-R002** — Each semantic concept SHALL have one authoritative definition.
 
-The UDM is organized into the following conceptual layers.
+**README-R003** — Subordinate specifications SHALL reference rather than duplicate rector definitions.
 
-```text
-Universal Document Model
-│
-├── Type System
-├── Node Model
-├── Structural Model
-├── Semantic Model
-├── Annotation Model
-├── Asset Model
-├── Relationship Model
-├── Graph Model
-├── Serialization
-├── Validation
-└── Processing
-```
+**README-R004** — Every normative rule SHALL be testable or clearly bounded.
 
-Each layer defines one aspect of the canonical representation.
+**README-R005** — File and directory names SHALL remain stable within the V4 major version.
 
----
+**README-R006** — A change affecting another package SHALL identify the impacted contract.
 
-# 6. Documents
+## 7. Invariants
 
-The UDM specification is divided into specialized documents.
+**README-I001** — UDM semantics are presentation-independent.
 
-## UDM.md
+**README-I002** — Personal Knowledge remains a separate authority layer.
 
-Defines the conceptual architecture of the UDM.
+**README-I003** — Source provenance is preserved.
 
----
+**README-I004** — Derived artifacts remain rebuildable.
 
-## NodeTypes.md
+**README-I005** — The package has no dependency on Platform implementations.
 
-Defines every node supported by the model.
+## 8. Failure and Edge Cases
 
----
+A conforming implementation SHALL fail explicitly when it cannot preserve identity, provenance, semantic meaning or authority boundaries. It SHALL NOT repair uncertain input by silently inventing facts. Recoverable ambiguity MAY be represented through confidence, alternatives, unresolved references or validation findings.
 
-## TypeSystem.md
+Failures SHALL be categorized as structural, semantic, compatibility, provenance, security or processing failures. Each failure SHALL identify the affected entity and the violated rule.
 
-Defines the type hierarchy.
+## 9. Examples
 
----
+A renderer may consume UDM and DPM, but its Swift classes are not referenced by this package. A PostgreSQL schema may persist UDM, but table names do not appear in the domain contract.
 
-## StructuralNodes.md
+## 10. Compatibility and Evolution
 
-Defines structural elements.
+Changes to this contract SHALL follow semantic versioning at the specification level. Backward-compatible additions MAY introduce optional fields, types or relationships. Changes that alter required semantics, identity rules, authority boundaries or canonical interpretation require a major version.
 
----
+Unknown optional extensions SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-## InlineNodes.md
+## 11. Security and Privacy Considerations
 
-Defines inline content.
+Implementations SHALL treat imported data, extension payloads, external identifiers and generated semantic assertions as untrusted until validated. Personal Knowledge and restricted source material MUST respect scoped authority and execution policy. Remote processing MUST NOT occur without applicable authorization.
 
----
+## 12. Related Documents
 
-## SemanticNodes.md
+- `UDM.md`
+- `../DomainModel.md`
+- `../KnowledgeObject/README.md`
+- `../DPM/README.md`
 
-Defines semantic enrichment.
+## 13. Status
 
----
-
-## AnnotationNodes.md
-
-Defines annotation representation.
-
----
-
-## AssetNodes.md
-
-Defines binary resource references.
-
----
-
-## Anchors.md
-
-Defines stable logical positions.
-
----
-
-## RelationshipModel.md
-
-Defines node-level relationships.
-
----
-
-## GraphModel.md
-
-Defines graph construction.
-
----
-
-## Serialization.md
-
-Defines persistence rules.
-
----
-
-## ValidationRules.md
-
-Defines structural validation.
-
----
-
-## ConsistencyRules.md
-
-Defines domain consistency.
-
----
-
-## ProcessingPipeline.md
-
-Defines UDM evolution during import.
-
----
-
-## Ontology.md
-
-Defines semantic vocabulary.
-
----
-
-## EmbeddingModel.md
-
-Defines semantic embedding integration.
-
----
-
-# 7. Relationship to Other Sections
-
-The UDM depends on:
-
-* Domain Model
-* Knowledge Object
-* Metadata
-* Provenance
-
-The following architectural components depend on the UDM:
-
-* Render Engine
-* Search Engine
-* Knowledge Engine
-* AI Engine
-* Export Engine
-
-The UDM never depends on implementation technologies.
-
----
-
-# 8. Architectural Authority
-
-The UDM is the canonical representation of structured knowledge.
-
-No Engine may introduce an alternative internal representation.
-
-Every rendering, export, indexing process or semantic analysis shall originate from the UDM.
-
----
-
-# 9. Reading Order
-
-The recommended reading sequence is:
-
-1. UDM.md
-2. NodeTypes.md
-3. TypeSystem.md
-4. StructuralNodes.md
-5. InlineNodes.md
-6. SemanticNodes.md
-7. AnnotationNodes.md
-8. AssetNodes.md
-9. Anchors.md
-10. RelationshipModel.md
-11. GraphModel.md
-12. Serialization.md
-13. ValidationRules.md
-14. ConsistencyRules.md
-15. ProcessingPipeline.md
-16. Ontology.md
-17. EmbeddingModel.md
-
-Each document refines the concepts introduced previously.
-
----
-
-# 10. Related Documents
-
-* ../KnowledgeObject/KnowledgeObject.md
-* ../KnowledgeObject/Metadata.md
-* ../KnowledgeObject/Assets.md
-* ../KnowledgeObject/Relationships.md
-* ../KnowledgeLifecycle.md
-* ../../01-Foundation/ArchitectureModel.md
-
----
-
-# 11. Status
-
-**Approved**
-
-This section defines the Universal Document Model, the canonical representation of structured knowledge within KnowledgeOS.
-
-Every Platform Engine shall interpret and preserve the UDM according to the specifications contained in this section.
+This document is part of the KnowledgeOS UDM V4 release-candidate baseline. It becomes frozen after architectural review and validation against the complete Domain package.

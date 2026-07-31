@@ -1,366 +1,110 @@
 # UDM Processing Pipeline
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Universal Document Model
-
-**Document:** Processing Pipeline
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Universal Document Model  
+**Document:** ProcessingPipeline  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the canonical processing lifecycle of the Universal Document Model (UDM).
+Specify the controlled transformation from immutable source items to validated canonical UDM.
 
-The Processing Pipeline describes how knowledge evolves from acquisition to a fully validated and authoritative Knowledge Object.
+## 2. Scope
 
-It defines domain stages only.
+Covers stages, contracts, idempotency, checkpoints, recovery, review and publication.
 
-Implementation details belong to the Platform Layer.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. A requirement identified by an invariant or rule identifier is testable and applies to every conforming implementation unless the rule explicitly limits its scope.
 
-# 2. Scope
 
-The Processing Pipeline governs:
+## 4. Context and Responsibilities
 
-* knowledge acquisition;
-* normalization;
-* canonical model construction;
-* validation;
-* semantic enrichment;
-* projection generation;
-* publication.
+The pipeline is implemented by Platform engines but governed by Domain contracts. Every stage receives immutable inputs and produces immutable outputs with provenance.
 
-It applies regardless of the original source format.
+Stages are intake, source validation, format detection, extraction, structural analysis, semantic classification, asset resolution, anchor construction, assembly, normalization, validation, canonical publication and derived projection.
 
----
-
-# 3. Design Goals
-
-The Processing Pipeline shall:
-
-* be deterministic;
-* be restartable;
-* preserve canonical knowledge;
-* preserve provenance;
-* remain technology-independent;
-* support incremental processing;
-* support future pipeline extensions.
-
----
-
-# 4. Processing Principles
-
-The pipeline follows these principles:
-
-* canonical knowledge is produced only once;
-* every stage has explicit inputs and outputs;
-* stages are independently testable;
-* failures are traceable;
-* derived data is reproducible;
-* canonical knowledge is immutable after publication until a new Version is created.
-
----
-
-# 5. Canonical Pipeline
+## 5. Conceptual Model
 
 ```text
-Acquire
-      │
-      ▼
-Normalize
-      │
-      ▼
-Construct UDM
-      │
-      ▼
-Validate
-      │
-      ▼
-Semantic Enrichment
-      │
-      ▼
-Generate Projections
-      │
-      ▼
-Publish
+StageExecution
+├── stageId
+├── processorId
+├── processorVersion
+├── inputRefs[]
+├── configurationFingerprint
+├── outputRefs[]
+├── findings[]
+├── startedAt
+├── completedAt
+└── status
 ```
 
-Every Knowledge Object follows this lifecycle.
+## 6. Normative Requirements
 
----
+**PROCESSINGPIPELINE-R001** — The original source MUST NOT be modified.
 
-# 6. Stage 1 — Acquire
+**PROCESSINGPIPELINE-R002** — Every transformation MUST be traceable.
 
-The acquisition stage receives knowledge from external sources.
+**PROCESSINGPIPELINE-R003** — A stage repeated with identical inputs and version MUST produce equivalent output.
 
-Typical inputs include:
+**PROCESSINGPIPELINE-R004** — Canonical publication MUST require successful validation.
 
-* PDF;
-* EPUB;
-* DOCX;
-* Markdown;
-* HTML;
-* CHM;
-* Images;
-* Web pages;
-* User-created documents.
+**PROCESSINGPIPELINE-R005** — Failed stages MUST NOT publish partial canonical state.
 
-No canonical UDM exists at this stage.
+**PROCESSINGPIPELINE-R006** — Checkpoints MUST be compatible with processor versions.
 
----
+**PROCESSINGPIPELINE-R007** — Human corrections MUST record decision provenance.
 
-# 7. Stage 2 — Normalize
+**PROCESSINGPIPELINE-R008** — Remote processing MUST comply with privacy and execution policy.
 
-Normalization converts acquired content into a technology-independent intermediate representation.
+**PROCESSINGPIPELINE-R009** — Reprocessing SHOULD preserve identities where semantic continuity exists.
 
-Typical activities include:
+## 7. Invariants
 
-* character normalization;
-* encoding normalization;
-* OCR integration;
-* structural detection;
-* asset extraction;
-* metadata extraction.
+**PROCESSINGPIPELINE-I001** — Pipeline inputs and outputs are immutable.
 
-Normalization preserves the original meaning.
+**PROCESSINGPIPELINE-I002** — Publication is atomic.
 
----
+**PROCESSINGPIPELINE-I003** — Derived projection occurs after canonical publication.
 
-# 8. Stage 3 — Construct UDM
+**PROCESSINGPIPELINE-I004** — Personal Knowledge is not folded into source processing.
 
-The canonical UDM is created.
+**PROCESSINGPIPELINE-I005** — Recovery does not duplicate side effects.
 
-This stage produces:
+## 8. Failure and Edge Cases
 
-* Structural Nodes;
-* Content Nodes;
-* Asset Nodes;
-* Anchors;
-* Identity;
-* Temporal information;
-* Version metadata.
+A conforming implementation SHALL fail explicitly when it cannot preserve identity, provenance, semantic meaning or authority boundaries. It SHALL NOT repair uncertain input by silently inventing facts. Recoverable ambiguity MAY be represented through confidence, alternatives, unresolved references or validation findings.
 
-The UDM becomes the canonical representation.
+Failures SHALL be categorized as structural, semantic, compatibility, provenance, security or processing failures. Each failure SHALL identify the affected entity and the violated rule.
 
----
+## 9. Examples
 
-# 9. Stage 4 — Validate
+OCR produces text spans with confidence and source-region anchors. Structural analysis may classify them into paragraphs and headings. A low-confidence heading creates a review finding without discarding extracted text.
 
-Validation verifies:
+## 10. Compatibility and Evolution
 
-* structural integrity;
-* identity;
-* references;
-* consistency;
-* canonical invariants.
+Changes to this contract SHALL follow semantic versioning at the specification level. Backward-compatible additions MAY introduce optional fields, types or relationships. Changes that alter required semantics, identity rules, authority boundaries or canonical interpretation require a major version.
 
-Only validated UDM instances may continue.
+Unknown optional extensions SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
----
+## 11. Security and Privacy Considerations
 
-# 10. Stage 5 — Semantic Enrichment
+Implementations SHALL treat imported data, extension payloads, external identifiers and generated semantic assertions as untrusted until validated. Personal Knowledge and restricted source material MUST respect scoped authority and execution policy. Remote processing MUST NOT occur without applicable authorization.
 
-Semantic enrichment augments the UDM without modifying canonical content.
+## 12. Related Documents
 
-Typical outputs include:
+- `../UDM.md`
+- `../Validation/ValidationRules.md`
+- `../Serialization/Serialization.md`
+- `../../KnowledgeLifecycle.md`
+- `../../../03-Kernel/WorkflowEngine.md`
 
-* Semantic Nodes;
-* Relationships;
-* Ontology mappings;
-* inferred knowledge;
-* provenance records.
+## 13. Status
 
-All enrichment remains traceable.
-
----
-
-# 11. Stage 6 — Generate Projections
-
-Derived projections are generated from the authoritative UDM.
-
-Examples include:
-
-* Graph Projection;
-* Embedding Projection;
-* Search Projection;
-* Timeline Projection;
-* Statistics Projection.
-
-Projections are reproducible.
-
----
-
-# 12. Stage 7 — Publish
-
-Publication registers the processed Knowledge Object within the Knowledge Library.
-
-Publication makes the object available for:
-
-* reading;
-* annotation;
-* search;
-* synchronization;
-* export;
-* graph exploration.
-
-Publication establishes the authoritative state.
-
----
-
-# 13. Incremental Processing
-
-After publication, modifications are processed incrementally.
-
-Typical changes include:
-
-* annotations;
-* semantic enrichment;
-* ontology updates;
-* asset additions;
-* version creation.
-
-Only affected stages are re-executed.
-
----
-
-# 14. Restartability
-
-Every stage shall be restartable.
-
-Restarting a stage shall never invalidate completed canonical stages.
-
-Partial failures remain recoverable.
-
----
-
-# 15. Failure Handling
-
-Failures are classified as:
-
-* recoverable;
-* non-recoverable;
-* validation failures;
-* external dependency failures.
-
-Canonical knowledge shall never become partially authoritative.
-
----
-
-# 16. Provenance
-
-Every processing stage records provenance.
-
-Typical information includes:
-
-* processing stage;
-* execution time;
-* responsible component;
-* input version;
-* output version.
-
-Processing history remains immutable.
-
----
-
-# 17. Versioning
-
-Canonical modifications produce new Versions.
-
-Derived projections may be regenerated without creating new canonical Versions.
-
-Version creation applies only to authoritative knowledge.
-
----
-
-# 18. Relationship to DPM
-
-When a Document Presentation Model (DPM) exists, both models are produced during processing.
-
-The canonical sequence becomes:
-
-```text
-Acquire
-      │
-      ▼
-Normalize
-      │
-      ▼
-Construct UDM
-      │
-      ├── Construct DPM
-      │
-      ▼
-Validate
-      ▼
-Semantic Enrichment
-      ▼
-Generate Projections
-      ▼
-Publish
-```
-
-UDM and DPM remain independent canonical models of the same Knowledge Object.
-
----
-
-# 19. Relationship to Platform Engines
-
-The Processing Pipeline defines domain stages.
-
-Platform Engines execute those stages.
-
-Typical participants include:
-
-* Import Engine;
-* Knowledge Engine;
-* AI Engine;
-* Projection Engine;
-* Library Engine;
-* Synchronization Engine.
-
-Execution responsibilities are defined outside the Domain Layer.
-
----
-
-# 20. Pipeline Invariants
-
-The following invariants apply:
-
-* every published Knowledge Object owns a validated UDM;
-* provenance is complete;
-* canonical knowledge is preserved;
-* derived projections remain reproducible;
-* every stage is deterministic;
-* processing never bypasses validation.
-
----
-
-# 21. Related Documents
-
-* Validation/ValidationRules.md
-* Validation/ConsistencyRules.md
-* ../Core/Identity.md
-* ../Core/TemporalModel.md
-* ../Graph/GraphModel.md
-* ../../KnowledgeObject/Versioning.md
-* ../../KnowledgeObject/Provenance.md
-
----
-
-# 22. Status
-
-**Approved**
-
-This document defines the canonical processing lifecycle of the Universal Document Model.
-
-Every authoritative Knowledge Object shall be produced according to this processing pipeline, ensuring deterministic behavior, traceability, provenance and long-term consistency.
+This document is part of the KnowledgeOS UDM V4 release-candidate baseline. It becomes frozen after architectural review and validation against the complete Domain package.

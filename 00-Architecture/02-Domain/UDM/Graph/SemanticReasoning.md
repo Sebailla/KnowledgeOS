@@ -1,242 +1,87 @@
-# Semantic Reasoning
+# UDM Semantic Reasoning
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Universal Document Model
-
-**Document:** Semantic Reasoning
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Universal Document Model  
+**Document:** SemanticReasoning  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the semantic reasoning model of the Universal Document Model (UDM).
+Specify deterministic rules, ontology inference, statistical inference and AI suggestions.
 
-Semantic Reasoning derives new knowledge from canonical knowledge, Semantic Nodes, Relationships and the Ontology.
+## 2. Scope
 
-Reasoning enriches the knowledge representation without modifying canonical content.
+Applies to semantic graph projection and graph-consuming capabilities.
 
----
+## 3. Normative Language
 
-# 2. Scope
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. A requirement identified by an invariant or rule identifier is testable and applies to every conforming implementation unless the rule explicitly limits its scope.
 
-Semantic Reasoning defines:
 
-* inference principles;
-* reasoning rules;
-* derived knowledge;
-* semantic consistency;
-* traceability.
+## 4. Context and Responsibilities
 
-It does not define AI models or machine learning algorithms.
+Reasoning outputs remain derived until accepted through an explicit domain action. Conflicting conclusions may coexist with evidence and confidence.
 
----
+## 5. Conceptual Model
 
-# 3. Design Goals
+Every conclusion records inputs, rule or model version, parameters, confidence and execution provenance.
 
-The Semantic Reasoning model shall:
+## 6. Normative Requirements
 
-* remain deterministic when rule-based;
-* preserve provenance;
-* support explainability;
-* support extensibility;
-* remain technology-independent;
-* distinguish inferred knowledge from canonical knowledge.
+**SEMANTICREASONING-R001** — Reasoning MUST preserve source and derived layers.
 
----
+**SEMANTICREASONING-R002** — Unsupported conclusions MUST be invalid.
 
-# 4. Design Philosophy
+**SEMANTICREASONING-R003** — Rule-based inference MUST be deterministic for fixed inputs and versions.
 
-Canonical knowledge is authored or imported.
+**SEMANTICREASONING-R004** — AI output MUST NOT become authoritative automatically.
 
-Semantic knowledge is extracted.
+**SEMANTICREASONING-R005** — Materialization MUST NOT rewrite source-backed nodes.
 
-Reasoned knowledge is inferred.
+**SEMANTICREASONING-R006** — User confirmation SHOULD create Personal Knowledge unless an authoring workflow states otherwise.
 
-The three concepts remain independent.
+## 7. Invariants
 
----
+**SEMANTICREASONING-I001** — Evidence is traceable.
 
-# 5. Conceptual Architecture
+**SEMANTICREASONING-I002** — Inference is reversible.
 
-```text
-Canonical Knowledge
-        │
-        ▼
-Semantic Nodes
-        │
-        ▼
-Ontology
-        │
-        ▼
-Reasoning Rules
-        │
-        ▼
-Derived Knowledge
-```
+**SEMANTICREASONING-I003** — Confidence does not change authority.
 
-Derived knowledge is never considered canonical.
+**SEMANTICREASONING-I004** — Reprocessing may invalidate derived results only.
 
----
+## 8. Failure and Edge Cases
 
-# 6. Reasoning Sources
+A conforming implementation SHALL fail explicitly when it cannot preserve identity, provenance, semantic meaning or authority boundaries. It SHALL NOT repair uncertain input by silently inventing facts. Recoverable ambiguity MAY be represented through confidence, alternatives, unresolved references or validation findings.
 
-Reasoning may use:
+Failures SHALL be categorized as structural, semantic, compatibility, provenance, security or processing failures. Each failure SHALL identify the affected entity and the violated rule.
 
-* Semantic Nodes;
-* Relationships;
-* Ontology Concepts;
-* Temporal information;
-* Provenance;
-* User annotations (when explicitly enabled).
+## 9. Examples
 
-Every reasoning process declares its inputs.
+A model suggests that two concepts are equivalent; the edge remains derived until the user confirms it.
 
----
+## 10. Compatibility and Evolution
 
-# 7. Reasoning Categories
+Changes to this contract SHALL follow semantic versioning at the specification level. Backward-compatible additions MAY introduce optional fields, types or relationships. Changes that alter required semantics, identity rules, authority boundaries or canonical interpretation require a major version.
 
-Supported categories include:
+Unknown optional extensions SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-* classification;
-* deduction;
-* transitive inference;
-* consistency checking;
-* contradiction detection;
-* dependency analysis;
-* temporal reasoning;
-* rule-based enrichment.
+## 11. Security and Privacy Considerations
 
-Additional categories may be introduced through extensions.
+Implementations SHALL treat imported data, extension payloads, external identifiers and generated semantic assertions as untrusted until validated. Personal Knowledge and restricted source material MUST respect scoped authority and execution policy. Remote processing MUST NOT occur without applicable authorization.
 
----
+## 12. Related Documents
 
-# 8. Derived Knowledge
+- `GraphModel.md`
+- `RelationshipModel.md`
+- `Ontology.md`
+- `../Core/Identity.md`
 
-Reasoning may produce:
+## 13. Status
 
-* inferred relationships;
-* inferred concepts;
-* inferred classifications;
-* inferred observations;
-* inferred semantic links.
-
-Derived knowledge always references its origin.
-
----
-
-# 9. Explainability
-
-Every inferred result shall be explainable.
-
-The platform shall preserve:
-
-* inference rule;
-* source elements;
-* reasoning timestamp;
-* confidence;
-* provenance.
-
-Users must be able to inspect why a conclusion was produced.
-
----
-
-# 10. Provenance
-
-Reasoning events generate provenance records.
-
-Every inferred element records:
-
-* reasoning process;
-* rule identifier;
-* engine version;
-* execution timestamp.
-
-Provenance is append-only.
-
----
-
-# 11. Confidence
-
-Derived knowledge may include confidence values.
-
-Confidence indicates the certainty of the inference.
-
-It never replaces evidence.
-
----
-
-# 12. Rule Evolution
-
-Reasoning rules evolve independently.
-
-Updating a rule may invalidate previously derived knowledge.
-
-The Projection Engine shall rebuild affected graph projections.
-
----
-
-# 13. Relationship to AI
-
-AI may propose:
-
-* new Semantic Nodes;
-* new Relationships;
-* new classifications;
-* new hypotheses.
-
-Semantic Reasoning evaluates and integrates those proposals according to configured rules.
-
-AI does not bypass the reasoning model.
-
----
-
-# 14. Relationship to the Graph
-
-Reasoning enriches graph projections.
-
-The graph remains a derived representation.
-
-Reasoning never modifies the UDM directly.
-
----
-
-# 15. Invariants
-
-The following invariants apply.
-
-* Canonical knowledge is immutable.
-* Derived knowledge is distinguishable.
-* Every inference is traceable.
-* Every inference is reproducible.
-* Every inference preserves provenance.
-* Every inference is explainable.
-
----
-
-# 16. Related Documents
-
-* Ontology.md
-* RelationshipModel.md
-* GraphModel.md
-* EmbeddingModel.md
-* ../Nodes/SemanticNodes.md
-* ../Core/TemporalModel.md
-
----
-
-# 17. Status
-
-**Approved**
-
-This document defines the semantic reasoning model of the Universal Document Model.
-
-Semantic Reasoning derives explainable knowledge from canonical knowledge while preserving provenance, determinism and long-term semantic consistency.
+This document is part of the KnowledgeOS UDM V4 release-candidate baseline. It becomes frozen after architectural review and validation against the complete Domain package.

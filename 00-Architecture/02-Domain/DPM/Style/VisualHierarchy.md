@@ -1,322 +1,90 @@
+# Visual Hierarchy Model
 
-# Visual Hierarchy
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Document Presentation Model
-
-**Document:** Visual Hierarchy
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Document Presentation Model  
+**Document:** VisualHierarchy  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Visual Hierarchy model of the Document Presentation Model (DPM).
+Specify measurable prominence, grouping and visual-level relationships.
 
-Visual Hierarchy represents the intended perceptual importance of presentation elements.
+## 2. Scope
 
-It preserves editorial intent independently of rendering technologies and visual implementations.
+Applies to source-faithful and generated DPM style representation.
 
----
+## 3. Normative Language
 
-# 2. Scope
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Rules identified by stable identifiers are testable requirements for conforming implementations.
 
-Visual Hierarchy defines:
 
-* perceptual importance;
-* attention priority;
-* emphasis;
-* grouping;
-* visual rhythm;
-* focus transitions.
+## 4. Context and Responsibility
 
-Canonical meaning remains exclusively represented by the UDM.
+Visual hierarchy describes relative prominence using typography, size, position, whitespace, color, contrast and repetition.
 
----
+## 5. Conceptual Model
 
-# 3. Design Goals
+Hierarchy evidence may support classification but remains presentation data. Levels and groups record method, confidence and provenance.
 
-Visual Hierarchy shall:
+## 6. Normative Requirements
 
-* preserve editorial intent;
-* remain renderer-independent;
-* support adaptive layouts;
-* support accessibility;
-* remain deterministic;
-* remain independent from typography implementation.
+**VISUALHIERARCHY-R001** — Hierarchy inference MUST use explicit evidence.
 
----
+**VISUALHIERARCHY-R002** — Visual rank MUST NOT automatically become UDM heading level.
 
-# 4. Design Philosophy
+**VISUALHIERARCHY-R003** — Conflicting evidence MUST remain representable.
 
-Visual Hierarchy expresses what the reader should notice first.
+**VISUALHIERARCHY-R004** — Hierarchy groups MUST reference valid nodes.
 
-It is independent from:
+**VISUALHIERARCHY-R005** — Generated views MAY define their own hierarchy profile.
 
-* font family;
-* font size;
-* colors;
-* screen resolution;
-* rendering engine.
+**VISUALHIERARCHY-R006** — Accessibility transformations SHOULD preserve equivalent distinction.
 
-Those are implementation mechanisms.
+## 7. Invariants
 
-Hierarchy represents intention.
+**VISUALHIERARCHY-I001** — Inference is traceable.
 
----
+**VISUALHIERARCHY-I002** — Presentation rank and semantic rank remain separate.
 
-# 5. Conceptual Model
+**VISUALHIERARCHY-I003** — Hierarchy is versioned with the DPM.
 
-```text
-Presentation Element
-        │
-        ▼
-Hierarchy Level
-        │
-        ▼
-Rendering Policy
-```
+**VISUALHIERARCHY-I004** — Evidence is preserved.
 
-Hierarchy Levels guide visual perception.
+## 8. Processing and Lifecycle Considerations
 
----
+Presentation data is an immutable snapshot within a DPM version. Changes create a new version or a new derived view. Runtime caches, UI selection, window state and renderer-specific objects are never canonical DPM state.
 
-# 6. Hierarchy Levels
+Processors SHALL record inputs, configuration, implementation version, confidence where applicable and complete provenance. Reprocessing MAY replace derived presentation artifacts but SHALL preserve stable identities when presentation continuity remains.
 
-The DPM defines the following hierarchy levels.
+## 9. Failure and Edge Cases
 
-* Primary
-* Secondary
-* Tertiary
-* Supporting
-* Background
+A conforming implementation SHALL represent ambiguity explicitly. It MUST NOT invent coordinates, reading order, style semantics or UDM mappings without evidence. Partial reconstruction MAY be published only when validation marks unresolved regions and the consuming capability supports incomplete DPM.
 
-These levels describe relative perceptual importance.
+Security-sensitive inputs such as external style references, fonts, URLs and extension payloads SHALL be validated before use.
 
-They do not prescribe implementation.
+## 10. Examples
 
----
+A large centered line may rank visually above body text while remaining semantically unclassified until UDM processing confirms it as a heading.
 
-# 7. Hierarchy Factors
+## 11. Compatibility and Evolution
 
-Visual Hierarchy may emerge from one or more presentation factors.
+Backward-compatible changes MAY add optional attributes, types or mapping strategies. Changes that alter spatial semantics, identity, coordinate interpretation, reading-order meaning or UDM/DPM authority boundaries require a major version.
 
-Examples include:
+Unknown optional extensions SHOULD be preserved. Unknown required semantics MUST produce an explicit incompatibility result.
 
-* typography;
-* spacing;
-* position;
-* scale;
-* contrast;
-* color;
-* decoration;
-* white space.
+## 12. Related Documents
 
-No individual factor is authoritative.
+- `../DPM.md`
+- `../Core/PresentationAttributes.md`
+- `Themes.md`
+- `VisualHierarchy.md`
+- `../Validation/ValidationRules.md`
 
-Hierarchy results from their combination.
+## 13. Status
 
----
-
-# 8. Grouping
-
-Presentation elements may belong to the same perceptual group.
-
-Grouping communicates that multiple elements should be interpreted together.
-
-Examples include:
-
-* figure + caption;
-* equation + explanation;
-* table + notes;
-* sidebar + title.
-
-Grouping does not imply structural ownership.
-
----
-
-# 9. Emphasis
-
-Presentation Elements may declare emphasis intent.
-
-Typical emphasis levels include:
-
-* Normal;
-* Strong;
-* Subtle;
-* Highlighted;
-* Muted.
-
-Emphasis influences perception without changing canonical meaning.
-
----
-
-# 10. Focus
-
-The DPM may identify intended focal points.
-
-Examples include:
-
-* cover illustration;
-* chapter opening;
-* key diagram;
-* highlighted quotation;
-* summary panel.
-
-Focus represents editorial intention.
-
----
-
-# 11. Visual Rhythm
-
-Visual Rhythm defines how attention progresses across a page.
-
-Examples include:
-
-* regular rhythm;
-* alternating rhythm;
-* magazine rhythm;
-* academic rhythm;
-* continuous rhythm.
-
-Rhythm complements Reading Flow.
-
----
-
-# 12. White Space
-
-White Space is considered an intentional presentation element.
-
-It contributes to:
-
-* hierarchy;
-* readability;
-* grouping;
-* visual balance.
-
-White Space shall not be interpreted as unused space.
-
----
-
-# 13. Adaptive Rendering
-
-Render Engines may adapt:
-
-* spacing;
-* scale;
-* typography;
-* color.
-
-The perceived hierarchy shall remain equivalent.
-
----
-
-# 14. Accessibility
-
-Accessibility adaptations shall preserve hierarchy.
-
-Examples include:
-
-* larger text;
-* higher contrast;
-* dyslexia-friendly typography;
-* simplified themes.
-
-Perceptual priority shall remain stable.
-
----
-
-# 15. Relationship to Typography
-
-Typography contributes to hierarchy.
-
-Hierarchy is not determined exclusively by typography.
-
-Multiple presentation factors participate equally.
-
----
-
-# 16. Relationship to Color
-
-Color may reinforce hierarchy.
-
-Hierarchy shall never depend solely on color.
-
-Equivalent hierarchy shall remain understandable in monochrome rendering.
-
----
-
-# 17. Relationship to Reading Flow
-
-Visual prominence does not define reading order.
-
-Reading Flow remains authoritative for traversal.
-
-Visual Hierarchy guides attention.
-
-Reading Flow guides navigation.
-
----
-
-# 18. Relationship to the UDM
-
-Visual Hierarchy references Presentation Nodes mapped to canonical UDM elements.
-
-It never alters:
-
-* meaning;
-* semantics;
-* provenance;
-* annotations.
-
----
-
-# 19. Validation
-
-A valid Visual Hierarchy shall satisfy:
-
-* deterministic hierarchy levels;
-* compatible Presentation Types;
-* valid grouping definitions;
-* consistent emphasis declarations.
-
----
-
-# 20. Invariants
-
-The following invariants apply:
-
-* Visual Hierarchy represents perception only;
-* hierarchy is renderer-independent;
-* hierarchy is deterministic;
-* hierarchy never modifies canonical knowledge;
-* perceptual priority is preserved across rendering technologies.
-
----
-
-# 21. Related Documents
-
-* Typography.md
-* Decorations.md
-* ColorModel.md
-* Themes.md
-* ../Layout/ReadingFlow.md
-* ../Core/PresentationAttributes.md
-
----
-
-# 22. Status
-
-**Approved**
-
-This document defines the Visual Hierarchy model of the Document Presentation Model.
-
-Visual Hierarchy preserves editorial and perceptual intent independently of typography, colors or rendering technologies, ensuring that readers experience the document as originally intended across all supported platforms.
+This document is part of the KnowledgeOS DPM V4 release-candidate baseline. It becomes frozen after complete Domain review and conformance validation.

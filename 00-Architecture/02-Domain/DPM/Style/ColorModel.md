@@ -1,291 +1,90 @@
-
 # Color Model
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Document Presentation Model
-
-**Document:** Color Model
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Document Presentation Model  
+**Document:** ColorModel  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Color Model of the Document Presentation Model (DPM).
+Specify color values, spaces, profiles, opacity and semantic-independent usage.
 
-The Color Model represents semantic color intent rather than concrete color values.
+## 2. Scope
 
-It enables consistent presentation across themes, devices and rendering technologies while preserving editorial identity.
+Applies to source-faithful and generated DPM style representation.
 
----
+## 3. Normative Language
 
-# 2. Scope
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Rules identified by stable identifiers are testable requirements for conforming implementations.
 
-The Color Model defines:
 
-* semantic color roles;
-* color hierarchy;
-* emphasis;
-* contrast intent;
-* accessibility intent;
-* color adaptation.
+## 4. Context and Responsibility
 
-It does not define concrete color values.
+Colors may be expressed in declared spaces such as sRGB, Display-P3, Gray, CMYK or profile-referenced source spaces.
 
----
+## 5. Conceptual Model
 
-# 3. Design Goals
+A color value contains space, components, alpha, profile reference and optional source representation.
 
-The Color Model shall:
+## 6. Normative Requirements
 
-* preserve presentation intent;
-* remain renderer-independent;
-* remain device-independent;
-* support adaptive themes;
-* support accessibility;
-* remain deterministic.
+**COLORMODEL-R001** — Every color MUST identify a color space.
 
----
+**COLORMODEL-R002** — Component ranges MUST be validated.
 
-# 4. Design Philosophy
+**COLORMODEL-R003** — ICC or external profiles MUST be referenced as assets.
 
-The DPM expresses **why** a color is used.
+**COLORMODEL-R004** — Conversions MUST record profile and method when fidelity matters.
 
-Themes determine **which** color is rendered.
+**COLORMODEL-R005** — Opacity MUST remain distinct from color components.
 
-Concrete color values belong to Themes.
+**COLORMODEL-R006** — Color alone MUST NOT establish UDM meaning.
 
-Semantic color roles belong to the DPM.
+## 7. Invariants
 
----
+**COLORMODEL-I001** — Color interpretation is explicit.
 
-# 5. Conceptual Model
+**COLORMODEL-I002** — Conversions are traceable.
 
-```text
-Presentation Element
-        │
-        ▼
-Semantic Color Role
-        │
-        ▼
-Theme Mapping
-        │
-        ▼
-Rendered Color
-```
+**COLORMODEL-I003** — Unknown profiles remain unresolved rather than guessed.
 
-The DPM never stores rendered colors.
+**COLORMODEL-I004** — Theme tokens remain distinct from resolved colors.
 
----
+## 8. Processing and Lifecycle Considerations
 
-# 6. Semantic Color Roles
+Presentation data is an immutable snapshot within a DPM version. Changes create a new version or a new derived view. Runtime caches, UI selection, window state and renderer-specific objects are never canonical DPM state.
 
-The DPM defines the following core semantic roles.
+Processors SHALL record inputs, configuration, implementation version, confidence where applicable and complete provenance. Reprocessing MAY replace derived presentation artifacts but SHALL preserve stable identities when presentation continuity remains.
 
-### Text
+## 9. Failure and Edge Cases
 
-* Primary Text
-* Secondary Text
-* Tertiary Text
-* Disabled Text
-* Inverse Text
+A conforming implementation SHALL represent ambiguity explicitly. It MUST NOT invent coordinates, reading order, style semantics or UDM mappings without evidence. Partial reconstruction MAY be published only when validation marks unresolved regions and the consuming capability supports incomplete DPM.
 
-### Background
+Security-sensitive inputs such as external style references, fonts, URLs and extension payloads SHALL be validated before use.
 
-* Primary Background
-* Secondary Background
-* Surface
-* Elevated Surface
+## 10. Examples
 
-### Accent
+A CMYK source color retains original components while a generated screen view stores a derived sRGB conversion.
 
-* Primary Accent
-* Secondary Accent
-* Highlight
-* Chapter Accent
-* Quote Accent
-* Reference Accent
+## 11. Compatibility and Evolution
 
-### Feedback
+Backward-compatible changes MAY add optional attributes, types or mapping strategies. Changes that alter spatial semantics, identity, coordinate interpretation, reading-order meaning or UDM/DPM authority boundaries require a major version.
 
-* Success
-* Warning
-* Error
-* Information
+Unknown optional extensions SHOULD be preserved. Unknown required semantics MUST produce an explicit incompatibility result.
 
-### Structural
+## 12. Related Documents
 
-* Border
-* Divider
-* Separator
-* Decoration
+- `../DPM.md`
+- `../Core/PresentationAttributes.md`
+- `Themes.md`
+- `VisualHierarchy.md`
+- `../Validation/ValidationRules.md`
 
-Extensions may introduce additional semantic roles.
+## 13. Status
 
----
-
-# 7. Color Intent
-
-Every semantic role expresses presentation intent.
-
-Examples include:
-
-* emphasis;
-* separation;
-* orientation;
-* navigation;
-* grouping;
-* decoration.
-
-Intent is independent of chromatic implementation.
-
----
-
-# 8. Contrast Intent
-
-The DPM specifies required contrast behavior.
-
-Typical contrast levels include:
-
-* Maximum
-* High
-* Medium
-* Low
-* Decorative
-
-Themes are responsible for satisfying the required contrast.
-
----
-
-# 9. Accessibility
-
-The Color Model supports:
-
-* high-contrast rendering;
-* monochrome rendering;
-* color-blind adaptations;
-* low-vision themes;
-* grayscale rendering.
-
-Semantic intent remains unchanged.
-
----
-
-# 10. Theme Independence
-
-The same semantic role may be rendered differently in:
-
-* Light Theme;
-* Dark Theme;
-* Sepia Theme;
-* E-Ink Theme;
-* High Contrast Theme;
-* Print Theme.
-
-The DPM remains identical.
-
----
-
-# 11. Color Independence
-
-The DPM shall not contain:
-
-* RGB values;
-* HEX values;
-* CMYK values;
-* HSL values;
-* OKLCH values;
-* platform-specific color objects.
-
-Those belong exclusively to Theme implementations.
-
----
-
-# 12. Relationship to Typography
-
-Typography and Color cooperate to communicate emphasis.
-
-Neither determines hierarchy independently.
-
----
-
-# 13. Relationship to Visual Hierarchy
-
-Color reinforces Visual Hierarchy.
-
-Hierarchy shall remain understandable even when rendered in monochrome.
-
----
-
-# 14. Relationship to Decorations
-
-Decorations may reference semantic color roles.
-
-Decoration appearance is resolved through Themes.
-
----
-
-# 15. Relationship to Themes
-
-Themes map semantic roles to concrete color definitions.
-
-Theme implementations may use:
-
-* OKLCH;
-* RGB;
-* Display P3;
-* CMYK;
-* future color spaces.
-
-The Color Model remains independent of the underlying color space.
-
----
-
-# 16. Validation
-
-A valid Color Model shall satisfy:
-
-* registered semantic role;
-* valid contrast intent;
-* compatible Presentation Type;
-* deterministic mapping.
-
----
-
-# 17. Invariants
-
-The following invariants apply:
-
-* the DPM stores semantic color intent only;
-* concrete colors belong to Themes;
-* color roles are deterministic;
-* accessibility adaptations preserve semantic intent;
-* hierarchy shall never depend solely on color.
-
----
-
-# 18. Related Documents
-
-* Typography.md
-* VisualHierarchy.md
-* Decorations.md
-* Themes.md
-* ../Core/PresentationAttributes.md
-
----
-
-# 19. Status
-
-**Approved**
-
-This document defines the Color Model of the Document Presentation Model.
-
-The DPM represents semantic color intent rather than concrete color values, ensuring long-term portability, accessibility and consistent presentation across themes, rendering technologies and future platforms.
+This document is part of the KnowledgeOS DPM V4 release-candidate baseline. It becomes frozen after complete Domain review and conformance validation.

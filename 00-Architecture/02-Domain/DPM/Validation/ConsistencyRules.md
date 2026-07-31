@@ -1,259 +1,95 @@
+# DPM Cross-Entity Consistency Rules
 
-# Consistency Rules
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Document Presentation Model
-
-**Document:** Consistency Rules
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Document Presentation Model  
+**Document:** ConsistencyRules  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Consistency Rules of the Document Presentation Model (DPM).
+Specify invariants requiring evaluation across multiple presentation entities.
 
-Consistency Rules verify that the complete presentation model behaves as a coherent canonical system.
+## 2. Scope
 
-Consistency validation complements Validation Rules.
+Applies to every canonical or exchange DPM.
 
----
+## 3. Normative Language
 
-# 2. Scope
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Rules identified by stable identifiers are testable requirements for conforming implementations.
 
-Consistency verification governs:
 
-* presentation hierarchy;
-* Layout Graph integrity;
-* Reading Flow integrity;
-* Style coherence;
-* Mapping integrity;
-* version compatibility;
-* presentation completeness.
+## 4. Context and Responsibility
 
-Consistency applies to the complete DPM.
+Consistency checks compare parent/child declarations, coordinate transforms, pages and regions, reading flows, graph edges, style references, UDM mappings and version lineage.
 
----
+## 5. Conceptual Model
 
-# 3. Design Goals
+Groups include structural, geometric, graph, flow, style, mapping, provenance and version consistency.
 
-Consistency Rules shall:
+## 6. Normative Requirements
 
-* remain deterministic;
-* remain reproducible;
-* verify global integrity;
-* detect systemic inconsistencies;
-* remain technology-independent.
+**CONSISTENCYRULES-R001** — Containment MUST be acyclic and reciprocal.
 
----
+**CONSISTENCYRULES-R002** — Transforms between referenced spaces MUST be resolvable.
 
-# 4. Design Philosophy
+**CONSISTENCYRULES-R003** — Page and region extents MUST be geometrically coherent.
 
-Validation verifies individual elements.
+**CONSISTENCYRULES-R004** — Reading-flow members MUST resolve and obey cycle policy.
 
-Consistency verifies the complete presentation model.
+**CONSISTENCYRULES-R005** — Layout-graph endpoint types MUST satisfy edge schemas.
 
-Only a consistent DPM may become authoritative.
+**CONSISTENCYRULES-R006** — Style references MUST resolve.
 
----
+**CONSISTENCYRULES-R007** — UDM mappings MUST target compatible document versions.
 
-# 5. Consistency Pipeline
+**CONSISTENCYRULES-R008** — Version lineage MUST be acyclic.
 
-```text
-Validated Components
-         │
-         ▼
-Consistency Rules
-         │
-         ▼
-Authoritative DPM
-```
+**CONSISTENCYRULES-R009** — Personal or editorial authority MUST NOT be represented as source-extracted authority.
 
-Consistency evaluation is the final verification stage before publication.
+## 7. Invariants
 
----
+**CONSISTENCYRULES-I001** — Cross-entity checks are mandatory.
 
-# 6. Hierarchy Consistency
+**CONSISTENCYRULES-I002** — Exceptions require explicit versioned rules.
 
-Hierarchy verification ensures:
+**CONSISTENCYRULES-I003** — Derived data cannot repair missing source evidence silently.
 
-* every Page belongs to one DPM;
-* every Region belongs to one Page;
-* every Column belongs to one Region;
-* every Presentation Node has a valid owner;
-* containment cycles are impossible.
+**CONSISTENCYRULES-I004** — Internal reference kinds remain correct.
 
----
+## 8. Processing and Lifecycle Considerations
 
-# 7. Layout Graph Consistency
+Presentation data is an immutable snapshot within a DPM version. Changes create a new version or a new derived view. Runtime caches, UI selection, window state and renderer-specific objects are never canonical DPM state.
 
-Layout verification ensures:
+Processors SHALL record inputs, configuration, implementation version, confidence where applicable and complete provenance. Reprocessing MAY replace derived presentation artifacts but SHALL preserve stable identities when presentation continuity remains.
 
-* all referenced Presentation Nodes exist;
-* every relationship is valid;
-* incompatible spatial relationships are rejected;
-* graph integrity is preserved.
+## 9. Failure and Edge Cases
 
----
+A conforming implementation SHALL represent ambiguity explicitly. It MUST NOT invent coordinates, reading order, style semantics or UDM mappings without evidence. Partial reconstruction MAY be published only when validation marks unresolved regions and the consuming capability supports incomplete DPM.
 
-# 8. Reading Flow Consistency
+Security-sensitive inputs such as external style references, fonts, URLs and extension payloads SHALL be validated before use.
 
-Reading Flow verification ensures:
+## 10. Examples
 
-* valid entry points;
-* valid exit points;
-* no unreachable reading units;
-* no invalid traversal cycles;
-* deterministic reading order.
+A text frame mapped to a UDM paragraph from another document version fails mapping consistency unless the mapping explicitly declares a migration.
 
----
+## 11. Compatibility and Evolution
 
-# 9. Style Consistency
+Backward-compatible changes MAY add optional attributes, types or mapping strategies. Changes that alter spatial semantics, identity, coordinate interpretation, reading-order meaning or UDM/DPM authority boundaries require a major version.
 
-Style verification ensures:
+Unknown optional extensions SHOULD be preserved. Unknown required semantics MUST produce an explicit incompatibility result.
 
-* Typography Roles exist;
-* Visual Hierarchy is coherent;
-* semantic color roles are valid;
-* Decorations reference existing Presentation Nodes;
-* Theme mappings are complete.
+## 12. Related Documents
 
----
+- `../DPM.md`
+- `ValidationRules.md`
+- `../Core/PresentationNodeModel.md`
+- `../Mapping/UDMMapping.md`
 
-# 10. Mapping Consistency
+## 13. Status
 
-Mapping verification ensures:
-
-* every Mapping references existing entities;
-* UDM references are valid;
-* Asset references are valid;
-* Anchor references are valid;
-* bidirectional resolution remains possible.
-
----
-
-# 11. Version Consistency
-
-Consistency verifies compatibility among:
-
-* DPM Version;
-* UDM Version;
-* Mapping Versions;
-* Theme compatibility requirements.
-
-Version incompatibilities invalidate the DPM.
-
----
-
-# 12. Presentation Completeness
-
-Consistency verifies that required presentation structures exist.
-
-Examples include:
-
-* at least one Page;
-* at least one Reading Flow;
-* valid Layout Graph;
-* valid presentation hierarchy.
-
-Incomplete presentation models are rejected.
-
----
-
-# 13. Provenance Consistency
-
-Consistency verifies:
-
-* provenance completeness;
-* reconstruction history;
-* synchronization history;
-* mapping history.
-
-Incomplete provenance invalidates canonical publication.
-
----
-
-# 14. Cross-Model Consistency
-
-Consistency verifies correspondence between:
-
-* UDM;
-* DPM;
-* Mapping layer.
-
-Canonical knowledge and presentation shall remain synchronized.
-
----
-
-# 15. Execution Model
-
-Consistency Rules may execute:
-
-* as a complete validation suite;
-* by subsystem;
-* incrementally after changes.
-
-Execution strategy does not change validation semantics.
-
----
-
-# 16. Failure Policy
-
-Consistency failures produce:
-
-* diagnostics;
-* failed consistency rules;
-* execution metadata;
-* affected components.
-
-The DPM remains non-authoritative until consistency is restored.
-
----
-
-# 17. Relationship to Validation Rules
-
-Validation Rules verify individual components.
-
-Consistency Rules verify the relationships between components.
-
-Both stages are mandatory.
-
----
-
-# 18. Invariants
-
-The following invariants apply:
-
-* every authoritative DPM is globally consistent;
-* consistency evaluation never modifies the DPM;
-* consistency evaluation is deterministic;
-* no invalid references remain unresolved;
-* all required presentation structures exist.
-
----
-
-# 19. Related Documents
-
-* ValidationRules.md
-* ../Layout/LayoutGraph.md
-* ../Layout/ReadingFlow.md
-* ../Mapping/UDMMapping.md
-* ../../UDM/Validation/ConsistencyRules.md
-
----
-
-# 20. Status
-
-**Approved**
-
-This document defines the Consistency Rules of the Document Presentation Model.
-
-Consistency Rules verify that the complete DPM behaves as a coherent, deterministic and authoritative presentation model before publication.
+This document is part of the KnowledgeOS DPM V4 release-candidate baseline. It becomes frozen after complete Domain review and conformance validation.

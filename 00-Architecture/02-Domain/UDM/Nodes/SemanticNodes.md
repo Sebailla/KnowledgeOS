@@ -1,316 +1,87 @@
-# Semantic Nodes
+# UDM Semantic Nodes
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Universal Document Model
-
-**Document:** Semantic Nodes
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Universal Document Model  
+**Document:** SemanticNodes  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Semantic Nodes of the Universal Document Model (UDM).
+Specify nodes representing concepts, entities, claims and evidence.
 
-Semantic Nodes enrich canonical knowledge by representing meaning, interpretation and conceptual relationships.
+## 2. Scope
 
-They never replace or modify canonical content.
+Applies to canonical UDM instances, processors, validators and serializers.
 
----
+## 3. Normative Language
 
-# 2. Design Goals
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. A requirement identified by an invariant or rule identifier is testable and applies to every conforming implementation unless the rule explicitly limits its scope.
 
-Semantic Nodes shall:
 
-* represent meaning;
-* remain independent from rendering;
-* remain independent from canonical content;
-* support graph construction;
-* support AI enrichment;
-* support semantic search;
-* preserve provenance.
+## 4. Context and Responsibilities
 
----
+Semantic nodes may represent person, organization, place, event, concept, topic, claim, evidence, work, date and quantity.
 
-# 3. Design Philosophy
+## 5. Conceptual Model
 
-Semantic Nodes describe knowledge.
+Semantic nodes connect documentary mentions to resolved or unresolved concepts. Mentions, entities and assertions remain distinguishable.
 
-They do not contain the knowledge itself.
+## 6. Normative Requirements
 
-Canonical knowledge always remains represented by Content Nodes.
+**SEMANTICNODES-R001** — Entity resolution MUST record method, confidence and provenance.
 
-Semantic Nodes are additive.
+**SEMANTICNODES-R002** — Machine-inferred entities MUST remain derived until accepted.
 
----
+**SEMANTICNODES-R003** — Conflicting interpretations MAY coexist.
 
-# 4. Semantic Layer
+**SEMANTICNODES-R004** — Semantic nodes MUST NOT overwrite source text.
 
-The semantic layer exists independently of the structural hierarchy.
+**SEMANTICNODES-R005** — Claims SHOULD reference evidence anchors.
 
-```text
-Structural Tree
-        │
-        ▼
-Content Nodes
-        │
-        ▼
-Semantic Layer
-        │
-        ▼
-Knowledge Graph
-```
+**SEMANTICNODES-R006** — External entity mappings MUST identify namespace and resolution status.
 
-Semantic Nodes connect meaning without altering structure.
+## 7. Invariants
 
----
+**SEMANTICNODES-I001** — Inference is not fact.
 
-# 5. Semantic Categories
+**SEMANTICNODES-I002** — Evidence remains traceable.
 
-Semantic Nodes are grouped into conceptual categories.
+**SEMANTICNODES-I003** — Authority layers remain explicit.
 
-```text
-Semantic Node
-│
-├── Entity
-├── Concept
-├── Event
-├── Topic
-├── Definition
-├── Observation
-├── Claim
-├── Hypothesis
-├── Classification
-└── Custom
-```
+**SEMANTICNODES-I004** — Entity identity is stable within its declared scope.
 
-Each category represents a distinct semantic role.
+## 8. Failure and Edge Cases
 
----
+A conforming implementation SHALL fail explicitly when it cannot preserve identity, provenance, semantic meaning or authority boundaries. It SHALL NOT repair uncertain input by silently inventing facts. Recoverable ambiguity MAY be represented through confidence, alternatives, unresolved references or validation findings.
 
-# 6. Entity
+Failures SHALL be categorized as structural, semantic, compatibility, provenance, security or processing failures. Each failure SHALL identify the affected entity and the violated rule.
 
-Represents identifiable real-world objects.
+## 9. Examples
 
-Examples:
+A mention “Apple” may remain unresolved, map to the company with confidence, or coexist with another interpretation when context is ambiguous.
 
-* Person
-* Organization
-* Location
-* Species
-* Chemical Compound
-* Medical Term
-* Product
+## 10. Compatibility and Evolution
 
-Entities may be linked across multiple Knowledge Objects.
+Changes to this contract SHALL follow semantic versioning at the specification level. Backward-compatible additions MAY introduce optional fields, types or relationships. Changes that alter required semantics, identity rules, authority boundaries or canonical interpretation require a major version.
 
----
+Unknown optional extensions SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-# 7. Concept
+## 11. Security and Privacy Considerations
 
-Represents abstract ideas.
+Implementations SHALL treat imported data, extension payloads, external identifiers and generated semantic assertions as untrusted until validated. Personal Knowledge and restricted source material MUST respect scoped authority and execution policy. Remote processing MUST NOT occur without applicable authorization.
 
-Examples:
+## 12. Related Documents
 
-* Evolution
-* Entropy
-* Democracy
-* Recursion
-* Gravity
+- `../Core/NodeModel.md`
+- `../Core/NodeTypes.md`
+- `../Core/Identity.md`
+- `../Validation/ValidationRules.md`
 
-Concepts are independent of language and wording.
+## 13. Status
 
----
-
-# 8. Event
-
-Represents something that occurred in time.
-
-Examples:
-
-* discovery;
-* publication;
-* experiment;
-* conference;
-* battle;
-* observation.
-
-Events may reference the Temporal Model.
-
----
-
-# 9. Topic
-
-Represents thematic organization.
-
-Examples:
-
-* Biology
-* Physics
-* Software Engineering
-* Aquarism
-* Machine Learning
-
-Topics support navigation and semantic search.
-
----
-
-# 10. Definition
-
-Represents a formal explanation of a concept or entity.
-
-Definitions may reference:
-
-* Concepts;
-* Entities;
-* Standards;
-* External sources.
-
-Multiple definitions may coexist.
-
----
-
-# 11. Observation
-
-Represents factual observations extracted or entered by users.
-
-Examples:
-
-* experimental result;
-* field observation;
-* laboratory measurement;
-* reading note.
-
-Observations preserve provenance and temporal context.
-
----
-
-# 12. Claim
-
-Represents an explicit assertion.
-
-Claims may include:
-
-* confidence;
-* supporting evidence;
-* contradicting evidence;
-* source references.
-
-Claims are independent from truth evaluation.
-
----
-
-# 13. Hypothesis
-
-Represents a proposition that has not yet been confirmed.
-
-Hypotheses may evolve over time.
-
-KnowledgeOS preserves them without assuming validity.
-
----
-
-# 14. Classification
-
-Represents taxonomic or organizational categorization.
-
-Examples:
-
-* biological taxonomy;
-* legal classification;
-* scientific discipline;
-* document category.
-
-Classifications support semantic organization.
-
----
-
-# 15. Semantic Identity
-
-Every Semantic Node owns:
-
-* SemanticNodeID;
-* NodeID reference;
-* VersionID;
-* Provenance reference.
-
-Semantic identity is independent of the structural node.
-
----
-
-# 16. Semantic Relationships
-
-Semantic Nodes may relate to:
-
-* Content Nodes;
-* Structural Nodes;
-* other Semantic Nodes;
-* Knowledge Objects.
-
-Relationships remain external to the structural tree.
-
----
-
-# 17. Semantic Invariants
-
-The following invariants apply.
-
-* Semantic Nodes never replace canonical content.
-* Semantic Nodes are additive.
-* Semantic Nodes preserve provenance.
-* Semantic Nodes preserve identity.
-* Semantic Nodes remain independently versioned.
-* Semantic Nodes support graph construction.
-
----
-
-# 18. Relationship to AI
-
-The AI Engine may:
-
-* propose Semantic Nodes;
-* enrich existing Semantic Nodes;
-* assign confidence values.
-
-AI-generated semantics require provenance.
-
-The canonical UDM remains unchanged.
-
----
-
-# 19. Relationship to the Knowledge Graph
-
-The Knowledge Graph is derived from Semantic Nodes and their relationships.
-
-The graph is a projection.
-
-Semantic Nodes remain authoritative.
-
----
-
-# 20. Related Documents
-
-* ContentNodes.md
-* StructuralNodes.md
-* Graph/RelationshipModel.md
-* Graph/Ontology.md
-* Core/TemporalModel.md
-* Core/Identity.md
-
----
-
-# 21. Status
-
-**Approved**
-
-This document defines the Semantic Nodes of the Universal Document Model.
-
-Semantic Nodes represent the meaning of knowledge independently of its structure, presentation and storage, forming the semantic foundation from which the Knowledge Graph is derived.
+This document is part of the KnowledgeOS UDM V4 release-candidate baseline. It becomes frozen after architectural review and validation against the complete Domain package.

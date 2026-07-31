@@ -1,279 +1,90 @@
+# Column Model
 
-# Columns
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Document Presentation Model
-
-**Document:** Columns
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Document Presentation Model  
+**Document:** Columns  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Column model of the Document Presentation Model (DPM).
+Specify column detection, ordering, spanning and responsive behavior.
 
-Columns organize reading flow inside presentation Regions.
+## 2. Scope
 
-Columns describe presentation intent only.
+Applies to DPM layout analysis, reconstruction, rendering and validation.
 
-They never represent canonical knowledge.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Rules identified by stable identifiers are testable requirements for conforming implementations.
 
-# 2. Scope
 
-Columns define:
+## 4. Context and Responsibility
 
-* multi-column layouts;
-* content distribution;
-* reading progression;
-* column sequencing;
-* visual organization within Regions.
+Columns organize parallel vertical or horizontal flows within regions. They may be source-detected or generated.
 
-Canonical document structure remains defined by the UDM.
+## 5. Conceptual Model
 
----
+A column set declares axis, gaps, widths, ordering, spans and balancing policy.
 
-# 3. Design Goals
+## 6. Normative Requirements
 
-Columns shall:
+**COLUMNS-R001** — Column ordering MUST be explicit.
 
-* preserve presentation intent;
-* remain renderer-independent;
-* support adaptive layouts;
-* support faithful reconstruction;
-* support deterministic reading order.
+**COLUMNS-R002** — Gaps and widths MUST use declared units.
 
----
+**COLUMNS-R003** — Spanning nodes MUST identify the columns they cross.
 
-# 4. Design Philosophy
+**COLUMNS-R004** — Irregular columns MUST preserve measured geometry.
 
-A Column represents a logical reading container.
+**COLUMNS-R005** — Column inference MUST record confidence and evidence.
 
-It is not a fixed rectangle.
+**COLUMNS-R006** — Responsive generated columns MUST declare constraints rather than source fidelity.
 
-It is not a screen coordinate.
+## 7. Invariants
 
-Its purpose is to organize the presentation flow inside a Region.
+**COLUMNS-I001** — Column flow is deterministic.
 
----
+**COLUMNS-I002** — Column identity is stable when continuity remains.
 
-# 5. Conceptual Model
+**COLUMNS-I003** — Visual columns do not imply semantic sections.
 
-```text
-Page
-    │
-    ▼
-Region
-    │
-    ▼
-Columns
-    │
-    ▼
-Presentation Elements
-```
+**COLUMNS-I004** — Spans cannot reference absent columns.
 
-Columns organize content within a Region.
+## 8. Processing and Lifecycle Considerations
 
----
+Presentation data is an immutable snapshot within a DPM version. Changes create a new version or a new derived view. Runtime caches, UI selection, window state and renderer-specific objects are never canonical DPM state.
 
-# 6. Column Identity
+Processors SHALL record inputs, configuration, implementation version, confidence where applicable and complete provenance. Reprocessing MAY replace derived presentation artifacts but SHALL preserve stable identities when presentation continuity remains.
 
-Every Column owns:
+## 9. Failure and Edge Cases
 
-* PresentationNodeID;
-* ColumnType;
-* VersionID.
+A conforming implementation SHALL represent ambiguity explicitly. It MUST NOT invent coordinates, reading order, style semantics or UDM mappings without evidence. Partial reconstruction MAY be published only when validation marks unresolved regions and the consuming capability supports incomplete DPM.
 
-Identity is immutable.
+Security-sensitive inputs such as external style references, fonts, URLs and extension payloads SHALL be validated before use.
 
----
+## 10. Examples
 
-# 7. Column Categories
+A headline spans two columns while body text flows first down the left column and then the right.
 
-Typical Column Types include:
+## 11. Compatibility and Evolution
 
-* Single Column;
-* Left Column;
-* Right Column;
-* Center Column;
-* Auxiliary Column;
-* Sidebar Column;
-* Variable Width Column.
+Backward-compatible changes MAY add optional attributes, types or mapping strategies. Changes that alter spatial semantics, identity, coordinate interpretation, reading-order meaning or UDM/DPM authority boundaries require a major version.
 
-Extensions may define additional column types.
+Unknown optional extensions SHOULD be preserved. Unknown required semantics MUST produce an explicit incompatibility result.
 
----
+## 12. Related Documents
 
-# 8. Column Composition
+- `../DPM.md`
+- `../Core/PresentationNodeModel.md`
+- `LayoutGraph.md`
+- `ReadingFlow.md`
+- `../Validation/ConsistencyRules.md`
 
-A Column may contain:
+## 13. Status
 
-* Presentation Elements;
-* nested layout containers;
-* floating presentation elements.
-
-Columns never contain canonical UDM Nodes directly.
-
----
-
-# 9. Reading Order
-
-Columns contribute to reading progression.
-
-Typical examples include:
-
-* left-to-right;
-* right-to-left;
-* top-to-bottom;
-* bidirectional layouts.
-
-The definitive reading sequence is defined by the Reading Flow model.
-
----
-
-# 10. Adaptive Layout
-
-Render Engines may:
-
-* merge columns;
-* split columns;
-* resize columns;
-* reorder visual placement.
-
-These adaptations shall preserve presentation intent.
-
-The canonical DPM remains unchanged.
-
----
-
-# 11. Column Constraints
-
-Columns may declare presentation constraints.
-
-Examples include:
-
-* preferred width;
-* minimum width;
-* maximum width;
-* proportional width;
-* balancing policy;
-* continuation policy.
-
-Constraints express presentation intent rather than rendering instructions.
-
----
-
-# 12. Multi-Column Documents
-
-The DPM supports layouts including:
-
-* books;
-* scientific papers;
-* magazines;
-* newspapers;
-* technical manuals.
-
-The same DPM may be rendered using different column strategies without changing canonical presentation.
-
----
-
-# 13. Relationship to Regions
-
-Every Column belongs to exactly one Region.
-
-Regions determine logical ownership.
-
-Columns determine internal content distribution.
-
----
-
-# 14. Relationship to Reading Flow
-
-Reading Flow traverses Columns explicitly.
-
-Visual position alone does not determine reading sequence.
-
----
-
-# 15. Relationship to the Layout Graph
-
-Columns participate in the Layout Graph.
-
-Typical spatial relationships include:
-
-* LEFT_OF;
-* RIGHT_OF;
-* ADJACENT_TO;
-* ALIGNS_WITH;
-* CONTINUES_IN.
-
-The Layout Graph remains authoritative for spatial relationships.
-
----
-
-# 16. Relationship to the UDM
-
-Columns reference Presentation Nodes mapped to canonical UDM elements.
-
-Columns never modify:
-
-* canonical structure;
-* semantic meaning;
-* annotations;
-* provenance.
-
----
-
-# 17. Validation
-
-A valid Column shall satisfy:
-
-* valid parent Region;
-* unique identity;
-* deterministic ordering;
-* valid participation in Reading Flow;
-* valid participation in the Layout Graph.
-
----
-
-# 18. Invariants
-
-The following invariants apply:
-
-* every Column belongs to one Region;
-* Columns organize presentation only;
-* Columns never contain canonical knowledge;
-* identity is immutable;
-* ordering is deterministic;
-* Columns remain renderer-independent.
-
----
-
-# 19. Related Documents
-
-* Pages.md
-* Regions.md
-* ReadingFlow.md
-* SpatialRelationships.md
-* LayoutGraph.md
-* ../Core/PresentationNodeModel.md
-
----
-
-# 20. Status
-
-**Approved**
-
-This document defines the Column model of the Document Presentation Model.
-
-Columns organize reading flow inside Regions while preserving presentation intent independently of rendering technologies.
+This document is part of the KnowledgeOS DPM V4 release-candidate baseline. It becomes frozen after complete Domain review and conformance validation.

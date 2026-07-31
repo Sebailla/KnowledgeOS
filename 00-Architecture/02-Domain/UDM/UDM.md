@@ -1,443 +1,362 @@
-# Universal Document Model
+# Universal Document Model Specification
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Universal Document Model
-
-**Document:** UDM
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Universal Document Model  
+**Document:** UDM  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Universal Document Model (UDM), the canonical representation of structured knowledge within KnowledgeOS.
+The Universal Document Model (UDM) defines the canonical, semantic and source-traceable representation of documentary knowledge inside KnowledgeOS. It is the stable domain contract between acquisition, processing, search, rendering, graph, annotation, synchronization, export and AI capabilities.
 
-The UDM is the core domain model used to represent every Knowledge Object independently of:
+The UDM is not a file format, database schema, object-relational model or UI component hierarchy. It specifies meaning, identity, structure, relationships, provenance, time and authority independently of implementation technology.
 
-* source format;
-* rendering technology;
-* storage mechanism;
-* synchronization strategy;
-* search engine;
-* artificial intelligence provider.
+## 2. Normative Language
 
-The UDM is the single authoritative representation of structured knowledge.
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. A requirement identified by an invariant or rule identifier is testable and applies to every conforming implementation unless the rule explicitly limits its scope.
 
----
 
-# 2. Vision
-
-The Universal Document Model is not a document format.
-
-It is a universal knowledge representation model.
-
-Its purpose is to preserve the logical structure and semantic meaning of knowledge independently of its origin.
-
-The same UDM shall be capable of representing:
-
-* books;
-* scientific papers;
-* web pages;
-* technical documentation;
-* handwritten notes;
-* conversations;
-* datasets;
-* multimedia transcripts;
-* future knowledge sources.
-
----
-
-# 3. Design Goals
-
-The UDM is designed to satisfy the following goals.
-
-## Canonical Representation
-
-Represent every Knowledge Object through one logical model.
-
----
-
-## Structural Preservation
-
-Preserve hierarchy independently of physical formats.
-
----
-
-## Semantic Preservation
-
-Represent meaning rather than appearance.
-
----
-
-## Rendering Independence
-
-Support multiple renderers from the same model.
-
----
-
-## Extensibility
-
-Allow new node types without redesigning the model.
-
----
-
-## Longevity
-
-Remain valid for decades.
-
----
-
-## Determinism
-
-The same input shall always produce the same canonical structure.
-
----
-
-# 4. Core Principles
-
-The UDM follows these principles.
-
-* Canonical.
-* Immutable by default.
-* Renderer independent.
-* Storage independent.
-* Platform independent.
-* AI independent.
-* Extensible.
-* Versioned.
-
----
-
-# 5. Conceptual Architecture
+## 3. Architectural Position
 
 ```text
-Universal Document Model
-
-│
-
-├── Core
-
-│ ├── Type System
-
-│ ├── Node System
-
-│ ├── Identity
-
-│ └── Attributes
-
-│
-
-├── Structure
-
-│ ├── Structural Nodes
-
-│ ├── Inline Nodes
-
-│ └── Anchors
-
-│
-
-├── Semantics
-
-│ ├── Semantic Nodes
-
-│ ├── Relationships
-
-│ ├── Ontology
-
-│ └── Graph
-
-│
-
-├── Annotation
-
-│
-
-├── Assets
-
-│
-
-├── Validation
-
-│
-
-├── Serialization
-
-│
-
-└── Processing
+Source Item
+    │
+    ▼
+Acquisition and Preservation
+    │
+    ▼
+Extraction / OCR / Parsing
+    │
+    ▼
+Canonical UDM
+    ├── DPM mapping
+    ├── Knowledge Graph projection
+    ├── Search and indexing
+    ├── Accessibility
+    ├── Export
+    └── AI context construction
 ```
 
-Each subsystem has a single responsibility.
+The source item remains immutable and authoritative as evidence of the acquired manifestation. The UDM becomes authoritative for the platform's semantic interpretation of that source version. Personal annotations, inferred relationships, embeddings and indexes remain separate authority layers.
 
----
+## 4. Documentary Knowledge Model
 
-# 6. Conceptual Composition
+KnowledgeOS distinguishes the following concepts:
 
-A UDM consists of one rooted node tree.
+- **Work:** an abstract intellectual creation.
+- **Expression:** a language, revision, translation, adaptation or other intellectual realization of a Work.
+- **Manifestation:** a publication or technical embodiment of an Expression.
+- **Item:** one owned, acquired or observed instance of a Manifestation.
+- **Source Item:** the immutable bytes, stream or physical reference acquired by KnowledgeOS.
+- **UDM Document:** the canonical semantic interpretation derived from a specific source context.
+- **Knowledge Object:** the persistent library-level aggregate that owns lifecycle, metadata, source and version relationships.
+- **Personal Knowledge:** user-owned notes, annotations, highlights, links, decisions and interpretations.
+- **Derived Artifact:** a rebuildable output such as an embedding, index, preview, inferred edge or transformed rendition.
+
+UDM does not collapse these concepts. Identity and provenance preserve their distinctions.
+
+## 5. Design Principles
+
+### 5.1 Semantic First
+
+Meaning SHALL take precedence over visual appearance. Visual layout belongs to the Document Presentation Model (DPM).
+
+### 5.2 Source Preservation
+
+The source SHALL remain immutable. UDM SHALL reference and interpret it, never overwrite it.
+
+### 5.3 Stable Identity
+
+Every canonical document, node, relationship and anchor SHALL have a stable opaque identity.
+
+### 5.4 Determinism
+
+Equivalent inputs processed under the same rules and processor versions SHALL yield semantically equivalent canonical output.
+
+### 5.5 Explicit Authority
+
+Source assertions, user assertions and machine-derived assertions SHALL remain distinguishable.
+
+### 5.6 Rebuildable Derivations
+
+Indexes, embeddings, graph projections and previews SHALL be removable and reproducible without loss of canonical knowledge.
+
+### 5.7 Extensibility Without Redefinition
+
+Extensions MAY add namespaced semantics but SHALL NOT weaken or redefine core invariants.
+
+### 5.8 Long-Term Portability
+
+The logical model SHALL remain independent of operating system, programming language, database and rendering framework.
+
+## 6. Canonical Document Envelope
+
+A canonical UDM document contains:
 
 ```text
-UDM
-
-│
-
-▼
-
-Root Node
-
-│
-
-├── Structural Nodes
-
-├── Inline Nodes
-
-├── Semantic Nodes
-
-├── Annotation Nodes
-
-└── Asset Nodes
+UDMDocument
+├── specificationVersion
+├── documentId
+├── documentVersion
+├── knowledgeObjectRef
+├── sourceRefs[]
+├── provenance
+├── metadata
+├── rootNodeIds[]
+├── nodes{}
+├── relationships{}
+├── anchors{}
+├── assetRefs{}
+├── typeRegistryRefs[]
+├── validationManifest
+└── extensionData{}
 ```
 
-The Root Node owns the document hierarchy.
+Maps are conceptual. Serialization MAY encode them differently, but semantic equivalence and deterministic order SHALL be preserved.
 
----
+## 7. Node System
 
-# 7. Node Philosophy
+A node is the smallest independently identifiable semantic unit. Each node has one primary type, optional traits, attributes, provenance, temporal information, anchors and relationships.
 
-Everything inside the UDM is represented as a Node.
+UDM separates:
 
-There are no special internal representations.
+- structural nodes;
+- block content nodes;
+- inline nodes;
+- semantic entity nodes;
+- asset-reference nodes;
+- annotation attachment references.
 
-Everything is modeled uniformly.
+Containment forms an ordered acyclic hierarchy. Semantic relationships form a typed directed multigraph. These dimensions SHALL NOT be conflated.
 
-Examples:
+## 8. Identity Model
 
-* document;
-* heading;
-* paragraph;
-* table;
-* image;
-* equation;
-* citation;
-* annotation;
-* semantic entity.
+Identities are opaque and immutable. A node identity is scoped by a document identity, while externally addressable references use a canonical URI form.
 
-Uniform representation simplifies:
+Identity SHALL survive serialization, synchronization, storage migration, compatible reprocessing, rendering and index reconstruction. Database row IDs, array indexes, filesystem paths and memory addresses SHALL NOT be domain identities.
 
-* rendering;
-* traversal;
-* indexing;
-* validation;
-* serialization.
+When reprocessing splits, merges or replaces semantic entities, lineage SHALL preserve predecessor identities and evidence.
 
----
+## 9. Type and Attribute System
 
-# 8. Tree + Graph
+Every node SHALL declare exactly one primary type. Types define allowed attributes, children, traits, relationships and validation rules.
 
-The UDM combines two complementary models.
+Attributes are typed, namespaced values. Missing, unknown and explicit null are distinct states. Machine-generated values SHALL identify method, confidence and provenance.
 
-## Structural Tree
+Core type semantics are frozen within a major version. Extension types use globally unique namespaces and versioned schemas.
 
-Represents logical organization.
+## 10. Relationship System
 
-Examples:
+Relationships connect nodes, semantic entities, Knowledge Objects or external resources. Every relationship has identity, type, source, target, provenance, authority layer and optional evidence anchors.
 
-* chapters;
-* sections;
-* paragraphs;
-* lists.
+Source-backed, personal and derived relationships MAY coexist, but SHALL remain distinguishable. Similarity, model inference and user confirmation are not equivalent assertions.
 
----
+## 11. Provenance and Authority
 
-## Semantic Graph
+Every source-derived semantic assertion SHALL trace to a source item, selector and processing activity. Every generated assertion SHALL identify its processor, model or rule version.
 
-Represents conceptual relationships.
+Authority layers include:
 
-Examples:
+1. source-backed publication semantics;
+2. curated canonical corrections;
+3. personal user knowledge;
+4. machine-derived suggestions;
+5. external unresolved assertions.
 
-* references;
-* citations;
-* semantic entities;
-* cross-links.
+Higher confidence SHALL NOT silently change authority.
 
-The graph never replaces the structural tree.
+## 12. Temporal Model
 
----
+UDM distinguishes publication time, source event time, semantic event time, validity interval, acquisition time, processing time and version time.
 
-# 9. Canonical Rules
+Original temporal expressions SHALL be preserved when normalized. Precision and uncertainty SHALL be explicit. Processing timestamps SHALL NOT overwrite represented historical time.
 
-The UDM defines the following canonical rules.
+## 13. Anchoring
 
-* Exactly one Root Node.
-* Every node has one parent except the Root Node.
-* Nodes possess stable identities.
-* Node order is deterministic.
-* Canonical content is immutable.
-* Semantic information is additive.
-* Rendering is derived.
-* Serialization is reversible.
+Anchors connect semantic entities to stable positions in source items, UDM nodes, text ranges, media time ranges or DPM regions.
 
----
+Selectors MAY use structural paths, quotations, offsets, checksums, page regions or composite strategies. Re-anchoring SHALL preserve original selectors and append resolution history.
 
-# 10. Rendering Model
+## 14. Processing Model
 
-The UDM never stores visual appearance.
+Canonical processing follows controlled stages:
 
-It stores logical meaning.
+1. intake;
+2. source validation;
+3. format detection;
+4. extraction;
+5. structural analysis;
+6. semantic classification;
+7. asset resolution;
+8. anchor construction;
+9. canonical assembly;
+10. normalization;
+11. validation;
+12. publication;
+13. derived projection.
 
-Renderers interpret the UDM according to their own presentation rules.
+Stages SHALL be idempotent for identical inputs and versions. Failed stages SHALL NOT publish partial canonical state.
 
-Examples:
+## 15. Validation Model
 
-* Book Renderer;
-* Paper Renderer;
-* Magazine Renderer;
-* Editor Renderer;
-* Web Renderer.
+Validation covers envelope, schema, identity, typing, containment, ordering, references, relationships, provenance, authority, temporal consistency and extension compatibility.
 
-The same UDM produces multiple visual representations.
+Canonical publication requires no fatal, invalid or incomplete findings. Warnings MAY remain only when explicitly accepted and recorded.
 
----
+Validators SHALL be deterministic and non-mutating.
 
-# 11. Relationship to Knowledge Objects
+## 16. Serialization
 
-Each Knowledge Object owns exactly one UDM.
+The logical model is encoding-neutral. JSON is the baseline interoperable encoding. Alternative encodings MAY be used when they preserve the same logical information.
 
-The UDM does not exist independently.
+Serialization SHALL preserve identities, ordering, provenance, authority, uncertainty and unknown optional extension data. References SHALL use identities, never positional indexes.
 
-The Knowledge Object remains the Aggregate Root.
+## 17. Versioning and Evolution
 
-The UDM is one of its internal components.
+UDM distinguishes:
 
----
+- specification version;
+- schema version;
+- canonical document version;
+- source item version;
+- processor version;
+- extension version.
 
-# 12. Relationship to Metadata
+Compatible reprocessing SHOULD preserve semantic identities. Incompatible interpretation changes create a new canonical version and record lineage.
 
-Metadata describes the Knowledge Object.
+## 18. Relationship with DPM
 
-The UDM represents its structured knowledge.
+UDM represents what content means. DPM represents how a manifestation or generated view is spatially and visually organized.
 
-Metadata never replaces the UDM.
+UDM SHALL NOT contain font size, coordinates, margins, CSS, themes, viewport state or pagination geometry. DPM MAY reference UDM identities and anchors. UDM SHALL NOT depend on DPM.
 
----
+## 19. Relationship with Knowledge Objects
 
-# 13. Relationship to Provenance
+The Knowledge Object owns library lifecycle, source relationships, acquisitions, versions and authority scope. UDM is one canonical semantic representation associated with a Knowledge Object version.
 
-Provenance explains how the UDM was created.
+A Knowledge Object MAY have multiple source items and UDM versions. UDM SHALL NOT own storage location, synchronization policy or user permissions.
 
-The UDM represents the resulting canonical structure.
+## 20. Relationship with Personal Knowledge
 
-Both evolve independently.
+Personal annotations and interpretations are separate user-owned entities. They attach to UDM through stable anchors and relationships but SHALL NOT mutate publication semantics.
 
----
+An export package MAY combine both layers while preserving ownership and authority metadata.
 
-# 14. Relationship to Assets
+## 21. Relationship with Knowledge Graph
 
-Binary resources remain outside the UDM.
+The Knowledge Graph is a projection and integration view over UDM, Personal Knowledge and approved external entities. Graph persistence is derived and rebuildable.
 
-The UDM references Assets through Asset Nodes.
+Graph projection SHALL preserve identity, provenance and authority layers. A graph edge SHALL NOT become a canonical publication assertion merely because it is stored or frequently observed.
 
-The UDM never embeds binary data.
+## 22. Conformance Classes
 
----
+A conforming implementation MAY claim one or more classes:
 
-# 15. Relationship to Annotations
+- **UDM Reader:** reads and preserves supported UDM.
+- **UDM Writer:** creates schema-valid UDM.
+- **UDM Canonicalizer:** produces deterministic canonical form.
+- **UDM Validator:** evaluates normative rules.
+- **UDM Processor:** transforms source items into UDM.
+- **UDM Extension Host:** preserves and validates namespaced extensions.
 
-Annotations are represented by Annotation Nodes.
+Claims SHALL state supported specification versions and extensions.
 
-Annotations are logically independent from canonical content.
+## 23. Core Invariants
 
-They never modify canonical knowledge.
+**UDM-I001** — Every canonical document has exactly one immutable identity.
 
----
+**UDM-I002** — Every node has exactly one primary type.
 
-# 16. Relationship to the Knowledge Graph
+**UDM-I003** — Every non-root contained node has exactly one structural parent.
 
-The Knowledge Graph is derived from the UDM.
+**UDM-I004** — Containment is acyclic and explicitly ordered.
 
-The UDM remains authoritative.
+**UDM-I005** — Every source-derived assertion has provenance.
 
-The graph may be regenerated at any time.
+**UDM-I006** — Personal Knowledge does not mutate canonical publication content.
 
----
+**UDM-I007** — Derived artifacts remain distinguishable and rebuildable.
 
-# 17. UDM Invariants
+**UDM-I008** — UDM remains presentation-independent.
 
-The following invariants shall always hold.
+**UDM-I009** — Serialization round trips preserve semantic equivalence.
 
-* One Root Node.
-* Stable Node Identity.
-* Immutable canonical content.
-* Deterministic hierarchy.
-* No embedded binary assets.
-* Renderer independence.
-* Storage independence.
-* Platform independence.
-* Extensible node system.
-* Versioned evolution.
+**UDM-I010** — Invalid models cannot become canonical published UDM.
 
----
+**UDM-I011** — Identity is independent of storage and runtime representation.
 
-# 18. Relationship to Platform Engines
+**UDM-I012** — Extensions cannot override core semantics.
 
-| Engine           | Interaction                    |
-| ---------------- | ------------------------------ |
-| Import Engine    | Creates the UDM                |
-| Library Engine   | Owns the UDM                   |
-| Render Engine    | Reads the UDM                  |
-| Search Engine    | Indexes the UDM                |
-| Knowledge Engine | Enriches semantic information  |
-| AI Engine        | Produces derived semantic data |
-| Sync Engine      | Synchronizes revisions         |
-| Export Engine    | Generates external formats     |
+## 24. Non-Goals
 
-No Engine may replace the canonical UDM.
+UDM does not define:
 
----
+- file acquisition protocols;
+- NAS deployment;
+- database schemas;
+- synchronization transport;
+- UI architecture;
+- rendering implementation;
+- search engine internals;
+- AI provider selection;
+- authoring application behavior;
+- digital-rights enforcement.
 
-# 19. Evolution
+## 25. Example
 
-The UDM shall evolve through:
+```json
+{
+  "specificationVersion": "4.0",
+  "documentId": "udm-doc:01J...",
+  "documentVersion": "1",
+  "rootNodeIds": ["node:root"],
+  "nodes": {
+    "node:root": {
+      "type": "document",
+      "children": ["node:title", "node:p1"]
+    },
+    "node:title": {
+      "type": "heading",
+      "attributes": {"level": 1},
+      "children": ["node:title-text"]
+    },
+    "node:title-text": {
+      "type": "text",
+      "attributes": {"text": "Example"}
+    },
+    "node:p1": {
+      "type": "paragraph",
+      "children": ["node:p1-text"]
+    },
+    "node:p1-text": {
+      "type": "text",
+      "attributes": {"text": "Canonical semantic content."}
+    }
+  }
+}
+```
 
-* new node types;
-* new semantic capabilities;
-* new validation rules;
-* new serialization formats.
+This example is illustrative. The serialization contract defines exact field requirements.
 
-Breaking changes require:
+## 26. Related Documents
 
-* a new UDM version;
-* an approved ADR;
-* migration rules.
+- `README.md`
+- `Core/Identity.md`
+- `Core/NodeModel.md`
+- `Core/TypeSystem.md`
+- `Nodes/Anchors.md`
+- `Graph/RelationshipModel.md`
+- `Processing/ProcessingPipeline.md`
+- `Serialization/Serialization.md`
+- `Validation/ValidationRules.md`
+- `../DPM/DPM.md`
+- `../KnowledgeObject/KnowledgeObject.md`
 
----
+## 27. Status
 
-# 20. Related Documents
-
-* README.md
-* Core/TypeSystem.md
-* Core/NodeTypes.md
-* Nodes/StructuralNodes.md
-* Nodes/InlineNodes.md
-* Nodes/SemanticNodes.md
-* Graph/RelationshipModel.md
-* Serialization/Serialization.md
-* Validation/ValidationRules.md
-
----
-
-# 21. Status
-
-**Approved**
-
-This document defines the Universal Document Model as the canonical representation of structured knowledge within KnowledgeOS.
-
-Every Platform Engine shall preserve the semantics, invariants and architectural principles defined herein.
+This specification is the rector document for the UDM V4 release candidate. Subordinate documents refine individual contracts and SHALL NOT contradict this document.

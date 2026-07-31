@@ -1,300 +1,87 @@
-# Anchors
+# UDM Anchor Model
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Universal Document Model
-
-**Document:** Anchors
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Universal Document Model  
+**Document:** Anchors  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Anchor model of the Universal Document Model (UDM).
+Specify stable locations and ranges connecting sources, UDM, DPM and Personal Knowledge.
 
-Anchors provide stable logical references to positions within canonical knowledge.
+## 2. Scope
 
-They are independent of rendering, pagination, storage format and device.
+Applies to canonical UDM instances, processors, validators and serializers.
 
-Anchors are the foundation for annotations, deep links, semantic references and fine-grained synchronization.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. A requirement identified by an invariant or rule identifier is testable and applies to every conforming implementation unless the rule explicitly limits its scope.
 
-# 2. Design Goals
 
-The Anchor model shall:
+## 4. Context and Responsibilities
 
-* provide stable logical references;
-* survive rendering changes;
-* survive serialization;
-* survive synchronization;
-* support semantic enrichment;
-* support precise navigation;
-* support long-term preservation.
+Anchors support node, text-range, source-byte, page-region, media-time and composite selectors.
 
----
+## 5. Conceptual Model
 
-# 3. Design Philosophy
+An anchor contains identity, target version, selector, context fingerprint, provenance, resilience strategy and resolution history.
 
-An Anchor identifies a logical position.
+## 6. Normative Requirements
 
-It never identifies visual coordinates.
+**ANCHORS-R001** — Every anchor MUST identify its target scope and version.
 
-It never identifies page numbers.
+**ANCHORS-R002** — Selectors MUST be deterministic for a fixed target.
 
-It never depends on a renderer.
+**ANCHORS-R003** — Re-anchoring MUST preserve the original selector.
 
-Anchors belong to canonical knowledge.
+**ANCHORS-R004** — Ambiguous resolution MUST return alternatives rather than silently choose.
 
----
+**ANCHORS-R005** — Page-region selectors MUST remain DPM/source references, not semantic coordinates.
 
-# 4. Conceptual Model
+**ANCHORS-R006** — Composite anchors SHOULD combine independent evidence for resilience.
 
-```text
-Knowledge Object
-        │
-        ▼
-Universal Document Model
-        │
-        ▼
-Node
-        │
-        ▼
-Anchor
-        │
-        ▼
-Logical Position
-```
+## 7. Invariants
 
-The Node identifies *what*.
+**ANCHORS-I001** — Anchor identity is stable.
 
-The Anchor identifies *where inside*.
+**ANCHORS-I002** — Resolution history is append-only.
 
----
+**ANCHORS-I003** — Unresolved anchors remain representable.
 
-# 5. Anchor Categories
+**ANCHORS-I004** — Selectors do not mutate source content.
 
-The UDM defines three primary Anchor categories.
+## 8. Failure and Edge Cases
 
-```text
-Anchor
-│
-├── Structural Anchor
-├── Content Anchor
-└── Semantic Anchor
-```
+A conforming implementation SHALL fail explicitly when it cannot preserve identity, provenance, semantic meaning or authority boundaries. It SHALL NOT repair uncertain input by silently inventing facts. Recoverable ambiguity MAY be represented through confidence, alternatives, unresolved references or validation findings.
 
-Each category serves a different purpose.
+Failures SHALL be categorized as structural, semantic, compatibility, provenance, security or processing failures. Each failure SHALL identify the affected entity and the violated rule.
 
----
+## 9. Examples
 
-# 6. Structural Anchors
+A resilient text anchor can combine node identity, quoted text, prefix/suffix context and source checksum.
 
-Structural Anchors identify complete structural elements.
+## 10. Compatibility and Evolution
 
-Examples:
+Changes to this contract SHALL follow semantic versioning at the specification level. Backward-compatible additions MAY introduce optional fields, types or relationships. Changes that alter required semantics, identity rules, authority boundaries or canonical interpretation require a major version.
 
-* Document;
-* Chapter;
-* Section;
-* Figure;
-* Table;
-* Paragraph.
+Unknown optional extensions SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-They are stable as long as the structural node exists.
+## 11. Security and Privacy Considerations
 
----
+Implementations SHALL treat imported data, extension payloads, external identifiers and generated semantic assertions as untrusted until validated. Personal Knowledge and restricted source material MUST respect scoped authority and execution policy. Remote processing MUST NOT occur without applicable authorization.
 
-# 7. Content Anchors
+## 12. Related Documents
 
-Content Anchors identify logical positions within content.
+- `../Core/NodeModel.md`
+- `../Core/NodeTypes.md`
+- `../Core/Identity.md`
+- `../Validation/ValidationRules.md`
 
-Examples include:
+## 13. Status
 
-* sentence;
-* phrase;
-* word;
-* token;
-* character range;
-* table cell;
-* list item.
-
-Content Anchors are independent of pagination.
-
----
-
-# 8. Semantic Anchors
-
-Semantic Anchors identify conceptual regions of knowledge.
-
-Examples:
-
-* entity span;
-* concept occurrence;
-* claim boundary;
-* observation;
-* definition.
-
-Semantic Anchors may evolve independently of textual formatting.
-
----
-
-# 9. Anchor Identity
-
-Every Anchor possesses:
-
-* AnchorID;
-* NodeID;
-* AnchorType;
-* VersionID.
-
-Anchor identity is immutable.
-
----
-
-# 10. Logical Position
-
-Logical positions are expressed relative to the canonical node structure.
-
-Examples:
-
-* first sentence;
-* third list item;
-* second table row;
-* equation identifier.
-
-Logical positions are deterministic.
-
----
-
-# 11. Anchor Evolution
-
-Anchors evolve only when the canonical structure changes.
-
-Renderer changes never affect Anchor identity.
-
-Minor formatting changes shall preserve existing Anchors whenever possible.
-
----
-
-# 12. Anchor Relationships
-
-Anchors may participate in relationships with:
-
-* Annotation Nodes;
-* Semantic Nodes;
-* Asset Nodes;
-* other Anchors.
-
-These relationships remain external to the structural tree.
-
----
-
-# 13. Deep Linking
-
-Anchors support persistent deep links.
-
-A deep link may reference:
-
-* a document;
-* a structural node;
-* a content fragment;
-* a semantic region.
-
-Deep links remain stable across renderers.
-
----
-
-# 14. Synchronization
-
-Anchors are synchronized independently from rendering information.
-
-This enables:
-
-* precise conflict detection;
-* annotation preservation;
-* incremental synchronization;
-* collaborative editing.
-
----
-
-# 15. Rendering
-
-Render Engines resolve Anchors to visual positions.
-
-The renderer determines coordinates.
-
-The Anchor determines logical identity.
-
----
-
-# 16. Invariants
-
-The following invariants apply.
-
-* Every Anchor has one immutable AnchorID.
-* Every Anchor references exactly one Node.
-* Anchors never depend on page numbers.
-* Anchors never depend on screen coordinates.
-* Anchors survive serialization.
-* Anchors survive synchronization.
-* Anchors survive renderer changes.
-
----
-
-# 17. Relationship to Other Layers
-
-| Layer            | Relationship                      |
-| ---------------- | --------------------------------- |
-| Structural Layer | References structural positions   |
-| Content Layer    | References logical content        |
-| Semantic Layer   | Defines semantic regions          |
-| Annotation Layer | Primary attachment mechanism      |
-| Graph Layer      | Supports fine-grained graph links |
-
-Anchors provide the bridge between canonical knowledge and derived functionality.
-
----
-
-# 18. Relationship to Platform Engines
-
-| Engine            | Responsibility                      |
-| ----------------- | ----------------------------------- |
-| Render Engine     | Resolve Anchors to visual positions |
-| Annotation Engine | Attach annotations                  |
-| Search Engine     | Navigate search results             |
-| Knowledge Engine  | Create semantic anchors             |
-| AI Engine         | Discover semantic regions           |
-| Sync Engine       | Synchronize anchor references       |
-| Export Engine     | Preserve deep links where possible  |
-
-All engines rely on Anchors as stable logical references.
-
----
-
-# 19. Related Documents
-
-* ContentNodes.md
-* StructuralNodes.md
-* AnnotationNodes.md
-* SemanticNodes.md
-* Graph/RelationshipModel.md
-* Core/Identity.md
-
----
-
-# 20. Status
-
-**Approved**
-
-This document defines the Anchor model of the Universal Document Model.
-
-Anchors provide stable logical references that remain independent of rendering technologies, storage mechanisms and document layouts, enabling robust annotations, semantic navigation and long-term knowledge preservation.
+This document is part of the KnowledgeOS UDM V4 release-candidate baseline. It becomes frozen after architectural review and validation against the complete Domain package.

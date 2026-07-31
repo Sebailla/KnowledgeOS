@@ -1,278 +1,103 @@
-# Temporal Model
+# UDM Temporal Model
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Universal Document Model
-
-**Document:** Temporal Model
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Universal Document Model  
+**Document:** TemporalModel  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the temporal model used by the Universal Document Model (UDM).
+Specify temporal values, intervals, uncertainty, normalization and separation of semantic and processing time.
 
-The Temporal Model allows knowledge to express time-related semantics independently of version history.
+## 2. Scope
 
-Temporal information belongs to the represented knowledge itself.
+Covers source, publication, semantic event, validity, acquisition, processing and version time.
 
-It does not describe the evolution of the UDM implementation.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. A requirement identified by an invariant or rule identifier is testable and applies to every conforming implementation unless the rule explicitly limits its scope.
 
-# 2. Scope
 
-The Temporal Model applies to every node within the UDM.
+## 4. Context and Responsibilities
 
-It defines:
+Temporal information has kind, value or interval, precision, timezone, calendar, certainty, original expression and normalization provenance.
 
-* temporal attributes;
-* validity intervals;
-* temporal uncertainty;
-* temporal relationships;
-* temporal reasoning support.
+UDM never conflates when information was processed with when the represented event occurred.
 
-Version history is defined separately.
-
----
-
-# 3. Design Goals
-
-The Temporal Model shall:
-
-* represent knowledge in time;
-* distinguish historical facts from document revisions;
-* support incomplete dates;
-* support uncertain dates;
-* support intervals;
-* remain renderer-independent.
-
----
-
-# 4. Temporal Concepts
-
-The UDM distinguishes three independent notions of time.
+## 5. Conceptual Model
 
 ```text
-Knowledge Time
-        │
-        ├── Event Time
-        ├── Valid Time
-        └── Transaction Time
+TemporalValue
+├── kind
+├── start?
+├── end?
+├── precision
+├── timezone?
+├── calendar
+├── certainty
+├── originalExpression?
+└── normalizationProvenance?
 ```
 
-Each concept has a distinct meaning.
+## 6. Normative Requirements
 
----
+**TEMPORALMODEL-R001** — Original temporal expressions MUST be preserved when normalized.
 
-# 5. Event Time
+**TEMPORALMODEL-R002** — Timezone assumptions MUST be explicit.
 
-Represents when something occurred in the real world.
+**TEMPORALMODEL-R003** — Precision MUST NOT exceed available evidence.
 
-Examples:
+**TEMPORALMODEL-R004** — Open and uncertain intervals MAY be represented.
 
-* publication;
-* discovery;
-* experiment;
-* observation;
-* meeting.
+**TEMPORALMODEL-R005** — Processing time MUST NOT overwrite semantic event time.
 
-Event Time belongs to the represented knowledge.
+**TEMPORALMODEL-R006** — Relative expressions MUST record their reference context.
 
----
+**TEMPORALMODEL-R007** — Invalid reversed intervals MUST fail validation unless explicitly allowed by type.
 
-# 6. Valid Time
+## 7. Invariants
 
-Represents the period during which knowledge is considered valid.
+**TEMPORALMODEL-I001** — Semantic time and processing time are separate.
 
-Examples:
+**TEMPORALMODEL-I002** — Normalization is deterministic for fixed context and rules.
 
-* validity of a law;
-* taxonomic classification period;
-* product availability;
-* software support window.
+**TEMPORALMODEL-I003** — Uncertainty remains explicit.
 
-Valid Time may be open-ended.
+**TEMPORALMODEL-I004** — Temporal values preserve their calendar system.
 
----
+**TEMPORALMODEL-I005** — Version timestamps describe versions, not historical events.
 
-# 7. Transaction Time
+## 8. Failure and Edge Cases
 
-Represents when the information entered the Knowledge Library.
+A conforming implementation SHALL fail explicitly when it cannot preserve identity, provenance, semantic meaning or authority boundaries. It SHALL NOT repair uncertain input by silently inventing facts. Recoverable ambiguity MAY be represented through confidence, alternatives, unresolved references or validation findings.
 
-Examples:
+Failures SHALL be categorized as structural, semantic, compatibility, provenance, security or processing failures. Each failure SHALL identify the affected entity and the violated rule.
 
-* import timestamp;
-* annotation timestamp;
-* synchronization timestamp.
+## 9. Examples
 
-Transaction Time belongs to the platform history.
+“Next Tuesday” stores the original phrase, the reference date used for resolution and the normalized date. Reprocessing with another reference context does not silently overwrite the first interpretation.
 
-It shall not be confused with Event Time.
+## 10. Compatibility and Evolution
 
----
+Changes to this contract SHALL follow semantic versioning at the specification level. Backward-compatible additions MAY introduce optional fields, types or relationships. Changes that alter required semantics, identity rules, authority boundaries or canonical interpretation require a major version.
 
-# 8. Temporal Intervals
+Unknown optional extensions SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-Temporal information may represent:
+## 11. Security and Privacy Considerations
 
-* instant;
-* interval;
-* recurring period;
-* unknown period.
+Implementations SHALL treat imported data, extension payloads, external identifiers and generated semantic assertions as untrusted until validated. Personal Knowledge and restricted source material MUST respect scoped authority and execution policy. Remote processing MUST NOT occur without applicable authorization.
 
-Intervals may define:
+## 12. Related Documents
 
-* start;
-* end;
-* duration;
-* open boundary.
+- `NodeAttributes.md`
+- `../../KnowledgeObject/Versioning.md`
+- `../../KnowledgeObject/Provenance.md`
 
----
+## 13. Status
 
-# 9. Temporal Precision
-
-Not every date has the same precision.
-
-Supported levels include:
-
-* year;
-* month;
-* day;
-* hour;
-* minute;
-* second.
-
-Unknown components remain explicitly undefined.
-
----
-
-# 10. Temporal Uncertainty
-
-Knowledge may contain uncertain temporal information.
-
-Examples:
-
-* circa 1850;
-* before 1900;
-* after World War II;
-* between 1980 and 1985.
-
-The UDM preserves uncertainty without forcing artificial precision.
-
----
-
-# 11. Temporal Relationships
-
-Nodes may participate in temporal relationships.
-
-Examples:
-
-* precedes;
-* follows;
-* overlaps;
-* contains;
-* simultaneous.
-
-Temporal relationships are independent from structural relationships.
-
----
-
-# 12. Temporal Attributes
-
-Temporal information may be attached to any node.
-
-Typical attributes include:
-
-* EventTime;
-* ValidFrom;
-* ValidUntil;
-* RecordedAt;
-* Precision;
-* Confidence.
-
-Node types decide which attributes are applicable.
-
----
-
-# 13. Relationship to Versioning
-
-Temporal information represents knowledge.
-
-Versioning represents document evolution.
-
-These concepts are independent.
-
-Example:
-
-A historical event from 1969 may be corrected in a node version created in 2028.
-
-The event date remains 1969.
-
-The version date becomes 2028.
-
----
-
-# 14. Relationship to Provenance
-
-Provenance records how knowledge entered and evolved within the platform.
-
-Temporal information describes the knowledge itself.
-
-The two models complement each other.
-
----
-
-# 15. Temporal Invariants
-
-The following invariants apply.
-
-* Temporal information never replaces Versioning.
-* Event Time is independent from Transaction Time.
-* Valid Time may be unknown.
-* Uncertainty shall be preserved.
-* Temporal reasoning never modifies canonical content.
-
----
-
-# 16. Relationship to the Knowledge Graph
-
-Temporal attributes enrich graph semantics.
-
-The Knowledge Graph may answer questions such as:
-
-* What was valid in 1995?
-* Which concepts coexisted?
-* Which documents reference obsolete knowledge?
-
-Temporal reasoning is derived from the UDM.
-
----
-
-# 17. Relationship to Other Documents
-
-This document complements:
-
-* Versioning.md
-* Provenance.md
-* Ontology.md
-* RelationshipModel.md
-* NodeAttributes.md
-
----
-
-# 18. Status
-
-**Approved**
-
-This document defines the temporal model of the Universal Document Model.
-
-Temporal information represents the chronology of knowledge independently of version history and platform operations.
+This document is part of the KnowledgeOS UDM V4 release-candidate baseline. It becomes frozen after architectural review and validation against the complete Domain package.

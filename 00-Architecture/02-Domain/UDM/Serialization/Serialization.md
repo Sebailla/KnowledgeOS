@@ -1,343 +1,110 @@
+# UDM Serialization Contract
 
-# UDM Serialization
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Universal Document Model
-
-**Document:** Serialization
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Universal Document Model  
+**Document:** Serialization  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the canonical serialization model of the Universal Document Model (UDM).
+Specify canonical exchange, round-trip preservation, deterministic encoding and secure deserialization.
 
-Serialization transforms an authoritative UDM into a persistent representation while preserving identity, structure, semantics and provenance.
+## 2. Scope
 
-Serialization is deterministic.
+Covers logical envelope, JSON baseline, references, ordering, extensions, compatibility and signing.
 
-Serialization format is an implementation detail.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. A requirement identified by an invariant or rule identifier is testable and applies to every conforming implementation unless the rule explicitly limits its scope.
 
-# 2. Scope
 
-Serialization governs:
+## 4. Context and Responsibilities
 
-* canonical persistence;
-* interchange;
-* backups;
-* synchronization;
-* migration;
-* long-term preservation.
+The logical contract is encoding-neutral. JSON UTF-8 is the baseline interoperable encoding. CBOR or other encodings may be used if they preserve identical logical meaning.
 
-It does not define specific serialization technologies.
+The envelope includes format and schema versions, identities, provenance, nodes, relationships, anchors, assets, validation manifest and extensions.
 
----
+## 5. Conceptual Model
 
-# 3. Design Goals
+```text
+SerializedUDM
+├── format
+├── specificationVersion
+├── schemaVersion
+├── document
+├── nodes
+├── relationships
+├── anchors
+├── assets
+├── provenance
+├── validation
+└── extensions
+```
 
-Serialization shall:
+## 6. Normative Requirements
 
-* preserve canonical knowledge;
-* preserve identity;
-* preserve provenance;
-* preserve temporal information;
-* preserve deterministic ordering;
-* remain technology-independent;
-* support forward compatibility;
-* support backward compatibility.
+**SERIALIZATION-R001** — Internal references MUST use stable identities rather than array indexes.
 
----
+**SERIALIZATION-R002** — Round trips MUST preserve semantic equivalence.
 
-# 4. Design Principles
+**SERIALIZATION-R003** — UTF-8 MUST be used for JSON.
 
-Serialization follows these principles:
+**SERIALIZATION-R004** — Unknown optional extension data SHOULD be preserved.
 
-* canonical meaning is never altered;
-* serialization never creates knowledge;
-* serialization never removes knowledge;
-* equal UDM instances produce equivalent serialized representations;
-* serialization is reversible.
+**SERIALIZATION-R005** — Unsupported required semantics MUST produce incompatibility.
 
----
+**SERIALIZATION-R006** — Canonical ordering MUST be deterministic where hashing or signing applies.
 
-# 5. Serialization Scope
+**SERIALIZATION-R007** — Deserializers MUST enforce size, depth and reference limits.
 
-The following canonical elements shall be serializable:
+**SERIALIZATION-R008** — Serialized payloads MUST NOT contain executable code.
 
-* UDM Root;
-* Structural Nodes;
-* Content Nodes;
-* Semantic Nodes;
-* Annotation Nodes;
-* Asset Nodes;
-* Anchors;
-* Relationships;
-* Identity;
-* Version history;
-* Provenance;
-* Temporal information;
-* Extension data.
+**SERIALIZATION-R009** — Identity, authority, provenance and uncertainty MUST survive serialization.
 
-Derived projections are excluded.
+## 7. Invariants
 
----
+**SERIALIZATION-I001** — No runtime-only state is serialized.
 
-# 6. Canonical Order
+**SERIALIZATION-I002** — Ordering is explicit.
 
-Serialization shall use deterministic ordering.
+**SERIALIZATION-I003** — References are resolvable or explicitly external.
 
-The canonical order is:
+**SERIALIZATION-I004** — Canonical signatures cover a declared canonical representation.
 
-1. Root
-2. Identity
-3. Structural hierarchy
-4. Content
-5. Semantic layer
-6. Annotation layer
-7. Asset references
-8. Anchors
-9. Relationships
-10. Metadata
-11. Provenance
-12. Version information
+**SERIALIZATION-I005** — Encoding choice does not alter meaning.
 
-Deterministic ordering guarantees reproducibility.
+## 8. Failure and Edge Cases
 
----
+A conforming implementation SHALL fail explicitly when it cannot preserve identity, provenance, semantic meaning or authority boundaries. It SHALL NOT repair uncertain input by silently inventing facts. Recoverable ambiguity MAY be represented through confidence, alternatives, unresolved references or validation findings.
 
-# 7. Identity Preservation
+Failures SHALL be categorized as structural, semantic, compatibility, provenance, security or processing failures. Each failure SHALL identify the affected entity and the violated rule.
 
-Serialization shall preserve:
+## 9. Examples
 
-* KnowledgeObjectID;
-* NodeID;
-* AnchorID;
-* RelationshipID;
-* VersionID;
-* AssetID.
+A node map may be encoded as an object or ordered records, but references remain identity-based and canonical hashing uses the specification's deterministic normalization.
 
-Identifiers remain unchanged after deserialization.
+## 10. Compatibility and Evolution
 
----
+Changes to this contract SHALL follow semantic versioning at the specification level. Backward-compatible additions MAY introduce optional fields, types or relationships. Changes that alter required semantics, identity rules, authority boundaries or canonical interpretation require a major version.
 
-# 8. Referential Integrity
+Unknown optional extensions SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-Every serialized reference shall remain resolvable.
+## 11. Security and Privacy Considerations
 
-This includes:
+Implementations SHALL treat imported data, extension payloads, external identifiers and generated semantic assertions as untrusted until validated. Personal Knowledge and restricted source material MUST respect scoped authority and execution policy. Remote processing MUST NOT occur without applicable authorization.
 
-* parent references;
-* asset references;
-* anchor references;
-* semantic references;
-* relationship endpoints.
+## 12. Related Documents
 
-Broken references invalidate the serialized representation.
+- `../UDM.md`
+- `../Core/Identity.md`
+- `../Core/TypeSystem.md`
+- `../Validation/ValidationRules.md`
 
----
+## 13. Status
 
-# 9. Provenance Preservation
-
-Serialization shall preserve:
-
-* creation history;
-* modification history;
-* processing history;
-* synchronization history;
-* migration history.
-
-Provenance remains immutable.
-
----
-
-# 10. Temporal Preservation
-
-Serialization shall preserve temporal semantics.
-
-Including:
-
-* Event Time;
-* Valid Time;
-* Transaction Time;
-* temporal precision;
-* temporal uncertainty.
-
-No temporal information shall be discarded.
-
----
-
-# 11. Extension Preservation
-
-Registered extensions shall serialize:
-
-* namespace;
-* schema version;
-* extension attributes;
-* extension types;
-* compatibility information.
-
-Unknown extensions shall be preserved without modification whenever possible.
-
----
-
-# 12. Version Preservation
-
-Serialization shall preserve:
-
-* complete version history;
-* parent versions;
-* merge history;
-* version metadata.
-
-Historical versions remain immutable.
-
----
-
-# 13. Canonical Integrity
-
-Serialized representations may include integrity information.
-
-Examples include:
-
-* canonical hash;
-* digital signature;
-* checksum;
-* manifest.
-
-Integrity verification is deterministic.
-
----
-
-# 14. Import and Export
-
-Serialization supports:
-
-* persistent storage;
-* synchronization;
-* migration;
-* interchange;
-* backup;
-* archival.
-
-Import reconstructs the canonical UDM.
-
-Export never changes canonical meaning.
-
----
-
-# 15. Deserialization
-
-Deserialization reconstructs:
-
-* canonical hierarchy;
-* identities;
-* references;
-* metadata;
-* provenance;
-* versions.
-
-The reconstructed UDM shall be equivalent to the serialized source.
-
----
-
-# 16. Compatibility
-
-Serialization shall support:
-
-* schema evolution;
-* version migration;
-* extension compatibility;
-* forward compatibility;
-* backward compatibility.
-
-Compatibility policies are version-dependent.
-
----
-
-# 17. Validation
-
-Every deserialized UDM shall pass:
-
-* Validation Rules;
-* Consistency Rules.
-
-Invalid serialized data shall never become authoritative.
-
----
-
-# 18. Relationship to DPM
-
-When a Knowledge Object includes a Document Presentation Model (DPM), the UDM and DPM are serialized independently.
-
-Both representations share:
-
-* KnowledgeObjectID;
-* VersionID;
-* Provenance.
-
-Neither model contains the other.
-
----
-
-# 19. Relationship to Platform
-
-Serialization defines the canonical representation.
-
-Storage technologies implement that representation.
-
-Possible implementations include:
-
-* JSON;
-* CBOR;
-* Protocol Buffers;
-* MessagePack;
-* binary formats.
-
-The Domain Layer remains independent of all implementations.
-
----
-
-# 20. Serialization Invariants
-
-The following invariants apply:
-
-* serialization is deterministic;
-* serialization is reversible;
-* canonical meaning is preserved;
-* identity is preserved;
-* provenance is preserved;
-* references remain valid;
-* serialization never generates derived knowledge.
-
----
-
-# 21. Related Documents
-
-* ../UDM.md
-* ../Validation/ValidationRules.md
-* ../Validation/ConsistencyRules.md
-* ../Core/Identity.md
-* ../Core/TemporalModel.md
-* ../../KnowledgeObject/Versioning.md
-* ../../KnowledgeObject/Provenance.md
-
----
-
-# 22. Status
-
-**Approved**
-
-This document defines the canonical serialization model of the Universal Document Model.
-
-Serialization preserves the complete canonical state of a Knowledge Object while remaining deterministic, reversible and independent of any storage technology.
+This document is part of the KnowledgeOS UDM V4 release-candidate baseline. It becomes frozen after architectural review and validation against the complete Domain package.

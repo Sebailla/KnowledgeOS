@@ -1,313 +1,92 @@
+# Theme Model
 
-# Themes
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Document Presentation Model
-
-**Document:** Themes
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Document Presentation Model  
+**Document:** Themes  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Theme model of the Document Presentation Model (DPM).
+Specify reusable style tokens, inheritance, variants and resolution.
 
-Themes translate presentation intent into concrete visual experiences.
+## 2. Scope
 
-A Theme interprets the DPM without modifying it.
+Applies to source-faithful and generated DPM style representation.
 
-Themes preserve the canonical separation between presentation intent and visual implementation.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Rules identified by stable identifiers are testable requirements for conforming implementations.
 
-# 2. Scope
 
-Themes define:
+## 4. Context and Responsibility
 
-* visual interpretation;
-* typography mapping;
-* color mapping;
-* spacing policies;
-* decoration policies;
-* adaptive presentation behavior.
+A theme is a versioned set of renderer-neutral style tokens and rules for generated or editorial presentations.
 
-Themes never modify canonical knowledge.
+## 5. Conceptual Model
 
-Themes never modify the DPM.
+Themes may define typography, colors, spacing, decorations and component roles. Source-faithful DPMs may reference extracted style groups without treating them as user themes.
 
----
+## 6. Normative Requirements
 
-# 3. Design Goals
+**THEMES-R001** — Theme identity and version MUST be explicit.
 
-Themes shall:
+**THEMES-R002** — Token inheritance MUST be acyclic.
 
-* preserve presentation intent;
-* remain deterministic;
-* support multiple rendering technologies;
-* support accessibility;
-* support long-term evolution;
-* remain replaceable.
+**THEMES-R003** — Resolved values MUST satisfy their attribute schemas.
 
----
+**THEMES-R004** — Theme overrides MUST preserve source/derived distinction.
 
-# 4. Design Philosophy
+**THEMES-R005** — A theme MUST NOT alter UDM semantics.
 
-The DPM expresses visual intent.
+**THEMES-R006** — Fallback behavior MUST be deterministic.
 
-Themes express visual realization.
+**THEMES-R007** — Unknown required tokens MUST prevent complete resolution.
 
-Render Engines execute the realization.
+## 7. Invariants
 
-Each responsibility remains independent.
+**THEMES-I001** — Theme resolution is deterministic.
 
----
+**THEMES-I002** — Tokens are namespaced.
 
-# 5. Conceptual Model
+**THEMES-I003** — Source styles and user themes remain distinguishable.
 
-```text
-Knowledge Object
-        │
-        ▼
-UDM + DPM
-        │
-        ▼
-Theme
-        │
-        ▼
-Render Engine
-        │
-        ▼
-Presentation Experience
-```
+**THEMES-I004** — Runtime UI appearance settings are not canonical DPM unless materialized as a presentation version.
 
-Themes are interpretation policies.
+## 8. Processing and Lifecycle Considerations
 
-They are not rendering engines.
+Presentation data is an immutable snapshot within a DPM version. Changes create a new version or a new derived view. Runtime caches, UI selection, window state and renderer-specific objects are never canonical DPM state.
 
----
+Processors SHALL record inputs, configuration, implementation version, confidence where applicable and complete provenance. Reprocessing MAY replace derived presentation artifacts but SHALL preserve stable identities when presentation continuity remains.
 
-# 6. Theme Responsibilities
+## 9. Failure and Edge Cases
 
-A Theme maps presentation intent into concrete presentation decisions.
+A conforming implementation SHALL represent ambiguity explicitly. It MUST NOT invent coordinates, reading order, style semantics or UDM mappings without evidence. Partial reconstruction MAY be published only when validation marks unresolved regions and the consuming capability supports incomplete DPM.
 
-Typical responsibilities include:
+Security-sensitive inputs such as external style references, fonts, URLs and extension payloads SHALL be validated before use.
 
-* typography selection;
-* semantic color mapping;
-* spacing policies;
-* decoration realization;
-* page composition policies;
-* visual density.
+## 10. Examples
 
----
+A dark reading theme creates a new generated DPM or resolved rendering context; it does not modify the source-faithful DPM.
 
-# 7. Theme Categories
+## 11. Compatibility and Evolution
 
-Typical Themes include:
+Backward-compatible changes MAY add optional attributes, types or mapping strategies. Changes that alter spatial semantics, identity, coordinate interpretation, reading-order meaning or UDM/DPM authority boundaries require a major version.
 
-* Classic Book;
-* Scientific Paper;
-* Magazine;
-* Modern Reader;
-* Notebook;
-* Presentation;
-* Dark;
-* Sepia;
-* E-Ink;
-* Accessibility;
-* Print.
+Unknown optional extensions SHOULD be preserved. Unknown required semantics MUST produce an explicit incompatibility result.
 
-Additional Themes may be introduced through extensions.
+## 12. Related Documents
 
----
+- `../DPM.md`
+- `../Core/PresentationAttributes.md`
+- `Themes.md`
+- `VisualHierarchy.md`
+- `../Validation/ValidationRules.md`
 
-# 8. Typography Mapping
+## 13. Status
 
-Themes map Typography Roles into concrete typography implementations.
-
-Example:
-
-```text
-Heading Level 1
-
-↓
-
-Concrete Typography
-```
-
-The DPM remains unchanged.
-
----
-
-# 9. Color Mapping
-
-Themes map Semantic Color Roles into concrete colors.
-
-The implementation may use:
-
-* OKLCH;
-* Display P3;
-* RGB;
-* CMYK;
-* future color spaces.
-
-The DPM stores only semantic intent.
-
----
-
-# 10. Layout Adaptation
-
-Themes may influence presentation through declarative policies such as:
-
-* preferred margins;
-* page density;
-* spacing scale;
-* paragraph rhythm;
-* figure emphasis.
-
-Themes do not redefine the Layout Graph.
-
----
-
-# 11. Decoration Policies
-
-Themes determine:
-
-* decoration visibility;
-* decoration style;
-* decorative intensity;
-* ornament realization.
-
-Decorative intent remains defined by the DPM.
-
----
-
-# 12. Accessibility
-
-Accessibility Themes may provide:
-
-* larger typography;
-* simplified decorations;
-* high contrast;
-* reduced visual complexity;
-* dyslexia-friendly typography;
-* monochrome rendering.
-
-Presentation intent shall remain recognizable.
-
----
-
-# 13. Adaptive Rendering
-
-Themes support adaptation across:
-
-* desktop;
-* tablet;
-* phone;
-* web;
-* print;
-* E-Ink.
-
-The canonical DPM is unaffected.
-
----
-
-# 14. Theme Independence
-
-Changing Themes shall never require:
-
-* modifying the UDM;
-* modifying the DPM;
-* regenerating the Knowledge Object.
-
-Theme selection is reversible.
-
----
-
-# 15. Relationship to Typography
-
-Themes resolve Typography Roles into concrete typographic implementations.
-
-Typography intent remains owned by the DPM.
-
----
-
-# 16. Relationship to Color
-
-Themes resolve Semantic Color Roles into concrete colors.
-
-The DPM never stores concrete color values.
-
----
-
-# 17. Relationship to Decorations
-
-Themes interpret decorative intent.
-
-They may simplify or suppress Decorations when appropriate.
-
----
-
-# 18. Relationship to Render Engines
-
-Render Engines execute Theme policies.
-
-They shall not redefine Theme decisions.
-
-Themes describe intent.
-
-Render Engines perform execution.
-
----
-
-# 19. Validation
-
-A valid Theme shall satisfy:
-
-* complete mapping of required Typography Roles;
-* complete mapping of Semantic Color Roles;
-* valid decoration policy definitions;
-* deterministic interpretation rules.
-
----
-
-# 20. Invariants
-
-The following invariants apply:
-
-* Themes never modify canonical knowledge.
-* Themes never modify the DPM.
-* Themes are replaceable.
-* Theme interpretation is deterministic.
-* Presentation intent remains preserved.
-* Theme changes are reversible.
-
----
-
-# 21. Related Documents
-
-* Typography.md
-* VisualHierarchy.md
-* Decorations.md
-* ColorModel.md
-* ../Layout/LayoutGraph.md
-* ../Core/PresentationAttributes.md
-
----
-
-# 22. Status
-
-**Approved**
-
-This document defines the Theme model of the Document Presentation Model.
-
-Themes interpret presentation intent into concrete visual experiences while preserving the canonical separation between knowledge, presentation intent and rendering implementation.
+This document is part of the KnowledgeOS DPM V4 release-candidate baseline. It becomes frozen after complete Domain review and conformance validation.

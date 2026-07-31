@@ -1,283 +1,91 @@
+# Presentation Identity Model
 
-# Presentation Identity
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Document Presentation Model
-
-**Document:** Presentation Identity
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Document Presentation Model  
+**Document:** PresentationIdentity  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the identity model of the Document Presentation Model (DPM).
+Specify stable identities for DPM documents, nodes, pages, regions, flows, styles and mappings.
 
-Presentation Identity provides stable identification for presentation elements while preserving complete independence from canonical knowledge.
+## 2. Scope
 
-Identity allows presentation structures to evolve without affecting the Universal Document Model (UDM).
+Applies to canonical DPM documents and all conforming processors, serializers and renderers.
 
----
+## 3. Normative Language
 
-# 2. Scope
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Rules identified by stable identifiers are testable requirements for conforming implementations.
 
-Presentation Identity governs:
 
-* DPM identity;
-* Presentation Node identity;
-* presentation versions;
-* identity continuity;
-* identity evolution;
-* identity integrity.
+## 4. Context and Responsibility
 
-Canonical identity remains defined by the UDM.
+Identity represents continuity of presentation objects independently of renderer instances, database rows and array positions.
 
----
+## 5. Conceptual Model
 
-# 3. Design Goals
+Identity kinds include `PresentationId`, `PresentationNodeId`, `PageId`, `RegionId`, `ReadingFlowId`, `StyleId`, `MappingId` and `CoordinateSpaceId`.
 
-Presentation Identity shall:
+Global references combine presentation scope and local identity. Compatible reconstruction SHOULD preserve identity when visual continuity remains.
 
-* provide stable identifiers;
-* remain deterministic;
-* remain renderer-independent;
-* support presentation evolution;
-* preserve traceability;
-* preserve synchronization.
+## 6. Normative Requirements
 
----
+**PRESENTATIONIDEN-R001** — Every independently referenceable presentation entity MUST have an immutable identity.
 
-# 4. Design Philosophy
+**PRESENTATIONIDEN-R002** — Identity MUST NOT depend on renderer object addresses, array indexes or storage rows.
 
-Presentation identity identifies presentation.
+**PRESENTATIONIDEN-R003** — Page and region identities SHOULD remain stable during compatible reprocessing.
 
-It never identifies knowledge.
+**PRESENTATIONIDEN-R004** — Split, merge and replacement operations MUST record lineage.
 
-Canonical knowledge identity belongs exclusively to the UDM.
+**PRESENTATIONIDEN-R005** — External source identifiers MUST be represented as aliases.
 
-The DPM owns only presentation identity.
+**PRESENTATIONIDEN-R006** — Retired identities MUST NOT be silently reused.
 
----
+## 7. Invariants
 
-# 5. Identity Hierarchy
+**PRESENTATIONIDEN-I001** — Identity is opaque.
 
-The identity hierarchy is:
+**PRESENTATIONIDEN-I002** — Identity survives serialization.
 
-```text
-Knowledge Object
-        │
-        ▼
-DPM
-        │
-        ▼
-Presentation Node
-```
+**PRESENTATIONIDEN-I003** — Lineage is acyclic.
 
-Every Presentation Node belongs to exactly one DPM.
+**PRESENTATIONIDEN-I004** — Aliases do not establish identity by themselves.
 
----
+## 8. Processing and Lifecycle Considerations
 
-# 6. Identity Components
+Presentation data is an immutable snapshot within a DPM version. Changes create a new version or a new derived view. Runtime caches, UI selection, window state and renderer-specific objects are never canonical DPM state.
 
-The DPM defines the following identifiers:
+Processors SHALL record inputs, configuration, implementation version, confidence where applicable and complete provenance. Reprocessing MAY replace derived presentation artifacts but SHALL preserve stable identities when presentation continuity remains.
 
-* DPMID
-* PresentationNodeID
-* PresentationVersionID
-* PresentationRevisionID
+## 9. Failure and Edge Cases
 
-Identifiers are immutable.
+A conforming implementation SHALL represent ambiguity explicitly. It MUST NOT invent coordinates, reading order, style semantics or UDM mappings without evidence. Partial reconstruction MAY be published only when validation marks unresolved regions and the consuming capability supports incomplete DPM.
 
----
+Security-sensitive inputs such as external style references, fonts, URLs and extension payloads SHALL be validated before use.
 
-# 7. DPM Identity
+## 10. Examples
 
-Every DPM owns:
+A page whose extracted dimensions are corrected keeps its PageId if it remains the same source page; a newly inserted editorial page receives a new identity.
 
-* DPMID;
-* KnowledgeObjectID;
-* VersionID;
-* CreationTimestamp.
+## 11. Compatibility and Evolution
 
-The DPMID remains stable throughout the lifetime of the presentation model.
+Backward-compatible changes MAY add optional attributes, types or mapping strategies. Changes that alter spatial semantics, identity, coordinate interpretation, reading-order meaning or UDM/DPM authority boundaries require a major version.
 
----
+Unknown optional extensions SHOULD be preserved. Unknown required semantics MUST produce an explicit incompatibility result.
 
-# 8. Presentation Node Identity
+## 12. Related Documents
 
-Every Presentation Node owns:
+- `../DPM.md`
+- `PresentationNodeModel.md`
+- `PresentationTypes.md`
+- `../Validation/ValidationRules.md`
 
-* PresentationNodeID;
-* PresentationType;
-* ParentPresentationNodeID;
-* VersionID.
+## 13. Status
 
-PresentationNodeID never changes.
-
----
-
-# 9. Identity Independence
-
-Presentation identity is completely independent from:
-
-* NodeID;
-* AnchorID;
-* RelationshipID;
-* AssetID.
-
-Cross-references are maintained through mappings.
-
-No identifier is shared.
-
----
-
-# 10. Version Evolution
-
-Presentation revisions create new PresentationVersionIDs.
-
-PresentationNodeIDs remain stable across compatible revisions.
-
-Presentation versions evolve independently from UDM versions.
-
----
-
-# 11. Relationship to the Knowledge Object
-
-Every DPM belongs to exactly one Knowledge Object.
-
-A Knowledge Object may own only one active DPM per presentation version.
-
-Historical presentation versions remain preserved.
-
----
-
-# 12. Relationship to the UDM
-
-Every DPM references one authoritative UDM.
-
-The DPM never changes:
-
-* canonical identity;
-* canonical version history;
-* canonical provenance.
-
-Both models evolve independently while remaining synchronized through the KnowledgeObjectID.
-
----
-
-# 13. Identity Integrity
-
-Identity integrity guarantees:
-
-* uniqueness;
-* immutability;
-* traceability;
-* deterministic reconstruction;
-* synchronization safety.
-
-Identity conflicts invalidate the DPM.
-
----
-
-# 14. Identity Resolution
-
-Presentation identifiers shall resolve deterministically.
-
-Resolution shall never depend on:
-
-* renderer;
-* platform;
-* display size;
-* zoom level;
-* device.
-
-Identity resolution is logical.
-
----
-
-# 15. Identity Lifecycle
-
-```text
-Created
-     │
-     ▼
-Active
-     │
-     ▼
-Versioned
-     │
-     ▼
-Archived
-```
-
-Identity remains valid throughout the complete lifecycle.
-
----
-
-# 16. Provenance
-
-Identity changes generate provenance events.
-
-Every identity-related event records:
-
-* previous version;
-* resulting version;
-* timestamp;
-* responsible process.
-
-Identity history is append-only.
-
----
-
-# 17. Synchronization
-
-Synchronization preserves:
-
-* DPMID;
-* PresentationNodeID;
-* presentation history;
-* provenance.
-
-Synchronization never generates new identities unless new presentation elements are created.
-
----
-
-# 18. Identity Invariants
-
-The following invariants apply:
-
-* DPMID is immutable;
-* PresentationNodeID is immutable;
-* identities are unique within a Knowledge Object;
-* presentation identity never replaces canonical identity;
-* presentation identity is deterministic;
-* historical identities remain resolvable.
-
----
-
-# 19. Related Documents
-
-* DPM.md
-* PresentationNodeModel.md
-* PresentationTypes.md
-* PresentationAttributes.md
-* ../Mapping/UDMMapping.md
-* ../../UDM/Core/Identity.md
-
----
-
-# 20. Status
-
-**Approved**
-
-This document defines the identity model of the Document Presentation Model.
-
-Presentation Identity guarantees stable identification of presentation elements while preserving complete independence from canonical knowledge and enabling deterministic versioning, synchronization and long-term evolution.
+This document is part of the KnowledgeOS DPM V4 release-candidate baseline. It becomes frozen after complete Domain review and conformance validation.

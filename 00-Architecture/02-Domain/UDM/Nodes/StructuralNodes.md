@@ -1,345 +1,87 @@
-# Structural Nodes
+# UDM Structural Nodes
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Universal Document Model
-
-**Document:** Structural Nodes
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Universal Document Model  
+**Document:** StructuralNodes  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Structural Nodes of the Universal Document Model (UDM).
+Specify nodes that organize semantic hierarchy and reading structure.
 
-Structural Nodes organize knowledge into a deterministic hierarchy.
+## 2. Scope
 
-They define **where knowledge is located**, but not **what the knowledge is**.
+Applies to canonical UDM instances, processors, validators and serializers.
 
----
+## 3. Normative Language
 
-# 2. Design Goals
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. A requirement identified by an invariant or rule identifier is testable and applies to every conforming implementation unless the rule explicitly limits its scope.
 
-Structural Nodes shall:
 
-* preserve logical organization;
-* remain independent of rendering;
-* support deterministic traversal;
-* support semantic enrichment;
-* support multiple renderers;
-* remain stable over time.
+## 4. Context and Responsibilities
 
----
+Structural nodes include document, part, chapter, section, subsection, frontMatter, body, backMatter, appendix, bibliography, index and tableOfContents.
 
-# 3. Design Philosophy
+## 5. Conceptual Model
 
-Structural Nodes organize content.
+Structural nodes form the canonical containment skeleton. They may carry titles, labels, language and source anchors but never page geometry.
 
-They never represent the content itself.
+## 6. Normative Requirements
 
-The actual information is represented by Content Nodes.
+**STRUCTURALNODES-R001** — Structural depth MUST reflect semantic organization rather than typography alone.
 
----
+**STRUCTURALNODES-R002** — Structural nodes MUST obey allowed-child schemas.
 
-# 4. Structural Hierarchy
+**STRUCTURALNODES-R003** — Empty structural nodes MAY exist only to preserve source evidence or incremental processing.
 
-```text
-Document
-│
-├── FrontMatter
-├── Chapter
-│     ├── Section
-│     │      ├── Paragraph
-│     │      ├── Table
-│     │      ├── Figure
-│     │      ├── List
-│     │      └── Quote
-│     │
-│     └── Section
-│
-└── BackMatter
-```
+**STRUCTURALNODES-R004** — Page boundaries MUST NOT define semantic section boundaries by themselves.
 
-The hierarchy is deterministic.
+**STRUCTURALNODES-R005** — A document MUST expose at least one root structural node.
 
----
+**STRUCTURALNODES-R006** — Structural labels and ordinals MUST remain distinct.
 
-# 5. Root Node
+## 7. Invariants
 
-Every UDM contains exactly one Document node.
+**STRUCTURALNODES-I001** — Containment remains acyclic.
 
-The Document node:
+**STRUCTURALNODES-I002** — Each structural node has stable identity.
 
-* owns the structural tree;
-* has no parent;
-* defines canonical ordering.
+**STRUCTURALNODES-I003** — Semantic order is explicit.
 
-There shall never be multiple Document nodes.
+**STRUCTURALNODES-I004** — DPM owns visual pagination.
 
----
+## 8. Failure and Edge Cases
 
-# 6. Front Matter
+A conforming implementation SHALL fail explicitly when it cannot preserve identity, provenance, semantic meaning or authority boundaries. It SHALL NOT repair uncertain input by silently inventing facts. Recoverable ambiguity MAY be represented through confidence, alternatives, unresolved references or validation findings.
 
-Represents introductory material.
+Failures SHALL be categorized as structural, semantic, compatibility, provenance, security or processing failures. Each failure SHALL identify the affected entity and the violated rule.
 
-Examples include:
+## 9. Examples
 
-* title page;
-* copyright;
-* abstract;
-* preface;
-* table of contents.
+A chapter containing three sections is represented through ordered children. A page break inside the second section does not create a new semantic section.
 
-Front Matter is optional.
+## 10. Compatibility and Evolution
 
----
+Changes to this contract SHALL follow semantic versioning at the specification level. Backward-compatible additions MAY introduce optional fields, types or relationships. Changes that alter required semantics, identity rules, authority boundaries or canonical interpretation require a major version.
 
-# 7. Back Matter
+Unknown optional extensions SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-Represents concluding material.
+## 11. Security and Privacy Considerations
 
-Examples include:
+Implementations SHALL treat imported data, extension payloads, external identifiers and generated semantic assertions as untrusted until validated. Personal Knowledge and restricted source material MUST respect scoped authority and execution policy. Remote processing MUST NOT occur without applicable authorization.
 
-* bibliography;
-* glossary;
-* index;
-* appendices;
-* acknowledgements.
+## 12. Related Documents
 
-Back Matter is optional.
+- `../Core/NodeModel.md`
+- `../Core/NodeTypes.md`
+- `../Core/Identity.md`
+- `../Validation/ValidationRules.md`
 
----
+## 13. Status
 
-# 8. Chapter
-
-Represents a major logical division.
-
-A Chapter may contain:
-
-* Sections;
-* Paragraphs;
-* Figures;
-* Tables;
-* Lists.
-
-Chapters are optional.
-
-Short documents may omit them.
-
----
-
-# 9. Section
-
-Represents a logical subdivision.
-
-Sections may contain:
-
-* Paragraphs;
-* Lists;
-* Figures;
-* Tables;
-* Quotes;
-* Subsections.
-
-Sections organize related knowledge.
-
----
-
-# 10. Paragraph
-
-The Paragraph is the primary structural container for written knowledge.
-
-A Paragraph contains **Content Nodes**.
-
-It never stores raw strings.
-
-Examples of allowed children:
-
-* Text;
-* Citation;
-* Hyperlink;
-* Formula;
-* InlineCode;
-* InlineImage;
-* Reference.
-
----
-
-# 11. List
-
-Represents an ordered or unordered collection.
-
-Lists contain ListItem nodes.
-
-ListItems contain Structural or Content Nodes.
-
----
-
-# 12. Table
-
-Represents tabular knowledge.
-
-Hierarchy:
-
-```text
-Table
-│
-├── TableRow
-│      ├── TableCell
-│      ├── TableCell
-│      └── ...
-│
-└── ...
-```
-
-Cells contain Structural Nodes.
-
----
-
-# 13. Figure
-
-Represents a logical visual unit.
-
-A Figure may contain:
-
-* Image Asset;
-* Caption;
-* Formula;
-* Diagram;
-* Media.
-
-Figures describe conceptual content rather than layout.
-
----
-
-# 14. Quote
-
-Represents quoted knowledge.
-
-Quotes preserve:
-
-* quotation boundaries;
-* attribution;
-* citations.
-
-Quotes contain Content Nodes.
-
----
-
-# 15. Sidebar
-
-Represents secondary information associated with nearby content.
-
-Examples:
-
-* notes;
-* warnings;
-* historical context;
-* implementation advice.
-
-Sidebars remain part of the canonical structure.
-
----
-
-# 16. Callout
-
-Represents emphasized knowledge.
-
-Examples:
-
-* warning;
-* important;
-* tip;
-* caution;
-* recommendation.
-
-Presentation is renderer-specific.
-
-Semantic meaning is canonical.
-
----
-
-# 17. Structural Invariants
-
-The following invariants apply.
-
-* Exactly one Document node.
-* Every structural node has exactly one parent.
-* Child order is deterministic.
-* Cycles are forbidden.
-* Structural nodes organize knowledge.
-* Structural nodes never contain raw binary data.
-* Structural nodes never contain plain strings.
-
----
-
-# 18. Structural Composition
-
-Structural Nodes contain either:
-
-* other Structural Nodes;
-* Content Nodes.
-
-They never directly contain Semantic Nodes or Annotation Nodes.
-
-Semantic and Annotation Nodes are attached through relationships defined elsewhere.
-
----
-
-# 19. Relationship to Other Node Categories
-
-| Category         | Relationship                           |
-| ---------------- | -------------------------------------- |
-| Content Nodes    | Embedded within structural nodes       |
-| Semantic Nodes   | Linked to structural/content nodes     |
-| Annotation Nodes | Anchored to structural/content nodes   |
-| Asset Nodes      | Referenced by structural/content nodes |
-| Virtual Nodes    | Generated from structural nodes        |
-
-Each category preserves its own responsibilities.
-
----
-
-# 20. Relationship to Rendering
-
-Render Engines interpret the structural hierarchy.
-
-The UDM never stores visual layout.
-
-Examples:
-
-* chapters may become pages;
-* sections may become collapsible panels;
-* paragraphs may flow across columns.
-
-Rendering is always derived.
-
----
-
-# 21. Related Documents
-
-* Core/NodeModel.md
-* Core/NodeTypes.md
-* InlineNodes.md
-* SemanticNodes.md
-* AnnotationNodes.md
-* AssetNodes.md
-* Anchors.md
-
----
-
-# 22. Status
-
-**Approved**
-
-This document defines the structural grammar of the Universal Document Model.
-
-Structural Nodes organize knowledge into a deterministic hierarchy while remaining independent of rendering technologies and physical document formats.
+This document is part of the KnowledgeOS UDM V4 release-candidate baseline. It becomes frozen after architectural review and validation against the complete Domain package.

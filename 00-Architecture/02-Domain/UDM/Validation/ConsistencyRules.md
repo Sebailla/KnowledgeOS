@@ -1,402 +1,106 @@
+# UDM Cross-Entity Consistency Rules
 
-# UDM Consistency Rules
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Universal Document Model
-
-**Document:** Consistency Rules
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Universal Document Model  
+**Document:** ConsistencyRules  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the consistency rules of the Universal Document Model (UDM).
+Specify invariants that require evaluating multiple entities or model dimensions together.
 
-Consistency ensures that individually valid components form a coherent and trustworthy Knowledge Object.
+## 2. Scope
 
-Validation answers:
+Covers containment, identity, relationships, anchors, provenance, temporal values, versions and authority layers.
 
-> "Is this element valid?"
+## 3. Normative Language
 
-Consistency answers:
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. A requirement identified by an invariant or rule identifier is testable and applies to every conforming implementation unless the rule explicitly limits its scope.
 
-> "Does the complete model make sense?"
 
----
+## 4. Context and Responsibilities
 
-# 2. Scope
+Field schemas cannot detect all contradictions. Consistency validation verifies agreement between parent and child links, relationship endpoints and types, anchors and target versions, provenance and authority, and version lineage.
 
-Consistency verification applies to:
+## 5. Conceptual Model
 
-* structural integrity;
-* identity coherence;
-* reference integrity;
-* semantic coherence;
-* annotation consistency;
-* asset consistency;
-* temporal consistency;
-* version consistency;
-* graph consistency.
+Consistency groups:
 
----
+- structural consistency;
+- identity consistency;
+- relationship consistency;
+- anchor consistency;
+- provenance consistency;
+- temporal consistency;
+- version consistency;
+- authority consistency.
 
-# 3. Design Principles
+## 6. Normative Requirements
 
-Consistency verification shall:
+**CONSISTENCYRULES-R001** — The document MUST have at least one root and no containment cycles.
 
-* preserve canonical knowledge;
-* never invent knowledge;
-* detect contradictions;
-* report every inconsistency;
-* remain deterministic;
-* remain reproducible.
+**CONSISTENCYRULES-R002** — Parent and child declarations MUST agree.
 
----
+**CONSISTENCYRULES-R003** — Child order MUST contain no duplicates.
 
-# 4. Consistency Levels
+**CONSISTENCYRULES-R004** — Relationship endpoint types MUST satisfy the relationship schema.
 
-```text
-Consistency
+**CONSISTENCYRULES-R005** — Evidence anchors MUST resolve to compatible target versions.
 
-├── Structural
-├── Referential
-├── Semantic
-├── Temporal
-├── Version
-├── Asset
-├── Annotation
-└── Graph
-```
+**CONSISTENCYRULES-R006** — Generated assertions MUST identify producing activity.
 
-Each level evaluates the complete model.
+**CONSISTENCYRULES-R007** — Personal authority MUST NOT be represented as source authority.
 
----
+**CONSISTENCYRULES-R008** — Version lineage MUST be acyclic.
 
-# 5. Structural Consistency
+**CONSISTENCYRULES-R009** — Temporal intervals MUST be coherent.
 
-The structural tree shall satisfy:
+**CONSISTENCYRULES-R010** — Tombstoned identities MUST NOT be reused.
 
-* exactly one root;
-* no cycles;
-* no orphan nodes;
-* deterministic ordering;
-* valid parent-child relationships;
-* complete reachability.
+## 7. Invariants
 
-Violation of structural consistency invalidates the UDM.
+**CONSISTENCYRULES-I001** — Cross-entity validation is mandatory before publication.
 
----
+**CONSISTENCYRULES-I002** — Consistency checks are non-mutating.
 
-# 6. Identity Consistency
+**CONSISTENCYRULES-I003** — Accepted exceptions require explicit versioned rules.
 
-Identity consistency requires:
+**CONSISTENCYRULES-I004** — Derived data cannot satisfy missing source provenance.
 
-* unique NodeIDs;
-* unique AnchorIDs;
-* unique RelationshipIDs;
-* stable VersionIDs;
-* immutable identities.
+**CONSISTENCYRULES-I005** — All internal references use the correct identity kind.
 
-Identity conflicts are fatal.
+## 8. Failure and Edge Cases
 
----
+A conforming implementation SHALL fail explicitly when it cannot preserve identity, provenance, semantic meaning or authority boundaries. It SHALL NOT repair uncertain input by silently inventing facts. Recoverable ambiguity MAY be represented through confidence, alternatives, unresolved references or validation findings.
 
-# 7. Referential Consistency
+Failures SHALL be categorized as structural, semantic, compatibility, provenance, security or processing failures. Each failure SHALL identify the affected entity and the violated rule.
 
-Every reference shall resolve.
+## 9. Examples
 
-This includes:
+A node listing a child that points to another parent fails structural consistency even if each individual node is schema-valid.
 
-* Node references;
-* Anchor references;
-* Asset references;
-* Semantic references;
-* Relationship endpoints.
+## 10. Compatibility and Evolution
 
-No dangling references are permitted.
+Changes to this contract SHALL follow semantic versioning at the specification level. Backward-compatible additions MAY introduce optional fields, types or relationships. Changes that alter required semantics, identity rules, authority boundaries or canonical interpretation require a major version.
 
----
+Unknown optional extensions SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-# 8. Semantic Consistency
+## 11. Security and Privacy Considerations
 
-Semantic information shall remain coherent.
+Implementations SHALL treat imported data, extension payloads, external identifiers and generated semantic assertions as untrusted until validated. Personal Knowledge and restricted source material MUST respect scoped authority and execution policy. Remote processing MUST NOT occur without applicable authorization.
 
-Examples:
+## 12. Related Documents
 
-* referenced ontology concepts exist;
-* relationship types are valid;
-* semantic classifications are compatible;
-* inferred knowledge preserves provenance.
+- `ValidationRules.md`
+- `../Core/Identity.md`
+- `../Nodes/Anchors.md`
+- `../Graph/RelationshipModel.md`
 
-Semantic contradictions are reported without modifying canonical knowledge.
+## 13. Status
 
----
-
-# 9. Temporal Consistency
-
-Temporal information shall satisfy:
-
-* valid intervals;
-* compatible event ordering;
-* valid temporal precision;
-* consistent temporal relationships.
-
-Temporal reasoning shall never contradict canonical timestamps.
-
----
-
-# 10. Version Consistency
-
-Version history shall be coherent.
-
-Requirements:
-
-* append-only history;
-* valid parent versions;
-* immutable historical revisions;
-* continuous identity.
-
-No version gaps are permitted.
-
----
-
-# 11. Annotation Consistency
-
-Annotations shall satisfy:
-
-* valid Anchors;
-* valid authorship;
-* compatible annotation type;
-* existing targets;
-* preserved provenance.
-
-Annotations referencing deleted elements shall become unresolved rather than reassigned.
-
----
-
-# 12. Asset Consistency
-
-Assets shall satisfy:
-
-* existing AssetID;
-* compatible media type;
-* valid integrity hash;
-* valid repository reference.
-
-Asset Nodes and Assets shall remain synchronized.
-
----
-
-# 13. Graph Consistency
-
-Graph projections shall satisfy:
-
-* every vertex references an existing canonical element;
-* every edge references an existing Relationship;
-* ontology references are valid;
-* projection metadata matches the current UDM version.
-
-Graph inconsistencies invalidate only the projection, never the UDM.
-
----
-
-# 14. Projection Consistency
-
-Every derived projection shall correspond to the current canonical version.
-
-Affected projections shall be regenerated after:
-
-* canonical modifications;
-* migrations;
-* synchronization;
-* ontology evolution;
-* reasoning rule changes.
-
----
-
-# 15. Cross-Layer Consistency
-
-The following layers shall remain synchronized:
-
-```text
-UDM
- │
- ├── Semantic Layer
- ├── Annotation Layer
- ├── Asset Layer
- ├── Relationship Layer
- └── Projection Layer
-```
-
-Each layer has independent responsibilities while remaining logically coherent.
-
----
-
-# 16. Consistency Verification Order
-
-Consistency verification shall execute in the following order:
-
-1. Structural
-2. Identity
-3. Referential
-4. Temporal
-5. Semantic
-6. Annotation
-7. Asset
-8. Version
-9. Projection
-
-Earlier failures may prevent subsequent stages.
-
----
-
-# 17. Incremental Consistency
-
-Incremental verification evaluates only the affected region.
-
-Dependencies shall be recalculated automatically.
-
-The result shall be identical to a complete verification of the affected scope.
-
----
-
-# 18. Synchronization Consistency
-
-Synchronization shall preserve:
-
-* identity;
-* version history;
-* provenance;
-* canonical content;
-* relationships.
-
-Conflicts shall never be resolved silently.
-
----
-
-# 19. Import Consistency
-
-Imported Knowledge Objects shall satisfy canonical consistency before entering the Knowledge Library.
-
-Temporary inconsistencies may exist only during controlled import pipelines.
-
----
-
-# 20. Export Consistency
-
-Exported representations shall originate from a consistent canonical UDM.
-
-Export formats may impose additional validation, but shall not weaken canonical consistency.
-
----
-
-# 21. Migration Consistency
-
-Schema migrations shall preserve:
-
-* identity;
-* canonical meaning;
-* provenance;
-* version history;
-* temporal information.
-
-Every migration shall produce a consistent UDM.
-
----
-
-# 22. Extension Consistency
-
-Extensions shall preserve all core consistency guarantees.
-
-Extensions shall not:
-
-* redefine identity;
-* bypass validation;
-* weaken structural integrity;
-* alter canonical semantics.
-
----
-
-# 23. Consistency Reports
-
-Every verification run shall generate a report containing:
-
-* ReportID;
-* timestamp;
-* UDM version;
-* evaluated rules;
-* detected inconsistencies;
-* severity;
-* repair recommendations.
-
-Reports are diagnostic artifacts.
-
----
-
-# 24. Automatic Repair
-
-Automatic repair is permitted only when:
-
-* deterministic;
-* lossless;
-* traceable;
-* versioned.
-
-Automatic repair shall never invent canonical knowledge.
-
----
-
-# 25. Consistency Invariants
-
-The following invariants always apply:
-
-* the UDM has exactly one canonical state;
-* identity remains immutable;
-* canonical knowledge is never altered by verification;
-* every reference is resolvable;
-* every projection derives from canonical knowledge;
-* provenance remains complete;
-* consistency verification is deterministic.
-
----
-
-# 26. Relationship to Validation
-
-Validation verifies individual correctness.
-
-Consistency verifies global coherence.
-
-Both processes are mandatory.
-
-Neither replaces the other.
-
----
-
-# 27. Related Documents
-
-* ValidationRules.md
-* ../Core/Identity.md
-* ../Core/TemporalModel.md
-* ../Graph/RelationshipModel.md
-* ../Graph/GraphModel.md
-* ../Graph/Ontology.md
-* ../Processing/ProcessingPipeline.md
-
----
-
-# 28. Status
-
-**Approved**
-
-This document defines the consistency requirements of the Universal Document Model.
-
-A Knowledge Object is considered authoritative only when its canonical UDM is both valid and globally consistent according to this specification.
+This document is part of the KnowledgeOS UDM V4 release-candidate baseline. It becomes frozen after architectural review and validation against the complete Domain package.

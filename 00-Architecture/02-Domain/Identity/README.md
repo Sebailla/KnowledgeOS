@@ -1,473 +1,600 @@
-# Identity
+# Identity Model
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Identity
-
-**Document:** README
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Identity  
+**Document:** README  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This section defines the Domain identity model of KnowledgeOS.
+This document defines the universal identity model of KnowledgeOS.
 
-Identity allows every significant Domain entity to remain distinguishable across:
+Identity is the foundation for persistence, acquisition, provenance, versioning, anchoring, relationships, synchronization, migration, export and recovery.
 
-* storage locations;
-* file renames;
-* synchronization;
-* serialization;
-* version changes;
-* representation changes;
-* application restarts;
-* device boundaries.
+The model ensures that domain entities retain continuity independently of filenames, paths, storage engines, devices, databases, renderers and external providers.
 
-Identity is a logical Domain property.
+## 2. Scope
 
-It shall not be derived solely from a mutable path, display name, storage address or presentation position.
+This specification applies to:
 
----
-
-# 2. Scope
-
-The Identity model governs identity for:
-
-* Knowledge Objects;
-* UDM Nodes;
-* DPM Presentation Nodes;
-* Assets;
-* Anchors;
-* Relationships;
-* Versions;
-* Sources where persistent distinction is required.
-
-This section also defines the relationship between:
-
-* identity;
-* identifiers;
-* references;
-* addresses;
-* paths;
-* Versions.
+- Master Libraries;
+- Local Libraries;
+- Knowledge Objects;
+- works;
+- expressions;
+- manifestations;
+- source items;
+- UDM documents;
+- UDM nodes;
+- DPM presentations;
+- DPM nodes;
+- assets;
+- annotations;
+- relationships;
+- anchors;
+- versions;
+- workflows;
+- external identifiers;
+- plugin-defined entities.
 
 It does not define:
 
-* authentication identities;
-* user-account identity;
-* Provider credentials;
-* Runtime Operation Identity;
-* Job Identity;
-* Attempt Identity;
-* storage-key implementation details.
+- authentication identity;
+- user login protocols;
+- OAuth subjects;
+- database primary-key implementation;
+- filesystem naming;
+- device enrollment.
 
-Execution identities are governed by `../../06-Execution/Runtime/ExecutionContext.md` and `../../06-Execution/Runtime/ExecutionModel.md`.
+Those concerns MAY reference domain identities but SHALL NOT redefine them.
 
----
+## 3. Normative Language
 
-# 3. Core Principle
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-The fundamental principle is:
+## 4. Identity Principles
 
-> Domain identity describes what an entity is, independently of where or how it is currently stored, rendered or accessed.
+### 4.1 Stability
 
-The complementary principle is:
+An identity SHALL remain stable while the represented entity retains semantic continuity.
 
-> Mutable location, display and representation data shall never become the sole identity of canonical knowledge.
+### 4.2 Opacity
 
----
+Consumers SHALL treat identifiers as opaque.
 
-# 4. Identity Model
+The character representation SHALL NOT encode business rules that consumers depend upon.
 
-KnowledgeOS distinguishes four concepts:
+### 4.3 Independence
+
+Domain identity SHALL be independent of:
+
+- filesystem path;
+- filename;
+- NAS location;
+- local device location;
+- database row;
+- table name;
+- object memory address;
+- array index;
+- URL routing;
+- UI state;
+- synchronization session;
+- provider identifier.
+
+### 4.4 Non-Reuse
+
+An identity SHALL NOT be silently reused after deletion, archival or replacement.
+
+### 4.5 Scoped Authority
+
+Identity assignment SHALL occur under an explicit authority scope.
+
+### 4.6 Traceable Lineage
+
+Split, merge, replacement and migration SHALL preserve predecessor and successor relationships.
+
+## 5. Identity Kinds
+
+KnowledgeOS defines distinct identity kinds.
+
+| Identity | Represents |
+|---|---|
+| `LibraryId` | Master or Local Library |
+| `KnowledgeObjectId` | Persistent knowledge aggregate |
+| `WorkId` | Abstract intellectual work |
+| `ExpressionId` | Intellectual realization of a work |
+| `ManifestationId` | Publication embodiment |
+| `SourceItemId` | Acquired or preserved item |
+| `UDMDocumentId` | Canonical semantic document |
+| `UDMNodeId` | Semantic node |
+| `DPMDocumentId` | Canonical presentation |
+| `DPMNodeId` | Presentation node |
+| `AssetId` | Binary or external asset |
+| `AnnotationId` | Personal annotation |
+| `RelationshipId` | Typed relationship |
+| `AnchorId` | Stable target selector |
+| `VersionId` | Entity version |
+| `WorkflowId` | Durable workflow instance |
+| `TypeId` | Registered type |
+| `ExternalIdentity` | Namespaced external identifier |
+
+Identity kinds SHALL NOT be used interchangeably.
+
+## 6. Identity Representation
+
+The logical contract exposes opaque strings.
+
+A canonical URI MAY be used for exchange:
 
 ```text
-Identity
-   │
-   ├── Identifier
-   ├── Reference
-   ├── Address
-   └── Path
+kos://{authority}/{identity-kind}/{identity}
 ```
 
-These concepts are related but not interchangeable.
+Examples:
 
----
+```text
+kos://master/library/01J...
+kos://domain/knowledge-object/01J...
+kos://udm/document/01J...
+kos://udm/document/01J.../node/01J...
+kos://personal/annotation/01J...
+```
 
-# 5. Identity
+URI form does not imply network location.
 
-Identity is the stable logical distinction of an entity from all other entities within its defined scope.
+Implementations MAY use UUID, ULID, content-derived identifiers or another encoding when all invariants are satisfied.
 
-Identity remains valid when the entity:
+## 7. Authority Scopes
 
-* moves;
-* is renamed;
-* receives a new Version;
-* is synchronized;
-* is rendered differently;
-* is serialized into another supported representation.
+Identity authority is scoped.
 
----
+### 7.1 Master Library Authority
 
-# 6. Identifier
+The Master Library assigns authoritative identities for:
 
-An Identifier is a value used to represent Identity.
+- Master Catalog records;
+- source publications;
+- master source items;
+- master metadata versions;
+- publication availability records.
 
-An Identifier shall be:
+### 7.2 Local Library Authority
 
-* unique within its declared scope;
-* stable for the supported lifetime of the entity;
-* serializable where persistence requires it;
-* independent from mutable presentation data.
+A Local Library assigns identities for:
 
-The architecture does not require one universal physical identifier format for every entity category.
+- locally discovered source items;
+- local acquisition records;
+- local derived artifacts;
+- local operational entities.
 
----
+An acquired publication SHOULD retain references to Master Library identities when available.
 
-# 7. Reference
+### 7.3 Personal Authority
 
-A Reference points to an identifiable entity.
+The user or originating Local Library assigns identities for:
 
-A Reference may be:
+- annotations;
+- highlights;
+- notes;
+- personal relationships;
+- personal collections;
+- reading progress records;
+- personal AI artifacts.
 
-* direct;
-* indirect;
-* local;
-* external;
-* resolved;
-* unresolved.
+These identities participate in personal synchronization.
 
-A Reference does not imply ownership.
+### 7.4 Processing Authority
 
----
+Processors assign identities for:
 
-# 8. Address
+- UDM nodes;
+- DPM nodes;
+- derived relationships;
+- embeddings;
+- validation reports;
+- workflow outputs.
 
-An Address describes where an entity can currently be reached.
+Processor-assigned identities require deterministic or persistent assignment rules.
+
+## 8. Deterministic Identity
+
+Deterministic identity SHOULD be used when stable source evidence exists and reprocessing continuity is required.
+
+A deterministic identity function SHALL use:
+
+- a stable namespace;
+- authoritative parent identity;
+- stable source selector or semantic key;
+- algorithm version;
+- collision-resistant encoding.
+
+It SHALL NOT use:
+
+- transient offsets without context;
+- processing order alone;
+- database sequence numbers;
+- timestamps alone;
+- random UI-generated values when stable source evidence exists.
+
+Changing the deterministic algorithm requires explicit migration or versioning.
+
+## 9. Random Identity
+
+Random identity MAY be used when:
+
+- no stable source evidence exists;
+- the entity is user-created;
+- the entity first appears during interactive work;
+- deterministic assignment would expose sensitive information;
+- persistence begins before semantic classification.
+
+Once assigned and published, the identity becomes immutable.
+
+## 10. Content-Derived Identity
+
+A checksum MAY identify byte content.
+
+A content-derived identity SHALL NOT automatically identify:
+
+- a Work;
+- an Expression;
+- a Manifestation;
+- a Knowledge Object;
+- a semantic node.
+
+Identical bytes may belong to distinct acquisitions.
+
+Different bytes may represent the same work or expression.
+
+Checksums are evidence, not universal semantic identity.
+
+## 11. External Identifiers
 
 Examples include:
 
-* storage locator;
-* Provider endpoint;
-* local database key;
-* object-storage address.
+- DOI;
+- ISBN;
+- ISSN;
+- ORCID;
+- PMID;
+- arXiv ID;
+- URL;
+- file checksum;
+- publisher identifier;
+- Wikidata ID.
 
-An Address may change while Identity remains stable.
+External identifiers SHALL contain:
 
----
+- namespace;
+- value;
+- issuer when applicable;
+- verification status;
+- provenance;
+- validity interval when applicable.
 
-# 9. Path
+An external identifier is an alias or mapping.
 
-A Path identifies a location in a hierarchical namespace or file system.
+It SHALL NOT replace KnowledgeOS identity.
 
-Paths are mutable operational data.
+## 12. Identity Resolution
 
-A Path shall not be treated as permanent Knowledge Object Identity.
+Resolution converts a reference into an entity or resolution result.
 
----
+Possible results are:
 
-# 10. Knowledge Object Identity
+- resolved;
+- unresolved;
+- ambiguous;
+- retired;
+- migrated;
+- unauthorized;
+- unavailable.
 
-Every Knowledge Object shall have one stable Knowledge Object Identity.
+Ambiguity SHALL NOT be silently collapsed.
 
-Knowledge Object Identity remains stable across:
+Resolution MAY use:
 
-* source-file rename;
-* source-file movement;
-* local-replica relocation;
-* synchronization;
-* derived representation generation;
-* Knowledge Object Version changes.
+- direct registry lookup;
+- lineage;
+- alias mapping;
+- provenance;
+- checksum;
+- source anchor;
+- external provider;
+- migration records.
 
-A new Version of the same Knowledge Object shall not automatically create a new Knowledge Object Identity.
+## 13. Identity and Acquisition
 
----
+Publication acquisition from Master to Local SHALL preserve:
 
-# 11. UDM Node Identity
+- Master `KnowledgeObjectId` or publication identity;
+- source `ManifestationId`;
+- source `SourceItemId` where applicable;
+- acquisition identity;
+- local item identity;
+- provenance;
+- checksum.
 
-Every persistent UDM Node shall have identity according to the rules defined in `../UDM/Core/Identity.md`.
+The local copy is not a Master Library replica.
 
-UDM Node Identity supports:
+A Local Library MAY use its own `SourceItemId` while preserving the Master source reference.
 
-* Anchors;
-* Relationships;
-* annotations;
-* incremental processing;
-* deterministic serialization;
-* Version comparison.
+Acquisition SHALL be idempotent for the same acquisition request identity.
 
-Node Identity is scoped to the governing Knowledge Object and UDM identity model unless explicitly defined otherwise.
+## 14. Identity and Personal Synchronization
 
----
+Personal-state synchronization SHALL preserve Personal Knowledge identities across devices.
 
-# 12. DPM Presentation Identity
+A synchronized annotation remains the same annotation.
 
-DPM Presentation Nodes use Presentation Identity as defined in `../DPM/Core/PresentationIdentity.md`.
+Conflict versions SHALL NOT receive unrelated identities merely because they exist on different devices.
 
-Presentation Identity shall remain distinct from UDM Node Identity.
+Tombstones or deletion records SHALL preserve the retired identity long enough to achieve convergence.
 
-A DPM Node may reference a UDM Node without becoming that UDM Node.
+The synchronization provider does not own identity.
 
----
+## 15. Identity and Versioning
 
-# 13. Asset Identity
-
-Every managed Asset requiring stable reference shall have Asset Identity.
-
-Asset Identity shall not depend solely on:
-
-* filename;
-* local path;
-* Render location;
-* temporary processing address.
-
-Content-derived hashes may support integrity or deduplication but do not automatically replace Domain Identity.
-
----
-
-# 14. Anchor Identity
-
-Anchors provide stable reference to a meaningful target within knowledge structure.
-
-Anchor Identity shall survive compatible representation changes according to `../UDM/Nodes/Anchors.md`.
-
-An Anchor is not equivalent to:
-
-* byte offset;
-* page coordinate;
-* temporary selection range.
-
----
-
-# 15. Relationship Identity
-
-Relationships requiring persistence, Versioning or independent reference shall have stable Relationship Identity.
-
-Relationship Identity remains distinct from the identities of its source and target entities.
-
----
-
-# 16. Version Identity
-
-A Version identifies one governed state of an entity.
-
-Version Identity shall remain distinct from entity Identity.
+Entity identity and version identity are distinct.
 
 ```text
-Knowledge Object Identity
-        │
-        ├── Version A
-        ├── Version B
-        └── Version C
+Entity
+├── entityId
+└── versions[]
+    ├── versionId
+    ├── parentVersionIds[]
+    ├── createdAt
+    ├── provenance
+    └── state
 ```
 
-The Knowledge Object remains the same logical entity while its Versions differ.
+A modification normally creates a new `VersionId` while retaining the entity identity.
 
----
+A material replacement creates a new entity identity and lineage relationship.
 
-# 17. Source Identity
+## 16. Identity and Reprocessing
 
-A Source may have stable identity when KnowledgeOS must distinguish it across repeated ingestion or synchronization.
+Compatible reprocessing SHOULD preserve identities.
 
-Source Identity shall not be confused with Knowledge Object Identity.
+Identity continuity exists when:
 
-Multiple Sources may contribute to one Knowledge Object, and one Source may produce several distinct Knowledge Objects where the Import contract permits it.
+- source evidence remains equivalent;
+- semantic role remains equivalent;
+- the entity remains traceably the same;
+- processor changes do not alter entity boundaries materially.
 
----
+When one entity splits:
 
-# 18. Identity Creation
+- successor entities receive new identities;
+- each records predecessor lineage.
 
-Identity shall be created by the architectural owner of the entity category.
+When entities merge:
 
-Identity creation shall be:
+- the successor receives a new identity;
+- all predecessors remain traceable.
 
-* deterministic where the contract requires deterministic reconstruction;
-* collision-resistant within the required scope;
-* independent from presentation;
-* observable for diagnostics without exposing unnecessary private data.
+## 17. Identity and Anchors
 
----
+Anchors have their own identities.
 
-# 19. Identity Immutability
+An anchor identity remains stable while its attachment intention remains the same, even when resolution changes.
 
-Once assigned to a persistent Domain entity, Identity shall not change merely because descriptive or operational data changes.
+Anchor resolution history SHALL preserve:
 
-Identity replacement is permitted only through an explicit migration or entity-replacement operation.
+- original target version;
+- original selector;
+- resolution candidates;
+- accepted resolution;
+- re-anchoring reason;
+- timestamp;
+- processor or user provenance.
 
----
+## 18. Identity and Deletion
 
-# 20. Identity Comparison
+Deletion does not erase identity history.
 
-Identity comparison shall use the canonical identifier semantics of the entity category.
+The system SHALL distinguish:
 
-Display labels, normalized names and paths shall not be used as substitutes for identity equality.
+- active;
+- archived;
+- tombstoned;
+- deleted;
+- purged.
 
----
+A tombstone preserves minimum information necessary for synchronization, lineage and non-reuse.
 
-# 21. Identity Serialization
+Purging SHALL follow explicit retention and privacy policy.
 
-Persistent identities shall be serialized explicitly.
+Purged identities SHALL NOT be reassigned.
 
-Deserialization shall validate:
+## 19. Identity and Privacy
 
-* identifier format;
-* identity scope;
-* compatibility;
-* required references.
+Identifiers SHOULD avoid embedding personal information.
 
-A malformed identifier shall not be silently replaced with a newly generated identity when doing so would break referential integrity.
+Public or exported identifiers SHALL NOT expose:
 
----
+- usernames;
+- email addresses;
+- device serial numbers;
+- filesystem paths;
+- private NAS hostnames;
+- access tokens;
+- provider secrets.
 
-# 22. Identity and Synchronization
+Cross-domain correlation risk SHOULD be considered when exposing stable identifiers externally.
 
-Synchronization shall preserve canonical Domain identities across replicas.
+Pseudonymous export identities MAY be generated while preserving a reversible local mapping when policy permits.
 
-Synchronization shall not create a new Knowledge Object Identity merely because an entity appears on another device.
+## 20. Identity Registry
 
-Conflicting entities with accidentally duplicated identifiers shall enter reconciliation rather than being merged blindly.
+An implementation MAY maintain one or more registries.
 
----
+A registry maps identity to:
 
-# 23. Identity and Import
+- kind;
+- authority;
+- lifecycle status;
+- current version;
+- aliases;
+- lineage;
+- location hints;
+- resolution policy.
 
-Import shall distinguish between:
+Location hints are not identity.
 
-* repeated import of the same Source;
-* new Version of an existing Knowledge Object;
-* independent new Knowledge Object;
-* duplicate content with separate user meaning.
+Registry storage is replaceable.
 
-Content equality alone does not always imply identity equality.
+The logical identity contract is independent from the registry database.
 
----
+## 21. Collision Handling
 
-# 24. Identity and Deletion
+An identity collision is a critical integrity error.
 
-Deletion or archival does not permit immediate reuse of a stable Identifier for an unrelated entity.
+The system SHALL:
 
-Identifier reuse is prohibited where historical references, synchronization or audit semantics may still exist.
+1. stop publication of the conflicting entity;
+2. preserve both inputs;
+3. record the collision;
+4. determine authority;
+5. create corrected identities if required;
+6. preserve lineage and audit history.
 
----
+It SHALL NOT silently overwrite one entity.
 
-# 25. Identity and Privacy
+## 22. Migration
 
-Identifiers shall avoid embedding unnecessary private user information.
+Migration SHALL preserve identity whenever semantics remain unchanged.
 
-Identifiers exposed through Public APIs or Plugins shall follow the relevant contract and capability boundaries.
+Migration records include:
 
----
+- source identity;
+- target identity if changed;
+- source schema version;
+- target schema version;
+- migration component;
+- timestamp;
+- reason;
+- verification result.
 
-# 26. Validation Requirements
+Bulk migration SHALL be restartable and idempotent.
 
-Identity validation shall verify:
+## 23. Serialization
 
-* required presence;
-* valid format;
-* uniqueness within scope;
-* stable reference resolution;
-* no prohibited path-derived identity;
-* Version Identity separation;
-* UDM and DPM identity separation.
+Serialized identity references SHALL include enough type and scope information to prevent kind confusion.
 
----
+Internal references SHALL use identity, never array position.
 
-# 27. Testing Requirements
+Unknown identity kinds in optional extensions SHOULD be preserved.
 
-Identity shall be tested across:
+Malformed or unsupported required identity semantics MUST fail validation.
 
-* file rename;
-* file movement;
-* local-replica relocation;
-* application restart;
-* serialization round trip;
-* synchronization;
-* Version creation;
-* duplicate import;
-* conflicting identifier detection;
-* reference restoration.
+## 24. Validation
 
----
+Validation SHALL detect:
 
-# 28. Identity Invariants
+- duplicate identity;
+- invalid kind;
+- invalid scope;
+- missing authority;
+- incorrect reference kind;
+- unresolved required reference;
+- cyclic lineage;
+- illegal reuse;
+- malformed namespace;
+- alias conflict;
+- invalid tombstone state.
 
-The following invariants apply.
+Validation is deterministic and non-mutating.
 
-* Identity is distinct from location.
-* Identity is distinct from display name.
-* Identity is distinct from Version.
-* Paths are not permanent Domain Identity.
-* Knowledge Object Identity survives compatible Version changes.
-* UDM Node Identity and DPM Presentation Identity remain distinct.
-* Asset Identity does not depend solely on filename or path.
-* Anchors are not raw byte offsets or temporary coordinates.
-* Persistent identifiers are not reused for unrelated entities.
-* Synchronization preserves Domain identities.
-* Malformed identity does not trigger silent identity replacement.
-* Content equality does not automatically imply identity equality.
+## 25. Core Invariants
 
----
+**ID-I001** — Domain identity is immutable.
 
-# 29. Prohibited Behaviors
+**ID-I002** — Identity is independent from storage location.
 
-KnowledgeOS shall never:
+**ID-I003** — Identity is opaque to consumers.
 
-* use a mutable file path as the sole Knowledge Object Identity;
-* change Domain Identity because an entity was renamed or moved;
-* reuse an existing stable Identifier for an unrelated entity;
-* treat Version Identity as entity Identity;
-* treat DPM Presentation Identity as UDM Node Identity;
-* infer identity equality solely from display name;
-* merge conflicting synchronized identities blindly;
-* regenerate missing persistent identities silently when references would break;
-* embed unnecessary private user data into identifiers;
-* let Provider-specific storage keys become canonical Domain Identity accidentally.
+**ID-I004** — Identity kinds are not interchangeable.
 
----
+**ID-I005** — Retired identities are never silently reused.
 
-# 30. Related Documents
+**ID-I006** — Identity authority is explicit.
 
-## Domain
+**ID-I007** — Version identity is distinct from entity identity.
 
-* `../DomainModel.md`
-* `../KnowledgeObject/KnowledgeObject.md`
-* `../KnowledgeObject/Versioning.md`
-* `../UDM/Core/Identity.md`
-* `../UDM/Nodes/Anchors.md`
-* `../DPM/Core/PresentationIdentity.md`
+**ID-I008** — External identifiers are aliases, not replacements.
 
-## Integration
+**ID-I009** — Lineage is preserved.
 
-* `../../05-Integration/DataExchange/Serialization.md`
-* `../../05-Integration/Synchronization/README.md`
+**ID-I010** — Lineage is acyclic.
 
-## Execution
+**ID-I011** — Collisions are explicit integrity failures.
 
-* `../../06-Execution/Runtime/ExecutionContext.md`
-* `../../06-Execution/Runtime/ExecutionModel.md`
+**ID-I012** — Personal identities remain user-owned.
 
-## Governance
+**ID-I013** — Synchronization preserves identity.
 
-* `../../08-Governance/ArchitectureVocabulary.md`
+**ID-I014** — Acquisition preserves source references.
 
----
+**ID-I015** — Runtime and database identifiers are not domain identities.
 
-# 31. Status
+## 26. Example
 
-**Approved**
+```text
+Master Publication:
+  KnowledgeObjectId: ko:master:01J-A
+  ManifestationId: manifestation:01J-B
+  SourceItemId: source:master:01J-C
 
-This document defines the Domain identity model of KnowledgeOS.
+Local Acquisition:
+  AcquisitionId: acquisition:local:01J-D
+  KnowledgeObjectRef: ko:master:01J-A
+  SourceManifestationRef: manifestation:01J-B
+  LocalSourceItemId: source:local:01J-E
+  Checksum: sha256:...
 
-Identity remains stable independently from path, location, display name, storage implementation, presentation and Version.
+Personal Annotation:
+  AnnotationId: annotation:personal:01J-F
+  TargetAnchorId: anchor:01J-G
+  PublicationRef: ko:master:01J-A
+```
 
-Knowledge Object Identity, UDM Node Identity, DPM Presentation Identity, Asset Identity, Anchor Identity and Version Identity remain explicitly scoped and semantically distinct.
+## 27. Extension Model
 
-KnowledgeOS therefore preserves referential integrity across import, serialization, synchronization, representation changes and long-term evolution without allowing mutable operational addresses to become canonical identity.
+Plugins MAY define new identity kinds only through approved namespaced contracts.
+
+An extension identity kind SHALL define:
+
+- namespace;
+- entity meaning;
+- authority;
+- scope;
+- lifecycle;
+- serialization;
+- validation;
+- compatibility;
+- privacy considerations.
+
+Extensions SHALL NOT override core identity kinds.
+
+## 28. Related Documents
+
+- `../DomainModel.md`
+- `../KnowledgeObject/KnowledgeObject.md`
+- `../KnowledgeObject/Versioning.md`
+- `../KnowledgeObject/Provenance.md`
+- `../UDM/Core/Identity.md`
+- `../DPM/Core/PresentationIdentity.md`
+- `../KnowledgeGraph/README.md`
+- `../../04-Platform/Library/README.md`
+- `../../04-Platform/Sync/README.md`
+- `../../05-Integration/DataExchange/Serialization.md`
+
+## 29. Status
+
+This document is the rector domain specification for KnowledgeOS Identity V4.

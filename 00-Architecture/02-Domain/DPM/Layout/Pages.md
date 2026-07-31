@@ -1,268 +1,90 @@
+# Page Model
 
-# Pages
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Document Presentation Model
-
-**Document:** Pages
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Document Presentation Model  
+**Document:** Pages  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Page model of the Document Presentation Model (DPM).
+Specify bounded presentation surfaces and page-level properties.
 
-Pages organize presentation elements into logical visual compositions.
+## 2. Scope
 
-Pages represent presentation structure only.
+Applies to DPM layout analysis, reconstruction, rendering and validation.
 
-They never represent canonical knowledge.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Rules identified by stable identifiers are testable requirements for conforming implementations.
 
-# 2. Scope
 
-Pages define:
+## 4. Context and Responsibility
 
-* visual composition;
-* page boundaries;
-* layout containers;
-* reading regions;
-* page metadata;
-* page sequencing.
+A page represents a source, generated, virtual or print presentation surface. It has identity, coordinate space, extent, bleed or crop metadata, child regions and provenance.
 
-Canonical document structure remains defined by the UDM.
+## 5. Conceptual Model
 
----
+Pages may be fixed-size or generated. Page sequence is explicit and distinct from semantic order.
 
-# 3. Design Goals
+## 6. Normative Requirements
 
-Pages shall:
+**PAGES-R001** — Every page MUST own or reference one coordinate space.
 
-* preserve presentation intent;
-* remain renderer-independent;
-* support faithful reconstruction;
-* support adaptive rendering;
-* remain deterministic;
-* support multiple page organizations.
+**PAGES-R002** — Page extent MUST be finite and non-negative.
 
----
+**PAGES-R003** — Source page references MUST identify the source version.
 
-# 4. Design Philosophy
+**PAGES-R004** — Page sequence MUST be explicit.
 
-A Page represents a logical presentation surface.
+**PAGES-R005** — A virtual page MUST declare its generation purpose.
 
-It does not represent:
+**PAGES-R006** — Page boundaries MUST NOT redefine UDM semantics.
 
-* a PDF page;
-* a printed sheet;
-* a screen;
-* a viewport.
+## 7. Invariants
 
-Those are rendering concerns.
+**PAGES-I001** — Page identity is stable.
 
----
+**PAGES-I002** — Extent is explicit.
 
-# 5. Conceptual Model
+**PAGES-I003** — Page order is deterministic.
 
-```text
-Document
-      │
-      ▼
-Page
-      │
-      ▼
-Regions
-```
+**PAGES-I004** — A page is presentation, not semantic structure.
 
-Pages organize presentation.
+## 8. Processing and Lifecycle Considerations
 
-They do not contain canonical knowledge.
+Presentation data is an immutable snapshot within a DPM version. Changes create a new version or a new derived view. Runtime caches, UI selection, window state and renderer-specific objects are never canonical DPM state.
 
----
+Processors SHALL record inputs, configuration, implementation version, confidence where applicable and complete provenance. Reprocessing MAY replace derived presentation artifacts but SHALL preserve stable identities when presentation continuity remains.
 
-# 6. Page Identity
+## 9. Failure and Edge Cases
 
-Every Page owns:
+A conforming implementation SHALL represent ambiguity explicitly. It MUST NOT invent coordinates, reading order, style semantics or UDM mappings without evidence. Partial reconstruction MAY be published only when validation marks unresolved regions and the consuming capability supports incomplete DPM.
 
-* PresentationNodeID;
-* PageNumber (logical);
-* PageType;
-* VersionID.
+Security-sensitive inputs such as external style references, fonts, URLs and extension payloads SHALL be validated before use.
 
-Identity remains immutable.
+## 10. Examples
 
-Logical page numbering is independent of rendering.
+A PDF page maps to a source page space measured in points; a responsive reflow DPM may have no fixed pages.
 
----
+## 11. Compatibility and Evolution
 
-# 7. Page Categories
+Backward-compatible changes MAY add optional attributes, types or mapping strategies. Changes that alter spatial semantics, identity, coordinate interpretation, reading-order meaning or UDM/DPM authority boundaries require a major version.
 
-Typical Page Types include:
+Unknown optional extensions SHOULD be preserved. Unknown required semantics MUST produce an explicit incompatibility result.
 
-* Cover;
-* Title Page;
-* Chapter Opening;
-* Content Page;
-* Appendix;
-* References;
-* Index;
-* Back Cover.
+## 12. Related Documents
 
-Extensions may define additional page categories.
+- `../DPM.md`
+- `../Core/PresentationNodeModel.md`
+- `LayoutGraph.md`
+- `ReadingFlow.md`
+- `../Validation/ConsistencyRules.md`
 
----
+## 13. Status
 
-# 8. Page Composition
-
-Pages are composed of Presentation Regions.
-
-Typical regions include:
-
-* header;
-* footer;
-* content area;
-* margin area;
-* sidebar;
-* floating region.
-
-Regions define the usable presentation space.
-
----
-
-# 9. Reading Order
-
-Page order alone does not define reading order.
-
-Reading progression is determined by the Reading Flow model.
-
-Pages participate in reading without defining it.
-
----
-
-# 10. Page Boundaries
-
-Pages define logical boundaries for presentation.
-
-Boundaries determine:
-
-* where presentation begins;
-* where presentation ends;
-* region containment;
-* layout continuity.
-
-Boundaries never modify canonical knowledge.
-
----
-
-# 11. Multi-Page Elements
-
-Presentation elements may span multiple Pages.
-
-Typical examples:
-
-* large figures;
-* tables;
-* code listings;
-* diagrams.
-
-The Layout Graph preserves continuity.
-
----
-
-# 12. Adaptive Rendering
-
-Render Engines may:
-
-* merge pages;
-* split pages;
-* resize pages;
-* ignore pages.
-
-Presentation intent shall remain recognizable.
-
-The canonical DPM is unchanged.
-
----
-
-# 13. Relationship to Regions
-
-Every Page contains one or more Regions.
-
-Regions define internal organization.
-
-Pages own Regions through containment.
-
----
-
-# 14. Relationship to the Layout Graph
-
-Pages participate in the Layout Graph.
-
-Spatial relationships between Regions may cross page boundaries.
-
-The Layout Graph remains authoritative for spatial organization.
-
----
-
-# 15. Relationship to the UDM
-
-Pages reference canonical UDM elements through Presentation Nodes.
-
-The UDM never depends on Pages.
-
-Pages never modify canonical content.
-
----
-
-# 16. Validation
-
-A valid Page shall satisfy:
-
-* unique Page identity;
-* valid Region hierarchy;
-* deterministic ordering;
-* valid Layout Graph participation.
-
----
-
-# 17. Invariants
-
-The following invariants apply:
-
-* Pages organize presentation only.
-* Pages never contain canonical knowledge.
-* Every Page belongs to exactly one DPM.
-* Every Page contains at least one Region.
-* Page identity is immutable.
-* Page ordering is deterministic.
-
----
-
-# 18. Related Documents
-
-* LayoutGraph.md
-* Regions.md
-* ReadingFlow.md
-* ../Core/PresentationNodeModel.md
-* ../Core/PresentationTypes.md
-* ../../UDM/UDM.md
-
----
-
-# 19. Status
-
-**Approved**
-
-This document defines the Page model of the Document Presentation Model.
-
-Pages provide logical visual organization while remaining independent of rendering technologies and preserving presentation intent.
+This document is part of the KnowledgeOS DPM V4 release-candidate baseline. It becomes frozen after complete Domain review and conformance validation.

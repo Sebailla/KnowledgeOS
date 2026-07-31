@@ -1,270 +1,90 @@
 # Layout Graph
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Document Presentation Model
-
-**Document:** Layout Graph
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Document Presentation Model  
+**Document:** LayoutGraph  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Layout Graph of the Document Presentation Model (DPM).
+Specify graph relationships among presentation entities.
 
-The Layout Graph represents the spatial organization of presentation elements.
+## 2. Scope
 
-It defines visual relationships independently of rendering technologies.
+Applies to DPM layout analysis, reconstruction, rendering and validation.
 
-The Layout Graph never represents canonical knowledge.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Rules identified by stable identifiers are testable requirements for conforming implementations.
 
-# 2. Scope
 
-The Layout Graph models:
+## 4. Context and Responsibility
 
-* spatial relationships;
-* reading progression;
-* containment relationships;
-* visual adjacency;
-* page organization;
-* layout continuity.
+The layout graph captures spatial, alignment, containment-adjacent and flow relations independent of node containment.
 
-Semantic relationships remain exclusively defined by the UDM.
+## 5. Conceptual Model
 
----
+Edges include above, below, leftOf, rightOf, overlaps, alignedWith, adjacentTo, flowsTo, anchoredTo and occludes.
 
-# 3. Design Goals
+## 6. Normative Requirements
 
-The Layout Graph shall:
+**LAYOUTGRAPH-R001** — Every edge MUST have valid endpoints.
 
-* preserve presentation intent;
-* remain deterministic;
-* remain renderer-independent;
-* support faithful reconstruction;
-* support adaptive rendering;
-* support multiple reading experiences.
+**LAYOUTGRAPH-R002** — Spatial relations MUST declare coordinate context.
 
----
+**LAYOUTGRAPH-R003** — Inferred edges MUST record confidence and provenance.
 
-# 4. Design Philosophy
+**LAYOUTGRAPH-R004** — Symmetric relations MUST declare symmetry.
 
-The Layout Graph describes where visual elements exist relative to one another.
+**LAYOUTGRAPH-R005** — Contradictory relations MUST be reported.
 
-It never describes what those elements mean.
+**LAYOUTGRAPH-R006** — Graph edges MUST NOT replace explicit reading flows.
 
-Meaning belongs to the UDM.
+## 7. Invariants
 
-Presentation belongs to the DPM.
+**LAYOUTGRAPH-I001** — Endpoints resolve.
 
----
+**LAYOUTGRAPH-I002** — Edge identity is stable.
 
-# 5. Conceptual Architecture
+**LAYOUTGRAPH-I003** — Graph projection is deterministic.
 
-```text
-Knowledge Object
-        │
-        ├── UDM
-        │
-        └── DPM
-               │
-               ▼
-         Layout Graph
-```
+**LAYOUTGRAPH-I004** — Authority and provenance are explicit.
 
-The Layout Graph is the spatial model of the DPM.
+## 8. Processing and Lifecycle Considerations
 
----
+Presentation data is an immutable snapshot within a DPM version. Changes create a new version or a new derived view. Runtime caches, UI selection, window state and renderer-specific objects are never canonical DPM state.
 
-# 6. Graph Components
+Processors SHALL record inputs, configuration, implementation version, confidence where applicable and complete provenance. Reprocessing MAY replace derived presentation artifacts but SHALL preserve stable identities when presentation continuity remains.
 
-The Layout Graph consists of:
+## 9. Failure and Edge Cases
 
-* Presentation Nodes;
-* Spatial Relationships;
-* Reading Flow;
-* Layout Metadata.
+A conforming implementation SHALL represent ambiguity explicitly. It MUST NOT invent coordinates, reading order, style semantics or UDM mappings without evidence. Partial reconstruction MAY be published only when validation marks unresolved regions and the consuming capability supports incomplete DPM.
 
-Each component contributes to presentation reconstruction.
+Security-sensitive inputs such as external style references, fonts, URLs and extension payloads SHALL be validated before use.
 
----
+## 10. Examples
 
-# 7. Spatial Relationships
+Two text frames can be alignedLeft and adjacentTo while reading flow still traverses another frame between them.
 
-The DPM defines the following core spatial relationships:
+## 11. Compatibility and Evolution
 
-* LEFT_OF
-* RIGHT_OF
-* ABOVE
-* BELOW
-* INSIDE
-* CONTAINS
-* OVERLAPS
-* ALIGNS_WITH
-* ADJACENT_TO
+Backward-compatible changes MAY add optional attributes, types or mapping strategies. Changes that alter spatial semantics, identity, coordinate interpretation, reading-order meaning or UDM/DPM authority boundaries require a major version.
 
-Relationships are directional unless explicitly defined otherwise.
+Unknown optional extensions SHOULD be preserved. Unknown required semantics MUST produce an explicit incompatibility result.
 
----
+## 12. Related Documents
 
-# 8. Reading Relationships
+- `../DPM.md`
+- `../Core/PresentationNodeModel.md`
+- `LayoutGraph.md`
+- `ReadingFlow.md`
+- `../Validation/ConsistencyRules.md`
 
-Reading progression is represented through dedicated relationships.
+## 13. Status
 
-Examples include:
-
-* NEXT_IN_FLOW
-* PREVIOUS_IN_FLOW
-* CONTINUES_IN
-* RETURNS_TO
-* START_OF_FLOW
-* END_OF_FLOW
-
-Reading Flow remains independent from page order.
-
----
-
-# 9. Page Relationships
-
-Page-level relationships describe document continuity.
-
-Examples:
-
-* STARTS_ON_PAGE
-* ENDS_ON_PAGE
-* SPANS_PAGE
-* CONTINUES_ON_NEXT_PAGE
-
-These relationships describe presentation only.
-
----
-
-# 10. Region Relationships
-
-Regions may relate through:
-
-* nested containment;
-* adjacency;
-* overlap;
-* shared boundaries;
-* synchronized flow.
-
-Regions organize presentation without changing canonical content.
-
----
-
-# 11. Graph Properties
-
-Every Layout Graph relationship may include:
-
-* priority;
-* direction;
-* ordering;
-* constraint type;
-* confidence;
-* provenance.
-
-Properties describe layout behavior.
-
----
-
-# 12. Deterministic Layout
-
-Equivalent DPM instances shall produce equivalent Layout Graphs.
-
-Layout reconstruction shall not depend on:
-
-* device resolution;
-* operating system;
-* rendering engine;
-* display technology.
-
----
-
-# 13. Adaptive Rendering
-
-Render Engines may adapt presentation while preserving the Layout Graph.
-
-Adaptation may include:
-
-* column reduction;
-* page resizing;
-* font substitution;
-* margin adjustment.
-
-Spatial intent shall remain recognizable.
-
----
-
-# 14. Relationship to Reading Flow
-
-Reading Flow is derived from the Layout Graph.
-
-Visual adjacency alone does not define reading order.
-
-Reading order is explicitly represented.
-
----
-
-# 15. Relationship to UDM
-
-Presentation Nodes participating in the Layout Graph reference canonical UDM elements.
-
-The Layout Graph never modifies the UDM.
-
-The UDM never depends on the Layout Graph.
-
----
-
-# 16. Validation
-
-A valid Layout Graph shall satisfy:
-
-* connected presentation structure;
-* valid Presentation Node references;
-* valid spatial relationships;
-* deterministic ordering;
-* no invalid cycles in reading flow.
-
----
-
-# 17. Invariants
-
-The following invariants apply:
-
-* the Layout Graph represents presentation only;
-* every relationship connects valid Presentation Nodes;
-* spatial relationships are deterministic;
-* reading flow is explicitly represented;
-* the Layout Graph remains renderer-independent.
-
----
-
-# 18. Related Documents
-
-* DPM.md
-* ../Core/PresentationNodeModel.md
-* ../Core/PresentationTypes.md
-* Pages.md
-* Regions.md
-* ReadingFlow.md
-* SpatialRelationships.md
-
----
-
-# 19. Status
-
-**Approved**
-
-This document defines the Layout Graph of the Document Presentation Model.
-
-The Layout Graph provides a deterministic, renderer-independent representation of the spatial organization of presentation elements while preserving the author's presentation intent.
+This document is part of the KnowledgeOS DPM V4 release-candidate baseline. It becomes frozen after complete Domain review and conformance validation.
