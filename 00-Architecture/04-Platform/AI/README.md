@@ -1,475 +1,137 @@
-
 # AI Engine
 
-**Project:** KnowledgeOS
-
-**Section:** Platform
-
-**Engine:** Artificial Intelligence
-
-**Document:** Engine Architecture
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Platform  
+**Document:** AIEngine  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the architecture of the Artificial Intelligence Engine.
+Define policy-controlled local and remote AI orchestration, derived artifacts, provenance and validation.
 
-The AI Engine augments canonical knowledge through intelligent capabilities while preserving the authority of the Document Digital Twin.
+## 2. Scope
 
-Artificial Intelligence assists knowledge.
+Covers summarization, extraction, classification, recommendation, assistance and provider-neutral model execution.
 
-It never becomes authoritative knowledge.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-# 2. Scope
 
-The AI Engine governs:
+## 4. Responsibility and Boundaries
 
-* reasoning;
-* summarization;
-* classification;
-* extraction;
-* translation;
-* recommendation;
-* conversation;
-* AI provider orchestration.
+AI Engine owns:
 
-The AI Engine does not govern:
+- AI task contracts;
+- provider selection;
+- local/remote execution policy;
+- context assembly;
+- prompt/template management;
+- model invocation;
+- provenance;
+- result validation;
+- AI artifact lifecycle;
+- privacy enforcement.
 
-* canonical knowledge;
-* document organization;
-* rendering;
-* search indexing;
-* synchronization;
-* version management.
+AI output is derived or personal until explicitly accepted through an approved workflow.
 
----
+AI SHALL NOT own canonical knowledge or identity.
 
-# 3. Position within the Platform
-
-The AI Engine consumes canonical knowledge through the Knowledge Engine and retrieval capabilities through the Search Engine.
+## 5. Conceptual Model
 
 ```text
-Knowledge Engine
-        │
-        ▼
-Search Engine
-        │
-        ▼
-AI Engine
-        │
-        ▼
-AI Results
+AIEngine
+├── TaskService
+├── ContextBuilder
+├── PolicyEvaluator
+├── ProviderRegistry
+├── PromptRegistry
+├── ResultValidator
+├── AIArtifactRepository
+└── AI events
 ```
 
-The AI Engine never owns canonical knowledge.
+## 6. Normative Requirements
 
----
+**AIENGINE-R001** — AI MUST remain optional.
 
-# 4. Mission
+**AIENGINE-R002** — Provider selection MUST obey privacy, capability and cost policy.
 
-The mission of the AI Engine is to provide intelligent assistance while preserving the integrity, traceability and authority of canonical knowledge.
+**AIENGINE-R003** — Remote execution MUST require authorization for transmitted content.
 
-AI augments knowledge.
+**AIENGINE-R004** — Every result MUST record provider, model, configuration, input references and timestamp.
 
-It never replaces it.
+**AIENGINE-R005** — AI output MUST not become canonical automatically.
 
----
+**AIENGINE-R006** — Personal AI artifacts MUST remain Personal Knowledge.
 
-# 5. Design Philosophy
+**AIENGINE-R007** — Deterministic tasks SHOULD use deterministic processing when possible.
 
-Artificial Intelligence is an execution capability.
+**AIENGINE-R008** — Unsupported confidence claims MUST not be fabricated.
 
-Knowledge remains authoritative.
+**AIENGINE-R009** — Prompts and templates MUST be versioned.
 
-Every AI-generated result is considered derived information.
+**AIENGINE-R010** — Sensitive context MUST be minimized and redacted according to policy.
 
-Derived information shall always remain distinguishable from canonical knowledge.
+**AIENGINE-R011** — Provider failures SHOULD permit approved fallback.
 
----
+**AIENGINE-R012** — AI artifacts MUST be invalidated when source or model dependencies change.
 
-# 6. Architectural Goals
+## 7. Invariants
 
-The AI Engine shall:
+**AIENGINE-I001** — AI is non-authoritative by default.
 
-* remain provider-independent;
-* support multiple AI capabilities;
-* preserve provenance;
-* expose confidence metadata;
-* remain deterministic where applicable;
-* remain extensible.
+**AIENGINE-I002** — Provenance is mandatory.
 
----
+**AIENGINE-I003** — Providers are replaceable.
 
-# 7. Primary Managed Artifact
+**AIENGINE-I004** — Personal content remains protected.
 
-The primary managed artifact is the AI Result.
+**AIENGINE-I005** — Canonical identity does not depend on model output.
 
-An AI Result contains:
+**AIENGINE-I006** — Derived AI artifacts are rebuildable.
 
-* AI Result Identifier;
-* Capability;
-* Provider;
-* Model;
-* Prompt Template Identifier;
-* Context References;
-* Output;
-* Confidence Metadata;
-* Provenance.
+## 8. Commands, Queries, Events and Workflows
 
-AI Results are never canonical knowledge.
+Commands include `GenerateSummary`, `ExtractEntities`, `ClassifyDocument`, `CreateFlashcards`, `SuggestRelationships` and `InvalidateAIArtifact`.
 
----
+Queries include `GetAIArtifact`, `GetAvailableModels`, `EstimateTaskPolicy` and `GetTaskStatus`.
 
-# 8. AI Capabilities
+Events include `AITaskQueued`, `AIArtifactGenerated`, `AIResultRejected`, `AIProviderUnavailable` and `AIArtifactInvalidated`.
 
-The AI Engine exposes capabilities rather than concrete models.
+Long-running tasks use Job System or Workflow Engine.
 
-Typical capabilities include:
+## 9. Failure, Recovery and Degradation
 
-* Summarization;
-* Classification;
-* Entity Extraction;
-* Translation;
-* Question Answering;
-* Recommendation;
-* Semantic Analysis;
-* Content Generation.
+Provider timeout or quota failure SHALL preserve task state and allow retry or fallback. Invalid or unsafe output SHALL be rejected while retaining diagnostic provenance without exposing sensitive prompt content.
 
-Capabilities remain stable.
+## 10. Security, Privacy and Observability
 
-Providers remain replaceable.
+Every Engine SHALL enforce authorization and privacy at its public boundary. Personal Knowledge, publication content, credentials and provider secrets MUST NOT be exposed through logs, metrics, traces or events beyond the minimum approved scope.
 
----
+Each significant operation SHALL propagate correlation identity and expose diagnosable progress without transferring business ownership to the Kernel.
 
-# 9. Relationship with the Knowledge Engine
+## 11. Examples
 
-The Knowledge Engine owns canonical knowledge.
+A local model generates a summary stored as a Personal AI artifact. It syncs through Personal Knowledge if enabled, never becoming Master Library metadata.
 
-The AI Engine consumes canonical knowledge through explicit contracts.
+## 12. Compatibility and Evolution
 
-The AI Engine never modifies canonical models directly.
+Public contracts SHALL be versioned. Backward-compatible changes MAY add optional operations, fields or events. Changes to ownership, authority, lifecycle, identity, delivery guarantees or privacy boundaries require architectural review and, when significant, an ADR.
 
----
+## 13. Related Documents
 
-# 10. Relationship with the Search Engine
+- `../README.md`
+- `../Knowledge/README.md`
+- `../../02-Domain/KnowledgeGraph/README.md`
+- `../../03-Kernel/JobSystem.md`
+- `../../05-Integration/Providers/AIProviders.md`
 
-The Search Engine retrieves Knowledge References.
+## 14. Status
 
-The AI Engine consumes those references to build execution context.
-
-Retrieval and reasoning remain independent.
-
----
-
-# 11. Relationship with the Kernel
-
-The AI Engine delegates execution through:
-
-* Commands;
-* Queries;
-* Events;
-* Jobs.
-
-Execution orchestration belongs to the Kernel.
-
----
-
-# 12. Relationship with Other Engines
-
-The AI Engine interacts with other Platform Engines exclusively through Kernel contracts.
-
-Direct Engine-to-Engine communication is prohibited.
-
----
-
-# 13. Engine Boundaries
-
-The AI Engine owns:
-
-* AI capability orchestration;
-* provider selection;
-* context preparation;
-* execution coordination;
-* AI result generation;
-* provenance recording.
-
-The AI Engine never owns:
-
-* canonical knowledge;
-* search indexes;
-* rendering;
-* synchronization;
-* user interface.
-
----
-
-# 14. Success Criteria
-
-An AI operation is considered successful when it produces traceable, reproducible and explainable derived results while preserving the integrity and authority of canonical knowledge.
-
----
-
-
-
-# 15. AI Execution Pipeline
-
-Every AI Request follows a deterministic orchestration pipeline.
-
-Artificial Intelligence operates on curated execution contexts rather than directly on source documents or canonical models.
-
-```text
-AI Request
-        │
-        ▼
-Request Analysis
-        │
-        ▼
-Capability Planning
-        │
-        ▼
-Context Building
-        │
-        ▼
-Provider Selection
-        │
-        ▼
-AI Execution
-        │
-        ▼
-AI Result
-        │
-        ▼
-(Optional)
-Knowledge Command
-```
-
-The AI Engine coordinates execution.
-
-Canonical knowledge remains unchanged unless an explicit command is accepted by the Knowledge Engine.
-
----
-
-# 16. Request Analysis
-
-Every AI Request is classified before execution.
-
-Typical request categories include:
-
-* Summarization;
-* Translation;
-* Question Answering;
-* Explanation;
-* Comparison;
-* Classification;
-* Recommendation;
-* Generation.
-
-Request Analysis determines which AI capabilities are required.
-
----
-
-# 17. Capability Planning
-
-The Capability Planner transforms an AI Request into an execution plan.
-
-Planning determines:
-
-* required capabilities;
-* execution sequence;
-* provider constraints;
-* local or remote execution;
-* parallelization opportunities.
-
-Execution plans remain reproducible.
-
----
-
-# 18. Context Building
-
-The AI Engine never consumes complete documents by default.
-
-Instead, it constructs an AI Context using:
-
-* Knowledge References;
-* canonical metadata;
-* retrieved passages;
-* relevant annotations;
-* execution parameters.
-
-The AI Context contains only the information required for the requested capability.
-
----
-
-# 19. Provider Selection
-
-Providers implement AI capabilities.
-
-Examples include:
-
-* Local MLX models;
-* Ollama;
-* OpenAI;
-* Anthropic;
-* Google Gemini;
-* future providers.
-
-Provider selection remains independent from AI capabilities.
-
-Providers are fully replaceable.
-
----
-
-# 20. AI Execution
-
-Execution is delegated to the selected Provider.
-
-Execution records include:
-
-* provider;
-* model;
-* model version;
-* execution time;
-* token usage;
-* configuration parameters;
-* execution status.
-
-Execution remains observable and reproducible.
-
----
-
-# 21. AI Results
-
-Every execution produces an AI Result.
-
-An AI Result contains:
-
-* output;
-* confidence metadata;
-* provenance;
-* supporting references;
-* execution metadata.
-
-AI Results are derived artifacts.
-
-They never become canonical knowledge automatically.
-
----
-
-# 22. Knowledge Integration
-
-When an AI Result proposes modifications to canonical knowledge, the proposal shall be submitted through explicit Knowledge Engine commands.
-
-Typical commands include:
-
-* CreateKnowledge;
-* UpdateKnowledge;
-* CreateAnnotation;
-* AddRelationship.
-
-Acceptance remains a separate operation.
-
----
-
-# 23. Commands
-
-Typical Commands include:
-
-* ExecuteCapability;
-* CancelExecution;
-* RefreshContext;
-* SelectProvider.
-
-Commands coordinate AI execution only.
-
----
-
-# 24. Events
-
-Typical Events include:
-
-* AIExecutionStarted;
-* AIExecutionCompleted;
-* AIExecutionFailed;
-* ContextBuilt;
-* ProviderSelected.
-
-Events describe completed execution activities.
-
----
-
-# 25. Queries
-
-Typical Queries include:
-
-* GetAIResult;
-* GetExecutionStatus;
-* GetAvailableCapabilities;
-* GetAvailableProviders;
-* ExplainAIExecution.
-
-Queries never modify canonical knowledge.
-
----
-
-# 26. Observability
-
-AI telemetry includes:
-
-* execution duration;
-* token consumption;
-* provider utilization;
-* latency;
-* cost estimation;
-* context size;
-* failure rate.
-
-Operational telemetry supports optimization and diagnostics.
-
----
-
-# 27. Engine Invariants
-
-The following invariants apply.
-
-* AI never owns canonical knowledge.
-* AI never modifies canonical knowledge directly.
-* Every execution uses an explicit AI Context.
-* Every AI Result preserves provenance.
-* Providers remain replaceable.
-* Capabilities remain provider-independent.
-* AI Results remain derived artifacts.
-* Canonical acceptance requires explicit Knowledge Engine commands.
-
----
-
-# 28. Related Documents
-
-* Capabilities.md
-* ContextBuilder.md
-* ProviderSelection.md
-* PromptTemplates.md
-* AIProviders.md
-* Commands.md
-* Events.md
-* Queries.md
-* ../Knowledge/README.md
-* ../Search/README.md
-
----
-
-# 29. Status
-
-**Approved**
-
-This document defines the architectural model of the AI Engine.
-
-The AI Engine augments canonical knowledge through deterministic capability orchestration, curated execution contexts and replaceable providers while preserving provenance, reproducibility and the authority of the Knowledge Engine.
+This document is part of the KnowledgeOS Platform V4 release-candidate baseline.

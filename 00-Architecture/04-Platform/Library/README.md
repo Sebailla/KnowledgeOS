@@ -1,505 +1,144 @@
-
 # Library Engine
 
-**Project:** KnowledgeOS
-
-**Section:** Platform
-
-**Engine:** Library
-
-**Document:** Engine Architecture
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Platform  
+**Document:** LibraryEngine  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the architecture of the Library Engine.
+Define Master Library and selective Local Library management, catalog membership, acquisition coordination, availability and integrity.
 
-The Library Engine organizes Document Digital Twins into user-defined organizational structures.
+## 2. Scope
 
-The Library Engine never owns canonical knowledge.
+Covers library semantics on NAS and clients. Excludes parsing, Personal synchronization, rendering and provider implementation.
 
-It owns only organizational metadata.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-# 2. Scope
 
-The Library Engine governs:
+## 4. Responsibility and Boundaries
 
-* collections;
-* folders;
-* tags;
-* workspaces;
-* favorites;
-* organizational views;
-* user organization metadata.
+Library Engine owns:
 
-The Library Engine does not govern:
+- Master Catalog semantics;
+- Master publication registration and availability;
+- Local Library membership;
+- local availability;
+- explicit publication acquisition;
+- library integrity;
+- repository-facing library contracts;
+- library recovery.
 
-* canonical knowledge;
-* rendering;
-* search indexing;
-* synchronization;
-* artificial intelligence;
-* document import.
+It does not own source parsing, OCR, Personal synchronization, UI navigation or storage-provider implementation.
 
----
+The Master Library and Local Libraries are independent library scopes. A Local Library is not a replica of the Master Library.
 
-# 3. Position within the Platform
-
-The Library Engine provides organizational capabilities built upon canonical knowledge.
+## 5. Conceptual Model
 
 ```text
-          Knowledge Engine
-                 │
-                 ▼
-          Library Engine
-                 │
-        ┌────────┼────────┐
-        ▼        ▼        ▼
- Collections  Tags  Workspaces
+LibraryEngine
+├── MasterCatalogService
+├── MasterPublicationService
+├── LocalLibraryService
+├── AcquisitionCoordinator
+├── AvailabilityService
+├── IntegrityService
+├── LibraryRepository contracts
+└── Library events
 ```
 
-The Knowledge Engine remains the authoritative owner of every Document Digital Twin.
+Authority is scoped:
 
----
+- Master Catalog and source publications: NAS Master Library.
+- Local membership and availability: device Local Library.
+- Personal Knowledge: user and Sync Engine convergence.
 
-# 4. Mission
+## 6. Normative Requirements
 
-The mission of the Library Engine is to provide flexible, user-centric organization of knowledge without modifying the underlying canonical models.
+**LIBRARYENGINE-R001** — The Master Library MUST remain authoritative for Master Catalog and source publications.
 
-Organization is personal.
+**LIBRARYENGINE-R002** — Local Library membership MUST remain device-specific.
 
-Knowledge is canonical.
+**LIBRARYENGINE-R003** — Master-to-Local transfer MUST be modeled as explicit acquisition.
 
----
+**LIBRARYENGINE-R004** — Acquisition MUST preserve identity, provenance, version and integrity.
 
-# 5. Design Philosophy
+**LIBRARYENGINE-R005** — Library Engine MUST NOT write Personal Knowledge to the NAS.
 
-The Library Engine organizes references to knowledge.
+**LIBRARYENGINE-R006** — Library Engine MUST support offline Local Library operation.
 
-It never organizes files.
+**LIBRARYENGINE-R007** — Local scanning results MUST be registered through approved Import contracts.
 
-It never owns canonical information.
+**LIBRARYENGINE-R008** — A publication MAY be available on one device and absent on another.
 
----
+**LIBRARYENGINE-R009** — Local eviction MUST NOT remove Master publication identity or Personal Knowledge.
 
-# 6. Architectural Goals
+**LIBRARYENGINE-R010** — Repository failures MUST not redefine library authority.
 
-The Library Engine shall:
+**LIBRARYENGINE-R011** — Acquisition retries MUST be idempotent.
 
-* support multiple organizational models;
-* preserve canonical independence;
-* remain technology-independent;
-* support scalable organization;
-* support user customization;
-* remain extensible.
+**LIBRARYENGINE-R012** — Library integrity checks MUST be observable and recoverable.
 
----
+## 7. Invariants
 
-# 7. Primary Managed Artifact
+**LIBRARYENGINE-I001** — Master and Local Libraries are not replicas.
 
-The primary managed artifact is the **Library Reference**.
+**LIBRARYENGINE-I002** — Acquisition is not synchronization.
 
-A Library Reference links organizational structures to a Document Digital Twin.
+**LIBRARYENGINE-I003** — Personal Knowledge is outside Master authority.
 
-A Library Reference never contains canonical knowledge.
+**LIBRARYENGINE-I004** — Library membership is explicit.
 
----
+**LIBRARYENGINE-I005** — Identity survives acquisition.
 
-# 8. Organizational Structures
+**LIBRARYENGINE-I006** — Local operation remains offline-capable.
 
-The Library Engine supports multiple organizational structures including:
+## 8. Commands, Queries, Events and Workflows
 
-* folders;
-* collections;
-* smart collections;
-* tags;
-* favorites;
-* workspaces;
-* custom organizational groups.
+Commands include `RegisterMasterPublication`, `RequestAcquisition`, `RemoveLocalPublication`, `EvictLocalPayload`, `ArchiveMasterPublication` and `VerifyLibraryIntegrity`.
 
-These structures may coexist.
+Queries include `BrowseMasterCatalog`, `GetLocalAvailability`, `ListLocalLibrary`, `ResolvePublication` and `GetAcquisitionStatus`.
 
-No single structure is authoritative.
+Events include `PublicationRegistered`, `AcquisitionRequested`, `PublicationAcquired`, `LocalPayloadEvicted`, `LibraryIntegrityFailed` and `MasterPublicationArchived`.
 
----
+Acquisition uses a durable workflow involving Library, Import and processing capabilities.
 
-# 9. Collection Model
+## 9. Failure, Recovery and Degradation
 
-Collections contain references to Document Digital Twins.
+Interrupted acquisition SHALL be resumable. Corrupt payloads SHALL be isolated and reported. Local metadata and Personal Knowledge SHOULD remain recoverable when payloads are evicted or reacquired.
 
-Collections never duplicate knowledge.
+NAS unavailability SHALL not prevent normal use of locally available publications.
 
-A single Digital Twin may belong to multiple collections simultaneously.
+## 10. Security, Privacy and Observability
 
----
+Every Engine SHALL enforce authorization and privacy at its public boundary. Personal Knowledge, publication content, credentials and provider secrets MUST NOT be exposed through logs, metrics, traces or events beyond the minimum approved scope.
 
-# 10. Smart Collections
+Each significant operation SHALL propagate correlation identity and expose diagnosable progress without transferring business ownership to the Kernel.
 
-Smart Collections are dynamic organizational views.
+## 11. Examples
 
-Their content is determined by explicit queries rather than manual membership.
+A Mac scans an existing EPUB and registers it locally without consulting NAS. Later the user browses the Master Catalog and acquires a missing PDF. Both become Local Library members through different import sources.
 
-Examples include:
+## 12. Compatibility and Evolution
 
-* Recently Imported
-* Favorites
-* Scientific Papers
-* Medical Articles
-* Documents Tagged "Research"
+Public contracts SHALL be versioned. Backward-compatible changes MAY add optional operations, fields or events. Changes to ownership, authority, lifecycle, identity, delivery guarantees or privacy boundaries require architectural review and, when significant, an ADR.
 
-Membership changes automatically as the underlying knowledge evolves.
+## 13. Related Documents
 
----
+- `../README.md`
+- `../../02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `../../02-Domain/KnowledgeLifecycle.md`
+- `../Import/README.md`
+- `../Sync/README.md`
+- `../../03-Kernel/WorkflowEngine.md`
 
-# 11. Relationship with the Knowledge Engine
+## 14. Status
 
-The Library Engine consumes Document Digital Twin identifiers and metadata.
-
-Canonical knowledge remains exclusively managed by the Knowledge Engine.
-
-The Library Engine never modifies canonical models.
-
----
-
-# 12. Relationship with the Kernel
-
-The Library Engine delegates execution through:
-
-* Commands;
-* Queries;
-* Events;
-* Workflows.
-
-Execution coordination belongs to the Kernel.
-
----
-
-# 13. Relationship with Other Engines
-
-The Library Engine may request capabilities from other Engines through Kernel contracts.
-
-It never invokes Platform Engines directly.
-
-Direct Engine coupling is prohibited.
-
----
-
-# 14. Engine Boundaries
-
-The Library Engine owns:
-
-* organizational structures;
-* organizational metadata;
-* user-defined grouping;
-* organizational preferences.
-
-It never owns:
-
-* canonical models;
-* search indexes;
-* rendering;
-* synchronization;
-* AI metadata.
-
----
-
-# 15. Success Criteria
-
-A Library operation is successful when organizational metadata remains internally consistent while canonical knowledge remains unchanged.
-
-Organizational flexibility shall never compromise canonical integrity.
-
----
-
-
-
-# 16. Library Reference Model
-
-The Library Engine organizes knowledge exclusively through Library References.
-
-A Library Reference associates organizational metadata with a Document Digital Twin.
-
-References never contain canonical knowledge.
-
-References remain lightweight and replaceable.
-
----
-
-# 17. Organizational Metadata
-
-Organizational metadata includes:
-
-* collection membership;
-* folder membership;
-* tags;
-* favorites;
-* workspace membership;
-* user-defined classifications;
-* display preferences.
-
-Organizational metadata never modifies canonical models.
-
----
-
-# 18. Folder Model
-
-Folders provide hierarchical organization.
-
-Folders contain Library References.
-
-Folders never contain Document Digital Twins directly.
-
-Folder hierarchy is optional.
-
-Alternative organizational models may coexist.
-
----
-
-# 19. Collection Model
-
-Collections represent logical groups of Library References.
-
-Collections are independent from physical storage.
-
-Collections support:
-
-* manual membership;
-* generated membership;
-* shared organizational rules.
-
-Collections never duplicate knowledge.
-
----
-
-# 20. Smart Collections
-
-Smart Collections are persistent queries.
-
-Membership is determined dynamically.
-
-Typical criteria include:
-
-* document type;
-* creation date;
-* modification date;
-* tags;
-* author;
-* language;
-* document status;
-* workspace;
-* custom metadata.
-
-Smart Collections remain continuously synchronized with canonical knowledge.
-
----
-
-# 21. Tag Model
-
-Tags provide non-hierarchical classification.
-
-A Library Reference may contain multiple Tags.
-
-Tags support flexible cross-cutting organization.
-
-Tags remain independent from canonical knowledge.
-
----
-
-# 22. Workspace Model
-
-Workspaces organize Library References according to user goals.
-
-Typical Workspaces include:
-
-* Research;
-* Medical Practice;
-* Personal Knowledge;
-* Education;
-* Publications.
-
-A Document Digital Twin may participate in multiple Workspaces simultaneously.
-
----
-
-# 23. Favorites
-
-Favorites represent personal organizational preferences.
-
-Favorite status belongs to the Library Engine.
-
-Favorite status never modifies canonical knowledge.
-
----
-
-# 24. Organizational Queries
-
-The Library Engine supports organizational queries including:
-
-* Browse Collection;
-* Browse Folder;
-* Browse Workspace;
-* Browse Tag;
-* Browse Favorites;
-* Browse Recent Documents.
-
-Organizational queries return Library References.
-
-Canonical retrieval belongs to the Knowledge Engine.
-
----
-
-# 25. Commands
-
-Typical Commands include:
-
-* CreateCollection;
-* DeleteCollection;
-* CreateFolder;
-* MoveReference;
-* AddTag;
-* RemoveTag;
-* CreateWorkspace;
-* AddFavorite;
-* RemoveFavorite.
-
-Commands modify organizational metadata only.
-
----
-
-# 26. Events
-
-Typical Events include:
-
-* CollectionCreated;
-* CollectionDeleted;
-* FolderCreated;
-* ReferenceMoved;
-* TagAdded;
-* TagRemoved;
-* WorkspaceCreated;
-* FavoriteAdded;
-* FavoriteRemoved.
-
-Events describe completed organizational changes.
-
----
-
-# 27. Queries
-
-Typical Queries include:
-
-* GetCollection;
-* GetWorkspace;
-* GetFolder;
-* GetFavorites;
-* GetRecentDocuments;
-* GetTaggedDocuments.
-
-Queries never modify organizational state.
-
----
-
-# 28. Concurrency
-
-Concurrent organizational operations shall preserve:
-
-* reference consistency;
-* organizational integrity;
-* workspace integrity;
-* collection integrity.
-
-Organizational conflicts never affect canonical knowledge.
-
----
-
-# 29. Security
-
-Organizational permissions are evaluated through the Execution Context.
-
-The Library Engine never owns authentication or identity management.
-
-Authorization affects organizational metadata only.
-
----
-
-# 30. Observability
-
-Organizational operations expose telemetry including:
-
-* collection operations;
-* workspace operations;
-* organizational query performance;
-* reference counts;
-* tag utilization.
-
-Telemetry remains operational.
-
-It never becomes canonical knowledge.
-
----
-
-# 31. Engine Invariants
-
-The following invariants apply.
-
-* The Library Engine owns organizational metadata.
-* The Library Engine never owns canonical knowledge.
-* Collections contain references only.
-* Folders contain references only.
-* Smart Collections are query-based.
-* Organizational metadata remains independent.
-* References never duplicate knowledge.
-* Canonical integrity is never affected by organization.
-
----
-
-# 32. Related Documents
-
-* LibraryArchitecture.md
-* Collections.md
-* Workspaces.md
-* SmartCollections.md
-* Tags.md
-* Commands.md
-* Events.md
-* Queries.md
-* ../Knowledge/README.md
-* ../../02-Domain/KnowledgeObject/
-
----
-
-# 33. Status
-
-**Approved**
-
-This document defines the architectural model of the Library Engine.
-
-The Library Engine provides flexible, user-defined organization of Document Digital Twins through lightweight references while preserving complete separation between organizational metadata and canonical knowledge.
-
----
-
-# 999. Master Library and Selective Local Library Profile
-
-For the primary KnowledgeOS deployment profile:
-
-* KnowledgeOS Server runs on the NAS and manages the Master Library.
-* The Master Library contains the complete master catalog and source publications.
-* A device Library contains only publications explicitly acquired or downloaded to that device.
-* A device Library is not a replica of the NAS Master Library.
-* Devices may browse the Master Catalog without materializing every publication locally.
-* Acquisition copies a selected publication from the Master Library into the device-local Library.
-* Personal annotations, reading progress, personal metadata, personal relationships, favorites and equivalent user state shall not be uploaded to the NAS Master Library.
-* Personal state synchronization is a separate concern governed by the Sync Engine and the approved iCloud/CloudKit profile.
-* Removing a local publication does not delete the corresponding Master Catalog entry or source publication from the NAS.
-* The NAS Master Library and the device-local Library therefore have different scopes and authorities.
-
-This section is normative and supersedes any earlier wording in this document that describes a device Library as a full or partial replica of the NAS Master Library.
+This document is part of the KnowledgeOS Platform V4 release-candidate baseline.

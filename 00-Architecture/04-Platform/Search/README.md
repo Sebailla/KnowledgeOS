@@ -1,479 +1,136 @@
-
 # Search Engine
 
-**Project:** KnowledgeOS
-
-**Section:** Platform
-
-**Engine:** Search
-
-**Document:** Engine Architecture
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Platform  
+**Document:** SearchEngine  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the architecture of the Search Engine.
+Define indexing, query execution, ranking, filtering and search projection lifecycle.
 
-The Search Engine retrieves relevant knowledge from the KnowledgeOS Platform through multiple retrieval strategies.
+## 2. Scope
 
-The Search Engine retrieves knowledge.
+Covers local and remote search capabilities over publications, UDM, Personal Knowledge and graph projections.
 
-It never interprets knowledge.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-# 2. Scope
 
-The Search Engine governs:
+## 4. Responsibility and Boundaries
 
-* knowledge retrieval;
-* search indexes;
-* retrieval strategies;
-* ranking;
-* query execution;
-* result aggregation;
-* search providers.
+Search Engine owns:
 
-The Search Engine does not govern:
+- index schemas;
+- indexing workflows;
+- query parsing;
+- ranking;
+- filtering;
+- highlighting;
+- local search;
+- Master Catalog search adapters;
+- index lifecycle;
+- search observability.
 
-* canonical knowledge;
-* artificial intelligence reasoning;
-* rendering;
-* synchronization;
-* document organization.
+Search indexes are derived artifacts. Search Engine does not own Knowledge Objects or semantic authority.
 
----
-
-# 3. Position within the Platform
-
-The Search Engine provides retrieval capabilities for canonical knowledge managed by the Knowledge Engine.
+## 5. Conceptual Model
 
 ```text
-Knowledge Engine
-        │
-        ▼
-Document Digital Twins
-        │
-        ▼
-Search Engine
-        │
-        ▼
-Knowledge References
+SearchEngine
+├── IndexCoordinator
+├── IndexWriter
+├── QueryPlanner
+├── Ranker
+├── FilterService
+├── HighlightService
+├── SearchProvider contracts
+└── IndexRepository contracts
 ```
 
-The Search Engine never owns canonical knowledge.
+## 6. Normative Requirements
 
----
+**SEARCHENGINE-R001** — Indexes MUST be rebuildable from authoritative inputs.
 
-# 4. Mission
+**SEARCHENGINE-R002** — Index versions MUST identify schema and processor versions.
 
-The mission of the Search Engine is to retrieve the most relevant Document Digital Twins according to explicit retrieval criteria.
+**SEARCHENGINE-R003** — Search results MUST preserve source identity and authority.
 
-Search retrieves.
+**SEARCHENGINE-R004** — Ranking MUST not change canonical meaning.
 
-It never explains.
+**SEARCHENGINE-R005** — Personal Knowledge indexing MUST respect privacy and synchronization scope.
 
----
+**SEARCHENGINE-R006** — Local search MUST operate offline for locally indexed content.
 
-# 5. Design Philosophy
+**SEARCHENGINE-R007** — Master Catalog search MUST remain distinct from Local Library search.
 
-Search is a knowledge retrieval capability.
+**SEARCHENGINE-R008** — Query execution MUST support cancellation and bounded results.
 
-It is independent from artificial intelligence.
+**SEARCHENGINE-R009** — Stale indexes MUST be explicit.
 
-It remains fully operational even without semantic models.
+**SEARCHENGINE-R010** — Index updates MUST be idempotent.
 
-Artificial Intelligence may consume Search.
+**SEARCHENGINE-R011** — Remote search providers MUST not receive unauthorized Personal Knowledge.
 
-Search never depends upon Artificial Intelligence.
+## 7. Invariants
 
----
+**SEARCHENGINE-I001** — Indexes are derived.
 
-# 6. Architectural Goals
+**SEARCHENGINE-I002** — Results reference domain identity.
 
-The Search Engine shall:
+**SEARCHENGINE-I003** — Local and Master search scopes remain distinct.
 
-* support multiple retrieval strategies;
-* remain deterministic;
-* support scalable indexing;
-* preserve canonical independence;
-* remain extensible;
-* remain technology-independent.
+**SEARCHENGINE-I004** — Ranking is non-authoritative.
 
----
+**SEARCHENGINE-I005** — Privacy filtering precedes delivery.
 
-# 7. Primary Managed Artifact
+**SEARCHENGINE-I006** — Index loss does not lose knowledge.
 
-The Search Engine manages Search Indexes.
+## 8. Commands, Queries, Events and Workflows
 
-Indexes are runtime artifacts.
+Commands include `IndexKnowledgeObject`, `RemoveFromIndex`, `RebuildIndex` and `InvalidateIndex`.
 
-Indexes never become canonical knowledge.
+Queries include `SearchLocalLibrary`, `SearchMasterCatalog`, `SearchPersonalKnowledge` and `GetIndexStatus`.
 
-Indexes may always be regenerated from Document Digital Twins.
+Events include `IndexUpdated`, `IndexInvalidated`, `IndexRebuilt` and `SearchProviderUnavailable`.
 
----
+Indexing uses jobs and workflows for large collections.
 
-# 8. Search Results
+## 9. Failure, Recovery and Degradation
 
-Search returns Knowledge References.
+Search SHALL degrade to available scopes when one provider is unavailable, while clearly identifying omitted or stale scopes.
 
-A Search Result contains:
+Corrupt indexes SHALL be discarded and rebuilt. Search failure SHALL not modify Domain state.
 
-* Document Digital Twin Identifier;
-* Match Information;
-* Ranking Score;
-* Retrieval Strategy;
-* Match Metadata.
+## 10. Security, Privacy and Observability
 
-Search Results never contain modified knowledge.
+Every Engine SHALL enforce authorization and privacy at its public boundary. Personal Knowledge, publication content, credentials and provider secrets MUST NOT be exposed through logs, metrics, traces or events beyond the minimum approved scope.
 
----
+Each significant operation SHALL propagate correlation identity and expose diagnosable progress without transferring business ownership to the Kernel.
 
-# 9. Retrieval Strategies
+## 11. Examples
 
-KnowledgeOS supports multiple retrieval strategies.
+A local query returns annotated passages from device indexes while an optional Master Catalog query returns publications not yet acquired. The results remain clearly scoped.
 
-Examples include:
+## 12. Compatibility and Evolution
 
-* Full Text Retrieval;
-* Metadata Retrieval;
-* Structural Retrieval;
-* Semantic Retrieval;
-* Graph Retrieval;
-* Hybrid Retrieval.
+Public contracts SHALL be versioned. Backward-compatible changes MAY add optional operations, fields or events. Changes to ownership, authority, lifecycle, identity, delivery guarantees or privacy boundaries require architectural review and, when significant, an ADR.
 
-Strategies may evolve independently.
+## 13. Related Documents
 
----
+- `../README.md`
+- `../Library/README.md`
+- `../Knowledge/README.md`
+- `../../02-Domain/KnowledgeGraph/README.md`
+- `../../03-Kernel/QueryBus.md`
+- `../../05-Integration/Providers/SearchProviders.md`
 
-# 10. Relationship with the Knowledge Engine
+## 14. Status
 
-The Knowledge Engine owns canonical knowledge.
-
-The Search Engine builds derived retrieval structures.
-
-Canonical knowledge remains authoritative.
-
----
-
-# 11. Relationship with the Kernel
-
-The Search Engine delegates execution through:
-
-* Queries;
-* Commands;
-* Events;
-* Jobs.
-
-Execution coordination belongs to the Kernel.
-
----
-
-# 12. Relationship with Other Engines
-
-Other Platform Engines consume Search capabilities through Kernel contracts.
-
-Direct Engine-to-Engine communication is prohibited.
-
-The Search Engine remains independent.
-
----
-
-# 13. Engine Boundaries
-
-The Search Engine owns:
-
-* retrieval;
-* ranking;
-* index construction;
-* query execution;
-* result aggregation.
-
-The Search Engine never owns:
-
-* canonical models;
-* rendering;
-* conversations;
-* reasoning;
-* synchronization.
-
----
-
-# 14. Success Criteria
-
-A search operation is successful when the most relevant Knowledge References are retrieved while preserving deterministic execution, canonical independence and reproducible ranking.
-
----
-
-
-
-# 15. Retrieval Pipeline
-
-Every Search Request follows a deterministic retrieval pipeline.
-
-The pipeline transforms retrieval intentions into ranked Knowledge References.
-
-Search execution remains independent from rendering, artificial intelligence and canonical knowledge.
-
-```text
-Search Request
-        │
-        ▼
-Request Analysis
-        │
-        ▼
-Retrieval Planning
-        │
-        ▼
-Candidate Retrieval
-        │
-        ▼
-Candidate Fusion
-        │
-        ▼
-Ranking
-        │
-        ▼
-Result Explanation
-        │
-        ▼
-Knowledge References
-```
-
----
-
-# 16. Request Analysis
-
-The Request Analysis stage validates and classifies incoming Search Requests.
-
-Analysis determines:
-
-* query type;
-* requested scope;
-* execution constraints;
-* preferred retrieval strategies.
-
-Analysis never executes retrieval.
-
----
-
-# 17. Retrieval Planning
-
-The Retrieval Planner selects the optimal retrieval strategy.
-
-Planning determines:
-
-* indexes to consult;
-* execution order;
-* parallel execution opportunities;
-* ranking configuration.
-
-Planning remains deterministic.
-
-Equivalent requests generate equivalent plans.
-
----
-
-# 18. Candidate Retrieval
-
-Each retrieval strategy independently produces candidate references.
-
-Typical retrieval sources include:
-
-* Full Text Index;
-* Metadata Index;
-* Structural Index;
-* Semantic Index;
-* Graph Index.
-
-Each strategy operates independently.
-
-Strategies never modify canonical knowledge.
-
----
-
-# 19. Candidate Fusion
-
-Candidate Fusion combines retrieval results into a unified candidate set.
-
-Fusion includes:
-
-* duplicate elimination;
-* score normalization;
-* metadata consolidation;
-* strategy attribution.
-
-Fusion preserves provenance for every candidate.
-
----
-
-# 20. Ranking
-
-Ranking determines the final ordering of candidates.
-
-Ranking may consider:
-
-* lexical relevance;
-* semantic similarity;
-* structural proximity;
-* graph relationships;
-* metadata relevance;
-* user preferences.
-
-Ranking remains reproducible.
-
-Ranking never modifies canonical knowledge.
-
----
-
-# 21. Result Explanation
-
-Every Search Result includes explanatory metadata.
-
-Typical explanation fields include:
-
-* retrieval strategies used;
-* ranking score;
-* confidence score;
-* contributing indexes;
-* matching metadata.
-
-Result explanation increases transparency and user trust.
-
----
-
-# 22. Search Indexes
-
-Indexes are runtime projections derived from canonical knowledge.
-
-Typical indexes include:
-
-* Full Text Index;
-* Metadata Index;
-* Structural Index;
-* Semantic Index;
-* Graph Index;
-* Annotation Index.
-
-Indexes remain disposable.
-
-Canonical knowledge remains authoritative.
-
----
-
-# 23. Hybrid Retrieval
-
-Hybrid Retrieval combines multiple retrieval strategies within a single execution.
-
-Hybrid Retrieval is the preferred default strategy.
-
-Individual retrieval strategies remain independently replaceable.
-
----
-
-# 24. Commands
-
-Typical Commands include:
-
-* BuildIndex;
-* RebuildIndex;
-* RemoveIndex;
-* RefreshIndex.
-
-Commands modify runtime indexes only.
-
----
-
-# 25. Events
-
-Typical Events include:
-
-* IndexBuilt;
-* IndexRebuilt;
-* SearchCompleted;
-* RankingCompleted;
-* RetrievalFailed.
-
-Events describe completed retrieval operations.
-
----
-
-# 26. Queries
-
-Typical Queries include:
-
-* Search;
-* SearchByMetadata;
-* SearchByStructure;
-* SearchBySemanticSimilarity;
-* SearchByRelationship;
-* ExplainSearchResult.
-
-Queries never modify runtime or canonical state.
-
----
-
-# 27. Observability
-
-Search telemetry includes:
-
-* query duration;
-* retrieval latency;
-* ranking latency;
-* index utilization;
-* candidate counts;
-* cache utilization.
-
-Operational telemetry remains independent from canonical knowledge.
-
----
-
-# 28. Engine Invariants
-
-The following invariants apply.
-
-* Search never owns canonical knowledge.
-* Search returns Knowledge References.
-* Search remains deterministic.
-* Indexes remain disposable.
-* Ranking remains reproducible.
-* Hybrid Retrieval remains composable.
-* Search explanations remain available.
-* Artificial Intelligence remains independent.
-
----
-
-# 29. Related Documents
-
-* RetrievalPipeline.md
-* FullTextIndex.md
-* MetadataIndex.md
-* StructuralIndex.md
-* SemanticIndex.md
-* GraphIndex.md
-* HybridRetrieval.md
-* Ranking.md
-* SearchProviders.md
-* Commands.md
-* Events.md
-* Queries.md
-* ../Knowledge/README.md
-* ../AI/README.md
-
----
-
-# 30. Status
-
-**Approved**
-
-This document defines the architectural model of the Search Engine.
-
-The Search Engine retrieves the most relevant Knowledge References through deterministic, multi-strategy retrieval pipelines while preserving canonical independence, reproducibility and complete separation from artificial intelligence reasoning.
+This document is part of the KnowledgeOS Platform V4 release-candidate baseline.

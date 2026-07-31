@@ -1,452 +1,133 @@
-
 # Export Engine
 
-**Project:** KnowledgeOS
-
-**Section:** Platform
-
-**Engine:** Export
-
-**Document:** Engine Architecture
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Platform  
+**Document:** ExportEngine  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the architecture of the Export Engine.
+Define export transformations, packaging, fidelity, loss reporting and identity/provenance preservation.
 
-The Export Engine transforms canonical knowledge into external representations suitable for exchange, publication, printing or long-term preservation.
+## 2. Scope
 
-Export derives external representations.
+Covers Markdown, HTML, PDF, EPUB and future export formats.
 
-It never modifies canonical knowledge.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-# 2. Scope
 
-The Export Engine governs:
+## 4. Responsibility and Boundaries
 
-* export orchestration;
-* export profiles;
-* export providers;
-* format transformation;
-* export validation;
-* export provenance.
+Export Engine owns:
 
-The Export Engine does not govern:
+- export request validation;
+- target-format transformation;
+- package assembly;
+- asset inclusion;
+- identity mapping;
+- provenance inclusion;
+- loss analysis;
+- export reports;
+- export provider contracts.
 
-* canonical knowledge;
-* rendering ownership;
-* synchronization;
-* artificial intelligence;
-* document organization.
+Export does not modify canonical sources.
 
----
+A target format may be lossy. Loss SHALL be explicit.
 
-# 3. Position within the Platform
-
-The Export Engine consumes canonical knowledge managed by the Knowledge Engine.
+## 5. Conceptual Model
 
 ```text
-Knowledge Engine
-        │
-        ▼
-Document Digital Twin
-        │
-        ▼
-Export Engine
-        │
-        ▼
-External Representation
+ExportEngine
+├── ExportPlanner
+├── TransformerRegistry
+├── AssetPackager
+├── FidelityAnalyzer
+├── IdentityMapper
+├── ExportProvider contracts
+└── ExportReportRepository
 ```
 
-Canonical knowledge remains authoritative.
+## 6. Normative Requirements
 
----
+**EXPORTENGINE-R001** — Every export MUST identify source versions and export profile.
 
-# 4. Mission
+**EXPORTENGINE-R002** — Export MUST NOT mutate UDM, DPM or Knowledge Objects.
 
-The mission of the Export Engine is to produce faithful external representations while preserving semantic integrity, provenance and long-term portability.
+**EXPORTENGINE-R003** — Lossy transformations MUST produce a loss report.
 
----
+**EXPORTENGINE-R004** — Identity and provenance SHOULD be preserved when target format permits.
 
-# 5. Design Philosophy
+**EXPORTENGINE-R005** — Assets MUST preserve integrity and relationships.
 
-Export is a deterministic transformation.
+**EXPORTENGINE-R006** — Personal Knowledge inclusion MUST be explicit.
 
-External formats are derived representations.
+**EXPORTENGINE-R007** — Private annotations MUST not be exported by default.
 
-Canonical knowledge remains unchanged.
+**EXPORTENGINE-R008** — Output paths and filenames MUST be sanitized.
 
----
+**EXPORTENGINE-R009** — Export retries MUST be idempotent or produce distinct explicit outputs.
 
-# 6. Architectural Goals
+**EXPORTENGINE-R010** — Unsupported target capabilities MUST fail or degrade according to profile.
 
-The Export Engine shall:
+**EXPORTENGINE-R011** — Export providers MUST remain replaceable.
 
-* preserve semantic fidelity;
-* preserve provenance;
-* support multiple export profiles;
-* support multiple output formats;
-* remain deterministic;
-* remain technology-independent.
+## 7. Invariants
 
----
+**EXPORTENGINE-I001** — Source state is immutable.
 
-# 7. Primary Managed Artifact
+**EXPORTENGINE-I002** — Loss is explicit.
 
-The primary managed artifact is the Export Session.
+**EXPORTENGINE-I003** — Personal data inclusion is opt-in.
 
-An Export Session contains:
+**EXPORTENGINE-I004** — Output identity is traceable.
 
-* Session Identifier;
-* Export Profile;
-* Source Version;
-* Target Format;
-* Export Provider;
-* Execution Metadata;
-* Provenance.
+**EXPORTENGINE-I005** — Export format does not become canonical.
 
-Export Sessions are runtime artifacts.
+**EXPORTENGINE-I006** — Assets and references remain coherent.
 
----
+## 8. Commands, Queries, Events and Workflows
 
-# 8. Export Profiles
+Commands include `ExportKnowledgeObject`, `ExportCollection`, `ExportWithAnnotations` and `CancelExport`.
 
-Export Profiles describe the intent of an export operation.
+Queries include `GetExportCapabilities`, `EstimateExportLoss`, `GetExportStatus` and `GetExportReport`.
 
-Typical profiles include:
+Events include `ExportStarted`, `ExportCompleted`, `ExportFailed` and `ExportLossDetected`.
 
-* Print;
-* Archive;
-* Publication;
-* Exchange;
-* Markdown;
-* Scientific;
-* Backup.
+Large exports use durable workflows and jobs.
 
-Profiles define export behavior independently from output formats.
+## 9. Failure, Recovery and Degradation
 
----
+Partial output SHALL not be reported as complete. Failed temporary packages SHOULD be cleaned safely while preserving diagnostic reports. Interrupted exports MAY resume when provider and target support it.
 
-# 9. Relationship with the Knowledge Engine
+## 10. Security, Privacy and Observability
 
-The Knowledge Engine owns canonical knowledge.
+Every Engine SHALL enforce authorization and privacy at its public boundary. Personal Knowledge, publication content, credentials and provider secrets MUST NOT be exposed through logs, metrics, traces or events beyond the minimum approved scope.
 
-The Export Engine consumes canonical knowledge.
+Each significant operation SHALL propagate correlation identity and expose diagnosable progress without transferring business ownership to the Kernel.
 
-Export never modifies canonical models.
+## 11. Examples
 
----
+Exporting an annotated EPUB requires explicit inclusion of Personal Knowledge. The report identifies unsupported drawing overlays and may package them as supplemental assets.
 
-# 10. Relationship with the Render Engine
+## 12. Compatibility and Evolution
 
-Visual export operations may consume rendering services.
+Public contracts SHALL be versioned. Backward-compatible changes MAY add optional operations, fields or events. Changes to ownership, authority, lifecycle, identity, delivery guarantees or privacy boundaries require architectural review and, when significant, an ADR.
 
-Structural export operations may bypass rendering completely.
+## 13. Related Documents
 
-The Export Engine remains independent from the Render Engine.
+- `../README.md`
+- `../../02-Domain/UDM/UDM.md`
+- `../../02-Domain/DPM/DPM.md`
+- `../Render/README.md`
+- `../../05-Integration/DataExchange/ExportProtocols.md`
 
----
+## 14. Status
 
-# 11. Relationship with the Kernel
-
-The Export Engine delegates execution through:
-
-* Commands;
-* Queries;
-* Events;
-* Jobs.
-
-Execution orchestration belongs to the Kernel.
-
----
-
-# 12. Engine Boundaries
-
-The Export Engine owns:
-
-* export planning;
-* export orchestration;
-* export provider selection;
-* export validation;
-* export reporting.
-
-The Export Engine never owns:
-
-* canonical knowledge;
-* rendering ownership;
-* synchronization;
-* user interface.
-
----
-
-# 13. Success Criteria
-
-An export operation is considered successful when the generated representation faithfully reflects the selected canonical knowledge while preserving provenance, reproducibility and semantic integrity.
-
----
-
-
-
-# 14. Export Pipeline
-
-Every export operation follows a deterministic transformation pipeline.
-
-Export converts canonical knowledge into external representations while preserving semantic integrity and provenance.
-
-```text
-Export Request
-        │
-        ▼
-Export Planning
-        │
-        ▼
-Export Preparation
-        │
-        ▼
-Transformation
-        │
-        ▼
-Capability Mapping
-        │
-        ▼
-Validation
-        │
-        ▼
-Publication
-        │
-        ▼
-Export Report
-```
-
-The pipeline remains independent from output technologies.
-
----
-
-# 15. Export Planning
-
-The Export Planner determines:
-
-* export scope;
-* canonical version;
-* export profile;
-* provider selection;
-* output format;
-* execution strategy.
-
-Planning remains deterministic.
-
-Equivalent export requests generate equivalent execution plans.
-
----
-
-# 16. Export Preparation
-
-The Export Engine prepares the execution context.
-
-Preparation may include:
-
-* complete Document Digital Twin;
-* selected chapters;
-* collections;
-* workspaces;
-* annotation subsets;
-* metadata selection.
-
-Preparation never modifies canonical knowledge.
-
----
-
-# 17. Transformation
-
-Transformation converts canonical models into external representations.
-
-Transformation may be:
-
-* structural;
-* visual;
-* hybrid.
-
-Structural transformations consume canonical models directly.
-
-Visual transformations may consume Render Engine capabilities.
-
----
-
-# 18. Capability Mapping
-
-Capability Mapping evaluates how canonical capabilities are represented by the target format.
-
-Typical capabilities include:
-
-* annotations;
-* handwritten ink;
-* hyperlinks;
-* provenance;
-* metadata;
-* semantic relationships.
-
-Unsupported capabilities shall never be discarded silently.
-
-Capability Mapping shall record every transformation and every limitation.
-
----
-
-# 19. Validation
-
-Generated outputs shall be validated before publication.
-
-Validation includes:
-
-* structural validation;
-* format validation;
-* integrity verification;
-* completeness verification.
-
-Invalid exports shall never be published.
-
----
-
-# 20. Publication
-
-Publication produces the final external representation.
-
-Typical outputs include:
-
-* PDF;
-* PDF/A;
-* Markdown;
-* HTML;
-* EPUB;
-* DOCX;
-* JSON;
-* XML;
-* RDF;
-* future formats.
-
-Publication never modifies canonical knowledge.
-
----
-
-# 21. Export Report
-
-Every export operation produces an Export Report.
-
-Typical report fields include:
-
-* exported version;
-* export profile;
-* output format;
-* provider;
-* execution duration;
-* exported objects;
-* fidelity level;
-* unsupported capabilities;
-* warnings.
-
-Export Reports improve transparency and reproducibility.
-
----
-
-# 22. Commands
-
-Typical Commands include:
-
-* ExportKnowledge;
-* CancelExport;
-* ValidateExport;
-* GenerateExportReport.
-
-Commands coordinate export execution only.
-
----
-
-# 23. Events
-
-Typical Events include:
-
-* ExportStarted;
-* TransformationCompleted;
-* ValidationCompleted;
-* ExportCompleted;
-* ExportFailed.
-
-Events describe completed export activities.
-
----
-
-# 24. Queries
-
-Typical Queries include:
-
-* GetExportStatus;
-* GetExportHistory;
-* GetExportReport;
-* GetSupportedFormats;
-* GetExportProfiles.
-
-Queries never modify canonical knowledge.
-
----
-
-# 25. Observability
-
-Export telemetry includes:
-
-* execution duration;
-* exported objects;
-* generated file size;
-* provider utilization;
-* transformation latency;
-* validation duration.
-
-Operational telemetry supports diagnostics and optimization.
-
----
-
-# 26. Engine Invariants
-
-The following invariants apply.
-
-* Export never owns canonical knowledge.
-* Export never modifies canonical knowledge.
-* Export Profiles remain independent from formats.
-* Providers remain replaceable.
-* Export Reports remain reproducible.
-* Unsupported capabilities are explicitly reported.
-* Transformation remains deterministic.
-* Canonical provenance is preserved.
-
----
-
-# 27. Related Documents
-
-* ExportPipeline.md
-* ExportProfiles.md
-* ExportProviders.md
-* CapabilityMapping.md
-* ExportValidation.md
-* ExportReport.md
-* Commands.md
-* Events.md
-* Queries.md
-* ../Knowledge/README.md
-* ../Render/README.md
-
----
-
-# 28. Status
-
-**Approved**
-
-This document defines the architectural model of the Export Engine.
-
-The Export Engine performs deterministic transformation of canonical knowledge into external representations through replaceable providers while preserving provenance, semantic fidelity, explicit capability mapping and complete independence from output technologies.
+This document is part of the KnowledgeOS Platform V4 release-candidate baseline.

@@ -1,466 +1,141 @@
-
 # Sync Engine
 
-**Project:** KnowledgeOS
-
-**Section:** Platform
-
-**Engine:** Sync
-
-**Document:** Engine Architecture
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Platform  
+**Document:** SyncEngine  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the architecture of the Sync Engine.
+Define Personal Knowledge synchronization among approved Local Libraries using replaceable synchronization providers.
 
-The Sync Engine replicates canonical knowledge and related runtime artifacts between synchronization endpoints while preserving the authority of the Knowledge Engine.
+## 2. Scope
 
-Synchronization distributes knowledge.
+Covers change tracking, envelopes, convergence, conflict detection, merge, tombstones and provider abstraction. Excludes publication acquisition.
 
-It never owns knowledge.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-# 2. Scope
 
-The Sync Engine governs:
+## 4. Responsibility and Boundaries
 
-* synchronization orchestration;
-* endpoint communication;
-* change detection;
-* synchronization planning;
-* conflict detection;
-* synchronization providers.
+Sync Engine owns:
 
-The Sync Engine does not govern:
+- Personal Knowledge change tracking;
+- synchronization envelopes;
+- provider-neutral synchronization;
+- conflict detection;
+- merge orchestration;
+- tombstones;
+- convergence state;
+- synchronization diagnostics.
 
-* canonical knowledge;
-* conflict resolution;
-* rendering;
-* search indexing;
-* artificial intelligence.
+It SHALL NOT:
 
----
+- synchronize Master Library publications;
+- acquire publication payloads;
+- write Personal Knowledge to NAS;
+- redefine Local Library membership.
 
-# 3. Position within the Platform
+The approved Apple profile uses iCloud/CloudKit, but the Platform contract remains provider-independent.
 
-The Sync Engine operates on canonical knowledge managed by the Knowledge Engine.
+## 5. Conceptual Model
 
 ```text
-Knowledge Engine
-        │
-        ▼
-Sync Engine
-        │
-        ▼
-Synchronization Endpoints
+SyncEngine
+├── ChangeTracker
+├── SyncEnvelopeBuilder
+├── ProviderAdapter contract
+├── ConflictDetector
+├── MergeCoordinator
+├── TombstoneService
+├── SyncStateRepository
+└── Sync events
 ```
 
-The Knowledge Engine remains authoritative.
+## 6. Normative Requirements
 
----
+**SYNCENGINE-R001** — Only approved Personal Knowledge scopes MAY synchronize.
 
-# 4. Mission
+**SYNCENGINE-R002** — Every synchronized entity MUST preserve stable identity.
 
-The mission of the Sync Engine is to replicate canonical knowledge safely, efficiently and transparently across synchronization endpoints.
+**SYNCENGINE-R003** — Changes MUST commit locally before publication to the provider.
 
-Synchronization extends availability.
+**SYNCENGINE-R004** — Provider transport MUST not become Domain authority.
 
-It never defines authority.
+**SYNCENGINE-R005** — Conflict detection MUST preserve all competing versions.
 
----
+**SYNCENGINE-R006** — Merge results MUST identify parent versions.
 
-# 5. Design Philosophy
+**SYNCENGINE-R007** — Deletion MUST converge through tombstones or equivalent semantics.
 
-Synchronization is asynchronous.
+**SYNCENGINE-R008** — Synchronization MUST operate independently of NAS availability.
 
-Synchronization is eventually consistent.
+**SYNCENGINE-R009** — Publication payloads MUST NOT be transferred through personal synchronization.
 
-Synchronization never blocks local work.
+**SYNCENGINE-R010** — Sync retries MUST be idempotent.
 
-Offline operation remains the default execution model.
+**SYNCENGINE-R011** — Encryption and provider privacy policy MUST be enforced.
 
----
+**SYNCENGINE-R012** — Unsupported schema versions MUST fail explicitly.
 
-# 6. Architectural Goals
+## 7. Invariants
 
-The Sync Engine shall:
+**SYNCENGINE-I001** — Personal Knowledge remains user-owned.
 
-* preserve canonical integrity;
-* support offline-first execution;
-* detect synchronization conflicts;
-* support replaceable providers;
-* minimize transferred data;
-* remain technology-independent.
+**SYNCENGINE-I002** — Master Library is not a sync peer.
 
----
+**SYNCENGINE-I003** — Acquisition and synchronization remain separate.
 
-# 7. Primary Managed Artifact
+**SYNCENGINE-I004** — Identity survives devices.
 
-The primary managed artifact is the Synchronization Session.
+**SYNCENGINE-I005** — Conflicts are not silently discarded.
 
-A Synchronization Session contains:
+**SYNCENGINE-I006** — Convergence is eventually deterministic under the same merge rules.
 
-* Session Identifier;
-* Source Endpoint;
-* Target Endpoint;
-* Synchronization Plan;
-* Changed Objects;
-* Synchronization Result;
-* Provenance.
+## 8. Commands, Queries, Events and Workflows
 
-Synchronization Sessions are runtime artifacts.
+Commands include `SynchronizePersonalState`, `ResolveSyncConflict`, `RetrySyncBatch` and `PurgeExpiredTombstones`.
 
----
+Queries include `GetSyncStatus`, `ListSyncConflicts`, `GetEntitySyncHistory` and `GetProviderCapabilities`.
 
-# 8. Synchronization Endpoints
+Events include `PersonalStateQueued`, `PersonalStateSynchronized`, `SyncConflictDetected`, `SyncConflictMerged` and `SyncProviderUnavailable`.
 
-Synchronization occurs between Endpoints.
+Large sync cycles use durable workflows and jobs.
 
-Typical Endpoints include:
+## 9. Failure, Recovery and Degradation
 
-* Local Device;
-* NAS;
-* Personal Server;
-* Cloud Storage;
-* Enterprise Repository;
-* Backup Repository.
+Provider unavailability SHALL queue local changes and preserve offline operation. Corrupt remote records SHALL be isolated. Unknown commit status SHALL reconcile by stable identity before retry.
 
-Endpoint implementations remain replaceable.
+## 10. Security, Privacy and Observability
 
----
+Every Engine SHALL enforce authorization and privacy at its public boundary. Personal Knowledge, publication content, credentials and provider secrets MUST NOT be exposed through logs, metrics, traces or events beyond the minimum approved scope.
 
-# 9. Relationship with the Knowledge Engine
+Each significant operation SHALL propagate correlation identity and expose diagnosable progress without transferring business ownership to the Kernel.
 
-The Knowledge Engine owns canonical knowledge.
+## 11. Examples
 
-The Sync Engine transfers canonical knowledge.
+A note modified independently on Mac and iPad produces two versions. Sync detects the branch and creates a merge task. The publication file remains outside this flow.
 
-Canonical modifications remain exclusively coordinated by the Knowledge Engine.
+## 12. Compatibility and Evolution
 
----
+Public contracts SHALL be versioned. Backward-compatible changes MAY add optional operations, fields or events. Changes to ownership, authority, lifecycle, identity, delivery guarantees or privacy boundaries require architectural review and, when significant, an ADR.
 
-# 10. Relationship with the Kernel
+## 13. Related Documents
 
-The Sync Engine delegates execution through:
+- `../README.md`
+- `../Annotation/README.md`
+- `../Library/README.md`
+- `../../02-Domain/KnowledgeLifecycle.md`
+- `../../03-Kernel/WorkflowEngine.md`
+- `../../05-Integration/Providers/SyncProviders.md`
 
-* Commands;
-* Queries;
-* Events;
-* Jobs;
-* Scheduler.
+## 14. Status
 
-Synchronization orchestration belongs to the Kernel.
-
----
-
-# 11. Relationship with Other Engines
-
-The Sync Engine communicates with other Platform Engines exclusively through Kernel contracts.
-
-Direct Engine coupling is prohibited.
-
----
-
-# 12. Engine Boundaries
-
-The Sync Engine owns:
-
-* synchronization planning;
-* endpoint communication;
-* synchronization sessions;
-* provider orchestration;
-* synchronization monitoring.
-
-The Sync Engine never owns:
-
-* canonical knowledge;
-* conflict resolution;
-* rendering;
-* indexing;
-* user interface.
-
----
-
-# 13. Success Criteria
-
-A synchronization operation is considered successful when canonical knowledge is replicated consistently across endpoints without compromising provenance, version history or canonical integrity.
-
----
-
-
-
-# 14. Synchronization Pipeline
-
-Every synchronization operation follows a deterministic replication pipeline.
-
-Synchronization transfers canonical changes between Endpoints while preserving canonical integrity.
-
-```text
-Synchronization Request
-        │
-        ▼
-Synchronization Planning
-        │
-        ▼
-Change Detection
-        │
-        ▼
-Change Packaging
-        │
-        ▼
-Transfer
-        │
-        ▼
-Validation
-        │
-        ▼
-Knowledge Integration
-        │
-        ▼
-Synchronization Report
-```
-
-The pipeline remains independent from storage technologies.
-
----
-
-# 15. Synchronization Planning
-
-The Synchronization Planner determines:
-
-* participating Endpoints;
-* synchronization direction;
-* Provider selection;
-* execution order;
-* retry strategy;
-* bandwidth optimization.
-
-Planning remains deterministic.
-
-Equivalent synchronization requests produce equivalent execution plans.
-
----
-
-# 16. Change Detection
-
-Synchronization operates on canonical changes.
-
-Typical detected changes include:
-
-* new Document Digital Twins;
-* new Knowledge Versions;
-* new Annotation Versions;
-* relationship updates;
-* metadata updates.
-
-Change Detection never compares rendered representations.
-
----
-
-# 17. Change Packaging
-
-Detected changes are grouped into Change Sets.
-
-A Change Set contains:
-
-* object identifiers;
-* object versions;
-* dependencies;
-* integrity metadata;
-* provenance metadata.
-
-Change Sets are optimized for transmission.
-
----
-
-# 18. Transfer
-
-The Transfer stage delegates communication to Synchronization Providers.
-
-Typical Providers include:
-
-* NAS Provider;
-* WebDAV Provider;
-* S3 Provider;
-* iCloud Provider;
-* Dropbox Provider;
-* Git Provider.
-
-Providers remain fully replaceable.
-
----
-
-# 19. Validation
-
-Transferred Change Sets are validated before integration.
-
-Validation includes:
-
-* integrity verification;
-* version verification;
-* dependency verification;
-* provenance verification;
-* duplicate detection.
-
-Invalid Change Sets shall never be integrated.
-
----
-
-# 20. Knowledge Integration
-
-The Sync Engine never modifies canonical knowledge directly.
-
-Validated Change Sets are submitted to the Knowledge Engine through explicit Commands.
-
-Canonical integration remains exclusively governed by the Knowledge Engine.
-
----
-
-# 21. Conflict Detection
-
-The Sync Engine detects synchronization conflicts.
-
-Typical conflicts include:
-
-* concurrent modifications;
-* incompatible versions;
-* missing dependencies;
-* duplicate identities;
-* endpoint divergence.
-
-Conflict resolution belongs to the Knowledge Engine.
-
----
-
-# 22. Commands
-
-Typical Commands include:
-
-* StartSynchronization;
-* PauseSynchronization;
-* ResumeSynchronization;
-* CancelSynchronization;
-* RetrySynchronization.
-
-Commands coordinate synchronization only.
-
----
-
-# 23. Events
-
-Typical Events include:
-
-* SynchronizationStarted;
-* EndpointConnected;
-* TransferCompleted;
-* ValidationCompleted;
-* SynchronizationCompleted;
-* SynchronizationFailed;
-* ConflictDetected.
-
-Events describe completed synchronization activities.
-
----
-
-# 24. Queries
-
-Typical Queries include:
-
-* GetSynchronizationStatus;
-* GetSynchronizationHistory;
-* GetSynchronizationReport;
-* GetEndpointStatus;
-* GetConflictList.
-
-Queries never modify canonical knowledge.
-
----
-
-# 25. Observability
-
-Synchronization telemetry includes:
-
-* transferred objects;
-* transferred bytes;
-* synchronization duration;
-* transfer throughput;
-* endpoint latency;
-* retry count;
-* conflict count.
-
-Operational telemetry supports diagnostics and optimization.
-
----
-
-# 26. Engine Invariants
-
-The following invariants apply.
-
-* Synchronization never owns canonical knowledge.
-* Synchronization never modifies canonical knowledge directly.
-* Synchronization operates on Change Sets.
-* Providers remain replaceable.
-* Conflict detection remains deterministic.
-* Conflict resolution belongs to the Knowledge Engine.
-* Offline-first execution remains preserved.
-* Synchronization Reports remain reproducible.
-
----
-
-# 27. Related Documents
-
-* SynchronizationPipeline.md
-* SynchronizationProviders.md
-* ChangeSets.md
-* ConflictDetection.md
-* EndpointModel.md
-* Commands.md
-* Events.md
-* Queries.md
-* ../Knowledge/README.md
-
----
-
-# 28. Status
-
-**Approved**
-
-This document defines the architectural model of the Sync Engine.
-
-The Sync Engine performs deterministic replication of canonical Change Sets between synchronization endpoints through replaceable providers while preserving provenance, integrity, reproducibility and the authority of the Knowledge Engine.
-
----
-
-# 999. Primary Personal Synchronization Profile
-
-The primary KnowledgeOS synchronization profile synchronizes personal user state among Apple devices through iCloud/CloudKit.
-
-The synchronized scope may include:
-
-* annotations;
-* reading progress;
-* personal tags;
-* favorites;
-* personal relationships;
-* personal metadata;
-* per-publication personal preferences;
-* local-library membership intent where explicitly modeled.
-
-The NAS Master Library is not a personal-state synchronization peer.
-
-The Sync Engine shall not upload personal state to the NAS Master Library.
-
-Publication acquisition from the NAS is a catalog and content-delivery flow, not bidirectional Library replication.
-
-A publication may exist on one Apple device and not on another. Personal synchronization does not imply automatic download of the publication payload unless a separate acquisition policy explicitly requests it.
-
-This section is normative and supersedes any earlier generic synchronization wording that implies device Libraries replicate the NAS Master Library.
+This document is part of the KnowledgeOS Platform V4 release-candidate baseline.

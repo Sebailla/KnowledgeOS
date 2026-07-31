@@ -1,527 +1,126 @@
-
 # Knowledge Engine
 
-**Project:** KnowledgeOS
-
-**Section:** Platform
-
-**Engine:** Knowledge
-
-**Document:** Engine Architecture
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Platform  
+**Document:** KnowledgeEngine  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the architecture of the Knowledge Engine.
+Define Knowledge Object coordination, semantic operations, graph projection and relationship management.
 
-The Knowledge Engine owns the complete lifecycle of every Document Digital Twin and the canonical knowledge it contains.
+## 2. Scope
 
-Knowledge is the primary asset of KnowledgeOS.
+Covers domain-level knowledge commands and queries. Excludes search ranking, AI inference and source parsing.
 
-The Knowledge Engine is its sole authoritative owner.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-# 2. Scope
 
-The Knowledge Engine governs:
+## 4. Responsibility and Boundaries
 
-* Document Digital Twin lifecycle;
-* canonical knowledge integrity;
-* Knowledge Object lifecycle;
-* canonical model consistency;
-* provenance preservation;
-* version management;
-* semantic integrity.
+Knowledge Engine owns:
 
-The Knowledge Engine does not govern:
+- Knowledge Object coordination;
+- canonical semantic operation contracts;
+- Knowledge Graph projection;
+- relationship management;
+- ontology-aware validation;
+- semantic identity resolution;
+- knowledge-level queries.
 
-* rendering;
-* search indexing;
-* synchronization;
-* document organization;
-* artificial intelligence interactions;
-* export.
+It consumes UDM, DPM and Knowledge Object contracts. It does not own their definitions.
 
----
-
-# 3. Position within the Platform
-
-The Knowledge Engine occupies the architectural center of the Platform.
+## 5. Conceptual Model
 
 ```text
-                Import
-                   │
-                   ▼
-          Knowledge Engine
-                   │
-     ┌─────────────┼─────────────┐
-     ▼             ▼             ▼
- Library      Annotation     Search
-     │             │             │
-     └─────────────┼─────────────┘
-                   ▼
-                Render
-                   │
-                   ▼
-                  AI
-                   │
-                   ▼
-                 Sync
-                   │
-                   ▼
-                 Export
+KnowledgeEngine
+├── KnowledgeObjectService
+├── RelationshipService
+├── GraphProjectionService
+├── IdentityResolutionService
+├── OntologyService
+├── KnowledgeRepository contracts
+└── Knowledge events
 ```
 
-Every Platform capability ultimately depends on canonical knowledge managed by the Knowledge Engine.
+## 6. Normative Requirements
 
----
+**KNOWLEDGEENGIN-R001** — Knowledge Engine MUST preserve Knowledge Object identity and authority.
 
-# 4. Mission
+**KNOWLEDGEENGIN-R002** — Graph projection MUST be deterministic and rebuildable.
 
-The mission of the Knowledge Engine is to preserve, evolve and protect canonical knowledge throughout its complete lifecycle.
+**KNOWLEDGEENGIN-R003** — Personal and canonical graph layers MUST remain separate.
 
-Knowledge remains authoritative regardless of:
+**KNOWLEDGEENGIN-R004** — Derived relationships MUST not become canonical automatically.
 
-* storage technology;
-* rendering strategy;
-* synchronization mechanism;
-* artificial intelligence provider;
-* export format.
+**KNOWLEDGEENGIN-R005** — Relationship changes MUST preserve provenance and versioning.
 
----
+**KNOWLEDGEENGIN-R006** — Knowledge Engine MUST not access Search indexes as authoritative state.
 
-# 5. Design Philosophy
+**KNOWLEDGEENGIN-R007** — AI suggestions MUST enter through derived or personal workflows.
 
-The Knowledge Engine owns knowledge.
+**KNOWLEDGEENGIN-R008** — Ontology extensions MUST be namespaced and validated.
 
-Other Platform Engines consume, organize, enrich, present or transport knowledge.
+**KNOWLEDGEENGIN-R009** — Cross-object operations MUST use explicit commands or workflows.
 
-Ownership never leaves the Knowledge Engine.
+**KNOWLEDGEENGIN-R010** — Queries MUST expose authority and provenance when relevant.
 
----
+## 7. Invariants
 
-# 6. Architectural Goals
+**KNOWLEDGEENGIN-I001** — Knowledge Object remains the persistent aggregate.
 
-The Knowledge Engine shall:
+**KNOWLEDGEENGIN-I002** — Graph storage is derived.
 
-* preserve canonical integrity;
-* preserve identity;
-* preserve provenance;
-* preserve reproducibility;
-* support long-term evolution;
-* remain technology-independent.
+**KNOWLEDGEENGIN-I003** — Inference is not fact.
 
----
+**KNOWLEDGEENGIN-I004** — Identity is stable.
 
-# 7. Primary Responsibility
+**KNOWLEDGEENGIN-I005** — Authority layers remain distinguishable.
 
-The Knowledge Engine owns exactly one capability.
+**KNOWLEDGEENGIN-I006** — UDM and DPM semantics remain externally owned.
 
-It owns canonical knowledge.
+## 8. Commands, Queries, Events and Workflows
 
-Every modification affecting canonical knowledge shall be coordinated by the Knowledge Engine.
+Commands include `CreateRelationship`, `ConfirmDerivedRelationship`, `ProjectKnowledgeGraph`, `ResolveIdentity` and `RegisterOntologyExtension`.
 
-No other Engine may modify canonical models directly.
+Queries include `GetKnowledgeObject`, `TraverseRelationships`, `ResolveExternalIdentity` and `GetGraphProjectionStatus`.
 
----
+Events include `RelationshipCreated`, `RelationshipConfirmed`, `GraphProjected` and `IdentityResolutionChanged`.
 
-# 8. Primary Managed Artifact
+## 9. Failure, Recovery and Degradation
 
-The primary managed artifact is the Document Digital Twin.
+Projection failures SHALL not modify canonical Knowledge Objects. Ambiguous identity resolution SHALL return alternatives. Invalid relationships SHALL preserve submitted evidence for review.
 
-The Digital Twin represents the complete canonical representation of a document throughout its lifecycle.
+## 10. Security, Privacy and Observability
 
-The original Information Source is no longer authoritative after successful import.
+Every Engine SHALL enforce authorization and privacy at its public boundary. Personal Knowledge, publication content, credentials and provider secrets MUST NOT be exposed through logs, metrics, traces or events beyond the minimum approved scope.
 
----
+Each significant operation SHALL propagate correlation identity and expose diagnosable progress without transferring business ownership to the Kernel.
 
-# 9. Canonical Models
+## 11. Examples
 
-The Knowledge Engine manages the following canonical models:
+An AI model proposes that two concepts are equivalent. Knowledge records the proposal as derived. The user confirms it, creating a Personal relationship rather than changing source publication semantics.
 
-* Document Digital Twin;
-* Knowledge Object;
-* Universal Document Model;
-* Document Layout Model;
-* Document Presentation Model;
-* Provenance;
-* Version History.
+## 12. Compatibility and Evolution
 
-These models remain authoritative throughout the platform.
+Public contracts SHALL be versioned. Backward-compatible changes MAY add optional operations, fields or events. Changes to ownership, authority, lifecycle, identity, delivery guarantees or privacy boundaries require architectural review and, when significant, an ADR.
 
----
+## 13. Related Documents
 
-# 10. Relationship with the Domain
+- `../README.md`
+- `../../02-Domain/KnowledgeObject/README.md`
+- `../../02-Domain/KnowledgeGraph/README.md`
+- `../../02-Domain/Identity/README.md`
+- `../Search/README.md`
+- `../AI/README.md`
 
-The Domain defines the canonical models.
+## 14. Status
 
-The Knowledge Engine implements their operational lifecycle.
-
-The Domain defines *what* knowledge is.
-
-The Knowledge Engine defines *how* canonical knowledge evolves safely.
-
----
-
-# 11. Relationship with the Kernel
-
-The Knowledge Engine delegates execution to the Kernel.
-
-It consumes:
-
-* Commands;
-* Queries;
-* Events;
-* Workflows;
-* Jobs.
-
-Execution responsibilities remain outside the Engine.
-
----
-
-# 12. Relationship with Other Engines
-
-Other Platform Engines never modify canonical models directly.
-
-All canonical changes occur through explicit Kernel contracts targeting the Knowledge Engine.
-
-Canonical ownership remains centralized.
-
----
-
-# 13. Engine Boundaries
-
-The Knowledge Engine owns:
-
-* canonical lifecycle;
-* canonical validation;
-* canonical consistency;
-* version evolution;
-* provenance evolution.
-
-The Knowledge Engine never owns:
-
-* rendering;
-* indexing;
-* organization;
-* synchronization;
-* presentation.
-
-These responsibilities belong to dedicated Platform Engines.
-
----
-
-# 14. Success Criteria
-
-A Knowledge operation is considered successful only when:
-
-* canonical integrity is preserved;
-* provenance remains complete;
-* identity remains stable;
-* invariants remain satisfied;
-* the Document Digital Twin remains valid.
-
-No operation may sacrifice canonical correctness for implementation convenience.
-
-
----
-
-
-
-
-# 15. Knowledge Lifecycle
-
-The Knowledge Engine governs the complete lifecycle of every Document Digital Twin.
-
-Knowledge evolves through controlled lifecycle transitions.
-
-Knowledge never changes arbitrarily.
-
----
-
-# 16. Lifecycle States
-
-Every Document Digital Twin progresses through explicit lifecycle states.
-
-```text
-Imported
-     │
-     ▼
-Validated
-     │
-     ▼
-Canonical
-     │
-     ▼
-Available
-     │
-     ▼
-Archived
-     │
-     ▼
-Deleted
-```
-
-Lifecycle transitions are explicit.
-
-Invalid transitions are prohibited.
-
----
-
-# 17. State Responsibilities
-
-## Imported
-
-The Digital Twin has been created by the Import Engine.
-
-Canonical validation has not yet completed.
-
----
-
-## Validated
-
-Canonical models satisfy all Domain invariants.
-
-The Digital Twin is internally consistent.
-
----
-
-## Canonical
-
-The Digital Twin becomes the authoritative representation of the document.
-
-All canonical models are complete.
-
----
-
-## Available
-
-The Digital Twin is available for Platform capabilities including:
-
-* rendering;
-* search;
-* annotation;
-* synchronization;
-* export;
-* artificial intelligence.
-
----
-
-## Archived
-
-The Digital Twin remains authoritative.
-
-It is no longer considered part of the active working set.
-
----
-
-## Deleted
-
-Logical deletion preserves historical traceability.
-
-Physical deletion follows platform retention policies.
-
----
-
-# 18. Version Model
-
-Knowledge evolves through immutable versions.
-
-Every canonical modification creates a new logical version.
-
-Previous versions remain traceable.
-
-Version history is append-only.
-
----
-
-# 19. Version Identity
-
-Every version preserves:
-
-* Version Identifier;
-* Creation Timestamp;
-* Execution Context;
-* Provenance;
-* Parent Version;
-* Change Summary.
-
-Version identity remains immutable.
-
----
-
-# 20. Canonical Consistency
-
-Every canonical modification preserves:
-
-* Knowledge Object identity;
-* UDM consistency;
-* DLM consistency;
-* DPM consistency;
-* provenance completeness;
-* semantic relationships.
-
-Partial canonical updates are prohibited.
-
----
-
-# 21. Provenance Evolution
-
-Every modification extends provenance.
-
-Provenance records:
-
-* source;
-* transformation;
-* execution;
-* authoring context;
-* provider information;
-* confidence metadata (when applicable).
-
-No canonical information exists without provenance.
-
----
-
-# 22. Canonical Operations
-
-The Knowledge Engine performs canonical operations including:
-
-* creation;
-* validation;
-* versioning;
-* archival;
-* restoration;
-* logical deletion.
-
-Every operation preserves canonical integrity.
-
----
-
-# 23. Engine Events
-
-Typical Events include:
-
-* KnowledgeCreated;
-* KnowledgeValidated;
-* KnowledgeVersionCreated;
-* KnowledgeArchived;
-* KnowledgeDeleted;
-* KnowledgeRestored.
-
-Events describe completed canonical facts.
-
----
-
-# 24. Engine Commands
-
-Typical Commands include:
-
-* CreateKnowledge;
-* ValidateKnowledge;
-* UpdateKnowledge;
-* ArchiveKnowledge;
-* RestoreKnowledge;
-* DeleteKnowledge.
-
-Commands express canonical intentions.
-
----
-
-# 25. Engine Queries
-
-Typical Queries include:
-
-* GetKnowledge;
-* GetKnowledgeVersion;
-* GetKnowledgeHistory;
-* GetKnowledgeProvenance;
-* GetKnowledgeRelationships.
-
-Queries never modify canonical state.
-
----
-
-# 26. Concurrency
-
-Concurrent canonical modifications shall preserve:
-
-* identity;
-* consistency;
-* determinism;
-* provenance;
-* version integrity.
-
-Conflict resolution belongs to canonical version management.
-
----
-
-# 27. Security
-
-The Knowledge Engine evaluates only canonical authorization rules supplied through the Execution Context.
-
-Identity management remains external.
-
-Authorization never modifies canonical models.
-
----
-
-# 28. Observability
-
-Every canonical operation shall expose telemetry including:
-
-* execution duration;
-* version creation;
-* validation status;
-* lifecycle transitions;
-* consistency verification.
-
-Operational telemetry never replaces provenance.
-
----
-
-# 29. Engine Invariants
-
-The following invariants apply.
-
-* The Knowledge Engine owns every Document Digital Twin.
-* Canonical knowledge evolves through immutable versions.
-* Provenance is mandatory.
-* Lifecycle transitions are explicit.
-* Canonical integrity is never compromised.
-* Version history is append-only.
-* Partial canonical updates are prohibited.
-* Every modification is observable.
-* Every modification is traceable.
-
----
-
-# 30. Related Documents
-
-* KnowledgeArchitecture.md
-* DocumentDigitalTwin.md
-* Versioning.md
-* Provenance.md
-* KnowledgeLifecycle.md
-* Commands.md
-* Events.md
-* Queries.md
-* ../../02-Domain/KnowledgeObject/
-* ../../02-Domain/UDM/
-
----
-
-# 31. Status
-
-**Approved**
-
-This document defines the architectural model of the Knowledge Engine.
-
-The Knowledge Engine owns the complete lifecycle of every Document Digital Twin, preserving canonical integrity, immutable version history, provenance and long-term evolution while remaining independent from storage technologies, rendering strategies and execution infrastructure.
+This document is part of the KnowledgeOS Platform V4 release-candidate baseline.

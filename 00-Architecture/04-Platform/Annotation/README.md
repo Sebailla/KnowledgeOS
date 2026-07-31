@@ -1,512 +1,132 @@
-
 # Annotation Engine
 
-**Project:** KnowledgeOS
-
-**Section:** Platform
-
-**Engine:** Annotation
-
-**Document:** Engine Architecture
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Platform  
+**Document:** AnnotationEngine  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the architecture of the Annotation Engine.
+Define user-owned annotations, highlights, bookmarks, notes, drawings and stable attachment behavior.
 
-The Annotation Engine extends canonical knowledge through independent annotation layers without modifying the underlying Document Digital Twin.
+## 2. Scope
 
-Annotations enrich knowledge.
+Covers Personal Knowledge annotation semantics and workflows across Local Libraries.
 
-They never replace knowledge.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-# 2. Scope
 
-The Annotation Engine governs:
+## 4. Responsibility and Boundaries
 
-* annotations;
-* annotation layers;
-* anchors;
-* handwritten ink;
-* highlights;
-* comments;
-* bookmarks;
-* notes;
-* annotation relationships;
-* annotation versioning.
+Annotation Engine owns:
 
-The Annotation Engine does not govern:
+- annotation creation and editing;
+- highlights;
+- bookmarks;
+- sticky notes;
+- Apple Pencil drawings;
+- anchor attachment;
+- orphan handling;
+- annotation versions;
+- annotation conflict behavior;
+- annotation export contracts.
 
-* canonical knowledge;
-* rendering;
-* synchronization;
-* search indexing;
-* artificial intelligence reasoning.
+Annotations are Personal Knowledge. They SHALL NOT be stored in the NAS Master Library.
 
----
-
-# 3. Position within the Platform
-
-The Annotation Engine extends Document Digital Twins managed by the Knowledge Engine.
+## 5. Conceptual Model
 
 ```text
-Knowledge Engine
-        │
-        ▼
-Document Digital Twin
-        │
-        ▼
-Annotation Engine
-        │
-        ▼
-Annotation Layer
+AnnotationEngine
+├── AnnotationService
+├── HighlightService
+├── BookmarkService
+├── DrawingService
+├── AnchorResolver
+├── AnnotationRepository contracts
+└── Annotation events
 ```
 
-Annotations exist independently from canonical knowledge.
+## 6. Normative Requirements
 
----
+**ANNOTATIONENGI-R001** — Every annotation MUST have an immutable Personal Knowledge identity.
 
-# 4. Mission
+**ANNOTATIONENGI-R002** — Annotations MUST attach through stable anchors.
 
-The mission of the Annotation Engine is to allow users to enrich knowledge while preserving canonical integrity.
+**ANNOTATIONENGI-R003** — Annotation changes MUST create version history when synchronization requires it.
 
-Annotations remain independent.
+**ANNOTATIONENGI-R004** — Annotations MUST commit locally before synchronization.
 
-Canonical knowledge remains unchanged.
+**ANNOTATIONENGI-R005** — Annotation Engine MUST not write annotations to the Master Library.
 
----
+**ANNOTATIONENGI-R006** — Orphaned annotations MUST remain recoverable.
 
-# 5. Design Philosophy
+**ANNOTATIONENGI-R007** — Re-anchoring MUST preserve original selector and resolution history.
 
-Annotations are first-class architectural objects.
+**ANNOTATIONENGI-R008** — Conflicts MUST preserve competing versions until merge.
 
-They are never embedded inside source documents.
+**ANNOTATIONENGI-R009** — Drawings and binary attachments MUST use Personal asset identities.
 
-They are never tied to specific rendering technologies.
+**ANNOTATIONENGI-R010** — Deletion MUST use tombstones when convergence requires it.
 
-Annotations survive changes in presentation, rendering and synchronization.
+**ANNOTATIONENGI-R011** — Annotation exports MUST preserve ownership and provenance.
 
----
+## 7. Invariants
 
-# 6. Architectural Goals
+**ANNOTATIONENGI-I001** — Annotations are user-owned.
 
-The Annotation Engine shall:
+**ANNOTATIONENGI-I002** — Canonical publication content is unchanged.
 
-* preserve canonical integrity;
-* preserve annotation identity;
-* support multiple annotation types;
-* support immutable versioning;
-* support long-term persistence;
-* remain technology-independent.
+**ANNOTATIONENGI-I003** — Anchor history is preserved.
 
----
+**ANNOTATIONENGI-I004** — Offline creation is supported.
 
-# 7. Primary Managed Artifact
+**ANNOTATIONENGI-I005** — Synchronization provider does not own annotations.
 
-The primary managed artifact is the Annotation.
+**ANNOTATIONENGI-I006** — Conflict resolution is auditable.
 
-Every Annotation is an independent architectural object.
+## 8. Commands, Queries, Events and Workflows
 
-An Annotation contains:
+Commands include `CreateAnnotation`, `UpdateAnnotation`, `DeleteAnnotation`, `CreateHighlight`, `AttachDrawing` and `ResolveAnnotationAnchor`.
 
-* Annotation ID;
-* Annotation Type;
-* Anchor;
-* Content;
-* Style;
-* Metadata;
-* Version History;
-* Provenance.
+Queries include `ListAnnotationsForPublication`, `GetAnnotation`, `FindOrphanedAnnotations` and `GetAnnotationHistory`.
 
----
+Events include `AnnotationCreated`, `AnnotationModified`, `AnnotationDeleted`, `AnnotationOrphaned` and `AnnotationReanchored`.
 
-# 8. Annotation Layer
+Sync Engine consumes committed Personal Knowledge changes.
 
-Annotations belong to an Annotation Layer associated with a Document Digital Twin.
+## 9. Failure, Recovery and Degradation
 
-```text
-Document Digital Twin
-        │
-        ▼
-Annotation Layer
-        │
- ┌──────┼────────┐
- ▼      ▼        ▼
-Highlight  Note  Ink
-```
+Anchor resolution failure SHALL preserve annotation content and mark it orphaned. Synchronization conflict SHALL preserve both versions and expose merge operations.
 
-The Annotation Layer extends knowledge.
+## 10. Security, Privacy and Observability
 
-It never modifies canonical models.
+Every Engine SHALL enforce authorization and privacy at its public boundary. Personal Knowledge, publication content, credentials and provider secrets MUST NOT be exposed through logs, metrics, traces or events beyond the minimum approved scope.
 
----
+Each significant operation SHALL propagate correlation identity and expose diagnosable progress without transferring business ownership to the Kernel.
 
-# 9. Annotation Types
+## 11. Examples
 
-KnowledgeOS supports multiple annotation types.
+A highlight created on iPad attaches to a UDM text-range anchor, syncs through iCloud and resolves against the same acquired publication on Mac. The NAS never receives it.
 
-Examples include:
+## 12. Compatibility and Evolution
 
-* Highlight;
-* Handwritten Ink;
-* Sticky Note;
-* Comment;
-* Bookmark;
-* Drawing;
-* Shape;
-* Audio Note;
-* Image Annotation;
-* Citation;
-* Hyperlink;
-* Task.
+Public contracts SHALL be versioned. Backward-compatible changes MAY add optional operations, fields or events. Changes to ownership, authority, lifecycle, identity, delivery guarantees or privacy boundaries require architectural review and, when significant, an ADR.
 
-Future annotation types may be introduced through Plugins.
+## 13. Related Documents
 
----
+- `../README.md`
+- `../../02-Domain/UDM/Nodes/AnnotationNodes.md`
+- `../../02-Domain/UDM/Nodes/Anchors.md`
+- `../Sync/README.md`
+- `../Library/README.md`
 
-# 10. Relationship with the Knowledge Engine
+## 14. Status
 
-The Knowledge Engine owns canonical knowledge.
-
-The Annotation Engine owns annotation layers.
-
-Canonical models remain immutable.
-
-Annotations extend those models through explicit relationships.
-
----
-
-# 11. Relationship with the Kernel
-
-The Annotation Engine delegates execution through:
-
-* Commands;
-* Queries;
-* Events;
-* Workflows.
-
-Execution mechanisms remain outside the Engine.
-
----
-
-# 12. Relationship with Other Engines
-
-The Annotation Engine never communicates directly with other Platform Engines.
-
-All interactions occur through Kernel contracts.
-
-Direct coupling is prohibited.
-
----
-
-# 13. Engine Boundaries
-
-The Annotation Engine owns:
-
-* annotation lifecycle;
-* annotation anchors;
-* annotation relationships;
-* annotation metadata;
-* annotation version history.
-
-The Annotation Engine never owns:
-
-* canonical models;
-* rendering;
-* search indexes;
-* synchronization.
-
----
-
-# 14. Success Criteria
-
-An annotation operation is considered successful only when:
-
-* canonical knowledge remains unchanged;
-* annotation identity is preserved;
-* anchors remain valid;
-* provenance is complete;
-* version history is updated.
-
-Annotation operations shall never compromise canonical integrity.
-
----
-
-
-
-# 15. Anchor Model
-
-Every Annotation references canonical knowledge through one or more Anchors.
-
-Anchors identify knowledge.
-
-They never identify screen positions.
-
-The Anchor Model preserves annotation stability independently from rendering technologies.
-
----
-
-# 16. Anchor Types
-
-KnowledgeOS defines three complementary Anchor types.
-
-## Semantic Anchor
-
-Semantic Anchors identify logical knowledge elements.
-
-Examples include:
-
-* Knowledge Object;
-* Chapter;
-* Section;
-* Paragraph;
-* Sentence;
-* Word;
-* Figure;
-* Table.
-
-Semantic Anchors are the preferred anchoring strategy.
-
----
-
-## Structural Anchor
-
-Structural Anchors identify document hierarchy.
-
-Examples include:
-
-* Page;
-* Chapter;
-* Section;
-* Block;
-* List Item;
-* Table Cell.
-
-Structural Anchors preserve relative positioning.
-
----
-
-## Geometric Anchor
-
-Geometric Anchors identify visual regions.
-
-Examples include:
-
-* page coordinates;
-* bounding boxes;
-* polygons;
-* handwritten regions.
-
-Geometric Anchors support rendering-specific interactions.
-
-They are never authoritative.
-
----
-
-# 17. Anchor Resolution
-
-Anchor resolution follows a deterministic strategy.
-
-Preferred order:
-
-1. Semantic Anchor
-2. Structural Anchor
-3. Geometric Anchor
-
-If one strategy fails, the next available strategy shall be evaluated.
-
-Resolution shall remain deterministic.
-
----
-
-# 18. Multiple Anchors
-
-An Annotation may contain multiple Anchors simultaneously.
-
-Multiple Anchors increase long-term stability.
-
-Different Anchor types complement one another.
-
-Anchor redundancy improves resilience.
-
----
-
-# 19. Annotation Relationships
-
-Annotations may reference:
-
-* canonical knowledge;
-* other annotations;
-* external resources;
-* citations;
-* tasks;
-* hyperlinks.
-
-Relationships form an annotation graph.
-
-The graph remains independent from canonical knowledge.
-
----
-
-# 20. Annotation Versioning
-
-Annotations evolve through immutable versions.
-
-Each modification creates a new Annotation Version.
-
-Previous versions remain accessible.
-
-Version history is append-only.
-
----
-
-# 21. Annotation Metadata
-
-Every Annotation preserves metadata including:
-
-* Annotation ID;
-* Author;
-* Creation Timestamp;
-* Modification Timestamp;
-* Version;
-* Annotation Type;
-* Style;
-* Visibility;
-* Provenance.
-
-Metadata remains independent from canonical models.
-
----
-
-# 22. Commands
-
-Typical Commands include:
-
-* CreateAnnotation;
-* UpdateAnnotation;
-* DeleteAnnotation;
-* RestoreAnnotation;
-* MoveAnnotation;
-* ResolveAnchor.
-
-Commands express annotation intentions only.
-
----
-
-# 23. Events
-
-Typical Events include:
-
-* AnnotationCreated;
-* AnnotationUpdated;
-* AnnotationDeleted;
-* AnnotationRestored;
-* AnchorResolved;
-* AnchorUpdated.
-
-Events describe completed annotation facts.
-
----
-
-# 24. Queries
-
-Typical Queries include:
-
-* GetAnnotation;
-* GetAnnotations;
-* GetAnnotationsByAnchor;
-* GetAnnotationHistory;
-* ResolveAnnotationAnchor.
-
-Queries never modify annotation state.
-
----
-
-# 25. Concurrency
-
-Concurrent annotation operations shall preserve:
-
-* annotation identity;
-* anchor integrity;
-* version history;
-* provenance;
-* relationship consistency.
-
-Conflicts never compromise canonical knowledge.
-
----
-
-# 26. Security
-
-Annotation permissions are evaluated through the Execution Context.
-
-Identity management remains external.
-
-Authorization affects annotations only.
-
-Canonical knowledge remains unaffected.
-
----
-
-# 27. Observability
-
-Annotation operations expose operational telemetry including:
-
-* annotation creation;
-* anchor resolution time;
-* version creation;
-* relationship updates;
-* conflict detection.
-
-Telemetry supports diagnostics.
-
-It never replaces provenance.
-
----
-
-# 28. Engine Invariants
-
-The following invariants apply.
-
-* Annotations never modify canonical knowledge.
-* Every Annotation has at least one Anchor.
-* Semantic Anchors have highest priority.
-* Anchor resolution is deterministic.
-* Annotation history is append-only.
-* Annotation relationships remain independent.
-* Rendering never owns annotation semantics.
-* Annotation provenance is mandatory.
-
----
-
-# 29. Related Documents
-
-* Anchors.md
-* Highlights.md
-* Ink.md
-* Comments.md
-* AnnotationVersioning.md
-* Commands.md
-* Events.md
-* Queries.md
-* ../Knowledge/README.md
-* ../Render/README.md
-
----
-
-# 30. Status
-
-**Approved**
-
-This document defines the architectural model of the Annotation Engine.
-
-The Annotation Engine enriches Document Digital Twins through independent, versioned and anchor-based annotation layers while preserving canonical integrity, long-term stability and complete independence from rendering technologies.
+This document is part of the KnowledgeOS Platform V4 release-candidate baseline.

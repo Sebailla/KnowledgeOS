@@ -1,543 +1,105 @@
-
 # Provider Model
 
-**Project:** KnowledgeOS
-
-**Section:** Architecture
-
-**Module:** Integration
-
-**Category:** Providers
-
-**Document:** Provider Model
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Integration / Providers  
+**Document:** ProviderModel  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the architectural model for Providers in KnowledgeOS.
+Define common lifecycle, capability, selection, health and replacement semantics for all providers.
 
-A Provider is a replaceable implementation of a Platform capability exposed through a public Provider Contract.
+## 2. Scope
 
-Providers extend platform functionality without modifying Platform Engines or Domain models.
+Applies to AI, OCR, storage, sync, export and future providers.
 
----
+## 3. Normative Language
 
-# 2. Scope
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-The Provider Model governs:
 
-* Provider Contracts;
-* Provider lifecycle;
-* capability implementation;
-* provider registration;
-* provider discovery;
-* provider configuration;
-* provider selection;
-* provider health;
-* provider observability.
+## 4. Responsibility and Boundaries
 
-The Provider Model does not govern:
+A provider implements an Integration contract. It does not own Platform policy or Domain authority.
 
-* business logic;
-* canonical knowledge;
-* Platform capabilities;
-* Engine responsibilities.
-
----
-
-# 3. Position within the Architecture
-
-Providers belong to the Integration layer.
-
-They implement Platform capabilities through public contracts.
+## 5. Conceptual Model
 
 ```text
-Platform Capability
-        │
-        ▼
-Provider Contract
-        │
-        ▼
-Provider
-        │
-        ▼
-External Technology
+ProviderDescriptor
+├── providerId
+├── providerType
+├── version
+├── capabilities[]
+├── configurationSchema
+├── health
+├── privacyProfile
+├── costProfile?
+└── compatibility
 ```
 
-Providers isolate Platform Engines from implementation-specific technologies.
+## 6. Normative Requirements
 
----
+**PROVIDERMODEL-R001** — Every provider MUST have stable identity and version.
 
-# 4. Mission
+**PROVIDERMODEL-R002** — Capabilities MUST be declared explicitly.
 
-The mission of the Provider Model is to ensure that every external implementation remains replaceable while preserving architectural stability.
+**PROVIDERMODEL-R003** — Provider selection MUST be policy-driven.
 
-Technologies evolve.
+**PROVIDERMODEL-R004** — Health and readiness MUST be observable.
 
-Capabilities remain stable.
+**PROVIDERMODEL-R005** — Provider-specific errors MUST map to common error categories.
 
----
+**PROVIDERMODEL-R006** — Credentials MUST use secure references.
 
-# 5. Design Philosophy
+**PROVIDERMODEL-R007** — Providers MUST not leak proprietary models into Platform contracts.
 
-Capabilities belong to Platform.
+**PROVIDERMODEL-R008** — Fallback MUST be explicit.
 
-Implementations belong to Providers.
+**PROVIDERMODEL-R009** — Provider replacement MUST not change Domain semantics.
 
-Platform depends on capabilities.
+## 7. Invariants
 
-Providers depend on Platform contracts.
+**PROVIDERMODEL-I001** — Providers are replaceable.
 
-The dependency direction shall never be inverted.
+**PROVIDERMODEL-I002** — Business policy remains in Platform.
 
----
+**PROVIDERMODEL-I003** — Credentials remain protected.
 
-# 6. Architectural Goals
+**PROVIDERMODEL-I004** — Capabilities are explicit.
 
-The Provider Model shall:
+**PROVIDERMODEL-I005** — Failures are isolated.
 
-* preserve capability abstraction;
-* isolate external technologies;
-* support replaceable implementations;
-* support provider coexistence;
-* preserve long-term compatibility;
-* remain technology-independent.
+## 8. Failure, Recovery and Degradation
 
----
+Unavailable providers SHALL be marked unhealthy and excluded from selection until recovery policy permits retry.
 
-# 7. Definition of a Provider
+## 9. Security, Privacy and Observability
 
-A Provider is a runtime implementation of a Platform capability.
+Integration boundaries SHALL minimize exposed data, enforce authentication and authorization, preserve provenance, and redact credentials, publication content and Personal Knowledge from logs and telemetry.
 
-A Provider:
+Providers and external services SHALL be observable without becoming business authorities.
 
-* implements one or more Provider Contracts;
-* exposes declared capabilities;
-* owns its operational configuration;
-* remains independently replaceable;
-* executes through Platform contracts.
+## 10. Examples
 
-Providers never define new architectural responsibilities.
+AI Engine may choose a local provider when privacy policy forbids remote use.
 
----
+## 11. Compatibility and Evolution
 
-# 8. Capability Ownership
+Public integration contracts SHALL be versioned. Breaking changes require a major version, migration guidance and architectural review. Unknown optional extensions SHOULD be preserved. Unknown required semantics MUST fail explicitly.
 
-Platform Engines define capabilities.
+## 12. Related Documents
 
-Providers implement capabilities.
+- `../README.md`
+- `AIProviders.md`
+- `OCRProviders.md`
+- `StorageProviders.md`
+- `SyncProviders.md`
 
-Examples:
+## 13. Status
 
-| Platform Capability | Possible Providers                     |
-| ------------------- | -------------------------------------- |
-| OCR                 | Apple Vision, Tesseract, Google Vision |
-| AI Reasoning        | OpenAI, Anthropic, Ollama, MLX         |
-| Storage             | NAS, Local FS, S3                      |
-| Export              | PDF, EPUB, Markdown                    |
-| Synchronization     | WebDAV, Dropbox, iCloud                |
-
-Capabilities remain stable even when Providers change.
-
----
-
-# 9. Provider Contracts
-
-Every Provider implements an explicit Provider Contract.
-
-A Provider Contract defines:
-
-* supported operations;
-* required inputs;
-* expected outputs;
-* execution semantics;
-* error model;
-* capability version.
-
-Platform Engines communicate only through Provider Contracts.
-
----
-
-# 10. Provider Categories
-
-Typical Provider categories include:
-
-* AI Providers;
-* OCR Providers;
-* Storage Providers;
-* Synchronization Providers;
-* Export Providers;
-* Rendering Providers;
-* Authentication Providers;
-* Translation Providers.
-
-Additional categories may be introduced without modifying Platform Engines.
-
----
-
-# 11. Relationship with Platform
-
-Platform owns capabilities.
-
-Providers implement capabilities.
-
-Platform Engines never depend upon Provider implementations.
-
-Only Provider Contracts are visible.
-
----
-
-# 12. Relationship with Integration
-
-Integration owns:
-
-* Provider registration;
-* Provider discovery;
-* Provider validation;
-* Provider configuration;
-* Provider selection.
-
-Provider execution remains coordinated through Platform and Kernel contracts.
-
----
-
-# 13. Architectural Boundaries
-
-Providers own:
-
-* technology implementation;
-* protocol communication;
-* external SDK integration;
-* operational configuration;
-* provider-specific optimizations.
-
-Providers never own:
-
-* canonical knowledge;
-* business rules;
-* Platform capabilities;
-* Engine internals;
-* architectural policies.
-
----
-
-# 14. Success Criteria
-
-A Provider implementation is considered successful when it delivers a Platform capability through a public Provider Contract while remaining fully replaceable, observable, configurable and independent from Platform internals.
-
----
-
-
-
-# 15. Provider Lifecycle
-
-Every Provider follows an explicit lifecycle.
-
-```text
-Discovered
-      │
-      ▼
-Registered
-      │
-      ▼
-Configured
-      │
-      ▼
-Validated
-      │
-      ▼
-Enabled
-      │
-      ▼
-Running
-      │
-      ├─────────────┐
-      ▼             ▼
-Disabled        Failed
-      │             │
-      └──────┬──────┘
-             ▼
-          Removed
-```
-
-Lifecycle transitions shall be explicit and observable.
-
-Providers shall never execute before successful validation.
-
----
-
-# 16. Provider Registration
-
-Every Provider shall be registered before becoming available.
-
-Registration records:
-
-* Provider Identifier;
-* Provider Category;
-* Supported Contracts;
-* Capability Versions;
-* Provider Version;
-* Compatibility Metadata;
-* Configuration Schema.
-
-Registration never activates the Provider.
-
----
-
-# 17. Provider Discovery
-
-The Integration layer discovers available Provider implementations.
-
-Discovery sources may include:
-
-* local bundles;
-* Plugin packages;
-* built-in Providers;
-* enterprise deployments;
-* future Provider registries.
-
-Discovery does not imply trust.
-
-Every discovered Provider shall be validated.
-
----
-
-# 18. Provider Configuration
-
-Each Provider owns its operational configuration.
-
-Typical configuration includes:
-
-* connection parameters;
-* authentication settings;
-* execution limits;
-* timeout policies;
-* retry policies;
-* cache policies;
-* provider-specific options.
-
-Configuration shall remain isolated from Platform configuration.
-
----
-
-# 19. Provider Validation
-
-Validation verifies that a Provider satisfies its declared contracts.
-
-Validation includes:
-
-* contract compatibility;
-* capability compatibility;
-* configuration validation;
-* dependency validation;
-* integrity verification;
-* security validation.
-
-Providers failing validation shall remain disabled.
-
----
-
-# 20. Provider Selection
-
-Provider selection is performed at runtime.
-
-Selection may consider:
-
-* declared capability;
-* compatibility;
-* execution profile;
-* availability;
-* health status;
-* priority;
-* user preferences;
-* execution policy.
-
-Platform Engines request capabilities.
-
-They never request specific Provider implementations.
-
----
-
-# 21. Provider Health
-
-Every Provider exposes operational health information.
-
-Typical health indicators include:
-
-* availability;
-* readiness;
-* latency;
-* error rate;
-* connectivity;
-* execution capacity.
-
-Health information supports Provider selection.
-
-Health never alters Platform semantics.
-
----
-
-# 22. Provider Capabilities
-
-Providers explicitly declare every implemented capability.
-
-Typical declarations include:
-
-* supported operations;
-* optional features;
-* execution limits;
-* supported formats;
-* performance characteristics;
-* capability version.
-
-Capabilities are immutable during Provider execution.
-
----
-
-# 23. Provider Compatibility
-
-Every Provider declares compatibility with:
-
-* Platform version;
-* Provider Contract version;
-* capability version;
-* Plugin SDK version when applicable.
-
-Compatibility is validated before activation.
-
-Breaking incompatibilities shall prevent execution.
-
----
-
-# 24. Security Model
-
-Providers execute under explicit security constraints.
-
-Security responsibilities include:
-
-* permission enforcement;
-* credential isolation;
-* secure communication;
-* integrity verification;
-* execution auditing.
-
-Providers shall never access resources beyond declared permissions.
-
----
-
-# 25. Observability
-
-Every Provider exposes operational telemetry.
-
-Typical metrics include:
-
-* execution duration;
-* request count;
-* success rate;
-* failure rate;
-* latency;
-* throughput;
-* retry count;
-* resource consumption.
-
-Observability shall be provider-independent.
-
----
-
-# 26. Commands
-
-Typical Provider Commands include:
-
-* RegisterProvider;
-* ConfigureProvider;
-* ValidateProvider;
-* EnableProvider;
-* DisableProvider;
-* RemoveProvider;
-* RefreshProviderStatus.
-
-Commands manage Provider lifecycle only.
-
----
-
-# 27. Events
-
-Typical Provider Events include:
-
-* ProviderRegistered;
-* ProviderConfigured;
-* ProviderValidated;
-* ProviderEnabled;
-* ProviderDisabled;
-* ProviderUnavailable;
-* ProviderRecovered;
-* ProviderRemoved.
-
-Events describe completed Provider lifecycle activities.
-
----
-
-# 28. Queries
-
-Typical Provider Queries include:
-
-* GetProvider;
-* ListProviders;
-* GetProviderHealth;
-* GetProviderCapabilities;
-* GetProviderConfiguration;
-* GetProviderCompatibility.
-
-Queries never modify Provider state.
-
----
-
-# 29. Provider Invariants
-
-The following invariants apply.
-
-* Providers implement Platform capabilities.
-* Providers never define Platform capabilities.
-* Providers execute exclusively through Provider Contracts.
-* Providers remain independently replaceable.
-* Providers own their operational configuration.
-* Providers expose health information.
-* Providers expose operational telemetry.
-* Provider execution remains observable.
-* Provider compatibility is validated before activation.
-* Providers never access Platform internals directly.
-
----
-
-# 30. Related Documents
-
-* AIProviders.md
-* OCRProviders.md
-* StorageProviders.md
-* SyncProviders.md
-* ExportProviders.md
-* ProviderContracts.md
-* ../PluginSDK/Contracts.md
-* ../README.md
-* ../../04-Platform/README.md
-
----
-
-# 31. Status
-
-**Approved**
-
-This document defines the architectural model for Providers within KnowledgeOS.
-
-Providers implement Platform capabilities through explicit Provider Contracts while remaining independently replaceable, observable, configurable and isolated from Platform internals.
-
-The Platform owns capabilities.
-
-Providers implement them.
+This document is part of the KnowledgeOS Integration V4 release-candidate baseline.

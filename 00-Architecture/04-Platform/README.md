@@ -1,707 +1,163 @@
 # Platform Architecture
 
-**Project:** KnowledgeOS
-
-**Section:** Platform
-
-**Document:** Platform Architecture
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Platform  
+**Document:** README  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the architecture of the KnowledgeOS Platform.
+Define the Engine-based Platform layer that implements KnowledgeOS business capabilities over Domain contracts and Kernel execution services.
 
-The Platform implements every functional capability offered by KnowledgeOS.
+## 2. Scope
 
-It transforms the architectural concepts defined by the Domain into concrete user-facing capabilities by executing them through the Kernel.
+Applies to all Engines and public Platform contracts under `04-Platform`.
 
-The Platform is the product.
+## 3. Normative Language
 
-The Domain is the knowledge.
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-The Kernel is the execution runtime.
 
----
+## 4. Responsibility and Boundaries
 
-# 2. Scope
+Platform is the business-capability layer.
 
-The Platform defines:
+An Engine owns one coherent capability, protects its invariants and exposes explicit commands, queries, events, workflows and service contracts.
 
-* Platform Engines
-* Engine responsibilities
-* Engine boundaries
-* Engine interactions
-* execution capabilities
-* ownership rules
-* shared architectural contracts
+Platform depends on:
 
-This document applies to every Platform Engine, including future extensions.
+- Foundation rules;
+- Domain meaning;
+- Kernel execution contracts.
 
----
+Platform SHALL NOT be defined by databases, UI frameworks, external providers or deployment topology.
 
-# 3. Position within the Architecture
+The official Engines are:
 
-KnowledgeOS is organized into four major architectural layers.
+- Library;
+- Import;
+- Export;
+- Knowledge;
+- Search;
+- Render;
+- Annotation;
+- Sync;
+- AI;
+- Plugin.
+
+## 5. Conceptual Model
 
 ```text
-Foundation
-        │
-        ▼
-Domain
-        │
-        ▼
-Kernel
-        │
-        ▼
-Platform
-```
-
-Each layer depends exclusively on the layers above it.
-
-The Platform is the highest architectural layer.
-
-It implements the product.
-
----
-
-# 4. Platform Philosophy
-
-The Platform is responsible for implementing capabilities.
-
-Capabilities are functional behaviors exposed to users.
-
-The Platform never defines:
-
-* architectural principles;
-* domain knowledge;
-* execution infrastructure.
-
-Instead, it consumes them.
-
-The Platform transforms knowledge into user value.
-
----
-
-# 5. Definition of an Engine
-
-An Engine is an autonomous functional module implementing one specific product capability.
-
-Every Engine owns one responsibility.
-
-Every Engine exposes explicit contracts.
-
-Every Engine hides its internal implementation.
-
-An Engine is not:
-
-* a layer;
-* a package;
-* a framework module;
-* a collection of utilities.
-
-An Engine represents a complete business capability.
-
----
-
-# 6. Architectural Goals
-
-The Platform shall:
-
-* remain modular;
-* remain extensible;
-* remain technology-independent;
-* remain replaceable;
-* preserve Engine isolation;
-* maximize maintainability.
-
----
-
-# 7. Platform Responsibilities
-
-The Platform is responsible for implementing:
-
-* document import;
-* knowledge management;
-* rendering;
-* annotation;
-* search;
-* synchronization;
-* artificial intelligence;
-* export;
-* library management;
-* plugin execution.
-
-The Platform is not responsible for:
-
-* business definitions;
-* canonical models;
-* runtime coordination;
-* infrastructure implementations.
-
----
-
-# 8. Platform Structure
-
-The Platform consists of autonomous Engines.
-
-```text
-Platform
-
-├── Import Engine
-├── Library Engine
-├── Knowledge Engine
-├── Annotation Engine
-├── Search Engine
-├── Render Engine
-├── AI Engine
-├── Sync Engine
-├── Export Engine
-└── Plugin Engine
-```
-
-Every Engine owns one capability.
-
-No Engine owns multiple unrelated capabilities.
-
----
-
-# 9. Platform Philosophy
-
-Every Platform Engine follows five architectural principles.
-
-## Single Responsibility
-
-Each Engine owns one capability.
-
-## Isolation
-
-Each Engine evolves independently.
-
-## Explicit Contracts
-
-Communication occurs only through public contracts.
-
-## Replaceability
-
-Any Engine may be replaced without affecting the rest of the Platform.
-
-## Technology Independence
-
-Architectural responsibilities never depend upon implementation technologies.
-
----
-
-# 10. Platform Lifecycle
-
-Every user interaction eventually becomes Platform execution.
-
-```text
-User
-
-↓
-
-Platform Engine
-
-↓
-
-Kernel
-
-↓
-
-Domain
-
-↓
-
-Kernel
-
-↓
-
-Platform
-
-↓
-
-User
-```
-
-The Platform consumes Domain knowledge.
-
-It never owns Domain knowledge.
-
----
-
-# 11. Relationship with the Domain
-
-The Domain defines:
-
-* Knowledge Objects;
-* UDM;
-* DPM;
-* identities;
-* provenance;
-* canonical state.
-
-The Platform never modifies these definitions.
-
-The Platform operates using Domain concepts.
-
-The Domain remains authoritative.
-
----
-
-# 12. Relationship with the Kernel
-
-The Kernel provides execution capabilities.
-
-Examples include:
-
-* Commands;
-* Queries;
-* Events;
-* Workflows;
-* Jobs;
-* Scheduling;
-* Configuration.
-
-The Platform never implements these mechanisms.
-
-It only consumes them.
-
----
-
-# 13. Engine Boundaries
-
-Each Engine owns:
-
-* its internal services;
-* internal models;
-* internal repositories;
-* internal algorithms;
-* implementation details.
-
-These elements remain private.
-
-Only public contracts are visible outside the Engine.
-
----
-
-# 14. Public Contracts
-
-An Engine may expose:
-
-* Commands;
-* Queries;
-* Events;
-* Provider Contracts.
-
-An Engine shall never expose:
-
-* repositories;
-* internal services;
-* implementation classes;
-* internal data models.
-
-Architectural encapsulation is mandatory.
-
----
-
-# 15. Engine Communication
-
-Platform Engines never communicate directly.
-
-Incorrect:
-
-Import Engine
-
-↓
-
-Search Engine
-
-Correct:
-
-Import Engine
-
-↓
-
-Command
-
-↓
-
-Kernel
-
-↓
-
-Search Engine
-
-or
-
-Import Engine
-
-↓
-
-Event
-
-↓
-
-Kernel
-
-↓
-
-Search Engine
-
-The Kernel remains the only execution coordinator.
-
----
-
-# 16. Platform Ownership
-
-Every capability has exactly one owner.
-
-Examples include:
-
-Import belongs to Import Engine.
-
-Rendering belongs to Render Engine.
-
-Search belongs to Search Engine.
-
-Synchronization belongs to Sync Engine.
-
-Ownership overlap is prohibited.
-
----
-
-# 17. Canonical Models
-
-Platform Engines never define canonical models.
-
-Canonical models belong exclusively to the Domain.
-
-Platform Engines consume:
-
-* Knowledge Objects;
-* Universal Document Model;
-* Document Presentation Model;
-* future canonical models.
-
-The Platform may derive runtime representations.
-
-Derived representations never become authoritative.
-
----
-
-# 18. Runtime Models
-
-Platform Engines may generate runtime models.
-
-Examples include:
-
-* search indexes;
-* render trees;
-* caches;
-* projections;
-* embeddings;
-* thumbnails.
-
-Runtime models are disposable.
-
-Canonical models remain authoritative.
-
----
-
-# 19. The Document Digital Twin
-
-The central runtime artifact managed by the Platform is the **Document Digital Twin (DDT)**.
-
-A Document Digital Twin is the complete digital representation of a document throughout its entire lifecycle.
-
-It is independent from its original physical representation.
-
-A PDF, EPUB, DOCX, CHM or Markdown file is considered only a source.
-
-The Document Digital Twin becomes the authoritative runtime representation used by every Platform Engine.
-
----
-
-# 20. Digital Twin Composition
-
-A Document Digital Twin consists of several complementary models.
-
-```text
-Document Digital Twin
-│
-├── Knowledge Object
-├── Universal Document Model (UDM)
-├── Document Layout Model (DLM)
-├── Document Presentation Model (DPM)
-├── Annotation Layer
-├── Semantic Layer
-├── Provenance
-├── Version History
-├── AI Metadata
-└── Runtime Projections
-```
-
-Each model owns one responsibility.
-
-Together they represent the complete document.
-
----
-
-# 21. Canonical and Runtime Models
-
-Not every component of the Digital Twin is canonical.
-
-KnowledgeOS distinguishes between canonical and runtime models.
-
-## Canonical Models
-
-Canonical models include:
-
-* Knowledge Object
-* UDM
-* DLM
-* DPM
-* Provenance
-* Version History
-
-These models represent permanent knowledge.
-
----
-
-## Runtime Models
-
-Runtime models include:
-
-* search indexes;
-* render trees;
-* thumbnails;
-* caches;
-* embeddings;
-* AI contexts;
-* temporary projections.
-
-Runtime models are disposable.
-
-They may always be regenerated from canonical models.
-
----
-
-# 22. Platform Processing Pipeline
-
-Every imported document follows the same conceptual lifecycle.
-
-```text
-Original Source
-        │
-        ▼
-Import Engine
-        │
-        ▼
-Normalization
-        │
-        ▼
-Knowledge Extraction
-        │
-        ▼
-Knowledge Object
-        │
-        ▼
-UDM
-        │
-        ▼
-DLM
-        │
-        ▼
-DPM
-        │
-        ▼
-Document Digital Twin
-        │
-        ▼
-Library
-        │
-        ▼
+Clients / Public API / Plugins
+             │
+             ▼
 Platform Engines
+├── Library
+├── Import
+├── Export
+├── Knowledge
+├── Search
+├── Render
+├── Annotation
+├── Sync
+├── AI
+└── Plugin
+             │
+             ▼
+Kernel Services
+             │
+             ▼
+Integration Providers and Repositories
 ```
 
-After the Digital Twin has been created, no Platform Engine depends upon the original source document.
+Engines collaborate through public contracts and Kernel coordination. They MUST NOT access one another's private repositories.
 
----
+## 6. Normative Requirements
 
-# 23. Engine Interaction Model
+**README-R001** — Every capability MUST have exactly one primary owning Engine.
 
-Every Platform Engine operates on the Document Digital Twin.
+**README-R002** — Every Engine MUST expose explicit public contracts.
 
-```text
-                 Digital Twin
-                       │
- ┌──────────┬──────────┼──────────┬──────────┐
- ▼          ▼          ▼          ▼          ▼
-Import   Library   Search   Render   Annotation
-                       │
-             AI   Sync   Export
-```
+**README-R003** — An Engine MUST protect its own invariants and repository boundaries.
 
-The Digital Twin is the shared runtime artifact.
+**README-R004** — Engines MUST communicate through commands, queries, events, workflows or service contracts.
 
-The Engines remain independent.
+**README-R005** — Direct access to another Engine's private implementation or repository is prohibited.
 
----
+**README-R006** — Long-running cross-Engine operations MUST use Workflow Engine.
 
-# 24. Engine Lifecycle
+**README-R007** — Retryable operations MUST be idempotent.
 
-Every Engine follows the same conceptual lifecycle.
+**README-R008** — Derived artifacts MUST remain distinguishable from canonical and personal knowledge.
 
-```text
-Receive Request
-        │
-        ▼
-Validate
-        │
-        ▼
-Execute
-        │
-        ▼
-Publish Events
-        │
-        ▼
-Complete
-```
+**README-R009** — Integration providers MUST implement Platform contracts without owning business policy.
 
-Execution coordination belongs to the Kernel.
+**README-R010** — Engines MUST remain independent of client UI frameworks.
 
-Business behavior belongs to the Engine.
+**README-R011** — A new Engine requires a distinct business capability and architectural review.
 
----
+## 7. Invariants
 
-# 25. Rendering Philosophy
+**README-I001** — One owner per capability.
 
-Rendering never reproduces the original document.
+**README-I002** — No hidden cross-Engine mutation.
 
-Rendering reconstructs a visual representation from the Document Digital Twin.
+**README-I003** — Domain authority is preserved.
 
-Different Rendering Profiles may generate different visual experiences while preserving identical knowledge.
+**README-I004** — Kernel owns execution, not business policy.
 
-Examples include:
+**README-I005** — Providers remain replaceable.
 
-* Book View
-* Paper View
-* Magazine View
-* Accessibility View
-* Study View
-* Presentation View
+**README-I006** — Personal Knowledge remains user-owned.
 
-The rendered output is always derived.
+**README-I007** — Acquisition and synchronization remain separate.
 
-The Digital Twin remains authoritative.
+## 8. Commands, Queries, Events and Workflows
 
----
+Common patterns:
 
-# 26. Platform Invariants
+- Commands change Engine-owned state.
+- Queries read Engine-owned state or projections.
+- Events announce committed facts.
+- Workflows coordinate durable multi-step operations.
+- Public service contracts support synchronous collaboration when transactional or request-response behavior is required.
 
-The following invariants apply to every Platform Engine.
+Events SHALL follow committed state. Workflows SHALL preserve ownership of each business step.
 
-* Every Engine owns one capability.
-* Every Engine operates on the Digital Twin.
-* Engines communicate only through Kernel contracts.
-* Canonical models are never modified directly.
-* Runtime models remain disposable.
-* Platform implementations remain replaceable.
-* Engine implementations remain private.
-* Public contracts remain stable.
+## 9. Failure, Recovery and Degradation
 
----
+An Engine failure SHALL remain isolated when possible.
 
-# 27. Forbidden Responsibilities
+Degraded operation MUST be explicit. An Engine SHALL NOT report success when required state has not committed. Recovery SHALL preserve source evidence, Personal Knowledge, identity, provenance and workflow checkpoints.
 
-The following responsibilities are prohibited.
+## 10. Security, Privacy and Observability
 
-An Engine shall never:
+Every Engine SHALL enforce authorization and privacy at its public boundary. Personal Knowledge, publication content, credentials and provider secrets MUST NOT be exposed through logs, metrics, traces or events beyond the minimum approved scope.
 
-* bypass the Kernel;
-* modify another Engine's internal state;
-* expose implementation details;
-* redefine Domain concepts;
-* redefine Kernel contracts;
-* introduce hidden dependencies;
-* own multiple unrelated capabilities.
+Each significant operation SHALL propagate correlation identity and expose diagnosable progress without transferring business ownership to the Kernel.
 
-Architectural consistency has priority over implementation convenience.
+## 11. Examples
 
----
+Library Engine coordinates acquisition with Import Engine through a workflow. Import validates the payload; Library commits local membership. Neither accesses the other's private repository.
 
-# 28. Extensibility
+## 12. Compatibility and Evolution
 
-The Platform is designed for continuous evolution.
+Public contracts SHALL be versioned. Backward-compatible changes MAY add optional operations, fields or events. Changes to ownership, authority, lifecycle, identity, delivery guarantees or privacy boundaries require architectural review and, when significant, an ADR.
 
-Future Engines may be introduced without modifying existing Engines.
+## 13. Related Documents
 
-Examples include:
+- `../02-Domain/EngineResponsibilities.md`
+- `../03-Kernel/README.md`
+- `Library/README.md`
+- `Import/README.md`
+- `Sync/README.md`
+- `../05-Integration/README.md`
 
-* Translation Engine;
-* Citation Engine;
-* Publishing Engine;
-* Knowledge Discovery Engine;
-* Collaboration Engine.
+## 14. Status
 
-Every new Engine shall comply with this architectural model.
-
----
-
-# 29. Technology Independence
-
-The Platform defines architectural capabilities.
-
-It never defines implementation technologies.
-
-Examples.
-
-Correct:
-
-* AI Engine
-* Search Engine
-* Render Engine
-
-Incorrect:
-
-* Ollama Engine
-* SQLite Engine
-* PostgreSQL Engine
-* OpenAI Engine
-
-Technologies implement Engines.
-
-They never define them.
-
----
-
-# 30. Related Documents
-
-* ../01-Foundation/ArchitectureModel.md
-* ../01-Foundation/ArchitecturePrinciples.md
-* ../02-Domain/DomainModel.md
-* ../02-Domain/KnowledgeObject/
-* ../02-Domain/UDM/
-* ../03-Kernel/KernelArchitecture.md
-* ../05-Integration/README.md
-
----
-
-# 31. Status
-
-**Approved**
-
-This document defines the Platform architecture of KnowledgeOS.
-
-The Platform transforms canonical knowledge into functional capabilities through autonomous Platform Engines coordinated by the Kernel.
-
-The Document Digital Twin constitutes the central runtime artifact of the Platform.
-
-Every Platform Engine operates on the Digital Twin while preserving the integrity of the Domain, the stability of the Kernel and the long-term evolution of the architecture.
+This document is part of the KnowledgeOS Platform V4 release-candidate baseline.

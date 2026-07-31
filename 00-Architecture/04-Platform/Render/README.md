@@ -1,498 +1,129 @@
-
 # Render Engine
 
-**Project:** KnowledgeOS
-
-**Section:** Platform
-
-**Engine:** Render
-
-**Document:** Engine Architecture
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Platform  
+**Document:** RenderEngine  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the architecture of the Render Engine.
+Define renderer-independent interpretation of UDM and DPM, viewport projections, reflow and accessibility presentation.
 
-The Render Engine transforms canonical knowledge into visual experiences.
+## 2. Scope
 
-Rendering is derived.
+Covers rendering orchestration and public render contracts. Excludes UI navigation and renderer-framework internals.
 
-Knowledge remains authoritative.
+## 3. Normative Language
 
-The Render Engine never renders source documents.
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-It renders Document Digital Twins.
 
----
+## 4. Responsibility and Boundaries
 
-# 2. Scope
+Render Engine owns:
 
-The Render Engine governs:
+- UDM/DPM interpretation;
+- render-plan generation;
+- source-faithful presentation;
+- reflow;
+- accessible presentation;
+- viewport projection;
+- pagination generation;
+- renderer-provider contracts;
+- render cache lifecycle.
 
-* visual composition;
-* layout generation;
-* pagination;
-* typography;
-* rendering profiles;
-* render trees;
-* visual adaptation;
-* annotation rendering.
+It does not own UDM or DPM semantics.
 
-The Render Engine does not govern:
-
-* canonical knowledge;
-* search;
-* synchronization;
-* artificial intelligence;
-* document import;
-* organizational structures.
-
----
-
-# 3. Position within the Platform
-
-The Render Engine consumes canonical models managed by the Knowledge Engine.
+## 5. Conceptual Model
 
 ```text
-Knowledge Engine
-        │
-        ▼
-Document Digital Twin
-        │
-        ▼
-Render Engine
-        │
-        ▼
-Visual Experience
+RenderEngine
+├── RenderPlanner
+├── UDMInterpreter
+├── DPMInterpreter
+├── ReflowService
+├── AccessibilityProjection
+├── RenderProvider contracts
+└── RenderCache contracts
 ```
 
-The Render Engine never owns canonical knowledge.
+## 6. Normative Requirements
 
----
+**RENDERENGINE-R001** — Render Engine MUST preserve UDM and DPM identity mappings.
 
-# 4. Mission
+**RENDERENGINE-R002** — Renderer-specific objects MUST remain outside public Domain contracts.
 
-The mission of the Render Engine is to present canonical knowledge in the most appropriate visual form for the current execution context.
+**RENDERENGINE-R003** — Source-faithful rendering MUST declare fidelity profile.
 
-Presentation changes.
+**RENDERENGINE-R004** — Reflow MUST preserve semantic reading order.
 
-Knowledge remains constant.
+**RENDERENGINE-R005** — Accessible rendering SHOULD use approved alternate reading flows.
 
----
+**RENDERENGINE-R006** — Render caches MUST be rebuildable.
 
-# 5. Design Philosophy
+**RENDERENGINE-R007** — Missing assets MUST produce explicit placeholders or failures.
 
-Rendering is always a derived operation.
+**RENDERENGINE-R008** — Rendering MUST not mutate canonical UDM or DPM.
 
-Every rendered representation is disposable.
+**RENDERENGINE-R009** — Provider selection MUST be policy-driven and replaceable.
 
-Every rendered representation can be regenerated.
+**RENDERENGINE-R010** — Cancellation SHOULD be supported for expensive rendering.
 
-Canonical knowledge is never altered by rendering.
+**RENDERENGINE-R011** — Personal presentation preferences MUST remain local/personal state.
 
----
+## 7. Invariants
 
-# 6. Architectural Goals
+**RENDERENGINE-I001** — Rendering is non-authoritative.
 
-The Render Engine shall:
+**RENDERENGINE-I002** — UDM and DPM remain immutable.
 
-* preserve semantic fidelity;
-* preserve visual consistency;
-* support multiple rendering profiles;
-* support multiple rendering targets;
-* remain deterministic;
-* remain technology-independent.
+**RENDERENGINE-I003** — Mappings remain traceable.
 
----
+**RENDERENGINE-I004** — Caches are derived.
 
-# 7. Primary Managed Artifact
+**RENDERENGINE-I005** — Accessibility does not require semantic loss.
 
-The primary runtime artifact is the Render Tree.
+**RENDERENGINE-I006** — Provider implementations remain replaceable.
 
-The Render Tree represents the visual structure generated from canonical models.
+## 8. Commands, Queries, Events and Workflows
 
-The Render Tree is not canonical.
+Commands include `GeneratePreview`, `GeneratePrintPresentation` and `InvalidateRenderCache`.
 
-It exists only during rendering.
+Queries include `BuildRenderPlan`, `RenderPage`, `RenderReflowedView` and `GetRenderCapabilities`.
 
----
+Events include `PreviewGenerated`, `RenderCacheInvalidated` and `RenderProviderFailed`.
 
-# 8. Rendering Inputs
+## 9. Failure, Recovery and Degradation
 
-The Render Engine consumes:
+Provider failure SHOULD permit fallback when fidelity and policy allow. Missing DPM MAY allow generated reflow from UDM, but the result SHALL be identified as generated rather than source-faithful.
 
-* Document Digital Twin;
-* Universal Document Model;
-* Document Layout Model;
-* Document Presentation Model;
-* Annotation Layers;
-* Rendering Profile.
+## 10. Security, Privacy and Observability
 
-These models remain read-only.
+Every Engine SHALL enforce authorization and privacy at its public boundary. Personal Knowledge, publication content, credentials and provider secrets MUST NOT be exposed through logs, metrics, traces or events beyond the minimum approved scope.
 
----
+Each significant operation SHALL propagate correlation identity and expose diagnosable progress without transferring business ownership to the Kernel.
 
-# 9. Rendering Outputs
+## 11. Examples
 
-Rendering outputs include:
+A PDF source-faithful view consumes DPM pages. A responsive iPhone reading view generates a reflowed presentation from UDM while retaining annotation anchor mappings.
 
-* Render Tree;
-* visual pages;
-* scrolling layouts;
-* paginated layouts;
-* printable layouts;
-* accessibility layouts.
+## 12. Compatibility and Evolution
 
-Outputs remain runtime artifacts.
+Public contracts SHALL be versioned. Backward-compatible changes MAY add optional operations, fields or events. Changes to ownership, authority, lifecycle, identity, delivery guarantees or privacy boundaries require architectural review and, when significant, an ADR.
 
----
+## 13. Related Documents
 
-# 10. Relationship with the Knowledge Engine
+- `../README.md`
+- `../../02-Domain/UDM/UDM.md`
+- `../../02-Domain/DPM/DPM.md`
+- `../Annotation/README.md`
+- `../../05-Integration/Providers/RenderProviders.md`
 
-The Knowledge Engine owns canonical knowledge.
+## 14. Status
 
-The Render Engine consumes canonical knowledge.
-
-Rendering never modifies canonical models.
-
----
-
-# 11. Relationship with the Annotation Engine
-
-Annotations are rendered as independent visual layers.
-
-The Render Engine requests annotation information.
-
-The Annotation Engine remains the owner of annotation semantics.
-
----
-
-# 12. Relationship with the Search Engine
-
-Search determines what knowledge has been retrieved.
-
-Rendering determines how that knowledge is presented.
-
-Search and Rendering remain independent.
-
----
-
-# 13. Relationship with the Kernel
-
-The Render Engine delegates execution through:
-
-* Commands;
-* Queries;
-* Events;
-* Jobs.
-
-Execution remains coordinated by the Kernel.
-
----
-
-# 14. Engine Boundaries
-
-The Render Engine owns:
-
-* Render Tree generation;
-* layout calculation;
-* pagination;
-* typography;
-* visual composition;
-* rendering optimization.
-
-The Render Engine never owns:
-
-* canonical models;
-* search indexes;
-* annotations;
-* synchronization;
-* AI reasoning.
-
----
-
-# 15. Success Criteria
-
-A rendering operation is successful when canonical knowledge is presented faithfully while preserving semantic integrity, visual consistency and deterministic behavior across supported rendering targets.
-
----
-
-
-
-# 16. Rendering Pipeline
-
-Every rendering operation follows a deterministic transformation pipeline.
-
-Rendering converts canonical models into technology-independent visual structures.
-
-```text
-Document Digital Twin
-        │
-        ▼
-Composition
-        │
-        ▼
-Layout
-        │
-        ▼
-Pagination
-        │
-        ▼
-Layer Composition
-        │
-        ▼
-Render Tree
-        │
-        ▼
-Target Renderer
-        │
-        ▼
-Visual Output
-```
-
-The pipeline remains independent from user interface technologies.
-
----
-
-# 17. Composition
-
-The Composition stage combines canonical models into a unified rendering model.
-
-Composition consumes:
-
-* Universal Document Model;
-* Document Layout Model;
-* Document Presentation Model;
-* Annotation Layers;
-* Rendering Profile.
-
-Composition never modifies canonical knowledge.
-
----
-
-# 18. Layout
-
-The Layout stage computes visual geometry.
-
-Responsibilities include:
-
-* content flow;
-* block positioning;
-* column calculation;
-* spacing;
-* alignment;
-* region organization.
-
-Layout determines presentation only.
-
-Semantic meaning remains unchanged.
-
----
-
-# 19. Pagination
-
-Pagination divides visual content into discrete pages when required.
-
-Pagination is determined by:
-
-* Rendering Profile;
-* Rendering Target;
-* page dimensions;
-* typography;
-* layout constraints.
-
-Pagination is never part of the canonical knowledge.
-
----
-
-# 20. Layer Composition
-
-Rendering combines multiple visual layers.
-
-Typical layers include:
-
-* document content;
-* annotation layer;
-* selection layer;
-* highlight layer;
-* overlay layer.
-
-Layer composition remains deterministic.
-
-Each layer remains independently replaceable.
-
----
-
-# 21. Render Tree
-
-The Render Tree is the primary runtime artifact produced by the Render Engine.
-
-It represents the complete visual composition of the current rendering session.
-
-The Render Tree is disposable.
-
-It may always be regenerated from canonical knowledge.
-
----
-
-# 22. Rendering Profiles
-
-Rendering Profiles define presentation behavior.
-
-Typical profiles include:
-
-* Book;
-* Scientific Paper;
-* Magazine;
-* Study;
-* Accessibility;
-* Presentation;
-* Mobile;
-* Print.
-
-Profiles affect presentation only.
-
-Canonical knowledge remains unchanged.
-
----
-
-# 23. Rendering Targets
-
-The Render Engine supports multiple rendering targets.
-
-Examples include:
-
-* macOS;
-* iPadOS;
-* iOS;
-* Web;
-* PDF;
-* Printing.
-
-Target-specific implementations consume the Render Tree.
-
-The Render Engine remains independent from user interface frameworks.
-
----
-
-# 24. Runtime Models
-
-The following runtime models may exist during rendering:
-
-* Render Tree;
-* layout cache;
-* pagination cache;
-* glyph cache;
-* image cache;
-* viewport model.
-
-Runtime models are temporary.
-
-They never become canonical.
-
----
-
-# 25. Commands
-
-Typical Commands include:
-
-* RenderDocument;
-* RebuildRenderTree;
-* ChangeRenderingProfile;
-* RefreshLayout;
-* InvalidateRenderCache.
-
-Commands affect runtime rendering only.
-
----
-
-# 26. Events
-
-Typical Events include:
-
-* RenderingStarted;
-* RenderTreeGenerated;
-* PaginationCompleted;
-* RenderingCompleted;
-* RenderingFailed.
-
-Events describe completed rendering activities.
-
----
-
-# 27. Queries
-
-Typical Queries include:
-
-* GetRenderTree;
-* GetRenderedPage;
-* GetViewport;
-* GetLayoutInformation;
-* GetRenderingProfile.
-
-Queries never modify canonical or runtime state.
-
----
-
-# 28. Observability
-
-Rendering telemetry includes:
-
-* rendering duration;
-* layout duration;
-* pagination duration;
-* cache utilization;
-* viewport statistics;
-* rendering target.
-
-Operational telemetry remains independent from canonical knowledge.
-
----
-
-# 29. Engine Invariants
-
-The following invariants apply.
-
-* Rendering never modifies canonical knowledge.
-* Rendering consumes canonical models only.
-* The Render Tree is disposable.
-* Pagination is derived.
-* Layout remains deterministic.
-* Rendering Profiles affect presentation only.
-* Target Renderers are replaceable.
-* Runtime models remain non-canonical.
-
----
-
-# 30. Related Documents
-
-* RenderTree.md
-* LayoutEngine.md
-* RenderingProfiles.md
-* Typography.md
-* Pagination.md
-* MediaRendering.md
-* AnnotationRendering.md
-* Commands.md
-* Events.md
-* Queries.md
-* ../Knowledge/README.md
-* ../Annotation/README.md
-
----
-
-# 31. Status
-
-**Approved**
-
-This document defines the architectural model of the Render Engine.
-
-The Render Engine transforms canonical knowledge into deterministic, technology-independent visual experiences through a reproducible rendering pipeline while preserving semantic fidelity, canonical integrity and complete separation from user interface technologies.
+This document is part of the KnowledgeOS Platform V4 release-candidate baseline.
