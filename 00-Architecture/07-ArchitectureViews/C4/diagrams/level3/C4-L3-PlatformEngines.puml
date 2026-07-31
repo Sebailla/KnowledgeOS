@@ -1,78 +1,25 @@
 @startuml C4-L3-PlatformEngines
-title KnowledgeOS — C4 Level 3 — Platform Engines
-caption Architecture V3.0
-
-skinparam componentStyle rectangle
-skinparam shadowing false
-
-package "Platform" {
-  component "Library Engine" as library
-  component "Knowledge Engine" as knowledge
-  component "Import Engine" as import
-  component "Export Engine" as export
-  component "Render Engine" as render
-  component "Search Engine" as search
-  component "Annotation Engine" as annotation
-  component "AI Engine" as ai
-  component "Plugin Engine" as plugin
-  component "Sync Engine" as sync
+!include <C4/C4_Component>
+title KnowledgeOS — Platform Engines
+Container_Boundary(platform,"Platform") {
+ Component(library,"Library Engine","Master/Local library membership and acquisition")
+ Component(import,"Import Engine","Scanning, intake and validation")
+ Component(knowledge,"Knowledge Engine","Knowledge Objects and graph")
+ Component(search,"Search Engine","Indexes and queries")
+ Component(render,"Render Engine","UDM/DPM rendering")
+ Component(annotation,"Annotation Engine","Personal Knowledge annotations")
+ Component(sync,"Sync Engine","Personal Knowledge convergence")
+ Component(ai,"AI Engine","Policy-controlled AI tasks")
+ Component(export,"Export Engine","Portable exports")
+ Component(plugin,"Plugin Engine","Capabilities and extensions")
 }
-
-package "Domain" {
-  component "Knowledge Object" as ko
-  component "UDM" as udm
-  component "DPM" as dpm
-  component "Knowledge Graph" as kg
-}
-
-package "Kernel" {
-  component "Command / Query / Event Buses" as buses
-  component "Job System / Workflow Engine / Scheduler" as jobs
-}
-
-package "Integration" {
-  component "Providers" as providers
-  component "Storage & Synchronization" as storage
-  component "Public API" as api
-  component "Plugin SDK" as sdk
-  component "Data Exchange" as exchange
-}
-
-library --> ko
-knowledge --> kg
-knowledge --> udm
-import --> udm
-import --> dpm
-export --> exchange
-render --> dpm
-search --> udm
-search --> kg
-annotation --> udm
-annotation --> dpm
-ai --> providers
-plugin --> sdk
-sync --> storage
-library --> storage
-
-library --> buses
-knowledge --> buses
-import --> jobs
-export --> jobs
-search --> jobs
-ai --> jobs
-sync --> jobs
-
-api --> buses
-providers ..> ai
-providers ..> import
-providers ..> export
-
-note bottom
-  Engines own product capabilities.
-  Integration owns external boundaries.
-  Kernel owns coordination infrastructure.
-  Domain owns canonical knowledge semantics.
-end note
-
-footer KnowledgeOS Architecture | C4 Model | Version 3.0
+Rel(library,import,"Coordinates acquisition/import")
+Rel(import,knowledge,"Publishes validated sources/canonical inputs")
+Rel(knowledge,search,"Projects indexable knowledge")
+Rel(knowledge,render,"Provides UDM/DPM")
+Rel(annotation,sync,"Publishes Personal Knowledge changes")
+Rel(ai,knowledge,"Produces derived suggestions")
+Rel(export,knowledge,"Reads approved knowledge")
+Rel(plugin,library,"Uses public contracts")
+Rel(plugin,knowledge,"Uses public contracts")
 @enduml

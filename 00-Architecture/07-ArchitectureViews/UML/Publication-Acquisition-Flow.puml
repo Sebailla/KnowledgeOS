@@ -1,34 +1,20 @@
 @startuml UML-PUBLICATION-ACQUISITION-FLOW
-title KnowledgeOS — Publication Acquisition Flow
-caption Architecture V3.0
-
-skinparam shadowing false
-autonumber
-
+title Publication Acquisition Flow
 actor User
-participant "KnowledgeOS Client" as Client
-database "Selective Local Library" as Local
-participant "KnowledgeOS Server on NAS" as Server
-database "NAS Master Library" as Master
-
-User -> Client : Browse Master Catalog
-Client -> Server : Query catalog
-Server -> Master : Read catalog metadata
-Master --> Server : Catalog results
-Server --> Client : Catalog results
-
-User -> Client : Acquire selected publication
-Client -> Server : Request publication by stable identity
-Server -> Master : Read source publication and master metadata
-Master --> Server : Publication payload
-Server --> Client : Stream publication payload
-Client -> Local : Validate and persist local publication
-Client --> User : Publication available offline
-
-note over Client, Master
-  Acquisition is one-way content delivery.
-  It is not NAS replication and does not upload personal state.
-end note
-
-footer KnowledgeOS Architecture | UML | Version 3.0
+participant "Local Library" as Local
+participant "Library Engine" as Library
+participant "KnowledgeOS Server" as Server
+participant "Import Engine" as Import
+participant "Workflow Engine" as Workflow
+User -> Local: Browse Master Catalog
+Local -> Server: Query catalog
+Server --> Local: Publication summaries
+User -> Library: Acquire publication
+Library -> Workflow: Start idempotent acquisition
+Workflow -> Server: Download selected payload
+Server --> Workflow: Source + identity + provenance
+Workflow -> Import: Validate and register source
+Import --> Workflow: Validated import manifest
+Workflow -> Library: Commit Local membership
+Library --> User: Available offline
 @enduml

@@ -1,68 +1,29 @@
 # ADR-008 — Storage Architecture
 
-**Project:** KnowledgeOS
-
-**Section:** Architecture
-
-**Layer:** Architecture Views / ADR
-
-**Document:** ADR-008 — Storage Architecture
-
-**Version:** 3.0
-
-**Status:** Accepted
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Architecture Views / ADR  
+**Version:** 4.0  
+**Status:** Accepted  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Context
+## 1. Context
 
-KnowledgeOS requires NAS master-source storage, selective device-local Library storage, iCloud/CloudKit-synchronized personal state, disposable caches, temporary processing files and derived artifacts. Treating these storage roles as one undifferentiated persistence layer would create competing authority and unsafe cleanup behavior.
+NAS and clients require different persistence profiles.
 
-# 2. Decision
+## 2. Decision
 
-Storage shall distinguish NAS master-source storage, selective local Library storage, personal synchronized state, cache storage, temporary storage and derived artifact storage. Storage access shall use governed Storage Provider contracts. The Library Engine owns Library semantics and Source-of-Truth policy; Storage Providers provide capabilities but do not select canonical authority.
+NAS runs KnowledgeOS Server and PostgreSQL in separate containers with independent persistent volumes for database and authoritative files. Clients use local repositories for offline operation.
 
-# 3. Decision Drivers
+## 3. Consequences
 
-* Storage roles and cleanup rules are explicit.
-* Provider technologies remain replaceable.
-* A cache cannot silently become canonical.
+Improves recovery and replaceability; requires repository contracts and coordinated backups.
 
-# 4. Considered Alternatives
+## 4. Supersession
 
-* Single database for every storage role: rejected because authority and lifecycle semantics differ.
-* Direct filesystem access from Engines: rejected because it bypasses contracts and portability.
+None
 
-# 5. Positive Consequences
-
-* Storage roles and cleanup rules are explicit.
-* Provider technologies remain replaceable.
-* A cache cannot silently become canonical.
-
-# 6. Negative Consequences and Trade-offs
-
-* More metadata is required to track local acquisition state, personal synchronization state and pending personal changes.
-* Storage migrations require explicit compatibility and validation.
-
-# 7. Compliance and Validation
-
-Conformance shall be validated through architecture review, contract tests, dependency checks and implementation evidence appropriate to this decision. Any implementation that requires violating the decision shall return to Architecture Governance rather than creating an undocumented exception.
-
-# 8. Migration Impact
-
-Earlier documents, diagrams and implementation assumptions shall be mapped to this decision during V3 consolidation. Incompatible historical artifacts shall be marked superseded or archived rather than retained as competing active authority.
-
-# 9. Related Documents
-
-* `../../05-Integration/Storage/README.md`
-* `../../05-Integration/Providers/StorageProviders.md`
-* `../../04-Platform/Library/README.md`
-* `../../06-Execution/Performance/CacheStrategy.md`
-
-# 10. Status
+## 5. Status
 
 **Accepted**
-
-This ADR establishes **Provider-Based Storage with Canonical Authority Separation** as an active architectural decision for KnowledgeOS V3.

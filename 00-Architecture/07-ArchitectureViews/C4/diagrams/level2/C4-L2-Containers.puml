@@ -1,54 +1,27 @@
 @startuml C4-L2-Containers
-title KnowledgeOS — C4 Level 2 — Containers
-caption Architecture V3.0 — Master Library and Personal Sync Profile
-
-skinparam componentStyle rectangle
-skinparam shadowing false
-
-actor "User" as user
-
-package "Apple Device Clients" {
-  rectangle "macOS Application" as mac
-  rectangle "iPhone Application" as iphone
-  rectangle "iPad Application" as ipad
-  database "Selective Local Libraries\nDevice-specific publications" as local
-  database "Personal State\nAnnotations, progress, metadata, relationships" as personal
+!include <C4/C4_Container>
+title KnowledgeOS — Containers
+Person(user,"User")
+System_Boundary(kos,"KnowledgeOS") {
+ Container(mac,"macOS Client","Native application","Selective Local Library; offline reading and processing")
+ Container(ios,"iPhone/iPad Client","Native application","Selective Local Library; reading and Personal Knowledge")
+ Container(web,"Web Client","Optional web application","Remote access profile")
+ Container(server,"KnowledgeOS Server","NAS application container","Master Catalog, publication delivery and server APIs")
+ ContainerDb(masterdb,"Master Database","PostgreSQL container","Master metadata and catalog")
+ Container(masterfiles,"Authoritative Files","Persistent NAS volume","Source publications")
+ ContainerDb(localdb,"Local Library Storage","Device-local repositories","Local publications, indexes and Personal Knowledge")
+ Container(icloud,"CloudKit Provider","Apple service","Personal Knowledge transport only")
 }
-
-package "NAS" {
-  rectangle "KnowledgeOS Server" as server
-  database "Master Library\nCatalog + Source Publications" as master
-}
-
-cloud "iCloud / CloudKit\nPersonal State Sync" as icloud
-cloud "Optional External Providers" as providers
-
-user --> mac
-user --> iphone
-user --> ipad
-
-mac --> local
-iphone --> local
-ipad --> local
-
-mac --> personal
-iphone --> personal
-ipad --> personal
-
-mac --> server : Browse and acquire
-iphone --> server : Browse and acquire
-ipad --> server : Browse and acquire
-server <--> master : Master Library management
-
-personal <--> icloud : Personal-state convergence
-mac --> providers : Optional
-iphone --> providers : Optional
-ipad --> providers : Optional
-
-note bottom of local
-  Contains only publications acquired
-  for each device. Not a NAS replica.
-end note
-
-footer KnowledgeOS Architecture | C4 Model | Version 3.0
+Rel(user,mac,"Uses")
+Rel(user,ios,"Uses")
+Rel(user,web,"Uses")
+Rel(mac,server,"Browse and acquire selected publications","HTTPS")
+Rel(ios,server,"Browse and acquire selected publications","HTTPS")
+Rel(web,server,"Uses public API","HTTPS")
+Rel(server,masterdb,"Reads/writes catalog")
+Rel(server,masterfiles,"Reads/writes authoritative files")
+Rel(mac,localdb,"Reads/writes local state")
+Rel(ios,localdb,"Reads/writes local state")
+Rel(mac,icloud,"Sync Personal Knowledge")
+Rel(ios,icloud,"Sync Personal Knowledge")
 @enduml

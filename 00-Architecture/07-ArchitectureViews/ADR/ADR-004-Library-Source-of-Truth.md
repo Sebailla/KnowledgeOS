@@ -1,68 +1,29 @@
 # ADR-004 — Library Source of Truth
 
-**Project:** KnowledgeOS
-
-**Section:** Architecture
-
-**Layer:** Architecture Views / ADR
-
-**Document:** ADR-004 — Library Source of Truth
-
-**Version:** 3.0
-
-**Status:** Accepted
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Architecture Views / ADR  
+**Version:** 4.0  
+**Status:** Accepted  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Context
+## 1. Context
 
-The User requires ownership, portability and a durable mother Library independent from one application installation or cloud vendor. Multiple devices need an authoritative reconciliation target while continuing to work offline.
+Earlier designs treated the NAS as a shared filesystem and device libraries as replicas.
 
-# 2. Decision
+## 2. Decision
 
-For the primary KnowledgeOS architecture, the configured NAS shall be the Library Source of Truth. Devices maintain governed local replicas and caches. A local replica may contain durable unsynchronized changes but does not silently become a competing Source of Truth. Cloud or alternative canonical modes require a future explicit architectural decision.
+The NAS KnowledgeOS Server is authoritative for the Master Catalog, source publications and master metadata. Local Libraries are authoritative only for device membership and availability.
 
-# 3. Decision Drivers
+## 3. Consequences
 
-* User-controlled canonical storage.
-* Device replacement does not transfer ownership to a vendor cloud.
-* A clear authority exists for multi-device reconciliation.
+Clarifies scoped authority and removes bidirectional library replication.
 
-# 4. Considered Alternatives
+## 4. Supersession
 
-* Application-local database as Source of Truth: rejected because it binds the Library to one device.
-* Vendor cloud as mandatory Source of Truth: rejected for ownership and lock-in reasons.
+Amended by ADR-013.
 
-# 5. Positive Consequences
-
-* User-controlled canonical storage.
-* Device replacement does not transfer ownership to a vendor cloud.
-* A clear authority exists for multi-device reconciliation.
-
-# 6. Negative Consequences and Trade-offs
-
-* NAS availability and failure recovery require explicit operational design.
-* Selective local-library acquisition state and personal synchronization metadata become essential.
-
-# 7. Compliance and Validation
-
-Conformance shall be validated through architecture review, contract tests, dependency checks and implementation evidence appropriate to this decision. Any implementation that requires violating the decision shall return to Architecture Governance rather than creating an undocumented exception.
-
-# 8. Migration Impact
-
-Earlier documents, diagrams and implementation assumptions shall be mapped to this decision during V3 consolidation. Incompatible historical artifacts shall be marked superseded or archived rather than retained as competing active authority.
-
-# 9. Related Documents
-
-* `../../01-Foundation/ProductVision.md`
-* `../../04-Platform/Library/README.md`
-* `../../05-Integration/Storage/README.md`
-* `../../05-Integration/Synchronization/README.md`
-
-# 10. Status
+## 5. Status
 
 **Accepted**
-
-This ADR establishes **NAS Master Library authority for catalog and source publications** as an active architectural decision for KnowledgeOS V3. Personal state authority and synchronization are governed separately by ADR-013.

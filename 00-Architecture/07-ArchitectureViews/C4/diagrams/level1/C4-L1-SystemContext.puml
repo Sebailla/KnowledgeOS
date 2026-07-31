@@ -1,34 +1,15 @@
 @startuml C4-L1-SystemContext
-title KnowledgeOS — C4 Level 1 — System Context
-caption Architecture V3.0 — Master Library and Personal Sync Profile
-
-skinparam componentStyle rectangle
-skinparam shadowing false
-skinparam defaultTextAlignment center
-
-actor "User" as user
-rectangle "KnowledgeOS Clients\nmacOS / iPhone / iPad" as clients
-node "KnowledgeOS Server\non NAS" as server
-database "NAS Master Library\nMaster Catalog + Source Publications" as master
-cloud "iCloud / CloudKit\nPersonal State Synchronization" as icloud
-cloud "Optional External Services\nAI / OCR / Export" as external
-
-user --> clients : Reads, annotates and manages local knowledge
-clients --> server : Browse Master Catalog and acquire publications
-server <--> master : Manages master catalog and source publications
-clients <--> icloud : Synchronize personal state among Apple devices
-clients --> external : Optional governed requests
-
-note right of master
-  No personal annotations,
-  reading progress or personal
-  knowledge state are stored here.
-end note
-
-note bottom of clients
-  Each device has a selective local Library.
-  It is not a replica of the NAS Master Library.
-end note
-
-footer KnowledgeOS Architecture | C4 Model | Version 3.0
+!include <C4/C4_Context>
+title KnowledgeOS — System Context
+Person(user,"User","Reads, studies and manages personal knowledge")
+System(kos,"KnowledgeOS","Offline-first personal knowledge platform")
+System_Ext(nas,"KnowledgeOS Server on NAS","Master Catalog and authoritative source publications")
+System_Ext(icloud,"iCloud / CloudKit","Personal Knowledge synchronization among Apple devices")
+System_Ext(ai,"AI Providers","Optional local and remote models")
+System_Ext(ext,"External Sources","Web, DOI, metadata and other integrations")
+Rel(user,kos,"Uses")
+Rel(kos,nas,"Browses catalog and explicitly acquires publications")
+Rel(kos,icloud,"Synchronizes Personal Knowledge")
+Rel(kos,ai,"Runs approved AI tasks")
+Rel(kos,ext,"Imports or resolves external information")
 @enduml
