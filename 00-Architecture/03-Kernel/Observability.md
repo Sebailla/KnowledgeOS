@@ -1,319 +1,105 @@
+# Kernel Observability
 
-# Observability
-
-**Project:** KnowledgeOS
-
-**Section:** Kernel
-
-**Document:** Observability
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Kernel  
+**Document:** Observability  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Observability architecture of the KnowledgeOS Kernel.
+Define metrics, tracing, health, diagnostics and correlation.
 
-Observability provides a unified model for understanding runtime behavior through correlated operational telemetry.
+## 2. Scope
 
-Observability explains system behavior.
+This specification applies to Kernel contracts and every Platform or Integration component that consumes them. It is technology-neutral and does not prescribe a concrete framework, broker, database, scheduler or dependency-injection container.
 
-It never changes system behavior.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-# 2. Scope
+## 4. Responsibilities
 
-Observability governs:
+Observability applies to Kernel services and all modules using Kernel telemetry contracts.
 
-* telemetry collection;
-* metrics;
-* distributed traces;
-* health indicators;
-* execution correlation;
-* operational diagnostics.
+## 5. Exclusions
 
-Observability consumes operational signals.
+Telemetry does not own business truth or user knowledge.
 
-It never produces business behavior.
+## 6. Conceptual Model
 
----
+```text
+ExecutionContext
+├── correlationId
+├── causationId?
+├── traceId
+├── spanId
+├── module
+├── operation
+└── privacyClass
+```
 
-# 3. Design Goals
+## 7. Normative Requirements
 
-Observability shall:
+**OBSERVABILIT-R001** — Significant operations SHOULD expose correlation.
 
-* remain technology-independent;
-* provide end-to-end visibility;
-* preserve execution context;
-* support operational diagnostics;
-* support performance analysis;
-* respect privacy.
+**OBSERVABILIT-R002** — Long-running workflows MUST expose state and progress.
 
----
+**OBSERVABILIT-R003** — Metrics MUST define units and aggregation semantics.
 
-# 4. Design Philosophy
+**OBSERVABILIT-R004** — Health checks MUST distinguish readiness and liveness when applicable.
 
-Observability explains what is happening inside the platform.
+**OBSERVABILIT-R005** — Tracing MUST preserve module boundaries.
 
-It observes execution.
+**OBSERVABILIT-R006** — Telemetry MUST minimize personal and publication data.
 
-It never influences execution.
+**OBSERVABILIT-R007** — Sampling policy MUST be explicit.
 
-Operational visibility shall remain completely independent from business logic.
+**OBSERVABILIT-R008** — Observability failure MUST not change Domain authority.
 
----
+**OBSERVABILIT-R009** — External telemetry export MUST require approved privacy policy.
 
-# 5. Observability Signals
 
-KnowledgeOS defines four primary observability signals.
+## 8. Invariants
 
-## 5.1 Logs
+**OBSERVABILIT-I001** — Telemetry is non-authoritative.
 
-Structured operational records describing execution.
+**OBSERVABILIT-I002** — Correlation is stable across one logical operation.
 
-Logs answer:
+**OBSERVABILIT-I003** — Metrics are unit-explicit.
 
-**What happened?**
+**OBSERVABILIT-I004** — Privacy classification is enforced.
 
----
+**OBSERVABILIT-I005** — Workflow and job state is diagnosable.
 
-## 5.2 Metrics
 
-Aggregated quantitative measurements describing runtime behavior.
+## 9. Failure and Recovery
 
-Examples include:
+Failures SHALL be explicit, typed and observable. Retryable operations MUST preserve idempotency. Durable work SHALL resume from the latest consistent state. Kernel infrastructure MUST NOT fabricate Domain success, silently discard committed work or reinterpret business authority.
 
-* execution duration;
-* throughput;
-* queue depth;
-* retry count;
-* failure rate;
-* memory consumption.
+## 10. Security and Privacy
 
-Metrics answer:
+Kernel services SHALL minimize exposure of publication content, Personal Knowledge, credentials and provider secrets. Correlation metadata, logs and traces MUST be redacted according to policy. Kernel infrastructure MUST NOT become an unauthorized data sink.
 
-**How much?**
+## 11. Example
 
----
+A workflow trace shows download, checksum verification, registration and UDM processing under one correlation ID while redacting source content.
 
-## 5.3 Traces
+## 12. Compatibility and Evolution
 
-Correlated execution paths describing how an operation flows through the platform.
+Backward-compatible additions MAY introduce optional metadata or contracts. Changes to delivery guarantees, ordering, identity, persistence, transaction boundaries, failure semantics or lifecycle behavior require architectural review and a major version when compatibility cannot be preserved.
 
-Traces answer:
+## 13. Related Documents
 
-**How did it happen?**
+- `README.md`
+- `KernelArchitecture.md`
+- `../02-Domain/DomainModel.md`
+- `../02-Domain/EngineResponsibilities.md`
 
----
+## 14. Status
 
-## 5.4 Health
-
-Health indicators describe whether a component can perform its intended responsibilities.
-
-Health answers:
-
-**Can the platform operate correctly?**
-
----
-
-# 6. Correlation Model
-
-Every observable execution shall preserve correlation metadata.
-
-Typical identifiers include:
-
-* ExecutionID;
-* CorrelationID;
-* CausationID;
-* WorkflowID;
-* JobID;
-* TriggerID.
-
-Correlation enables complete reconstruction of execution paths.
-
----
-
-# 7. Metrics
-
-Metrics are aggregated operational measurements.
-
-Metrics never contain business knowledge.
-
-Typical metric categories include:
-
-* performance;
-* availability;
-* throughput;
-* reliability;
-* resource utilization;
-* execution latency.
-
-Metrics are implementation-independent.
-
----
-
-# 8. Tracing
-
-Tracing represents execution flow across Kernel components.
-
-Typical traces include:
-
-* Commands;
-* Queries;
-* Events;
-* Workflows;
-* Jobs;
-* Scheduler triggers.
-
-Traces preserve execution relationships without altering execution behavior.
-
----
-
-# 9. Health Monitoring
-
-Health indicators evaluate operational readiness.
-
-Typical health checks include:
-
-* Configuration validity;
-* Dependency Injection integrity;
-* Storage Provider availability;
-* AI Provider availability;
-* Scheduler status;
-* Job System status;
-* Event Bus status.
-
-Health does not evaluate business correctness.
-
----
-
-# 10. Provider Model
-
-Observability implementations are replaceable.
-
-Examples include:
-
-* Metrics Provider;
-* Trace Provider;
-* Health Provider;
-* Telemetry Export Provider.
-
-The Kernel depends upon contracts rather than concrete implementations.
-
----
-
-# 11. Privacy
-
-Observability shall minimize exposure of user information.
-
-Telemetry shall never contain:
-
-* document contents;
-* annotations;
-* prompts;
-* embeddings;
-* extracted personal information;
-* secret values.
-
-Operational metadata is preferred whenever possible.
-
----
-
-# 12. Performance
-
-Observability shall minimize runtime overhead.
-
-Implementations may support:
-
-* asynchronous telemetry;
-* batching;
-* sampling;
-* aggregation;
-* deferred export.
-
-Performance optimizations shall preserve diagnostic value.
-
----
-
-# 13. Logging Relationship
-
-Logging is one source of operational telemetry.
-
-Observability integrates Logging together with Metrics, Traces and Health.
-
-Logging alone does not provide complete observability.
-
----
-
-# 14. Failure Handling
-
-Observability failures shall never compromise platform execution.
-
-If telemetry becomes unavailable:
-
-* execution continues;
-* failures are reported where possible;
-* recursive telemetry failures are prevented.
-
-Platform availability has higher priority than telemetry collection.
-
----
-
-# 15. Extensibility
-
-Platform Engines and Plugins may contribute additional telemetry through approved contracts.
-
-Extensions may publish:
-
-* metrics;
-* traces;
-* health indicators;
-* diagnostic metadata.
-
-Extensions shall not bypass Kernel observability contracts.
-
----
-
-# 16. Invariants
-
-The following invariants apply:
-
-* Observability is passive.
-* Observability never changes execution.
-* Telemetry is correlated.
-* Metrics are aggregated.
-* Traces preserve execution flow.
-* Health measures operational readiness.
-* Logging is only one telemetry source.
-* Observability is technology-independent.
-* Observability respects privacy.
-
----
-
-# 17. Related Documents
-
-* KernelArchitecture.md
-* Logging.md
-* Configuration.md
-* Scheduler.md
-* WorkflowEngine.md
-* JobSystem.md
-* ../06-Quality/ObservabilityStrategy.md
-* ../06-Quality/PerformanceStrategy.md
-* ../06-Quality/PrivacyStrategy.md
-
----
-
-# 18. Status
-
-**Approved**
-
-This document defines the Observability architecture of KnowledgeOS.
-
-Observability provides a unified, correlated and technology-independent operational model through Logs, Metrics, Traces and Health while remaining completely independent from business logic, canonical knowledge and infrastructure implementations.
+This document is part of the KnowledgeOS Kernel V4 release-candidate baseline.

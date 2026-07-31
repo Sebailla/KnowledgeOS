@@ -1,267 +1,105 @@
+# Kernel Logging
 
-# Logging
-
-**Project:** KnowledgeOS
-
-**Section:** Kernel
-
-**Document:** Logging
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Kernel  
+**Document:** Logging  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Logging architecture of the KnowledgeOS Kernel.
+Define structured logging, levels, correlation, redaction and retention boundaries.
 
-Logging records structured operational information describing runtime behavior.
+## 2. Scope
 
-Logging records operational facts.
+This specification applies to Kernel contracts and every Platform or Integration component that consumes them. It is technology-neutral and does not prescribe a concrete framework, broker, database, scheduler or dependency-injection container.
 
-It never defines business truth.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-# 2. Scope
+## 4. Responsibilities
 
-Logging governs:
+Logging supports diagnostics across Kernel, Platform, Integration and Implementation.
 
-* log generation;
-* log structure;
-* log levels;
-* contextual information;
-* provider abstraction;
-* retention policies;
-* operational diagnostics.
+## 5. Exclusions
 
-Logging does not govern:
+Logs are not Domain truth or a substitute for audit records.
 
-* business auditing;
-* canonical history;
-* provenance;
-* business reporting.
+## 6. Conceptual Model
 
----
+```text
+LogRecord
+├── timestamp
+├── level
+├── template
+├── properties{}
+├── module
+├── correlationId?
+├── traceId?
+├── privacyClass
+└── exception?
+```
 
-# 3. Design Goals
+## 7. Normative Requirements
 
-Logging shall:
+**LOGGING-R001** — Logs MUST be structured.
 
-* remain structured;
-* remain technology-independent;
-* preserve execution context;
-* support diagnostics;
-* support observability;
-* respect privacy.
+**LOGGING-R002** — Levels MUST have consistent semantics.
 
----
+**LOGGING-R003** — Correlation identifiers SHOULD propagate across boundaries.
 
-# 4. Design Philosophy
+**LOGGING-R004** — Secrets and credentials MUST be redacted.
 
-Logging records what occurred during execution.
+**LOGGING-R005** — Publication content and Personal Knowledge MUST NOT be logged by default.
 
-It never determines what should occur.
+**LOGGING-R006** — Sensitive properties MUST declare privacy classification.
 
-Logging is observational.
+**LOGGING-R007** — Retention MUST follow policy.
 
-It is never behavioral.
+**LOGGING-R008** — Logging failure MUST not corrupt Domain operations.
 
----
+**LOGGING-R009** — Audit requirements MUST use a dedicated audit contract.
 
-# 5. Log Structure
 
-Every log entry shall contain structured information.
+## 8. Invariants
 
-Typical fields include:
+**LOGGING-I001** — Logs are non-authoritative.
 
-* Timestamp;
-* Level;
-* Component;
-* Operation;
-* ExecutionID;
-* CorrelationID;
-* Duration;
-* Result;
-* Metadata.
+**LOGGING-I002** — Sensitive data is minimized.
 
-Additional implementation-specific fields may exist.
+**LOGGING-I003** — Correlation is consistent.
 
----
+**LOGGING-I004** — Redaction precedes external transmission.
 
-# 6. Log Levels
 
-KnowledgeOS defines the following conceptual log levels:
+## 9. Failure and Recovery
 
-* Trace;
-* Debug;
-* Information;
-* Warning;
-* Error;
-* Critical.
+Failures SHALL be explicit, typed and observable. Retryable operations MUST preserve idempotency. Durable work SHALL resume from the latest consistent state. Kernel infrastructure MUST NOT fabricate Domain success, silently discard committed work or reinterpret business authority.
 
-Implementations may map these levels to specific logging frameworks.
+## 10. Security and Privacy
 
----
+Kernel services SHALL minimize exposure of publication content, Personal Knowledge, credentials and provider secrets. Correlation metadata, logs and traces MUST be redacted according to policy. Kernel infrastructure MUST NOT become an unauthorized data sink.
 
-# 7. Execution Context
+## 11. Example
 
-Every significant log entry shall preserve execution context.
+An acquisition failure logs publication identity, workflow ID and error class, not book text or a private filesystem path.
 
-Execution context may include:
+## 12. Compatibility and Evolution
 
-* ExecutionID;
-* CorrelationID;
-* CausationID;
-* WorkflowID;
-* JobID;
-* TriggerID;
-* Initiator.
+Backward-compatible additions MAY introduce optional metadata or contracts. Changes to delivery guarantees, ordering, identity, persistence, transaction boundaries, failure semantics or lifecycle behavior require architectural review and a major version when compatibility cannot be preserved.
 
-Context enables end-to-end diagnostics.
+## 13. Related Documents
 
----
+- `README.md`
+- `KernelArchitecture.md`
+- `../02-Domain/DomainModel.md`
+- `../02-Domain/EngineResponsibilities.md`
 
-# 8. Provider Model
+## 14. Status
 
-Logging implementations are replaceable.
-
-Examples include:
-
-* Console Provider;
-* File Provider;
-* System Log Provider;
-* Remote Logging Provider.
-
-The Kernel depends on Logging contracts rather than concrete providers.
-
----
-
-# 9. Privacy
-
-Logs shall minimize exposure of user information.
-
-Logs shall never contain:
-
-* document contents;
-* annotations;
-* prompts;
-* embeddings;
-* extracted personal information;
-* secret values;
-* encryption keys.
-
-Operational metadata is preferred over business data.
-
----
-
-# 10. Retention
-
-Logs are operational artifacts.
-
-Retention policies are implementation-specific.
-
-Logs may be:
-
-* rotated;
-* archived;
-* compressed;
-* deleted.
-
-Logs are never canonical artifacts.
-
----
-
-# 11. Failure Handling
-
-Logging failures shall never compromise platform execution.
-
-If logging becomes unavailable:
-
-* business execution continues;
-* failure is reported where possible;
-* recursive logging failures are prevented.
-
-Logging is important.
-
-Platform availability is more important.
-
----
-
-# 12. Performance
-
-Logging shall minimize runtime overhead.
-
-Implementations may support:
-
-* asynchronous logging;
-* batching;
-* buffering;
-* deferred persistence.
-
-Performance optimizations shall preserve log integrity.
-
----
-
-# 13. Auditing Relationship
-
-Logging is distinct from auditing.
-
-Logging records runtime operations.
-
-Auditing records business history.
-
-Canonical audit information belongs to the Domain.
-
----
-
-# 14. Observability Relationship
-
-Logging contributes to Observability.
-
-Observability additionally includes:
-
-* metrics;
-* traces;
-* health indicators;
-* execution analysis.
-
-Logging alone is not sufficient for Observability.
-
----
-
-# 15. Invariants
-
-The following invariants apply:
-
-* Logging is structured.
-* Logging is contextual.
-* Logging is replaceable.
-* Logging never changes execution.
-* Logging never contains canonical knowledge.
-* Logging respects privacy.
-* Logging remains technology-independent.
-
----
-
-# 16. Related Documents
-
-* KernelArchitecture.md
-* Observability.md
-* Configuration.md
-* PrivacyStrategy.md
-* ObservabilityStrategy.md
-
----
-
-# 17. Status
-
-**Approved**
-
-This document defines the Logging architecture of KnowledgeOS.
-
-Logging provides structured, contextual and privacy-aware operational records while remaining completely independent from business behavior, canonical knowledge and infrastructure implementations.
+This document is part of the KnowledgeOS Kernel V4 release-candidate baseline.

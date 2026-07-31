@@ -1,276 +1,102 @@
-
 # Dependency Injection
 
-**Project:** KnowledgeOS
-
-**Section:** Kernel
-
-**Document:** Dependency Injection
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Kernel  
+**Document:** DependencyInjection  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Dependency Injection (DI) architecture of the KnowledgeOS Kernel.
+Define registration, resolution, lifetime, scope and module composition.
 
-Dependency Injection is responsible for composing the runtime by resolving architectural contracts into executable components.
+## 2. Scope
 
-It manages composition.
+This specification applies to Kernel contracts and every Platform or Integration component that consumes them. It is technology-neutral and does not prescribe a concrete framework, broker, database, scheduler or dependency-injection container.
 
-It never defines business behavior.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-# 2. Scope
+## 4. Responsibilities
 
-Dependency Injection governs:
+Dependency Injection constructs modules from explicit contracts and replaceable implementations.
 
-* component registration;
-* dependency resolution;
-* lifecycle management;
-* implementation binding;
-* provider composition;
-* runtime assembly.
+## 5. Exclusions
 
-Dependency Injection does not govern:
+It is not a global service locator and does not determine business ownership.
 
-* business rules;
-* document processing;
-* storage logic;
-* rendering;
-* search;
-* artificial intelligence.
-
----
-
-# 3. Design Goals
-
-Dependency Injection shall:
-
-* remain technology-independent;
-* support explicit composition;
-* avoid hidden dependencies;
-* preserve engine isolation;
-* support replaceable implementations;
-* remain deterministic.
-
----
-
-# 4. Design Philosophy
-
-Dependency Injection composes the platform.
-
-It does not execute business logic.
-
-It does not coordinate workflows.
-
-It does not implement providers.
-
-Its only responsibility is to build the executable runtime.
-
----
-
-# 5. Composition Root
-
-KnowledgeOS has exactly one Composition Root.
-
-The Composition Root is responsible for:
-
-* loading configuration;
-* registering components;
-* binding implementations;
-* validating registrations;
-* creating the executable runtime.
-
-All runtime composition begins here.
-
-No other component shall compose the system.
-
----
-
-# 6. Architectural Position
+## 6. Conceptual Model
 
 ```text
-Configuration
-       │
-       ▼
-Composition Root
-       │
-       ▼
-Dependency Injection
-       │
-       ▼
-Kernel Components
-       │
-       ▼
-Platform Engines
+ServiceDescriptor
+├── contractId
+├── factory
+├── lifetime
+├── moduleId
+├── dependencies[]
+└── qualifiers[]
 ```
 
-The Domain remains completely independent of this process.
+## 7. Normative Requirements
 
----
+**DEPENDENCYIN-R001** — Dependencies MUST be declared explicitly.
 
-# 7. Contracts First
+**DEPENDENCYIN-R002** — Constructor or factory injection SHOULD be preferred.
 
-Dependency Injection resolves architectural contracts.
+**DEPENDENCYIN-R003** — Global service-locator access MUST NOT be the default.
 
-Examples include:
+**DEPENDENCYIN-R004** — Registration collisions MUST fail unless replacement is explicit.
 
-* Repository Contracts;
-* Provider Contracts;
-* Command Handlers;
-* Query Handlers;
-* Event Subscribers;
-* Workflow Steps.
+**DEPENDENCYIN-R005** — Module-private implementations MUST remain private.
 
-Implementations remain replaceable.
+**DEPENDENCYIN-R006** — Lifetime compatibility MUST be validated.
 
----
+**DEPENDENCYIN-R007** — Resolution cycles MUST fail validation.
 
-# 8. Registration Model
+**DEPENDENCYIN-R008** — Scopes MUST be disposed deterministically.
 
-Every executable component shall be registered explicitly.
+**DEPENDENCYIN-R009** — Testing MUST support replacement of external dependencies.
 
-Registration defines:
 
-* contract;
-* implementation;
-* lifecycle;
-* visibility;
-* optional metadata.
+## 8. Invariants
 
-Implicit registration is discouraged.
+**DEPENDENCYIN-I001** — Dependency graphs are acyclic.
 
----
+**DEPENDENCYIN-I002** — Service lifetime is explicit.
 
-# 9. Resolution Model
+**DEPENDENCYIN-I003** — Resolution is deterministic.
 
-Dependency resolution occurs only through declared contracts.
+**DEPENDENCYIN-I004** — Contracts are stable and versioned.
 
-Resolution shall be:
 
-* deterministic;
-* explicit;
-* validated;
-* reproducible.
+## 9. Failure and Recovery
 
-Missing registrations prevent runtime startup.
+Failures SHALL be explicit, typed and observable. Retryable operations MUST preserve idempotency. Durable work SHALL resume from the latest consistent state. Kernel infrastructure MUST NOT fabricate Domain success, silently discard committed work or reinterpret business authority.
 
----
+## 10. Security and Privacy
 
-# 10. Lifecycle Management
+Kernel services SHALL minimize exposure of publication content, Personal Knowledge, credentials and provider secrets. Correlation metadata, logs and traces MUST be redacted according to policy. Kernel infrastructure MUST NOT become an unauthorized data sink.
 
-Supported lifecycles are:
+## 11. Example
 
-* Singleton;
-* Execution Scope;
-* Workflow Scope;
-* Job Scope;
-* Transient.
+The AI Engine depends on an AI provider contract; Integration registers a concrete provider without exposing it to Domain.
 
-Lifecycle selection shall be explicit.
+## 12. Compatibility and Evolution
 
----
+Backward-compatible additions MAY introduce optional metadata or contracts. Changes to delivery guarantees, ordering, identity, persistence, transaction boundaries, failure semantics or lifecycle behavior require architectural review and a major version when compatibility cannot be preserved.
 
-# 11. Provider Resolution
+## 13. Related Documents
 
-External technologies are accessed through Providers.
+- `README.md`
+- `KernelArchitecture.md`
+- `../02-Domain/DomainModel.md`
+- `../02-Domain/EngineResponsibilities.md`
 
-Examples include:
+## 14. Status
 
-* Storage Provider;
-* AI Provider;
-* OCR Provider;
-* Search Provider;
-* Export Provider;
-* Synchronization Provider.
-
-Dependency Injection resolves providers without exposing implementation details.
-
----
-
-# 12. Engine Isolation
-
-Platform Engines never resolve one another directly.
-
-Communication occurs exclusively through Kernel contracts.
-
-Direct Engine dependencies are prohibited.
-
----
-
-# 13. Domain Independence
-
-Domain components never depend upon:
-
-* containers;
-* injection frameworks;
-* provider implementations;
-* runtime composition.
-
-The Domain remains executable independently of Dependency Injection.
-
----
-
-# 14. Prohibited Patterns
-
-The following patterns are prohibited:
-
-* Service Locator;
-* runtime dependency discovery from Domain objects;
-* mutable global containers;
-* implicit component creation;
-* hidden dependency resolution.
-
----
-
-# 15. Validation
-
-Before startup, Dependency Injection validates:
-
-* duplicate registrations;
-* missing implementations;
-* invalid lifecycles;
-* circular dependencies;
-* contract compatibility.
-
-Invalid compositions prevent startup.
-
----
-
-# 16. Composition Invariants
-
-The following invariants apply:
-
-* one Composition Root;
-* explicit registrations;
-* explicit lifecycles;
-* deterministic resolution;
-* replaceable implementations;
-* isolated Platform Engines;
-* Domain independence.
-
----
-
-# 17. Related Documents
-
-* KernelArchitecture.md
-* Configuration.md
-* CommandBus.md
-* ../05-Integration/Providers/
-
----
-
-# 18. Status
-
-**Approved**
-
-Dependency Injection defines the runtime composition model of KnowledgeOS.
-
-It assembles the platform from explicit contracts while preserving deterministic execution, engine isolation and complete independence of the Domain Layer.
+This document is part of the KnowledgeOS Kernel V4 release-candidate baseline.

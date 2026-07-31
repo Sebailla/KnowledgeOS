@@ -1,325 +1,106 @@
-
 # Job System
 
-**Project:** KnowledgeOS
-
-**Section:** Kernel
-
-**Document:** Job System
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Kernel  
+**Document:** JobSystem  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Job System architecture of the KnowledgeOS Kernel.
+Define background jobs, queues, leases, priorities, retries and resource controls.
 
-The Job System executes deferred, background and long-running units of work.
+## 2. Scope
 
-Jobs define executable work.
+This specification applies to Kernel contracts and every Platform or Integration component that consumes them. It is technology-neutral and does not prescribe a concrete framework, broker, database, scheduler or dependency-injection container.
 
-The Job System coordinates execution.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-# 2. Scope
+## 4. Responsibilities
 
-The Job System governs:
+Job System executes independently schedulable units such as OCR, indexing, validation and thumbnail generation.
 
-* Job creation;
-* Job execution;
-* Job lifecycle;
-* retry coordination;
-* execution persistence;
-* execution monitoring;
-* cancellation.
+## 5. Exclusions
 
-The Job System does not define business behavior.
+Jobs are execution records, not Domain aggregates.
 
----
-
-# 3. Design Goals
-
-The Job System shall:
-
-* remain deterministic;
-* support resumable execution;
-* support retries;
-* support long-running tasks;
-* remain technology-independent;
-* preserve execution traceability.
-
----
-
-# 4. Design Philosophy
-
-A Job represents an executable unit of work.
-
-The Job System determines when and how that work executes.
-
-Business behavior belongs to Job implementations.
-
----
-
-# 5. Job Structure
-
-Every Job includes:
-
-* JobID;
-* Job Type;
-* Owner;
-* Execution Context;
-* Payload;
-* Priority;
-* Creation Timestamp;
-* Version.
-
-Jobs are immutable after creation.
-
----
-
-# 6. Job Lifecycle
-
-Every Job follows the same lifecycle.
+## 6. Conceptual Model
 
 ```text
-Created
-    │
-    ▼
-Queued
-    │
-    ▼
-Running
-    │
- ┌──┴───────────────┐
- ▼                  ▼
-Completed        Failed
-                     │
-          ┌──────────┴─────────┐
-          ▼                    ▼
-      Retrying            Cancelled
+Job
+├── jobId
+├── jobType
+├── payloadRef
+├── ownerModule
+├── priority
+├── queue
+├── state
+├── attempt
+├── lease?
+└── retryPolicy
 ```
 
-Lifecycle transitions are explicit.
+## 7. Normative Requirements
 
----
+**JOBSYSTEM-R001** — Every durable job MUST have immutable identity.
 
-# 7. Job Ownership
+**JOBSYSTEM-R002** — Ownership MUST identify the requesting module.
 
-Every Job has exactly one Owner.
+**JOBSYSTEM-R003** — Workers MUST use leases or equivalent duplicate protection.
 
-Typical owners include:
+**JOBSYSTEM-R004** — Handlers MUST be idempotent when redelivery is possible.
 
-* Workflow;
-* Command;
-* Scheduler;
-* Plugin;
-* Platform Engine.
+**JOBSYSTEM-R005** — Priority policy MUST avoid starvation.
 
-Ownership improves traceability and diagnostics.
+**JOBSYSTEM-R006** — Resource-intensive jobs SHOULD declare requirements.
 
----
+**JOBSYSTEM-R007** — Cancellation MUST be cooperative unless force termination is safe.
 
-# 8. Execution Policies
+**JOBSYSTEM-R008** — Large payloads SHOULD be referenced rather than embedded.
 
-Execution policies determine when a Job executes.
+**JOBSYSTEM-R009** — Permanent and transient failures MUST be distinguished.
 
-Supported policies include:
 
-* Immediate;
-* Delayed;
-* Scheduled;
-* Retry;
-* Manual.
+## 8. Invariants
 
-Policies are independent from Job behavior.
+**JOBSYSTEM-I001** — Durable jobs survive restart.
 
----
+**JOBSYSTEM-I002** — Redelivery does not duplicate committed effects.
 
-# 9. Persistence
+**JOBSYSTEM-I003** — Job state is separate from Domain state.
 
-Jobs may be persisted.
+**JOBSYSTEM-I004** — Resource limits are observable.
 
-Persistence supports:
 
-* recovery;
-* restart;
-* resumable execution;
-* monitoring.
+## 9. Failure and Recovery
 
-Persistence implementation belongs to Infrastructure.
+Failures SHALL be explicit, typed and observable. Retryable operations MUST preserve idempotency. Durable work SHALL resume from the latest consistent state. Kernel infrastructure MUST NOT fabricate Domain success, silently discard committed work or reinterpret business authority.
 
----
+## 10. Security and Privacy
 
-# 10. Retry Policy
+Kernel services SHALL minimize exposure of publication content, Personal Knowledge, credentials and provider secrets. Correlation metadata, logs and traces MUST be redacted according to policy. Kernel infrastructure MUST NOT become an unauthorized data sink.
 
-Retry is permitted only for Jobs declared idempotent.
+## 11. Example
 
-Retry policy defines:
+Search Engine enqueues an index rebuild job for a UDM version; Search owns index semantics, not Job System.
 
-* retryable failures;
-* maximum attempts;
-* delay strategy;
-* exponential backoff;
-* terminal failure.
+## 12. Compatibility and Evolution
 
----
+Backward-compatible additions MAY introduce optional metadata or contracts. Changes to delivery guarantees, ordering, identity, persistence, transaction boundaries, failure semantics or lifecycle behavior require architectural review and a major version when compatibility cannot be preserved.
 
-# 11. Cancellation
+## 13. Related Documents
 
-Jobs support cooperative cancellation.
+- `README.md`
+- `KernelArchitecture.md`
+- `../02-Domain/DomainModel.md`
+- `../02-Domain/EngineResponsibilities.md`
 
-Cancellation preserves execution consistency.
+## 14. Status
 
-Running Jobs may complete safe checkpoints before terminating.
-
----
-
-# 12. Failure Handling
-
-Failures are classified as:
-
-* transient;
-* permanent;
-* timeout;
-* dependency failure;
-* cancellation;
-* validation failure.
-
-Failure classification is explicit.
-
----
-
-# 13. Event Integration
-
-Successful or failed Jobs may publish Events.
-
-Examples include:
-
-* OCRCompleted;
-* ThumbnailGenerated;
-* SearchIndexUpdated;
-* ExportCompleted.
-
-Events describe completed facts.
-
----
-
-# 14. Workflow Integration
-
-Workflow Steps may submit Jobs.
-
-Workflow execution remains independent after Job submission.
-
-Workflows coordinate.
-
-Jobs execute.
-
----
-
-# 15. Scheduler Integration
-
-The Scheduler may create Jobs.
-
-The Job System executes Jobs.
-
-The Scheduler never executes Job logic directly.
-
----
-
-# 16. Parallel Execution
-
-Independent Jobs may execute concurrently.
-
-Concurrency shall preserve:
-
-* idempotency;
-* execution isolation;
-* deterministic behavior where required.
-
----
-
-# 17. Prioritization
-
-Jobs may define execution priority.
-
-Priority influences scheduling decisions.
-
-Priority never changes Job semantics.
-
----
-
-# 18. Monitoring
-
-Every Job execution records:
-
-* start time;
-* end time;
-* duration;
-* retries;
-* execution state;
-* owner;
-* worker identifier (if applicable);
-* correlation identifiers.
-
-Monitoring information is immutable.
-
----
-
-# 19. Security
-
-The Job System propagates Execution Context.
-
-Authorization remains the responsibility of Domain and Platform components.
-
----
-
-# 20. Invariants
-
-The following invariants apply:
-
-* Jobs are immutable.
-* Every Job has one Owner.
-* Job execution is observable.
-* Retry requires idempotency.
-* Persistence is implementation-independent.
-* Jobs never define business orchestration.
-* The Job System coordinates execution only.
-
----
-
-# 21. Relationship to Workflow Engine
-
-Workflows coordinate multiple execution steps.
-
-Jobs execute individual units of work.
-
-A Workflow may submit Jobs.
-
-Jobs do not orchestrate Workflows.
-
----
-
-# 22. Related Documents
-
-* KernelArchitecture.md
-* WorkflowEngine.md
-* Scheduler.md
-* EventBus.md
-* Observability.md
-* Logging.md
-
----
-
-# 23. Status
-
-**Approved**
-
-This document defines the Job System architecture of KnowledgeOS.
-
-The Job System provides deterministic, observable and resilient execution of deferred and long-running work while remaining independent from business behavior and infrastructure implementations.
+This document is part of the KnowledgeOS Kernel V4 release-candidate baseline.

@@ -1,347 +1,104 @@
-
 # Scheduler
 
-**Project:** KnowledgeOS
-
-**Section:** Kernel
-
-**Document:** Scheduler
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Kernel  
+**Document:** Scheduler  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Scheduler architecture of the KnowledgeOS Kernel.
+Define time-based activation of commands, jobs and workflows.
 
-The Scheduler is responsible for initiating execution according to temporal policies.
+## 2. Scope
 
-The Scheduler decides when execution begins.
+This specification applies to Kernel contracts and every Platform or Integration component that consumes them. It is technology-neutral and does not prescribe a concrete framework, broker, database, scheduler or dependency-injection container.
 
-It never performs the execution itself.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-# 2. Scope
+## 4. Responsibilities
 
-The Scheduler governs:
+Scheduler owns trigger calculation, persistence and activation under declared time policies.
 
-* trigger definitions;
-* trigger evaluation;
-* execution scheduling;
-* recurring schedules;
-* delayed execution;
-* temporal coordination;
-* schedule monitoring.
+## 5. Exclusions
 
-The Scheduler never executes business logic.
+Scheduler does not execute business logic directly.
 
----
-
-# 3. Design Goals
-
-The Scheduler shall:
-
-* remain deterministic;
-* support multiple trigger types;
-* survive platform restarts;
-* remain technology-independent;
-* preserve execution traceability;
-* support extensibility.
-
----
-
-# 4. Design Philosophy
-
-The Scheduler evaluates time.
-
-It never performs work.
-
-When a trigger becomes eligible, the Scheduler initiates execution through explicit Kernel contracts.
-
----
-
-# 5. Trigger Model
-
-Every scheduled execution begins with a Trigger.
-
-Supported trigger types include:
-
-* Time Trigger;
-* Interval Trigger;
-* Calendar Trigger;
-* Startup Trigger;
-* Manual Trigger;
-* Event-derived Trigger (when explicitly configured).
-
-Triggers define when execution begins.
-
-They never define business behavior.
-
----
-
-# 6. Scheduler Lifecycle
-
-Every Trigger follows the same lifecycle.
+## 6. Conceptual Model
 
 ```text
-Registered
-     │
-     ▼
-Waiting
-     │
-     ▼
-Eligible
-     │
-     ▼
-Triggered
-     │
-     ▼
-Completed
+Schedule
+├── scheduleId
+├── ownerModule
+├── trigger
+├── timezone
+├── misfirePolicy
+├── overlapPolicy
+├── targetType
+└── targetRef
 ```
 
-Failed evaluations remain observable.
+## 7. Normative Requirements
 
----
+**SCHEDULER-R001** — Every persistent schedule MUST have immutable identity.
 
-# 7. Trigger Definition
+**SCHEDULER-R002** — Timezone MUST be explicit for calendar schedules.
 
-Every Trigger defines:
+**SCHEDULER-R003** — Misfire behavior MUST be declared.
 
-* TriggerID;
-* Trigger Type;
-* Owner;
-* Schedule Definition;
-* Target Execution;
-* Activation State;
-* Metadata.
+**SCHEDULER-R004** — Overlap behavior MUST be declared.
 
-Trigger Definitions are immutable after registration.
+**SCHEDULER-R005** — Activation MUST be idempotent.
 
-Configuration changes create new Trigger versions.
+**SCHEDULER-R006** — Schedule changes MUST be versioned.
 
----
+**SCHEDULER-R007** — Disabled schedules MUST not activate new work.
 
-# 8. Trigger Ownership
+**SCHEDULER-R008** — Clock and daylight-saving transitions MUST be handled explicitly.
 
-Every Trigger has exactly one Owner.
+**SCHEDULER-R009** — Condition polling MUST respect resource policy.
 
-Examples include:
 
-* Platform Engine;
-* Plugin;
-* Workspace;
-* User;
-* System.
+## 8. Invariants
 
-Ownership enables auditing and lifecycle management.
+**SCHEDULER-I001** — Time interpretation is explicit.
 
----
+**SCHEDULER-I002** — Activation identity prevents duplicates.
 
-# 9. Execution Targets
+**SCHEDULER-I003** — Business ownership remains with the target module.
 
-When activated, a Trigger may initiate:
+**SCHEDULER-I004** — Persistent schedules survive restart.
 
-* a Command;
-* a Workflow;
-* a Job.
 
-The Scheduler never executes these targets directly.
+## 9. Failure and Recovery
 
-Execution is delegated to the appropriate Kernel component.
+Failures SHALL be explicit, typed and observable. Retryable operations MUST preserve idempotency. Durable work SHALL resume from the latest consistent state. Kernel infrastructure MUST NOT fabricate Domain success, silently discard committed work or reinterpret business authority.
 
----
+## 10. Security and Privacy
 
-# 10. Schedule Evaluation
+Kernel services SHALL minimize exposure of publication content, Personal Knowledge, credentials and provider secrets. Correlation metadata, logs and traces MUST be redacted according to policy. Kernel infrastructure MUST NOT become an unauthorized data sink.
 
-Schedule evaluation shall be deterministic.
+## 11. Example
 
-Evaluation considers:
+Library schedules nightly integrity verification by activating a Library-owned workflow.
 
-* current time;
-* trigger definition;
-* activation state;
-* execution policy.
+## 12. Compatibility and Evolution
 
-Business rules are never evaluated by the Scheduler.
+Backward-compatible additions MAY introduce optional metadata or contracts. Changes to delivery guarantees, ordering, identity, persistence, transaction boundaries, failure semantics or lifecycle behavior require architectural review and a major version when compatibility cannot be preserved.
 
----
+## 13. Related Documents
 
-# 11. Persistence
+- `README.md`
+- `KernelArchitecture.md`
+- `../02-Domain/DomainModel.md`
+- `../02-Domain/EngineResponsibilities.md`
 
-Scheduler state may be persisted.
+## 14. Status
 
-Persisted information includes:
-
-* registered Triggers;
-* activation state;
-* last execution;
-* next execution;
-* execution history references.
-
-Persistence implementation belongs to Infrastructure.
-
----
-
-# 12. Restart Recovery
-
-After platform restart, the Scheduler shall determine:
-
-* pending executions;
-* missed executions;
-* cancelled schedules;
-* future executions.
-
-Recovery behavior shall follow configured execution policies.
-
----
-
-# 13. Trigger States
-
-Triggers may be:
-
-* Enabled;
-* Disabled;
-* Suspended;
-* Expired.
-
-State transitions are explicit and auditable.
-
----
-
-# 14. Event Integration
-
-The Scheduler may publish Events including:
-
-* TriggerExecuted;
-* TriggerFailed;
-* ScheduleStarted;
-* ScheduleCompleted.
-
-Events describe completed scheduling facts.
-
----
-
-# 15. Job Integration
-
-The Scheduler may submit Jobs.
-
-Job execution remains the responsibility of the Job System.
-
----
-
-# 16. Workflow Integration
-
-The Scheduler may initiate Workflows.
-
-Workflow execution remains the responsibility of the Workflow Engine.
-
----
-
-# 17. Command Integration
-
-The Scheduler may dispatch Commands.
-
-The Command Bus determines their execution.
-
----
-
-# 18. Failure Handling
-
-Scheduling failures are explicit.
-
-Typical failures include:
-
-* invalid schedule;
-* disabled trigger;
-* timeout;
-* dependency failure;
-* execution rejection.
-
-Failure handling never modifies Trigger Definitions.
-
----
-
-# 19. Monitoring
-
-Every Trigger execution records:
-
-* TriggerID;
-* Owner;
-* Scheduled Time;
-* Actual Execution Time;
-* Completion Status;
-* Duration;
-* CorrelationID.
-
-Monitoring records are immutable.
-
----
-
-# 20. Security
-
-The Scheduler propagates Execution Context.
-
-Authorization remains the responsibility of Domain and Platform components.
-
-The Scheduler never evaluates business permissions.
-
----
-
-# 21. Invariants
-
-The following invariants apply:
-
-* The Scheduler evaluates time.
-* Triggers are immutable.
-* Every Trigger has one Owner.
-* Execution is delegated.
-* Trigger evaluation is deterministic.
-* Scheduler state is observable.
-* Restart recovery is supported.
-
----
-
-# 22. Relationship to Job System
-
-The Scheduler determines when execution begins.
-
-The Job System determines how Jobs execute.
-
-The Scheduler never replaces the Job System.
-
----
-
-# 23. Relationship to Workflow Engine
-
-The Scheduler may initiate Workflows.
-
-Workflow orchestration remains independent from scheduling.
-
-Scheduling concerns and execution concerns remain separated.
-
----
-
-# 24. Related Documents
-
-* KernelArchitecture.md
-* WorkflowEngine.md
-* JobSystem.md
-* EventBus.md
-* Configuration.md
-* Observability.md
-
----
-
-# 25. Status
-
-**Approved**
-
-This document defines the Scheduler architecture of KnowledgeOS.
-
-The Scheduler provides deterministic, observable and technology-independent temporal coordination while remaining completely independent from business behavior, execution logic and infrastructure implementations.
+This document is part of the KnowledgeOS Kernel V4 release-candidate baseline.

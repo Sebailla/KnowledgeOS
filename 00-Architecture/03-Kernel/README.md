@@ -1,8 +1,8 @@
-# Kernel Architecture
+# Kernel Package
 
 **Project:** KnowledgeOS  
 **Section:** Kernel  
-**Document:** KernelArchitecture  
+**Document:** README  
 **Version:** 4.0  
 **Status:** Release Candidate  
 **Normative Language:** RFC 2119-style keywords  
@@ -12,7 +12,7 @@
 
 ## 1. Purpose
 
-Define the Kernel structure, lifecycle, dependency rules and execution model.
+Define the Kernel boundary, shared runtime services, dependency direction and package governance.
 
 ## 2. Scope
 
@@ -24,56 +24,62 @@ The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHO
 
 ## 4. Responsibilities
 
-The Kernel coordinates startup, service composition, request execution, durable work, scheduling and diagnostics.
+The Kernel provides execution infrastructure: dependency resolution, configuration, command and query dispatch, event delivery, durable workflows, jobs, scheduling, logging and observability.
 
 ## 5. Exclusions
 
-The Kernel does not interpret publication, annotation, synchronization or library semantics.
+The Kernel does not own Library, Import, Export, Search, Annotation, Render, AI, Plugin or Sync business policy. It does not define Domain entities or provider-specific behavior.
 
 ## 6. Conceptual Model
 
 ```text
-KernelHost
-├── ServiceRegistry
-├── ConfigurationRoot
-├── CommandBus
-├── QueryBus
-├── EventBus
-├── WorkflowRuntime
-├── JobRuntime
+Domain contracts
+      ↓
+Kernel services
+├── Dependency Injection
+├── Configuration
+├── Command Bus
+├── Query Bus
+├── Event Bus
+├── Workflow Engine
+├── Job System
 ├── Scheduler
-├── Logger
-└── Telemetry
+├── Logging
+└── Observability
+      ↓
+Platform Engines
 ```
 
 ## 7. Normative Requirements
 
-**KERNELARCHIT-R001** — Kernel services MUST start and stop through an explicit lifecycle.
+**README-R001** — The Kernel MUST remain free of business ownership.
 
-**KERNELARCHIT-R002** — Startup MUST validate required configuration and dependencies.
+**README-R002** — All Kernel services MUST expose explicit versioned contracts.
 
-**KERNELARCHIT-R003** — The Kernel MUST support graceful shutdown.
+**README-R003** — Long-running operations MUST use durable workflow or job abstractions.
 
-**KERNELARCHIT-R004** — Durable work MUST survive process restart according to contract.
+**README-R004** — Retryable operations MUST support idempotency.
 
-**KERNELARCHIT-R005** — Correlation context MUST propagate across Kernel boundaries.
+**README-R005** — Kernel implementations MUST remain replaceable behind contracts.
 
-**KERNELARCHIT-R006** — Kernel services MUST avoid cyclic dependencies.
+**README-R006** — Cross-cutting services MUST preserve privacy and authority boundaries.
 
-**KERNELARCHIT-R007** — Delivery and transaction guarantees MUST be documented.
+**README-R007** — Kernel services MUST support deterministic startup and graceful shutdown.
 
-**KERNELARCHIT-R008** — Business handlers MUST be registered by Platform modules.
+**README-R008** — A Kernel change MUST NOT redefine Domain semantics.
 
 
 ## 8. Invariants
 
-**KERNELARCHIT-I001** — Startup order is deterministic.
+**README-I001** — Kernel contains no business policy.
 
-**KERNELARCHIT-I002** — Shutdown does not silently discard durable work.
+**README-I002** — Execution state is not Domain authority.
 
-**KERNELARCHIT-I003** — Execution context has no hidden global mutable state.
+**README-I003** — Dependency direction points from Platform to Kernel contracts.
 
-**KERNELARCHIT-I004** — Business handlers remain outside Kernel ownership.
+**README-I004** — Failures are explicit and observable.
+
+**README-I005** — Contracts are technology-independent.
 
 
 ## 9. Failure and Recovery
@@ -86,7 +92,7 @@ Kernel services SHALL minimize exposure of publication content, Personal Knowled
 
 ## 11. Example
 
-A desktop client may use an in-process Event Bus while the NAS server uses a durable broker, provided both honor the same logical contract.
+The Sync Engine submits a command through Command Bus. Kernel routes and observes execution, while Sync retains ownership of conflict resolution and convergence.
 
 ## 12. Compatibility and Evolution
 

@@ -1,332 +1,109 @@
-
 # Workflow Engine
 
-**Project:** KnowledgeOS
-
-**Section:** Kernel
-
-**Document:** Workflow Engine
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Kernel  
+**Document:** WorkflowEngine  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Workflow Engine architecture of the KnowledgeOS Kernel.
+Define durable orchestration for long-running and failure-prone operations.
 
-The Workflow Engine coordinates deterministic execution of multi-step processes across the platform.
+## 2. Scope
 
-Workflows define execution order.
+This specification applies to Kernel contracts and every Platform or Integration component that consumes them. It is technology-neutral and does not prescribe a concrete framework, broker, database, scheduler or dependency-injection container.
 
-Steps perform work.
+## 3. Normative Language
 
-The Workflow Engine coordinates execution.
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
----
+## 4. Responsibilities
 
-# 2. Scope
+Workflow Engine owns execution state, checkpoints, retries, waits, compensation and recovery. Platform modules own business steps and transitions.
 
-The Workflow Engine governs:
+## 5. Exclusions
 
-* workflow definition;
-* workflow execution;
-* step orchestration;
-* execution state;
-* checkpoints;
-* retries;
-* cancellation;
-* compensation;
-* workflow auditing.
+Workflow Engine does not own acquisition, synchronization, import or other business semantics.
 
-The Workflow Engine never implements business behavior.
-
----
-
-# 3. Design Goals
-
-The Workflow Engine shall:
-
-* remain deterministic;
-* support resumable execution;
-* support compensation;
-* remain technology-independent;
-* preserve execution traceability;
-* isolate workflow definitions from implementations.
-
----
-
-# 4. Design Philosophy
-
-A Workflow defines a sequence of coordinated execution steps.
-
-The Workflow Engine executes those steps.
-
-Steps implement business capabilities.
-
-The Workflow Engine coordinates them.
-
----
-
-# 5. Workflow Structure
-
-Every Workflow consists of:
-
-* Workflow Definition;
-* Workflow Context;
-* ordered Steps;
-* execution policies;
-* completion policies.
-
-Definitions remain immutable during execution.
-
----
-
-# 6. Workflow Lifecycle
-
-Every Workflow follows the same lifecycle.
+## 6. Conceptual Model
 
 ```text
-Create Workflow
-        │
-        ▼
-Validate Definition
-        │
-        ▼
-Initialize Context
-        │
-        ▼
-Execute Steps
-        │
-        ▼
-Complete
+WorkflowInstance
+├── workflowId
+├── workflowType
+├── definitionVersion
+├── state
+├── inputRefs[]
+├── stepStates{}
+├── checkpoints[]
+├── correlationId
+└── outcome?
 ```
 
-Execution state remains observable throughout the lifecycle.
+## 7. Normative Requirements
 
----
+**WORKFLOWENGI-R001** — Every durable workflow MUST have immutable identity.
 
-# 7. Workflow Definition
+**WORKFLOWENGI-R002** — Definitions MUST be versioned.
 
-Workflow Definitions declare:
+**WORKFLOWENGI-R003** — Instances MUST resume after restart.
 
-* ordered Steps;
-* dependencies;
-* retry policies;
-* compensation policies;
-* completion conditions.
+**WORKFLOWENGI-R004** — Steps MUST declare retry and timeout policies.
 
-Definitions describe execution.
+**WORKFLOWENGI-R005** — External side effects MUST use idempotency or reconciliation.
 
-They never execute themselves.
+**WORKFLOWENGI-R006** — Compensation MUST not erase authoritative evidence.
 
----
+**WORKFLOWENGI-R007** — Cancellation semantics MUST be explicit.
 
-# 8. Workflow Steps
+**WORKFLOWENGI-R008** — History MUST be observable and auditable.
 
-Each Step owns one responsibility.
+**WORKFLOWENGI-R009** — Definition upgrades MUST not reinterpret existing instances silently.
 
-Examples include:
+**WORKFLOWENGI-R010** — Completion MUST not be reported before required commits succeed.
 
-* Acquire Source;
-* Normalize;
-* Build UDM;
-* Build DPM;
-* Validate;
-* Publish.
 
-Steps remain isolated from one another.
+## 8. Invariants
 
----
+**WORKFLOWENGI-I001** — Workflow state is durable.
 
-# 9. Step Execution
+**WORKFLOWENGI-I002** — Definition version is explicit.
 
-The Workflow Engine invokes each Step.
+**WORKFLOWENGI-I003** — Retries do not duplicate effects.
 
-Steps never invoke other Steps directly.
+**WORKFLOWENGI-I004** — Recovery resumes from a consistent checkpoint.
 
-Execution order is controlled exclusively by the Workflow Engine.
+**WORKFLOWENGI-I005** — Kernel orchestration does not own Domain policy.
 
----
 
-# 10. Workflow Context
+## 9. Failure and Recovery
 
-Every Workflow carries a Workflow Context containing:
+Failures SHALL be explicit, typed and observable. Retryable operations MUST preserve idempotency. Durable work SHALL resume from the latest consistent state. Kernel infrastructure MUST NOT fabricate Domain success, silently discard committed work or reinterpret business authority.
 
-* WorkflowID;
-* Execution Context;
-* CorrelationID;
-* current Step;
-* execution metadata;
-* checkpoint state.
+## 10. Security and Privacy
 
-Workflow Context is operational.
+Kernel services SHALL minimize exposure of publication content, Personal Knowledge, credentials and provider secrets. Correlation metadata, logs and traces MUST be redacted according to policy. Kernel infrastructure MUST NOT become an unauthorized data sink.
 
-It never contains canonical business state.
+## 11. Example
 
----
+Publication acquisition may download, verify, register and process. Workflow coordinates; Library and Import own the steps.
 
-# 11. Checkpoints
+## 12. Compatibility and Evolution
 
-The Workflow Engine may persist checkpoints between Steps.
+Backward-compatible additions MAY introduce optional metadata or contracts. Changes to delivery guarantees, ordering, identity, persistence, transaction boundaries, failure semantics or lifecycle behavior require architectural review and a major version when compatibility cannot be preserved.
 
-Checkpoints enable:
+## 13. Related Documents
 
-* resumable execution;
-* recovery after failure;
-* long-running workflows;
-* controlled retries.
+- `README.md`
+- `KernelArchitecture.md`
+- `../02-Domain/DomainModel.md`
+- `../02-Domain/EngineResponsibilities.md`
 
-Checkpoints are implementation-independent.
+## 14. Status
 
----
-
-# 12. Retry Policy
-
-Each Step may declare retry behavior.
-
-Retry policies define:
-
-* retryable failures;
-* maximum attempts;
-* backoff strategy;
-* timeout behavior.
-
-Retries require idempotent Steps.
-
----
-
-# 13. Compensation
-
-Steps may declare compensation actions.
-
-Compensation restores operational consistency after partial execution failures.
-
-Compensation is explicit.
-
-It is never inferred automatically.
-
----
-
-# 14. Cancellation
-
-Workflow cancellation is cooperative.
-
-Running Steps may complete safely before termination.
-
-Partial execution shall preserve canonical consistency.
-
----
-
-# 15. Failure Handling
-
-Workflow failures are classified as:
-
-* Step Failure;
-* Validation Failure;
-* Dependency Failure;
-* Timeout;
-* Cancellation;
-* Permanent Failure.
-
-Failures remain observable.
-
----
-
-# 16. Command Integration
-
-Commands may initiate Workflows.
-
-Workflow execution remains independent from Command dispatch after initialization.
-
----
-
-# 17. Event Integration
-
-Workflow execution may publish Events.
-
-Events describe completed workflow milestones.
-
-The Workflow Engine never publishes speculative Events.
-
----
-
-# 18. Job Integration
-
-Workflow Steps may submit Jobs.
-
-Job execution remains independent.
-
-The Workflow Engine coordinates only the workflow.
-
----
-
-# 19. Parallel Execution
-
-Independent Steps may execute concurrently when explicitly declared.
-
-Parallel execution shall preserve:
-
-* determinism;
-* dependency constraints;
-* canonical consistency.
-
-Implicit parallelism is prohibited.
-
----
-
-# 20. Auditing
-
-Every Workflow execution records:
-
-* WorkflowID;
-* Definition Version;
-* Start Time;
-* End Time;
-* Duration;
-* executed Steps;
-* retries;
-* failures;
-* completion status.
-
-Audit records are immutable.
-
----
-
-# 21. Invariants
-
-The following invariants apply:
-
-* Workflows define execution order.
-* Steps define work.
-* Workflow Definitions are immutable.
-* Steps remain isolated.
-* Workflow execution is observable.
-* Checkpoints are explicit.
-* Compensation is explicit.
-* Workflow coordination never contains business logic.
-
----
-
-# 22. Related Documents
-
-* KernelArchitecture.md
-* CommandBus.md
-* EventBus.md
-* JobSystem.md
-* Scheduler.md
-* Observability.md
-
----
-
-# 23. Status
-
-**Approved**
-
-This document defines the Workflow Engine architecture of KnowledgeOS.
-
-The Workflow Engine provides deterministic, observable and resumable coordination of multi-step execution while remaining independent from business logic, infrastructure technologies and implementation details.
+This document is part of the KnowledgeOS Kernel V4 release-candidate baseline.

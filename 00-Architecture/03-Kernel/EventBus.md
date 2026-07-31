@@ -1,332 +1,106 @@
-
 # Event Bus
 
-**Project:** KnowledgeOS
-
-**Section:** Kernel
-
-**Document:** Event Bus
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Kernel  
+**Document:** EventBus  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Event Bus architecture of the KnowledgeOS Kernel.
+Define event publication, subscription, delivery, replay, ordering and consumer idempotency.
 
-The Event Bus coordinates the publication and distribution of completed facts across the platform.
+## 2. Scope
 
-Events describe completed facts.
+This specification applies to Kernel contracts and every Platform or Integration component that consumes them. It is technology-neutral and does not prescribe a concrete framework, broker, database, scheduler or dependency-injection container.
 
-Subscribers react to those facts.
+## 3. Normative Language
 
-The Event Bus distributes information.
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
----
+## 4. Responsibilities
 
-# 2. Scope
+Event Bus delivers immutable Domain events, Integration events and internal notifications under declared guarantees.
 
-The Event Bus governs:
+## 5. Exclusions
 
-* event publication;
-* event routing;
-* subscriber resolution;
-* execution context propagation;
-* event auditing.
+Events do not replace commands, queries or authoritative repositories.
 
-The Event Bus does not implement business behavior.
-
-It does not coordinate workflows.
-
-It does not execute commands.
-
----
-
-# 3. Design Goals
-
-The Event Bus shall:
-
-* remain deterministic in publication semantics;
-* preserve publisher isolation;
-* support multiple subscribers;
-* remain technology-independent;
-* support extensibility;
-* provide complete traceability.
-
----
-
-# 4. Design Philosophy
-
-An Event represents a completed fact.
-
-Events never express future intentions.
-
-Events never execute themselves.
-
-Events never contain business logic.
-
----
-
-# 5. Event Lifecycle
-
-Every Event follows the same lifecycle.
+## 6. Conceptual Model
 
 ```text
-Business Operation
-        │
-        ▼
-Fact Occurs
-        │
-        ▼
-Create Event
-        │
-        ▼
-Publish Event
-        │
-        ▼
-Deliver to Subscribers
-        │
-        ▼
-Subscriber Reactions
+EventEnvelope
+├── eventId
+├── eventType
+├── payload
+├── aggregateRef?
+├── aggregateVersion?
+├── correlationId
+├── causationId?
+├── occurredAt
+├── publishedAt
+└── schemaVersion
 ```
 
-The Event represents the fact, not the reactions.
+## 7. Normative Requirements
 
----
+**EVENTBUS-R001** — Every durable event MUST have immutable identity.
 
-# 6. Event Structure
+**EVENTBUS-R002** — Domain events MUST be published only after committed state.
 
-Every Event shall include:
+**EVENTBUS-R003** — Delivery semantics MUST be documented.
 
-* EventID;
-* Event Type;
-* Execution Context;
-* Event Payload;
-* Occurrence Timestamp;
-* Version.
+**EVENTBUS-R004** — Consumers MUST be idempotent when redelivery is possible.
 
-Events are immutable after publication.
+**EVENTBUS-R005** — Ordering guarantees MUST be explicitly scoped.
 
----
+**EVENTBUS-R006** — Schemas MUST be versioned.
 
-# 7. Event Immutability
+**EVENTBUS-R007** — Poison events MUST be isolated.
 
-Events shall never be modified after publication.
+**EVENTBUS-R008** — Replay MUST preserve original identity and occurrence time.
 
-If additional information is required, a new Event shall be published.
+**EVENTBUS-R009** — Sensitive payloads MUST be minimized.
 
-History is append-only.
 
----
+## 8. Invariants
 
-# 8. Publisher Responsibilities
+**EVENTBUS-I001** — Events are immutable facts.
 
-Publishers are responsible for:
+**EVENTBUS-I002** — Committed state precedes publication.
 
-* creating Events;
-* publishing completed facts;
-* providing complete Event payloads;
-* preserving execution context.
+**EVENTBUS-I003** — Redelivery does not duplicate effects.
 
-Publishers never know who subscribes.
+**EVENTBUS-I004** — Ordering is never assumed beyond declared scope.
 
----
 
-# 9. Subscriber Responsibilities
+## 9. Failure and Recovery
 
-Subscribers are responsible for:
+Failures SHALL be explicit, typed and observable. Retryable operations MUST preserve idempotency. Durable work SHALL resume from the latest consistent state. Kernel infrastructure MUST NOT fabricate Domain success, silently discard committed work or reinterpret business authority.
 
-* reacting to Events;
-* executing local behavior;
-* preserving idempotency;
-* handling failures locally.
+## 10. Security and Privacy
 
-Subscribers never modify published Events.
+Kernel services SHALL minimize exposure of publication content, Personal Knowledge, credentials and provider secrets. Correlation metadata, logs and traces MUST be redacted according to policy. Kernel infrastructure MUST NOT become an unauthorized data sink.
 
-Subscribers never assume exclusive ownership of an Event.
+## 11. Example
 
----
+PersonalStateMerged is emitted after Sync commits the merged version. Search consumes it idempotently to update its index.
 
-# 10. Subscriber Model
+## 12. Compatibility and Evolution
 
-Every Event may have:
+Backward-compatible additions MAY introduce optional metadata or contracts. Changes to delivery guarantees, ordering, identity, persistence, transaction boundaries, failure semantics or lifecycle behavior require architectural review and a major version when compatibility cannot be preserved.
 
-* zero subscribers;
-* one subscriber;
-* many subscribers.
+## 13. Related Documents
 
-Subscriber count shall never influence Event publication.
+- `README.md`
+- `KernelArchitecture.md`
+- `../02-Domain/DomainModel.md`
+- `../02-Domain/EngineResponsibilities.md`
 
----
+## 14. Status
 
-# 11. Event Naming
-
-Events describe completed facts.
-
-Examples include:
-
-* DocumentImported;
-* AnnotationCreated;
-* LibrarySynchronized;
-* WorkflowCompleted;
-* ExportFailed.
-
-Event names shall use past-tense semantics.
-
----
-
-# 12. Event Ordering
-
-The Event Bus does not guarantee global ordering.
-
-Ordering guarantees shall be explicit when required by specific execution models.
-
-Subscribers shall never rely on unspecified ordering.
-
----
-
-# 13. Execution Context
-
-Every Event propagates the Kernel Execution Context.
-
-The context may include:
-
-* ExecutionID;
-* CorrelationID;
-* CausationID;
-* Initiator;
-* Timestamp;
-* Security Context.
-
-Execution context enables end-to-end traceability.
-
----
-
-# 14. Command Interaction
-
-Subscribers may dispatch Commands.
-
-The Event Bus never transforms Events into Commands automatically.
-
-Any follow-up action shall be explicit.
-
----
-
-# 15. Workflow Interaction
-
-Subscribers may initiate Workflows when appropriate.
-
-The Event Bus never orchestrates multi-step processes.
-
-Workflow coordination belongs exclusively to the Workflow Engine.
-
----
-
-# 16. Job Interaction
-
-Subscribers may schedule Jobs.
-
-Jobs remain independent execution units.
-
-The Event Bus coordinates publication only.
-
----
-
-# 17. Error Handling
-
-Subscriber failures are isolated.
-
-A failing Subscriber shall not invalidate the published Event.
-
-Failure handling policies are defined by the subscriber.
-
----
-
-# 18. Retry Policy
-
-Subscribers may retry processing only when the corresponding operation is idempotent.
-
-Retry behavior shall define:
-
-* retryable failures;
-* retry strategy;
-* maximum attempts;
-* terminal failure behavior.
-
----
-
-# 19. Auditing
-
-Every published Event shall record:
-
-* EventID;
-* Publisher;
-* Publication Timestamp;
-* CorrelationID;
-* CausationID;
-* Event Version.
-
-Subscribers may record independent processing history.
-
----
-
-# 20. Security
-
-The Event Bus propagates execution security context.
-
-Authorization remains the responsibility of Platform and Domain components.
-
-The Event Bus does not evaluate business permissions.
-
----
-
-# 21. Invariants
-
-The following invariants apply:
-
-* Events represent completed facts.
-* Events are immutable.
-* Publishers never know subscribers.
-* Subscribers never modify Events.
-* Publication is explicit.
-* Subscribers are isolated.
-* Event history is append-only.
-* Events are fully auditable.
-
----
-
-# 22. Relationship to Commands and Queries
-
-Commands express intent.
-
-Queries retrieve information.
-
-Events describe completed facts.
-
-These three execution models are complementary and shall never replace one another.
-
----
-
-# 23. Related Documents
-
-* KernelArchitecture.md
-* CommandBus.md
-* QueryBus.md
-* WorkflowEngine.md
-* JobSystem.md
-* Observability.md
-
----
-
-# 24. Status
-
-**Approved**
-
-This document defines the Event Bus architecture of KnowledgeOS.
-
-The Event Bus provides deterministic publication of completed facts while preserving publisher isolation, subscriber independence, execution traceability and complete separation between business behavior and event distribution.
+This document is part of the KnowledgeOS Kernel V4 release-candidate baseline.
