@@ -1,431 +1,172 @@
-# Desktop Application View Composition
+# View Composition
 
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Desktop Application
-
-**Layer:** Desktop UI
-
-**Document:** View Composition
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Desktop Application / 04-DesktopUI  
+**Document:** ViewComposition  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Platform:** macOS  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the authoritative composition model for visual components within the KnowledgeOS Desktop Application.
+Define the view composition for the KnowledgeOS macOS application, covering desktop UI composition, hierarchy and lifecycle.
 
-View Composition specifies how Views are assembled into reusable, extensible and deterministic visual structures.
+## 2. Scope
 
-It complements the View Hierarchy by defining composition rules rather than structural relationships.
+This document applies to the native macOS client and its integration with:
 
----
+- the device Local Library;
+- the NAS-hosted Master Library;
+- Personal Knowledge;
+- UDM and DPM;
+- Platform Engines;
+- Kernel execution services;
+- Apple platform services.
 
-# 2. Scope
+It does not redefine Domain authority, acquisition semantics, synchronization ownership or Platform Engine responsibilities.
 
-This document governs:
+## 3. Product Context
 
-* view composition;
-* composition ownership;
-* reusable components;
-* composition boundaries;
-* dependency rules;
-* composition lifecycle;
-* plugin composition;
-* contextual composition;
-* dynamic composition;
-* accessibility composition;
-* testing.
+The macOS application is the primary KnowledgeOS client.
 
----
+It SHALL support:
 
-# 3. Objectives
+- local device scanning from user-authorized locations;
+- an independent offline-first Local Library;
+- browsing the remote Master Catalog;
+- explicit acquisition of selected publications;
+- reading and rendering;
+- annotations and Personal Knowledge;
+- search;
+- optional AI;
+- workspace and multi-window behavior;
+- future personal synchronization through iCloud/CloudKit.
 
-The View Composition model shall:
+The NAS is not mounted as the working Local Library and is not a Personal Knowledge synchronization peer.
 
-* maximize component reuse;
-* minimize coupling;
-* support extensibility;
-* preserve deterministic rendering;
-* isolate responsibilities;
-* support plugin integration;
-* remain framework independent.
+## 4. Normative Language
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
----
+## 5. Normative Requirements
 
-# 4. Definition
+- The macOS application SHALL maintain an independent Local Library.
+- The application SHALL remain usable offline for locally available publications.
+- The application SHALL browse the Master Catalog without treating the Local Library as a replica.
+- Publication acquisition SHALL be explicit and separate from Personal Knowledge synchronization.
+- Personal Knowledge SHALL synchronize only through the approved iCloud/CloudKit profile.
+- The application SHALL NOT write annotations, highlights, reading progress or personal relationships to the NAS Master Library.
+- UI components SHALL invoke public Platform contracts and SHALL NOT access repositories directly.
+- Long-running work SHALL expose durable operation identity, progress, cancellation and failure state.
+- Stable Domain identity SHALL be preserved across windows, workspaces, navigation and restoration.
+- Views SHALL be declarative projections of state and SHALL not own business rules.
+- Accessibility, keyboard navigation and native macOS conventions SHALL be supported.
+- View lifecycle SHALL not leak tasks, subscriptions or security-sensitive state.
 
-View Composition is the process of assembling independent visual components into a coherent user interface.
+## 6. Architecture and Design Guidance
 
-Composition determines:
+Implementation SHOULD:
 
-* which Views participate;
-* how they collaborate;
-* their containment relationships;
-* their communication boundaries.
+- use explicit module composition at application startup;
+- keep SwiftUI/AppKit view code separate from Platform services;
+- expose commands, queries and observable state through stable façades or ViewModels;
+- preserve stable Domain identity in navigation and restoration payloads;
+- treat render, search, graph and AI projections as derived;
+- use structured concurrency with lifecycle-bound tasks;
+- propagate cancellation and correlation;
+- validate all persisted UI and workspace state before restoration;
+- avoid singleton mutable state except for explicitly governed application services;
+- keep framework-specific types out of shared public contracts;
+- support graceful degradation when the Master Library or remote providers are unavailable.
 
-Composition never defines business logic.
+## 7. State and Lifecycle
 
----
+Desktop state SHALL be classified as:
 
-# 5. Architectural Position
+| State Class | Examples | Persistence |
+|---|---|---|
+| Domain-backed | Local Library membership, annotations | Domain repositories |
+| Restorable workspace | windows, tabs, open documents | local restoration store |
+| Session | active navigation, transient filters | scoped session |
+| Ephemeral UI | hover, focus, animation | memory only |
+| Derived | render cache, search results | rebuildable cache |
 
-```text
-Workspace
-      │
-Projection Models
-      │
-      ▼
-View Composition
-      │
-      ▼
-View Hierarchy
-      │
-      ▼
-Native Views
-```
+Lifecycle transitions SHALL release subscriptions, tasks, file handles and security-scoped resources deterministically.
 
-Composition operates entirely within the Desktop UI layer.
+## 8. Failure and Recovery
 
----
+The application SHALL preserve:
 
-# 6. Composition Principles
+- Local Library identity;
+- locally available publications;
+- committed Personal Knowledge;
+- workspace restoration evidence;
+- operation identities;
+- import and acquisition progress;
+- provenance and integrity findings.
 
-Every composition shall be:
+Unavailable NAS access SHALL degrade Master Catalog browsing and acquisition only. It SHALL NOT prevent reading or annotating locally available publications.
 
-* deterministic;
-* declarative;
-* modular;
-* reusable;
-* immutable by projection;
-* testable;
-* extensible.
+Invalid restoration state SHALL be isolated and repaired without deleting authoritative user data.
 
----
+## 9. Security and Privacy
 
-# 7. Composition Ownership
+- User-selected files SHALL use approved macOS security-scoped access where required.
+- Credentials and tokens SHALL use Keychain or another approved secure store.
+- Personal Knowledge SHALL not be written to NAS.
+- Logs SHALL not contain publication content, private paths, annotations or credentials.
+- Remote AI or OCR SHALL require policy authorization.
+- Window and workspace restoration payloads SHALL avoid sensitive content where identity references suffice.
 
-Composition belongs to the parent View.
+## 10. Accessibility and Native Experience
 
-A parent View owns:
+The desktop application SHOULD follow native macOS conventions for:
 
-* child composition;
-* composition lifecycle;
-* layout participation.
+- keyboard navigation;
+- menus and commands;
+- window restoration;
+- focus;
+- accessibility labels and reading order;
+- drag and drop;
+- document opening;
+- toolbar and sidebar behavior;
+- VoiceOver;
+- reduced motion and contrast preferences.
 
-A parent never owns the logical state of its children.
+Accessibility transformations SHALL preserve UDM semantic order.
 
----
+## 11. Verification and Acceptance
 
-# 8. Composition Root
+- The behavior is covered by automated tests where technically feasible.
+- Offline behavior is verified.
+- Master Catalog and Local Library scopes remain visibly distinct.
+- Personal Knowledge never enters Master Library persistence.
+- Cancellation, timeout and failure behavior are verified.
+- Architecture traceability is documented.
+- Accessibility implications are reviewed.
+- No direct private-repository access exists from UI code.
 
-Each Window has exactly one Composition Root.
+## 12. Traceability
 
-The Composition Root assembles:
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/04-Platform/README.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Annotation/README.md`
+- `00-Architecture/04-Platform/Render/README.md`
+- `00-Architecture/04-Platform/Search/README.md`
+- `00-Architecture/04-Platform/Sync/README.md`
+- `00-Architecture/03-Kernel/README.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
-* Toolbar;
-* Navigation Sidebar;
-* Workspace Region;
-* Inspector;
-* Auxiliary Panels;
-* Status Bar;
-* Overlay Layer;
-* Dialog Layer.
+## 13. Compatibility and Evolution
 
----
+Breaking changes to restoration formats, Local Library identity mapping, public client contracts or acquisition behavior require migration guidance and architecture review.
 
-# 9. Composition Units
+Persisted workspace and session formats SHALL be versioned.
 
-A Composition Unit is the smallest reusable visual building block.
+## 14. Status
 
-Examples include:
-
-* View;
-* Panel;
-* Toolbar Item;
-* Inspector Section;
-* Sidebar Section;
-* Editor Component.
-
-Composition Units remain independently replaceable.
-
----
-
-# 10. Composite Views
-
-Composite Views contain one or more Composition Units.
-
-Examples include:
-
-* Workspace Region;
-* Inspector;
-* Sidebar;
-* Dialogs.
-
-Composite Views expose a unified interface.
-
----
-
-# 11. Leaf Views
-
-Leaf Views contain no child Views.
-
-Examples include:
-
-* Button;
-* Label;
-* Icon;
-* Progress Indicator;
-* Text Field.
-
-Leaf Views shall remain lightweight.
-
----
-
-# 12. Composition Rules
-
-Composition shall satisfy:
-
-* single ownership;
-* explicit boundaries;
-* deterministic ordering;
-* stable identities;
-* immutable projections.
-
-Circular composition is prohibited.
-
----
-
-# 13. Dependency Rules
-
-A composed View may depend only on:
-
-* immutable View Models;
-* presentation services;
-* platform abstractions.
-
-Dependencies on Domain or persistence are prohibited.
-
----
-
-# 14. Contextual Composition
-
-Composition may vary according to:
-
-* active Editor;
-* active Selection;
-* current Workspace;
-* plugin availability;
-* user preferences.
-
-Context shall never alter architectural ownership.
-
----
-
-# 15. Dynamic Composition
-
-Views may be inserted or removed dynamically.
-
-Examples include:
-
-* plugin Panels;
-* floating toolbars;
-* temporary overlays;
-* contextual inspectors.
-
-Dynamic composition shall preserve structural integrity.
-
----
-
-# 16. Conditional Composition
-
-Views may be conditionally composed based on:
-
-* feature availability;
-* Workspace capabilities;
-* permissions;
-* accessibility settings;
-* platform support.
-
-Unavailable Views shall not create invalid hierarchies.
-
----
-
-# 17. Plugin Composition
-
-Plugins may contribute Composition Units through approved Plugin SDK contracts.
-
-Plugins may contribute:
-
-* Editors;
-* Panels;
-* Inspector Sections;
-* Toolbar Items;
-* Sidebar Sections;
-* Context Menus.
-
-Plugins shall never modify existing core composition directly.
-
----
-
-# 18. Communication
-
-Sibling Views shall not communicate directly.
-
-Communication shall occur through:
-
-* Commands;
-* Events;
-* immutable projections.
-
-Direct references between sibling Views are discouraged.
-
----
-
-# 19. Projection Consumption
-
-Every Composition Unit consumes immutable View Models.
-
-Composition Units never expose Workspace state directly.
-
----
-
-# 20. Visibility Composition
-
-Composition shall support:
-
-* visible components;
-* hidden components;
-* collapsed regions;
-* detached floating Views.
-
-Visibility shall not affect ownership.
-
----
-
-# 21. Lifecycle Coordination
-
-Composition coordinates lifecycle transitions.
-
-Children follow the lifecycle of their parent unless explicitly detached.
-
-Detached Views shall manage their own lifecycle.
-
----
-
-# 22. Accessibility Composition
-
-Accessibility metadata shall be composed together with visual composition.
-
-Composite Views shall expose meaningful accessibility hierarchies.
-
----
-
-# 23. Theme Composition
-
-Every Composition Unit shall consume semantic design tokens.
-
-Visual styling shall never be embedded inside composition logic.
-
----
-
-# 24. Rendering Independence
-
-Composition defines structure only.
-
-Rendering behavior belongs exclusively to the Rendering Pipeline.
-
----
-
-# 25. Error Isolation
-
-Composition failures shall remain localized.
-
-A failed child component shall not invalidate unrelated Composition Units.
-
----
-
-# 26. Diagnostics
-
-Diagnostics shall expose:
-
-* Composition Identity;
-* parent View;
-* child count;
-* composition duration;
-* plugin participation;
-* lifecycle state.
-
----
-
-# 27. Performance
-
-Composition shall support:
-
-* lazy composition;
-* view reuse;
-* incremental updates;
-* virtualization;
-* bounded allocations.
-
----
-
-# 28. Testing
-
-Tests shall verify:
-
-* composition integrity;
-* ownership rules;
-* plugin insertion;
-* contextual composition;
-* lifecycle coordination;
-* accessibility composition.
-
----
-
-# 29. Architectural Invariants
-
-The following invariants are mandatory:
-
-* every Composition Unit has one owner;
-* composition remains acyclic;
-* View Models are immutable;
-* composition contains no business logic;
-* sibling Views never communicate directly;
-* plugins compose through SDK contracts only;
-* rendering remains independent from composition;
-* composition preserves deterministic ordering.
-
----
-
-# 30. Related Documents
-
-* `UIArchitecture.md`
-* `ViewHierarchy.md`
-* `ViewLifecycle.md`
-* `RenderingPipeline.md`
-* `LayoutProjection.md`
-* `Toolbar.md`
-* `Sidebar.md`
-* `Inspector.md`
-* `Dialogs.md`
-* `ThemeSystem.md`
-
----
-
-# 31. Status
-
-**Approved**
-
-This document establishes the authoritative View Composition model for the KnowledgeOS Desktop Application.
-
-View Composition defines how reusable visual components are assembled into a deterministic, extensible and framework-independent user interface while preserving strict architectural separation between presentation, Workspace logic and the underlying platform.
+This document is part of the KnowledgeOS Desktop Application V4 implementation baseline.

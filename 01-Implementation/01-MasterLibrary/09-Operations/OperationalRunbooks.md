@@ -1,472 +1,149 @@
+# Operational Runbooks
 
-# Master Library Operational Runbooks
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Operations
-
-**Document:** Operational Runbooks
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 09-Operations  
+**Document:** OperationalRunbooks  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the operational runbooks for the KnowledgeOS Master Library.
+Define the operational runbooks for the KnowledgeOS Master Library implementation.
 
-Operational Runbooks provide standardized procedures for routine operations, maintenance activities, incident response and recovery tasks.
+## 2. Scope
 
-Their objective is to ensure that operational activities are executed consistently, safely and predictably regardless of the operator.
+This document covers deployment, monitoring, backup and operational readiness for the NAS-hosted Master Library and its client-facing integration.
 
----
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
-# 2. Scope
+## 3. Architectural Baseline
 
-Operational Runbooks apply to:
+The implementation is governed by the following fixed model:
 
-* Master Library Server;
-* PostgreSQL Catalog;
-* NAS Source Storage;
-* Client Applications;
-* Search Engine;
-* Synchronization Engine;
-* Plugin Runtime;
-* AI Services;
-* Operational Infrastructure.
+```text
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
 
----
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
+```
+
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
 
-# 3. Objectives
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-Operational Runbooks pursue the following objectives:
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
 
-* standardize operational procedures;
-* reduce operational errors;
-* minimize recovery time;
-* improve repeatability;
-* support automation;
-* simplify operator training.
+## 5. Design Guidance
 
----
+Implementation SHOULD:
 
-# 4. Operational Principles
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
 
-Every runbook shall be:
+## 6. Failure and Recovery
 
-* documented;
-* version controlled;
-* deterministic;
-* validated;
-* periodically reviewed;
-* executable by any qualified operator.
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
 
-Runbooks shall not depend upon undocumented knowledge.
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
 
----
+Recovery SHALL preserve:
 
-# 5. Runbook Structure
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
 
-Every runbook shall contain:
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
 
-* Purpose;
-* Scope;
-* Prerequisites;
-* Preconditions;
-* Execution Steps;
-* Validation;
-* Rollback;
-* Expected Results;
-* Troubleshooting;
-* References.
+## 7. Security and Privacy
 
----
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
 
-# 6. Runbook Categories
+## 8. Observability
 
-KnowledgeOS defines the following categories:
+Relevant operations SHALL expose:
 
-* Startup;
-* Shutdown;
-* Deployment;
-* Backup;
-* Restore;
-* Recovery;
-* Maintenance;
-* Upgrade;
-* Monitoring;
-* Incident Response.
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
 
----
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
 
-# 7. Startup Runbook
+## 9. Verification and Acceptance
 
-The startup procedure verifies:
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
+- A runbook exists for the relevant operational scenario.
+- Health, alerting, backup and recovery paths are verifiable.
 
-* configuration validity;
-* PostgreSQL availability;
-* NAS accessibility;
-* search readiness;
-* plugin compatibility;
-* synchronization readiness.
+## 10. Traceability
 
-Startup is complete only after successful health validation.
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
----
+## 11. Compatibility and Migration
 
-# 8. Shutdown Runbook
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-Graceful shutdown includes:
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-* stopping new requests;
-* completing active transactions;
-* persisting synchronization state;
-* stopping background jobs;
-* flushing logs;
-* validating clean termination.
+## 12. Status
 
-Forced shutdown shall be used only when graceful shutdown is impossible.
-
----
-
-# 9. Backup Runbook
-
-The backup procedure includes:
-
-* backup verification;
-* snapshot creation;
-* integrity validation;
-* registration in the backup catalog;
-* notification of completion.
-
-Successful execution requires verification.
-
----
-
-# 10. Restore Runbook
-
-Restoration includes:
-
-* selecting the backup;
-* validating integrity;
-* restoring metadata;
-* restoring binary storage;
-* validating consistency;
-* performing health checks.
-
-Operational service resumes only after validation.
-
----
-
-# 11. Recovery Runbook
-
-Recovery procedures include:
-
-* failure assessment;
-* backup selection;
-* component restoration;
-* integrity validation;
-* synchronization verification;
-* operational confirmation.
-
----
-
-# 12. Deployment Runbook
-
-Deployment procedures verify:
-
-* prerequisites;
-* package integrity;
-* configuration;
-* migrations;
-* startup;
-* validation.
-
-Deployment completion requires successful health checks.
-
----
-
-# 13. Upgrade Runbook
-
-Upgrade execution includes:
-
-* pre-upgrade validation;
-* verified backup;
-* migration;
-* compatibility verification;
-* rollback readiness;
-* post-upgrade validation.
-
----
-
-# 14. PostgreSQL Runbook
-
-Database operational procedures include:
-
-* backup;
-* restore;
-* maintenance;
-* migration;
-* integrity verification;
-* performance review.
-
----
-
-# 15. NAS Runbook
-
-Storage procedures include:
-
-* connectivity validation;
-* filesystem verification;
-* capacity review;
-* checksum verification;
-* backup validation.
-
-The NAS shall remain the authoritative repository.
-
----
-
-# 16. Synchronization Runbook
-
-Synchronization procedures verify:
-
-* pending operations;
-* checkpoints;
-* retries;
-* conflicts;
-* synchronization completion.
-
-Unexpected interruptions shall follow documented recovery procedures.
-
----
-
-# 17. Search Runbook
-
-Search operations include:
-
-* index rebuild;
-* consistency verification;
-* optimization;
-* health validation;
-* query verification.
-
-Indexes may always be rebuilt from authoritative metadata.
-
----
-
-# 18. Plugin Runbook
-
-Plugin procedures include:
-
-* installation;
-* activation;
-* compatibility validation;
-* upgrade;
-* removal.
-
-Plugin failures shall remain isolated.
-
----
-
-# 19. AI Runbook
-
-AI operational procedures include:
-
-* provider validation;
-* credential verification;
-* model updates;
-* cache cleanup;
-* inference diagnostics.
-
-AI maintenance shall never interrupt core platform functionality.
-
----
-
-# 20. Monitoring Runbook
-
-Monitoring procedures verify:
-
-* dashboards;
-* metrics;
-* telemetry;
-* alert generation;
-* operational trends.
-
-Monitoring shall remain continuously operational.
-
----
-
-# 21. Logging Runbook
-
-Logging procedures include:
-
-* log validation;
-* rotation;
-* archival;
-* retention verification;
-* audit log integrity.
-
----
-
-# 22. Health Validation Runbook
-
-Health validation verifies:
-
-* service availability;
-* dependency status;
-* operational readiness;
-* platform state.
-
-Health evaluation concludes every operational procedure.
-
----
-
-# 23. Security Runbook
-
-Security procedures include:
-
-* credential rotation;
-* certificate renewal;
-* permission review;
-* security validation;
-* audit verification.
-
----
-
-# 24. Validation Checklist
-
-Every completed runbook shall verify:
-
-* expected result achieved;
-* platform health;
-* operational logs;
-* monitoring status;
-* absence of unresolved errors.
-
----
-
-# 25. Rollback Procedures
-
-Critical runbooks shall define:
-
-* rollback trigger;
-* rollback sequence;
-* validation after rollback;
-* recovery confirmation.
-
-Rollback shall preserve authoritative knowledge.
-
----
-
-# 26. Automation
-
-Runbooks may be partially or fully automated.
-
-Automation shall:
-
-* remain deterministic;
-* expose execution progress;
-* generate operational logs;
-* support manual intervention.
-
-Automation shall never hide operational failures.
-
----
-
-# 27. Documentation Maintenance
-
-Runbooks shall be reviewed:
-
-* after architectural changes;
-* after major releases;
-* after incidents;
-* during periodic operational reviews.
-
-Obsolete runbooks shall be retired.
-
----
-
-# 28. Operational Metrics
-
-Representative metrics include:
-
-* execution duration;
-* success rate;
-* rollback frequency;
-* validation failures;
-* operator interventions.
-
----
-
-# 29. Runbook Test Matrix
-
-| Procedure                | Required |
-| ------------------------ | -------- |
-| Startup                  | Yes      |
-| Shutdown                 | Yes      |
-| Backup                   | Yes      |
-| Restore                  | Yes      |
-| Deployment               | Yes      |
-| Upgrade                  | Yes      |
-| Recovery                 | Yes      |
-| Search Rebuild           | Yes      |
-| Synchronization Recovery | Yes      |
-| Plugin Recovery          | Yes      |
-
----
-
-# 30. Anti-Patterns
-
-The following are prohibited:
-
-* undocumented procedures;
-* manual execution without validation;
-* missing rollback instructions;
-* inconsistent operational steps;
-* obsolete runbooks;
-* procedures depending upon personal knowledge.
-
----
-
-# 31. Operational Runbook Invariants
-
-The following invariants are mandatory:
-
-* every critical operation has a documented runbook;
-* every runbook includes validation and rollback procedures;
-* runbooks remain version controlled;
-* operational procedures are periodically tested;
-* automation never replaces operational validation;
-* authoritative data is preserved throughout every procedure.
-
----
-
-# 32. Related Documents
-
-* `README.md`
-* `DeploymentArchitecture.md`
-* `BackupOperations.md`
-* `DisasterRecovery.md`
-* `Maintenance.md`
-* `HealthChecks.md`
-* `IncidentManagement.md`
-
----
-
-# 33. Status
-
-**Approved**
-
-The Operational Runbooks are frozen as the authoritative operational procedure library for the KnowledgeOS Master Library.
-
-Every operational activity shall be executed according to documented, deterministic and validated procedures to ensure consistent, auditable and reliable platform operation.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

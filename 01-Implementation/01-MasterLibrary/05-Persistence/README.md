@@ -1,405 +1,147 @@
+# Readme
 
-# Master Library Persistence
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Persistence
-
-**Document:** README
-
-**Version:** 2.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 05-Persistence  
+**Document:** README  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This module defines every persistence component used by the KnowledgeOS Master Library.
+Provide the rector guide for PostgreSQL and authoritative file-storage implementation in the Master Library implementation.
 
-It specifies how information is physically stored, protected, recovered, migrated and maintained inside the authoritative library hosted on the NAS.
+## 2. Scope
 
-The persistence architecture guarantees that every publication, metadata record and binary asset can be stored, validated, recovered and evolved without affecting the domain model.
+This document covers PostgreSQL and authoritative file-storage implementation for the NAS-hosted Master Library and its client-facing integration.
 
-This module defines the authoritative storage architecture of the platform.
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
----
+## 3. Architectural Baseline
 
-# 2. Scope
+The implementation is governed by the following fixed model:
 
-This module applies exclusively to the Master Library hosted by the KnowledgeOS Server.
+```text
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
 
-It defines:
-
-- catalog persistence
-- source document storage
-- cover storage
-- metadata persistence
-- identity persistence
-- audit persistence
-- transaction management
-- consistency
-- integrity
-- recovery
-- migrations
-- backup
-- storage validation
-
-It does not define client persistence.
-
-Client-side storage is documented independently.
-
----
-
-# 3. Architectural Principles
-
-The persistence architecture follows these principles.
-
-## Hybrid Storage
-
-Metadata and binary content are stored independently.
-
-Each storage technology is responsible only for the data it manages best.
-
-## Separation of Responsibilities
-
-Relational information belongs to the database.
-
-Large immutable files belong to the filesystem.
-
-Derived artifacts belong to dedicated derived storage.
-
-## Storage Independence
-
-The domain model never depends on the physical storage implementation.
-
-Persistence remains an infrastructure concern.
-
-## Stable Identity
-
-Every persisted resource is addressed through immutable KnowledgeOS identifiers.
-
-User-visible metadata never determines storage location.
-
-## Deterministic Layout
-
-Every stored object has one canonical location.
-
-The same identifiers always generate the same storage path.
-
-## Recoverability
-
-Every authoritative object can be reconstructed after failure using the persistence model.
-
----
-
-# 4. Storage Model
-
-The Master Library uses a hybrid persistence architecture.
-
-```
-                Master Library
-
-        +---------------------------+
-        |      PostgreSQL           |
-        |---------------------------|
-        | Publications              |
-        | Metadata                  |
-        | Relationships             |
-        | Catalog                   |
-        | Devices                   |
-        | Users                     |
-        | Credentials               |
-        | Audit                     |
-        | Operations                |
-        +---------------------------+
-
-                    │
-
-                    │ references
-
-                    ▼
-
-        +---------------------------+
-        |      Filesystem           |
-        |---------------------------|
-        | PDF                       |
-        | EPUB                      |
-        | Images                    |
-        | Covers                    |
-        | Source Versions           |
-        | Recovery                  |
-        | Staging                   |
-        +---------------------------+
-
-                    │
-
-                    ▼
-
-        +---------------------------+
-        | Derived Storage           |
-        |---------------------------|
-        | Search indexes            |
-        | Thumbnails                |
-        | Generated metadata        |
-        | Export cache              |
-        +---------------------------+
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
 ```
 
-No binary publication is stored inside PostgreSQL.
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
 
-No relational metadata is stored as filesystem authority.
+## 5. Design Guidance
 
----
+Implementation SHOULD:
 
-# 5. Deployment Model
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
 
-The Master Library is deployed on the NAS using isolated containers.
+## 6. Failure and Recovery
 
-Each service owns a single responsibility.
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
 
-```
-NAS
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
 
-Container Runtime
+Recovery SHALL preserve:
 
-├── knowledgeos-server
-├── postgresql
-├── search
-├── workers
-└── maintenance
-```
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
 
-Services communicate only through internal network contracts.
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
 
-Clients never access infrastructure services directly.
+## 7. Security and Privacy
 
----
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
 
-# 6. Persistent Volumes
+## 8. Observability
 
-Container images are stateless.
+Relevant operations SHALL expose:
 
-Every authoritative resource resides on persistent volumes.
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
 
-Recommended layout:
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
 
-```
-Persistent Volumes
+## 9. Verification and Acceptance
 
-knowledgeos-postgres-data
-knowledgeos-master-library
-knowledgeos-search
-knowledgeos-backups
-knowledgeos-runtime
-```
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
 
-Destroying or recreating containers shall never destroy authoritative information.
+## 10. Traceability
 
----
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
-# 7. PostgreSQL
+## 11. Compatibility and Migration
 
-The authoritative catalog is stored in PostgreSQL.
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-PostgreSQL stores:
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-- publications
-- source records
-- cover records
-- metadata
-- identifiers
-- catalog revisions
-- users
-- devices
-- permissions
-- audit records
-- synchronization state
-- operational metadata
+## 12. Status
 
-The database never stores publication binaries.
-
----
-
-# 8. Filesystem
-
-The filesystem stores immutable binary resources.
-
-Examples:
-
-- PDF
-- EPUB
-- MOBI
-- CBZ
-- DJVU
-- scanned images
-- cover images
-
-Files are organized by immutable KnowledgeOS identifiers.
-
----
-
-# 9. Derived Storage
-
-Derived artifacts are rebuildable.
-
-Examples:
-
-- search indexes
-- OCR caches
-- thumbnails
-- generated previews
-- export caches
-
-Loss of derived storage shall never imply loss of knowledge.
-
----
-
-# 10. Container Independence
-
-No persistence mechanism depends on a specific container runtime.
-
-The architecture supports any OCI-compatible runtime.
-
-Examples include Docker, Podman or container solutions provided by NAS vendors.
-
-The runtime is an operational concern, not an architectural dependency.
-
----
-
-# 11. Storage Scalability
-
-The persistence architecture is designed for very large personal libraries.
-
-Initial target:
-
-- more than 2 million publications
-
-The architecture shall support continuous growth without requiring redesign.
-
----
-
-# 12. Persistence Responsibilities
-
-This module defines:
-
-- physical storage
-- consistency
-- durability
-- recoverability
-- migration
-- validation
-- backup
-- integrity
-- storage security
-
-Business rules remain outside this module.
-
----
-
-# 13. Module Organization
-
-This module is composed of:
-
-```
-05-Persistence/
-
-README.md
-StorageArchitecture.md
-DirectoryLayout.md
-CatalogDatabase.md
-CatalogSchema.md
-SourceStorage.md
-CoverStorage.md
-Manifest.md
-IdentityStorage.md
-CredentialStorage.md
-AuditStorage.md
-Migrations.md
-BackupRestore.md
-Recovery.md
-Transactions.md
-Locking.md
-Consistency.md
-Integrity.md
-Checksums.md
-LocalReaderCache.md
-LocalLibraryStorage.md
-AcquisitionStorage.md
-StagingStorage.md
-```
-
----
-
-# 14. Design Goals
-
-The persistence layer shall be:
-
-- deterministic
-- scalable
-- portable
-- recoverable
-- inspectable
-- testable
-- versioned
-- technology-independent
-- resilient
-- maintainable
-
----
-
-# 15. Related Modules
-
-This module depends on:
-
-- Domain
-- Contracts
-- Technical Design
-
-It provides services to:
-
-- Reader
-- Library
-- Synchronization
-- Search
-- Administration
-
----
-
-# 16. Implementation Roadmap
-
-Documents should be implemented in the following order:
-
-1. StorageArchitecture
-2. DirectoryLayout
-3. CatalogDatabase
-4. CatalogSchema
-5. SourceStorage
-6. CoverStorage
-7. Transactions
-8. Locking
-9. Consistency
-10. Integrity
-11. Checksums
-12. Recovery
-13. BackupRestore
-14. Migrations
-15. Remaining supporting documents
-
----
-
-# 17. Status
-
-**Approved**
-
-This document defines the persistence architecture baseline for the KnowledgeOS Master Library.
-
-All subsequent persistence documents shall conform to the architectural decisions established here.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

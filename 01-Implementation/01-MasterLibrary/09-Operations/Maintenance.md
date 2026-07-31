@@ -1,482 +1,149 @@
+# Maintenance
 
-# Master Library Maintenance
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Operations
-
-**Document:** Maintenance
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 09-Operations  
+**Document:** Maintenance  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the maintenance architecture and operational procedures for the KnowledgeOS Master Library.
+Define the maintenance for the KnowledgeOS Master Library implementation.
 
-Maintenance ensures the long-term reliability, integrity, performance and evolution of the platform while preserving architectural consistency and user knowledge.
+## 2. Scope
 
-Maintenance is a continuous operational responsibility rather than an occasional corrective activity.
+This document covers deployment, monitoring, backup and operational readiness for the NAS-hosted Master Library and its client-facing integration.
 
----
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
-# 2. Scope
+## 3. Architectural Baseline
 
-Maintenance applies to:
+The implementation is governed by the following fixed model:
 
-* Master Library Server;
-* PostgreSQL Catalog;
-* NAS Source Storage;
-* Client Applications;
-* Local Libraries;
-* Search Engine;
-* Synchronization Engine;
-* Plugin Runtime;
-* AI Services;
-* Operational Infrastructure.
+```text
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
 
----
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
+```
+
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
 
-# 3. Objectives
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-Maintenance pursues the following objectives:
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
 
-* preserve operational stability;
-* maintain performance;
-* verify integrity;
-* prevent failures;
-* simplify upgrades;
-* extend platform lifetime.
+## 5. Design Guidance
 
----
+Implementation SHOULD:
 
-# 4. Maintenance Principles
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
 
-Every maintenance activity shall be:
+## 6. Failure and Recovery
 
-* planned;
-* documented;
-* repeatable;
-* auditable;
-* reversible whenever practical;
-* validated after execution.
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
 
-Maintenance shall minimize disruption to normal operation.
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
 
----
+Recovery SHALL preserve:
 
-# 5. Maintenance Categories
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
 
-KnowledgeOS defines:
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
 
-* Preventive Maintenance;
-* Corrective Maintenance;
-* Predictive Maintenance;
-* Adaptive Maintenance;
-* Evolutionary Maintenance.
+## 7. Security and Privacy
 
-Each category follows documented operational procedures.
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
 
----
+## 8. Observability
 
-# 6. Maintenance Planning
+Relevant operations SHALL expose:
 
-Maintenance planning defines:
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
 
-* maintenance windows;
-* affected components;
-* expected duration;
-* rollback strategy;
-* validation procedures.
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
 
-Critical maintenance shall be announced in advance where applicable.
+## 9. Verification and Acceptance
 
----
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
+- A runbook exists for the relevant operational scenario.
+- Health, alerting, backup and recovery paths are verifiable.
 
-# 7. PostgreSQL Maintenance
+## 10. Traceability
 
-Database maintenance includes:
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
-* statistics updates;
-* index optimization;
-* vacuum operations;
-* integrity verification;
-* schema validation;
-* storage analysis.
+## 11. Compatibility and Migration
 
-Maintenance shall preserve transactional consistency.
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
----
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-# 8. NAS Maintenance
+## 12. Status
 
-NAS maintenance includes:
-
-* filesystem verification;
-* checksum validation;
-* capacity review;
-* permission validation;
-* storage cleanup;
-* hardware diagnostics.
-
-The NAS remains the authoritative repository for binary content.
-
----
-
-# 9. Local Library Maintenance
-
-Client maintenance includes:
-
-* cache cleanup;
-* temporary file removal;
-* Local Library verification;
-* storage optimization;
-* synchronization validation.
-
-Authoritative knowledge shall never be removed during maintenance.
-
----
-
-# 10. Search Maintenance
-
-Search maintenance includes:
-
-* index optimization;
-* index validation;
-* rebuild when required;
-* orphan entry removal;
-* consistency verification.
-
-Indexes remain rebuildable artifacts.
-
----
-
-# 11. Synchronization Maintenance
-
-Synchronization maintenance verifies:
-
-* checkpoint consistency;
-* pending operation queues;
-* retry queues;
-* conflict history;
-* synchronization statistics.
-
-Synchronization metadata shall remain internally consistent.
-
----
-
-# 12. Plugin Maintenance
-
-Plugin maintenance includes:
-
-* compatibility verification;
-* obsolete plugin detection;
-* configuration validation;
-* dependency verification;
-* capability review.
-
-Unsupported plugins shall be clearly identified.
-
----
-
-# 13. AI Maintenance
-
-AI maintenance includes:
-
-* provider validation;
-* credential verification;
-* model availability;
-* local model integrity;
-* cache cleanup.
-
-AI maintenance shall never affect core platform functionality.
-
----
-
-# 14. Configuration Maintenance
-
-Configuration maintenance verifies:
-
-* schema compatibility;
-* deprecated parameters;
-* duplicate settings;
-* unused configuration;
-* secret rotation schedules.
-
-Configuration remains externally managed.
-
----
-
-# 15. Security Maintenance
-
-Security maintenance includes:
-
-* certificate renewal;
-* credential rotation;
-* dependency review;
-* vulnerability assessment;
-* permission validation.
-
-Security maintenance shall follow documented policies.
-
----
-
-# 16. Backup Maintenance
-
-Backup maintenance verifies:
-
-* backup execution;
-* retention compliance;
-* integrity;
-* restoration testing;
-* storage utilization.
-
-Backups remain operational assets.
-
----
-
-# 17. Monitoring Maintenance
-
-Monitoring maintenance includes:
-
-* metric validation;
-* dashboard review;
-* threshold adjustment;
-* obsolete metric removal;
-* telemetry verification.
-
-Monitoring shall accurately reflect platform state.
-
----
-
-# 18. Logging Maintenance
-
-Logging maintenance verifies:
-
-* rotation;
-* retention;
-* storage utilization;
-* structured format compliance;
-* archival procedures.
-
-Audit logs shall remain immutable.
-
----
-
-# 19. Operational Cleanup
-
-Cleanup activities include:
-
-* expired temporary files;
-* obsolete caches;
-* completed job artifacts;
-* outdated diagnostic files.
-
-Cleanup shall never remove authoritative data.
-
----
-
-# 20. Capacity Review
-
-Periodic reviews evaluate:
-
-* storage growth;
-* metadata growth;
-* database utilization;
-* synchronization volume;
-* hardware utilization.
-
-Capacity trends support future planning.
-
----
-
-# 21. Dependency Maintenance
-
-Dependencies shall be reviewed for:
-
-* security updates;
-* compatibility;
-* deprecations;
-* licensing changes;
-* support status.
-
-Updates shall be validated before production deployment.
-
----
-
-# 22. Scheduled Maintenance
-
-Typical scheduled activities include:
-
-| Activity               | Frequency |
-| ---------------------- | --------- |
-| Integrity Verification | Weekly    |
-| Backup Validation      | Weekly    |
-| Database Optimization  | Monthly   |
-| Capacity Review        | Monthly   |
-| Security Review        | Monthly   |
-| Dependency Review      | Monthly   |
-| Full Recovery Test     | Quarterly |
-
-Deployment-specific schedules may vary.
-
----
-
-# 23. Maintenance Windows
-
-Maintenance windows shall:
-
-* minimize operational impact;
-* be documented;
-* include rollback procedures;
-* include post-maintenance validation.
-
-Emergency maintenance shall be separately classified.
-
----
-
-# 24. Validation
-
-After maintenance, the following shall be verified:
-
-* service availability;
-* synchronization;
-* storage accessibility;
-* database consistency;
-* search functionality;
-* plugin compatibility.
-
-Maintenance is complete only after successful validation.
-
----
-
-# 25. Documentation
-
-Every maintenance procedure shall document:
-
-* objective;
-* prerequisites;
-* execution steps;
-* validation;
-* rollback;
-* expected outcome.
-
-Operational documentation shall remain current.
-
----
-
-# 26. Automation
-
-Maintenance automation may perform:
-
-* cleanup;
-* optimization;
-* integrity verification;
-* scheduled execution;
-* reporting.
-
-Automation shall never modify authoritative data without validation.
-
----
-
-# 27. Failure Handling
-
-Maintenance failures shall:
-
-* generate alerts;
-* preserve system integrity;
-* trigger rollback where applicable;
-* produce diagnostic information.
-
-Incomplete maintenance shall never be considered successful.
-
----
-
-# 28. Maintenance Metrics
-
-Representative maintenance metrics include:
-
-* maintenance duration;
-* completed tasks;
-* failed tasks;
-* recovered issues;
-* storage reclaimed;
-* integrity violations detected.
-
-These metrics support operational improvement.
-
----
-
-# 29. Maintenance Test Matrix
-
-| Scenario                    | Required |
-| --------------------------- | -------- |
-| Database Maintenance        | Yes      |
-| NAS Maintenance             | Yes      |
-| Search Optimization         | Yes      |
-| Configuration Validation    | Yes      |
-| Plugin Validation           | Yes      |
-| Backup Verification         | Yes      |
-| Cleanup                     | Yes      |
-| Rollback                    | Yes      |
-| Post-Maintenance Validation | Yes      |
-
----
-
-# 30. Anti-Patterns
-
-The following are prohibited:
-
-* undocumented maintenance;
-* maintenance without validation;
-* deleting authoritative data during cleanup;
-* skipping rollback preparation;
-* modifying production configuration without audit;
-* performing maintenance outside approved procedures.
-
----
-
-# 31. Maintenance Invariants
-
-The following invariants are mandatory:
-
-* maintenance procedures are documented;
-* authoritative data is preserved;
-* every maintenance activity is auditable;
-* post-maintenance validation is mandatory;
-* rollback procedures exist for critical operations;
-* maintenance automation remains deterministic;
-* platform integrity is continuously verified.
-
----
-
-# 32. Related Documents
-
-* `README.md`
-* `BackupOperations.md`
-* `DisasterRecovery.md`
-* `UpgradeProcedure.md`
-* `HealthChecks.md`
-* `OperationalRunbooks.md`
-* `IncidentManagement.md`
-
----
-
-# 33. Status
-
-**Approved**
-
-The Maintenance architecture is frozen as the authoritative maintenance model for the KnowledgeOS Master Library.
-
-Every maintenance activity shall preserve platform integrity, operational stability and long-term maintainability while ensuring continuous availability of user knowledge.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

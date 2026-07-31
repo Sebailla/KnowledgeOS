@@ -1,485 +1,151 @@
+# Migration Tests
 
-# Master Library Migration Tests
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Testing
-
-**Document:** Migration Tests
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team**
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 08-Testing  
+**Document:** MigrationTests  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the migration testing strategy for the KnowledgeOS Master Library.
+Define the migration tests for the KnowledgeOS Master Library implementation.
 
-Migration Tests verify that the platform evolves safely across versions while preserving user knowledge, metadata integrity, storage consistency and architectural compatibility.
+## 2. Scope
 
-Every migration shall be deterministic, repeatable and reversible whenever technically feasible.
+This document covers verification and conformance strategy for the NAS-hosted Master Library and its client-facing integration.
 
----
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
-# 2. Scope
+## 3. Architectural Baseline
 
-Migration Tests apply to:
-
-* PostgreSQL Catalog Schema;
-* Local Library Schema;
-* Metadata Model;
-* Storage Layout;
-* Configuration Files;
-* Search Indexes;
-* Plugin SDK;
-* Public Contracts;
-* Synchronization Protocol;
-* AI Metadata;
-* Export Formats.
-
----
-
-# 3. Objectives
-
-Migration Tests verify:
-
-* schema correctness;
-* data preservation;
-* compatibility;
-* rollback safety;
-* repeatability;
-* resumability;
-* integrity;
-* version interoperability.
-
----
-
-# 4. Migration Principles
-
-Every migration shall satisfy the following principles:
-
-* preserve user knowledge;
-* preserve identities;
-* preserve relationships;
-* never silently discard information;
-* remain deterministic;
-* produce observable diagnostics.
-
----
-
-# 5. Migration Categories
-
-KnowledgeOS recognizes the following migration types:
-
-* Database Schema Migration;
-* Metadata Migration;
-* Storage Migration;
-* Configuration Migration;
-* Index Migration;
-* Protocol Migration;
-* Plugin Migration;
-* Client Migration.
-
-Each category shall have dedicated validation.
-
----
-
-# 6. Version Detection
-
-Migration begins by identifying:
-
-* current version;
-* target version;
-* supported upgrade path;
-* unsupported versions.
-
-Unsupported upgrades shall fail with explicit diagnostics.
-
----
-
-# 7. Sequential Migration
-
-When multiple versions exist, migrations shall execute sequentially.
-
-Example:
+The implementation is governed by the following fixed model:
 
 ```text
-V1 → V2 → V3 → V4
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
+
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
 ```
 
-Direct jumps that bypass intermediate migrations are prohibited unless explicitly supported.
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Verification SHALL include failure, retry, migration and recovery behavior, not only successful requests.
+- Tests SHALL prove that Personal Knowledge never enters Master Library persistence.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
+
+## 5. Design Guidance
+
+Implementation SHOULD:
+
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
+
+## 6. Failure and Recovery
+
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
+
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
+
+Recovery SHALL preserve:
+
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
+
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
+
+## 7. Security and Privacy
+
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
+
+## 8. Observability
+
+Relevant operations SHALL expose:
+
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
+
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
+
+## 9. Verification and Acceptance
+
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
+- The test suite is automated where technically possible.
+- Test data contains no production secrets or unapproved personal data.
+
+## 10. Traceability
+
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
----
+## 11. Compatibility and Migration
 
-# 8. Database Schema Migration
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-Tests verify:
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-* table creation;
-* table modification;
-* column evolution;
-* constraints;
-* indexes;
-* foreign keys;
-* triggers where applicable.
+## 12. Status
 
----
-
-# 9. Metadata Migration
-
-Validation includes:
-
-* new fields;
-* removed fields;
-* renamed fields;
-* transformed values;
-* default values;
-* optional values.
-
-Semantic meaning shall always be preserved.
-
----
-
-# 10. Storage Migration
-
-Tests verify:
-
-* directory layout changes;
-* asset relocation;
-* source relocation;
-* checksum preservation;
-* manifest updates.
-
-Storage migration shall never duplicate or lose authoritative content.
-
----
-
-# 11. Local Library Migration
-
-Validation includes:
-
-* catalog evolution;
-* local metadata;
-* cached assets;
-* pending synchronization queue;
-* local indexes.
-
-The Local Library shall remain usable after migration.
-
----
-
-# 12. Search Index Migration
-
-Tests verify:
-
-* index version changes;
-* complete rebuild;
-* incremental rebuild;
-* migration interruption;
-* validation after migration.
-
-Indexes may be rebuilt instead of migrated when appropriate.
-
----
-
-# 13. Configuration Migration
-
-Validation includes:
-
-* deprecated settings;
-* renamed properties;
-* new defaults;
-* removed properties;
-* invalid configuration detection.
-
----
-
-# 14. Synchronization Migration
-
-Migration verifies:
-
-* protocol version negotiation;
-* checkpoint compatibility;
-* pending operation compatibility;
-* synchronization resumption.
-
-Existing synchronization state shall remain valid whenever possible.
-
----
-
-# 15. Plugin Migration
-
-Tests verify:
-
-* SDK compatibility;
-* capability negotiation;
-* deprecated APIs;
-* removed APIs;
-* plugin startup after migration.
-
-Incompatible plugins shall fail gracefully.
-
----
-
-# 16. Public Contract Migration
-
-Validation includes:
-
-* API evolution;
-* serialization changes;
-* protocol changes;
-* event schema evolution;
-* backward compatibility.
-
----
-
-# 17. AI Metadata Migration
-
-Migration verifies:
-
-* embedding version changes;
-* regenerated embeddings;
-* regenerated summaries;
-* regenerated classifications.
-
-Derived AI data may be regenerated when required.
-
----
-
-# 18. Identifier Preservation
-
-Migration shall preserve:
-
-* document identifiers;
-* asset identifiers;
-* annotation identifiers;
-* relationship identifiers;
-* collection identifiers.
-
-Identifiers shall never change solely because of migration.
-
----
-
-# 19. Relationship Preservation
-
-Tests verify preservation of:
-
-* graph relationships;
-* annotations;
-* references;
-* backlinks;
-* hierarchy;
-* collections.
-
----
-
-# 20. Checksum Validation
-
-Every migrated object shall validate:
-
-* checksum before migration;
-* checksum after migration;
-* integrity verification.
-
----
-
-# 21. Backup Before Migration
-
-Before executing any destructive migration the system shall verify:
-
-* backup availability;
-* backup consistency;
-* restore capability.
-
-Migration shall not begin if mandatory backup requirements are not satisfied.
-
----
-
-# 22. Rollback
-
-Rollback validation includes:
-
-* interrupted migration;
-* failed migration;
-* manual rollback;
-* automatic rollback.
-
-Rollback shall restore a consistent state.
-
----
-
-# 23. Interrupted Migration
-
-Tests verify interruption during:
-
-* schema evolution;
-* storage relocation;
-* synchronization update;
-* index rebuild.
-
-Migration shall resume safely.
-
----
-
-# 24. Failure Handling
-
-Migration failures shall produce:
-
-* explicit diagnostics;
-* recoverable state;
-* rollback instructions;
-* audit records.
-
-Silent failures are prohibited.
-
----
-
-# 25. Compatibility Matrix
-
-Migration Tests validate:
-
-| Source Version | Target Version | Required       |
-| -------------- | -------------- | -------------- |
-| Current - 1    | Current        | Yes            |
-| Current - 2    | Current        | Yes            |
-| Current        | Next           | Yes            |
-| Beta           | Stable         | When Supported |
-
-Unsupported combinations shall be rejected.
-
----
-
-# 26. Large Repository Migration
-
-Validation includes:
-
-* millions of metadata records;
-* hundreds of thousands of documents;
-* very large asset collections;
-* extensive annotation history.
-
----
-
-# 27. Performance Validation
-
-Migration measures:
-
-* execution duration;
-* migrated records;
-* migrated assets;
-* throughput;
-* storage growth.
-
----
-
-# 28. Data Integrity
-
-After migration the following shall verify successfully:
-
-* metadata integrity;
-* relationship integrity;
-* storage integrity;
-* synchronization integrity;
-* search integrity.
-
----
-
-# 29. Observability
-
-Every migration shall expose:
-
-* migration identifier;
-* source version;
-* target version;
-* duration;
-* migrated objects;
-* warnings;
-* failures.
-
----
-
-# 30. Regression Policy
-
-Every migration defect shall permanently generate a Migration Test.
-
-Migration regressions are considered high-priority architectural defects.
-
----
-
-# 31. Anti-Patterns
-
-The following are prohibited:
-
-* silent schema evolution;
-* implicit data loss;
-* identifier regeneration;
-* partial migration without diagnostics;
-* skipping validation;
-* unsupported direct upgrades without explicit implementation.
-
----
-
-# 32. Migration Test Matrix
-
-Mandatory migration scenarios include:
-
-| Scenario                      | Required |
-| ----------------------------- | -------- |
-| Schema Migration              | Yes      |
-| Metadata Migration            | Yes      |
-| Storage Migration             | Yes      |
-| Configuration Migration       | Yes      |
-| Index Migration               | Yes      |
-| Interrupted Migration         | Yes      |
-| Rollback                      | Yes      |
-| Large Repository Migration    | Yes      |
-| Plugin Compatibility          | Yes      |
-| Synchronization Compatibility | Yes      |
-
----
-
-# 33. Migration Invariants
-
-The following invariants are mandatory:
-
-* user knowledge is preserved;
-* identifiers remain stable;
-* relationships remain valid;
-* metadata integrity is preserved;
-* migrations are deterministic;
-* interrupted migrations are recoverable;
-* rollback restores a consistent state;
-* every migration is fully observable;
-* compatibility rules are continuously validated.
-
----
-
-# 34. Related Documents
-
-* `TestStrategy.md`
-* `RecoveryTests.md`
-* `SynchronizationTests.md`
-* `CatalogSchema.md`
-* `StorageArchitecture.md`
-* `Configuration.md`
-* `PluginSDK/Compatibility.md`
-
----
-
-# 35. Status
-
-**Approved**
-
-The Migration Testing strategy is frozen as the authoritative validation model for architectural evolution within the KnowledgeOS Master Library.
-
-Every supported version transition shall preserve user knowledge, maintain architectural consistency and provide deterministic, recoverable and observable migration behavior.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

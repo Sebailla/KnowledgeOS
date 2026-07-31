@@ -1,256 +1,169 @@
+# Desktop Ui Guide
 
-# Desktop Application UI
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Desktop Application
-
-**Layer:** Desktop UI
-
-**Document:** README
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Desktop Application / 04-DesktopUI  
+**Document:** README  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Platform:** macOS  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Desktop UI layer of the KnowledgeOS Desktop Application.
+Define the desktop ui guide for the KnowledgeOS macOS application, covering desktop UI composition, hierarchy and lifecycle.
 
-The Desktop UI is responsible for projecting the logical application state into the native macOS user interface.
+## 2. Scope
 
-It is a presentation layer only.
+This document applies to the native macOS client and its integration with:
 
-It contains no business logic.
+- the device Local Library;
+- the NAS-hosted Master Library;
+- Personal Knowledge;
+- UDM and DPM;
+- Platform Engines;
+- Kernel execution services;
+- Apple platform services.
 
-It owns no knowledge.
+It does not redefine Domain authority, acquisition semantics, synchronization ownership or Platform Engine responsibilities.
 
----
+## 3. Product Context
 
-# 2. Scope
+The macOS application is the primary KnowledgeOS client.
 
-This layer defines the implementation of:
+It SHALL support:
 
-* native windows;
-* view hierarchy;
-* visual composition;
-* rendering;
-* input processing;
-* menus;
-* toolbars;
-* sidebars;
-* inspectors;
-* dialogs;
-* accessibility;
-* themes;
-* animations;
-* visual feedback.
+- local device scanning from user-authorized locations;
+- an independent offline-first Local Library;
+- browsing the remote Master Catalog;
+- explicit acquisition of selected publications;
+- reading and rendering;
+- annotations and Personal Knowledge;
+- search;
+- optional AI;
+- workspace and multi-window behavior;
+- future personal synchronization through iCloud/CloudKit.
 
----
+The NAS is not mounted as the working Local Library and is not a Personal Knowledge synchronization peer.
 
-# 3. Architectural Position
+## 4. Normative Language
 
-```text
-Application
-        │
-        ▼
-Workspace
-        │
-        ▼
-Desktop UI
-        │
-        ▼
-Native macOS Framework
-```
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-The Desktop UI projects the Workspace.
+## 5. Normative Requirements
 
-It never owns Workspace state.
+- The macOS application SHALL maintain an independent Local Library.
+- The application SHALL remain usable offline for locally available publications.
+- The application SHALL browse the Master Catalog without treating the Local Library as a replica.
+- Publication acquisition SHALL be explicit and separate from Personal Knowledge synchronization.
+- Personal Knowledge SHALL synchronize only through the approved iCloud/CloudKit profile.
+- The application SHALL NOT write annotations, highlights, reading progress or personal relationships to the NAS Master Library.
+- UI components SHALL invoke public Platform contracts and SHALL NOT access repositories directly.
+- Long-running work SHALL expose durable operation identity, progress, cancellation and failure state.
+- Stable Domain identity SHALL be preserved across windows, workspaces, navigation and restoration.
 
----
+## 6. Architecture and Design Guidance
 
-# 4. Responsibilities
+Implementation SHOULD:
 
-The Desktop UI is responsible for:
+- use explicit module composition at application startup;
+- keep SwiftUI/AppKit view code separate from Platform services;
+- expose commands, queries and observable state through stable façades or ViewModels;
+- preserve stable Domain identity in navigation and restoration payloads;
+- treat render, search, graph and AI projections as derived;
+- use structured concurrency with lifecycle-bound tasks;
+- propagate cancellation and correlation;
+- validate all persisted UI and workspace state before restoration;
+- avoid singleton mutable state except for explicitly governed application services;
+- keep framework-specific types out of shared public contracts;
+- support graceful degradation when the Master Library or remote providers are unavailable.
 
-* presenting Workspace state;
-* collecting user input;
-* forwarding Commands;
-* rendering projections;
-* updating visual state;
-* maintaining accessibility;
-* coordinating native interactions.
+## 7. State and Lifecycle
 
-The Desktop UI never executes business rules.
+Desktop state SHALL be classified as:
 
----
+| State Class | Examples | Persistence |
+|---|---|---|
+| Domain-backed | Local Library membership, annotations | Domain repositories |
+| Restorable workspace | windows, tabs, open documents | local restoration store |
+| Session | active navigation, transient filters | scoped session |
+| Ephemeral UI | hover, focus, animation | memory only |
+| Derived | render cache, search results | rebuildable cache |
 
-# 5. Design Principles
+Lifecycle transitions SHALL release subscriptions, tasks, file handles and security-scoped resources deterministically.
 
-The Desktop UI shall:
+## 8. Failure and Recovery
 
-* remain stateless whenever possible;
-* consume immutable projections;
-* never bypass Commands;
-* never mutate Domain objects;
-* remain deterministic;
-* support offline operation;
-* support accessibility;
-* support multiple windows;
-* support high performance.
+The application SHALL preserve:
 
----
+- Local Library identity;
+- locally available publications;
+- committed Personal Knowledge;
+- workspace restoration evidence;
+- operation identities;
+- import and acquisition progress;
+- provenance and integrity findings.
 
-# 6. Dependency Rules
+Unavailable NAS access SHALL degrade Master Catalog browsing and acquisition only. It SHALL NOT prevent reading or annotating locally available publications.
 
-The Desktop UI may depend on:
+Invalid restoration state SHALL be isolated and repaired without deleting authoritative user data.
 
-* Workspace;
-* Application;
-* Shared SDK;
-* Platform APIs.
+## 9. Security and Privacy
 
-The Desktop UI shall never depend directly on:
-
-* Domain persistence;
-* Storage implementation;
-* synchronization internals;
-* database infrastructure.
-
----
-
-# 7. Native Framework
-
-The implementation shall use native macOS technologies whenever possible.
-
-Native components are implementation details.
-
-KnowledgeOS architecture remains framework-independent.
-
----
-
-# 8. Projection Model
-
-Every visible element is a projection of logical state.
-
-Examples include:
-
-* Windows;
-* Tabs;
-* Editors;
-* Panels;
-* Toolbars;
-* Menus;
-* Dialogs.
-
-Visual components never become authoritative.
-
----
-
-# 9. Input Flow
-
-User interaction follows this sequence:
-
-```text
-User
-    ↓
-Native UI
-    ↓
-Desktop UI
-    ↓
-Commands
-    ↓
-Workspace
-    ↓
-Updated Projection
-```
-
----
-
-# 10. Relationship with Workspace
-
-Workspace owns:
-
-* logical state;
-* navigation;
-* selection;
-* history;
-* layout.
-
-Desktop UI only renders those concepts.
-
----
-
-# 11. Relationship with Platform Engines
-
-Desktop UI consumes services exposed by Platform Engines.
-
-It never implements Engine responsibilities.
-
----
-
-# 12. Accessibility
-
-Accessibility is implemented as a first-class architectural concern.
-
-Every visual component shall support native accessibility APIs.
-
----
-
-# 13. Performance
-
-Rendering shall be incremental.
-
-Only modified projections shall be refreshed.
-
----
-
-# 14. Testing
-
-Desktop UI shall be tested independently from Domain logic through projection, interaction and accessibility tests.
-
----
-
-# 15. Documents
-
-This section is composed of:
-
-* UIArchitecture.md
-* WindowControllers.md
-* ViewHierarchy.md
-* ViewComposition.md
-* ViewLifecycle.md
-* RenderingPipeline.md
-* LayoutProjection.md
-* InputHandling.md
-* KeyboardShortcuts.md
-* ContextMenus.md
-* DragAndDrop.md
-* Clipboard.md
-* Toolbar.md
-* Sidebar.md
-* Inspector.md
-* StatusBar.md
-* Notifications.md
-* Dialogs.md
-* Accessibility.md
-* ThemeSystem.md
-* AnimationSystem.md
-
----
-
-# 16. Status
-
-**Approved**
-
-This document defines the Desktop UI layer for the KnowledgeOS Desktop Application.
-
-The Desktop UI is a pure presentation layer that projects Workspace state into the native macOS interface while preserving the architectural separation between presentation, application, platform and domain.
+- User-selected files SHALL use approved macOS security-scoped access where required.
+- Credentials and tokens SHALL use Keychain or another approved secure store.
+- Personal Knowledge SHALL not be written to NAS.
+- Logs SHALL not contain publication content, private paths, annotations or credentials.
+- Remote AI or OCR SHALL require policy authorization.
+- Window and workspace restoration payloads SHALL avoid sensitive content where identity references suffice.
+
+## 10. Accessibility and Native Experience
+
+The desktop application SHOULD follow native macOS conventions for:
+
+- keyboard navigation;
+- menus and commands;
+- window restoration;
+- focus;
+- accessibility labels and reading order;
+- drag and drop;
+- document opening;
+- toolbar and sidebar behavior;
+- VoiceOver;
+- reduced motion and contrast preferences.
+
+Accessibility transformations SHALL preserve UDM semantic order.
+
+## 11. Verification and Acceptance
+
+- The behavior is covered by automated tests where technically feasible.
+- Offline behavior is verified.
+- Master Catalog and Local Library scopes remain visibly distinct.
+- Personal Knowledge never enters Master Library persistence.
+- Cancellation, timeout and failure behavior are verified.
+- Architecture traceability is documented.
+- Accessibility implications are reviewed.
+- No direct private-repository access exists from UI code.
+
+## 12. Traceability
+
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/04-Platform/README.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Annotation/README.md`
+- `00-Architecture/04-Platform/Render/README.md`
+- `00-Architecture/04-Platform/Search/README.md`
+- `00-Architecture/04-Platform/Sync/README.md`
+- `00-Architecture/03-Kernel/README.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
+
+## 13. Compatibility and Evolution
+
+Breaking changes to restoration formats, Local Library identity mapping, public client contracts or acquisition behavior require migration guidance and architecture review.
+
+Persisted workspace and session formats SHALL be versioned.
+
+## 14. Status
+
+This document is part of the KnowledgeOS Desktop Application V4 implementation baseline.

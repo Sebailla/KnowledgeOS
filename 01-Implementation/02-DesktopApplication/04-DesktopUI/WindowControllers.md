@@ -1,421 +1,174 @@
+# Window Controllers
 
-# Desktop Application Window Controllers
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Desktop Application
-
-**Layer:** Desktop UI
-
-**Document:** Window Controllers
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Desktop Application / 04-DesktopUI  
+**Document:** WindowControllers  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Platform:** macOS  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
+
+Define the window controllers for the KnowledgeOS macOS application, covering desktop UI composition, hierarchy and lifecycle.
 
-This document defines the authoritative architecture for Window Controllers within the KnowledgeOS Desktop Application.
+## 2. Scope
 
-Window Controllers coordinate the interaction between the logical Workspace and native macOS windows.
+This document applies to the native macOS client and its integration with:
 
-They are orchestration components.
+- the device Local Library;
+- the NAS-hosted Master Library;
+- Personal Knowledge;
+- UDM and DPM;
+- Platform Engines;
+- Kernel execution services;
+- Apple platform services.
 
-They never own Workspace state.
+It does not redefine Domain authority, acquisition semantics, synchronization ownership or Platform Engine responsibilities.
 
----
+## 3. Product Context
 
-# 2. Scope
+The macOS application is the primary KnowledgeOS client.
 
-This document governs:
+It SHALL support:
 
-* Window Controller responsibilities;
-* lifecycle;
-* ownership;
-* window coordination;
-* projection synchronization;
-* command routing;
-* event handling;
-* multi-window coordination;
-* restoration participation;
-* diagnostics;
-* testing.
+- local device scanning from user-authorized locations;
+- an independent offline-first Local Library;
+- browsing the remote Master Catalog;
+- explicit acquisition of selected publications;
+- reading and rendering;
+- annotations and Personal Knowledge;
+- search;
+- optional AI;
+- workspace and multi-window behavior;
+- future personal synchronization through iCloud/CloudKit.
 
-It does not define Workspace logic, rendering or native view implementation.
+The NAS is not mounted as the working Local Library and is not a Personal Knowledge synchronization peer.
 
----
+## 4. Normative Language
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+## 5. Normative Requirements
+
+- The macOS application SHALL maintain an independent Local Library.
+- The application SHALL remain usable offline for locally available publications.
+- The application SHALL browse the Master Catalog without treating the Local Library as a replica.
+- Publication acquisition SHALL be explicit and separate from Personal Knowledge synchronization.
+- Personal Knowledge SHALL synchronize only through the approved iCloud/CloudKit profile.
+- The application SHALL NOT write annotations, highlights, reading progress or personal relationships to the NAS Master Library.
+- UI components SHALL invoke public Platform contracts and SHALL NOT access repositories directly.
+- Long-running work SHALL expose durable operation identity, progress, cancellation and failure state.
+- Stable Domain identity SHALL be preserved across windows, workspaces, navigation and restoration.
+- Each window SHALL own an explicit workspace/session scope.
+- Window closure SHALL release subscriptions and persist eligible restoration state.
+- Views SHALL be declarative projections of state and SHALL not own business rules.
+- Accessibility, keyboard navigation and native macOS conventions SHALL be supported.
+- View lifecycle SHALL not leak tasks, subscriptions or security-sensitive state.
+
+## 6. Architecture and Design Guidance
 
-# 3. Objectives
+Implementation SHOULD:
 
-Window Controllers shall:
+- use explicit module composition at application startup;
+- keep SwiftUI/AppKit view code separate from Platform services;
+- expose commands, queries and observable state through stable façades or ViewModels;
+- preserve stable Domain identity in navigation and restoration payloads;
+- treat render, search, graph and AI projections as derived;
+- use structured concurrency with lifecycle-bound tasks;
+- propagate cancellation and correlation;
+- validate all persisted UI and workspace state before restoration;
+- avoid singleton mutable state except for explicitly governed application services;
+- keep framework-specific types out of shared public contracts;
+- support graceful degradation when the Master Library or remote providers are unavailable.
 
-* coordinate one logical Window;
-* synchronize immutable projections;
-* forward user interactions;
-* isolate platform APIs;
-* support multiple simultaneous windows;
-* support restoration;
-* remain lightweight;
-* remain stateless whenever possible.
+## 7. State and Lifecycle
 
----
+Desktop state SHALL be classified as:
 
-# 4. Architectural Position
+| State Class | Examples | Persistence |
+|---|---|---|
+| Domain-backed | Local Library membership, annotations | Domain repositories |
+| Restorable workspace | windows, tabs, open documents | local restoration store |
+| Session | active navigation, transient filters | scoped session |
+| Ephemeral UI | hover, focus, animation | memory only |
+| Derived | render cache, search results | rebuildable cache |
 
-```text
-Workspace
-      │
-      ▼
-Window Controller
-      │
-      ▼
-Native Window
-      │
-      ▼
-View Hierarchy
-```
+Lifecycle transitions SHALL release subscriptions, tasks, file handles and security-scoped resources deterministically.
 
-The Window Controller acts as an orchestration boundary.
+## 8. Failure and Recovery
 
----
+The application SHALL preserve:
 
-# 5. Responsibilities
+- Local Library identity;
+- locally available publications;
+- committed Personal Knowledge;
+- workspace restoration evidence;
+- operation identities;
+- import and acquisition progress;
+- provenance and integrity findings.
 
-A Window Controller is responsible for:
+Unavailable NAS access SHALL degrade Master Catalog browsing and acquisition only. It SHALL NOT prevent reading or annotating locally available publications.
 
-* creating native windows;
-* binding Workspace projections;
-* coordinating View Controllers;
-* routing Commands;
-* observing Events;
-* updating window metadata;
-* coordinating restoration;
-* exposing diagnostics.
+Invalid restoration state SHALL be isolated and repaired without deleting authoritative user data.
 
-Window Controllers never execute business logic.
+## 9. Security and Privacy
 
----
+- User-selected files SHALL use approved macOS security-scoped access where required.
+- Credentials and tokens SHALL use Keychain or another approved secure store.
+- Personal Knowledge SHALL not be written to NAS.
+- Logs SHALL not contain publication content, private paths, annotations or credentials.
+- Remote AI or OCR SHALL require policy authorization.
+- Window and workspace restoration payloads SHALL avoid sensitive content where identity references suffice.
 
-# 6. Ownership
+## 10. Accessibility and Native Experience
 
-Each Window Controller owns only:
+The desktop application SHOULD follow native macOS conventions for:
 
-* native window reference;
-* controller lifecycle;
-* projection subscriptions;
-* temporary UI coordination state.
+- keyboard navigation;
+- menus and commands;
+- window restoration;
+- focus;
+- accessibility labels and reading order;
+- drag and drop;
+- document opening;
+- toolbar and sidebar behavior;
+- VoiceOver;
+- reduced motion and contrast preferences.
 
-Workspace state remains external.
+Accessibility transformations SHALL preserve UDM semantic order.
 
----
+## 11. Verification and Acceptance
 
-# 7. One Controller per Window
+- The behavior is covered by automated tests where technically feasible.
+- Offline behavior is verified.
+- Master Catalog and Local Library scopes remain visibly distinct.
+- Personal Knowledge never enters Master Library persistence.
+- Cancellation, timeout and failure behavior are verified.
+- Architecture traceability is documented.
+- Accessibility implications are reviewed.
+- No direct private-repository access exists from UI code.
 
-Every logical Window shall have exactly one Window Controller.
+## 12. Traceability
 
-A controller shall never manage multiple logical Windows.
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/04-Platform/README.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Annotation/README.md`
+- `00-Architecture/04-Platform/Render/README.md`
+- `00-Architecture/04-Platform/Search/README.md`
+- `00-Architecture/04-Platform/Sync/README.md`
+- `00-Architecture/03-Kernel/README.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
----
+## 13. Compatibility and Evolution
 
-# 8. Controller Lifecycle
+Breaking changes to restoration formats, Local Library identity mapping, public client contracts or acquisition behavior require migration guidance and architecture review.
 
-```text
-Created
-    ↓
-Initialized
-    ↓
-Bound
-    ↓
-Visible
-    ↓
-Active
-    ↓
-Hidden
-    ↓
-Disposed
-```
+Persisted workspace and session formats SHALL be versioned.
 
-Disposed controllers shall release every native resource.
+## 14. Status
 
----
-
-# 9. Initialization
-
-Initialization includes:
-
-* creating the native window;
-* binding projections;
-* creating the root View Controller;
-* registering Commands;
-* subscribing to Events.
-
-Initialization shall not modify Workspace state.
-
----
-
-# 10. Projection Binding
-
-The controller consumes immutable Window projections.
-
-Projection updates trigger UI refresh.
-
-Controllers shall never mutate projections.
-
----
-
-# 11. Command Routing
-
-User interaction follows this flow:
-
-```text
-User
-    ↓
-Native Control
-    ↓
-Window Controller
-    ↓
-Application Command
-    ↓
-Workspace
-```
-
-Every state mutation originates from a Command.
-
----
-
-# 12. Event Subscription
-
-Controllers may observe:
-
-* WindowUpdated;
-* LayoutChanged;
-* SelectionChanged;
-* NavigationChanged;
-* ThemeChanged;
-* AccessibilityChanged.
-
-Events trigger projection refresh only.
-
----
-
-# 13. View Coordination
-
-The Window Controller coordinates:
-
-* Root View Controller;
-* Toolbar;
-* Sidebar;
-* Inspector;
-* Status Bar;
-* Dialog Coordinator.
-
-Individual views remain independent.
-
----
-
-# 14. Window Metadata
-
-Controllers maintain transient metadata such as:
-
-* native window identifier;
-* visibility;
-* focus state;
-* display assignment;
-* fullscreen status;
-* minimized state.
-
-These values are not authoritative Workspace state.
-
----
-
-# 15. Multi-Window Coordination
-
-Each Window Controller operates independently.
-
-Shared Workspace state is synchronized through immutable projections.
-
-Controllers never communicate directly with each other.
-
----
-
-# 16. Focus Management
-
-Controllers coordinate native focus changes.
-
-Logical focus remains owned by the Workspace.
-
----
-
-# 17. Window Activation
-
-Activation shall:
-
-* update native focus;
-* refresh projections;
-* synchronize menus;
-* synchronize toolbars.
-
-Activation does not modify Workspace ownership.
-
----
-
-# 18. Window Closure
-
-Closing a window shall:
-
-* notify the Workspace;
-* dispose subscriptions;
-* release native resources;
-* preserve persisted state when applicable.
-
-Forced termination shall invoke Workspace Recovery if required.
-
----
-
-# 19. Restoration Participation
-
-During Workspace Restoration, Window Controllers shall:
-
-1. receive restored Window descriptors;
-2. create native windows;
-3. bind projections;
-4. initialize View Controllers;
-5. become visible only after successful restoration.
-
-Controllers never restore Workspace state themselves.
-
----
-
-# 20. Error Handling
-
-Controller failures shall:
-
-* remain localized;
-* preserve Workspace integrity;
-* release native resources safely;
-* emit diagnostics.
-
-A failed Window Controller shall not affect unrelated windows.
-
----
-
-# 21. Threading Model
-
-Window Controllers execute on the UI thread.
-
-Background work shall be delegated to appropriate services.
-
-UI updates shall always return to the main thread.
-
----
-
-# 22. Plugin Integration
-
-Plugins may contribute:
-
-* window content;
-* toolbars;
-* side panels;
-* contextual actions.
-
-Plugins shall never replace the Window Controller lifecycle.
-
----
-
-# 23. Accessibility
-
-Controllers shall coordinate:
-
-* accessibility focus;
-* accessibility notifications;
-* keyboard traversal;
-* semantic updates.
-
-Accessibility behavior shall remain synchronized with Workspace projections.
-
----
-
-# 24. Diagnostics
-
-Diagnostics should include:
-
-* Window Identity;
-* Controller Identity;
-* Projection Version;
-* active subscriptions;
-* rendering latency;
-* restoration state.
-
----
-
-# 25. Performance
-
-Controllers shall support:
-
-* incremental projection updates;
-* lazy initialization;
-* minimal view invalidation;
-* bounded subscriptions;
-* efficient disposal.
-
----
-
-# 26. Testing
-
-Tests shall verify:
-
-* controller lifecycle;
-* projection synchronization;
-* command routing;
-* event handling;
-* restoration;
-* multi-window behavior;
-* accessibility coordination;
-* resource disposal.
-
----
-
-# 27. Architectural Invariants
-
-The following invariants are mandatory:
-
-* one Window Controller manages exactly one logical Window;
-* Workspace remains authoritative;
-* controllers never own business state;
-* all state mutations occur through Commands;
-* projections are immutable;
-* native windows never become authoritative;
-* controllers remain lightweight;
-* controller disposal releases every native resource.
-
----
-
-# 28. Related Documents
-
-* `README.md`
-* `UIArchitecture.md`
-* `ViewHierarchy.md`
-* `ViewComposition.md`
-* `ViewLifecycle.md`
-* `RenderingPipeline.md`
-* `LayoutProjection.md`
-* `WorkspaceRestoration.md`
-* `WorkspaceRecovery.md`
-
----
-
-# 29. Status
-
-**Approved**
-
-This document establishes the authoritative architecture for Window Controllers within the KnowledgeOS Desktop Application.
-
-Window Controllers coordinate the interaction between immutable Workspace projections and native macOS windows while preserving strict separation between presentation, application logic and platform implementation. They act exclusively as orchestration components and never become the authoritative owner of Workspace state.
+This document is part of the KnowledgeOS Desktop Application V4 implementation baseline.

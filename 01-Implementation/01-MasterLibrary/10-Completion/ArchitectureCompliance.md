@@ -1,465 +1,147 @@
+# Architecture Compliance
 
-# Master Library Architecture Compliance
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Completion
-
-**Document:** Architecture Compliance
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 10-Completion  
+**Document:** ArchitectureCompliance  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Architecture Compliance framework used to verify that the KnowledgeOS Master Library implementation conforms to the approved Architecture V3 baseline.
+Define the architecture compliance for the KnowledgeOS Master Library implementation.
 
-Architecture Compliance ensures that implementation decisions remain consistent with architectural principles, Architecture Decision Records (ADRs), quality attributes and operational requirements.
+## 2. Scope
 
-Compliance is mandatory before any production release.
+This document covers release completion, traceability and residual risk for the NAS-hosted Master Library and its client-facing integration.
 
----
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
-# 2. Scope
+## 3. Architectural Baseline
 
-Architecture Compliance applies to every architectural layer:
+The implementation is governed by the following fixed model:
 
-* Foundation;
-* Domain;
-* Kernel;
-* Platform;
-* Integration;
-* Persistence;
-* Server;
-* Client;
-* Operations;
-* Testing;
-* Documentation.
+```text
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
 
-It also applies to every architectural evolution introduced after the baseline is approved.
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
+```
 
----
+The Master Library is independent from Local Libraries.
 
-# 3. Objectives
+## 4. Normative Requirements
 
-Architecture Compliance pursues the following objectives:
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-* preserve architectural integrity;
-* verify implementation consistency;
-* detect architectural deviations;
-* enforce approved decisions;
-* simplify future evolution;
-* provide objective architectural evidence.
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
 
----
+## 5. Design Guidance
 
-# 4. Compliance Principles
+Implementation SHOULD:
 
-Architecture compliance shall be:
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
 
-* objective;
-* measurable;
-* repeatable;
-* documented;
-* auditable;
-* independent from implementation teams.
+## 6. Failure and Recovery
 
-Compliance is based on architectural evidence rather than subjective interpretation.
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
 
----
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
 
-# 5. Compliance Sources
+Recovery SHALL preserve:
 
-Implementation shall comply with the approved:
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
 
-* Product Vision;
-* Architecture Principles;
-* Architecture Constraints;
-* Architecture Model;
-* Quality Attributes;
-* Domain Model;
-* ADRs;
-* Public Contracts;
-* Security Policies;
-* Operational Architecture.
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
 
-These documents constitute the architectural baseline.
+## 7. Security and Privacy
 
----
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
 
-# 6. Compliance Domains
+## 8. Observability
 
-Architecture compliance evaluates:
+Relevant operations SHALL expose:
 
-* Functional Architecture;
-* Structural Architecture;
-* Data Architecture;
-* Operational Architecture;
-* Security Architecture;
-* Integration Architecture;
-* Deployment Architecture;
-* Documentation Architecture.
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
 
-Each domain shall be independently verifiable.
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
 
----
+## 9. Verification and Acceptance
 
-# 7. Foundation Compliance
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
 
-The implementation shall demonstrate compliance with:
+## 10. Traceability
 
-* Product Vision;
-* Architecture Principles;
-* Architecture Constraints;
-* Quality Attributes;
-* Architecture Model.
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
-No implementation shall contradict the approved architectural foundation.
+## 11. Compatibility and Migration
 
----
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-# 8. Domain Compliance
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-The implementation shall preserve the approved Domain Model, including:
+## 12. Status
 
-* Universal Document Model (UDM);
-* Document Presentation Model (DPM);
-* Knowledge Objects;
-* Identity Model;
-* Relationship Model;
-* Lifecycle definitions.
-
-Domain behavior shall remain architecture-driven.
-
----
-
-# 9. Kernel Compliance
-
-Kernel implementation shall conform to:
-
-* dependency injection rules;
-* command processing;
-* query processing;
-* event architecture;
-* workflow execution;
-* scheduler architecture;
-* observability standards.
-
-Kernel responsibilities shall not leak into higher layers.
-
----
-
-# 10. Platform Compliance
-
-Each Platform Engine shall comply with its documented responsibilities.
-
-Validation includes:
-
-* service boundaries;
-* engine isolation;
-* dependency direction;
-* lifecycle management;
-* public interfaces.
-
-Platform Engines shall remain independently evolvable.
-
----
-
-# 11. Integration Compliance
-
-Integration shall verify:
-
-* API contracts;
-* Plugin SDK contracts;
-* OAuth integration;
-* MCP compatibility;
-* external service interfaces;
-* serialization formats.
-
-Integration shall remain backward compatible whenever possible.
-
----
-
-# 12. Persistence Compliance
-
-Persistence implementation shall verify:
-
-* PostgreSQL schema;
-* NAS organization;
-* storage layout;
-* metadata integrity;
-* checksum validation;
-* recovery procedures.
-
-Persistence shall preserve authoritative knowledge.
-
----
-
-# 13. Client Compliance
-
-Client implementations shall comply with:
-
-* Local Library architecture;
-* Offline First principles;
-* synchronization model;
-* cache management;
-* security model.
-
-Client implementations shall not violate server authority.
-
----
-
-# 14. Security Compliance
-
-Security validation includes:
-
-* authentication;
-* authorization;
-* encryption;
-* credential management;
-* audit logging;
-* privacy controls.
-
-Security architecture shall remain consistent across every subsystem.
-
----
-
-# 15. Operational Compliance
-
-Operations shall comply with:
-
-* deployment architecture;
-* monitoring;
-* logging;
-* alerting;
-* maintenance;
-* backup;
-* disaster recovery;
-* incident management.
-
-Operational architecture shall remain fully documented.
-
----
-
-# 16. Testing Compliance
-
-Testing shall verify architectural behavior through:
-
-* unit tests;
-* integration tests;
-* contract tests;
-* migration tests;
-* recovery tests;
-* end-to-end tests.
-
-Testing shall validate architecture rather than implementation details alone.
-
----
-
-# 17. Documentation Compliance
-
-Documentation shall verify that:
-
-* implementation reflects architecture;
-* architectural terminology is consistent;
-* obsolete documentation has been removed;
-* references remain valid;
-* diagrams match implementation.
-
-Documentation is considered part of the architecture.
-
----
-
-# 18. ADR Compliance
-
-Every Architecture Decision Record shall be verified.
-
-Validation includes:
-
-* decision implementation;
-* rationale preservation;
-* dependency impact;
-* documented exceptions.
-
-Architectural decisions shall not be bypassed without formal approval.
-
----
-
-# 19. Architectural Deviations
-
-Every deviation shall include:
-
-* unique identifier;
-* affected subsystem;
-* rationale;
-* risk assessment;
-* mitigation strategy;
-* approval record.
-
-Undocumented deviations are prohibited.
-
----
-
-# 20. Compliance Assessment
-
-Compliance assessments classify findings as:
-
-| Result          | Meaning                                  |
-| --------------- | ---------------------------------------- |
-| Compliant       | Fully satisfies the architecture         |
-| Minor Deviation | Acceptable with documented justification |
-| Major Deviation | Requires corrective action               |
-| Non-Compliant   | Release blocking issue                   |
-
-Only compliant implementations may proceed without corrective actions.
-
----
-
-# 21. Compliance Review
-
-Architecture reviews shall verify:
-
-* architectural consistency;
-* implementation completeness;
-* documentation accuracy;
-* operational readiness;
-* unresolved deviations.
-
-Reviews shall be evidence-based.
-
----
-
-# 22. Compliance Evidence
-
-Acceptable evidence includes:
-
-* architectural documents;
-* implementation artifacts;
-* test reports;
-* operational validation;
-* code reviews;
-* architecture review reports.
-
-Every compliance decision shall reference objective evidence.
-
----
-
-# 23. Corrective Actions
-
-When non-compliance is identified, corrective actions shall include:
-
-* deviation analysis;
-* implementation correction;
-* documentation updates;
-* architectural review;
-* validation testing.
-
-Corrective actions shall be tracked until closure.
-
----
-
-# 24. Compliance Metrics
-
-Representative metrics include:
-
-* compliance percentage;
-* approved deviations;
-* unresolved deviations;
-* review completion rate;
-* architecture defects;
-* corrective action completion.
-
-Metrics support continuous architectural improvement.
-
----
-
-# 25. Architecture Audit
-
-Formal architecture audits shall be conducted:
-
-* before major releases;
-* after major architectural changes;
-* after significant incidents;
-* during periodic governance reviews.
-
-Audit findings shall remain permanently recorded.
-
----
-
-# 26. Compliance Test Matrix
-
-| Verification             | Required |
-| ------------------------ | -------- |
-| Foundation Compliance    | Yes      |
-| Domain Compliance        | Yes      |
-| Kernel Compliance        | Yes      |
-| Platform Compliance      | Yes      |
-| Integration Compliance   | Yes      |
-| Persistence Compliance   | Yes      |
-| Client Compliance        | Yes      |
-| Security Compliance      | Yes      |
-| Operational Compliance   | Yes      |
-| Documentation Compliance | Yes      |
-| ADR Compliance           | Yes      |
-
----
-
-# 27. Anti-Patterns
-
-The following are prohibited:
-
-* undocumented architectural deviations;
-* bypassing Architecture Decision Records;
-* approving implementation without evidence;
-* modifying architecture without review;
-* allowing documentation to diverge from implementation;
-* accepting temporary architectural violations as permanent solutions.
-
----
-
-# 28. Architecture Compliance Invariants
-
-The following invariants are mandatory:
-
-* every implementation is traceable to the approved architecture;
-* every architectural decision remains enforceable;
-* deviations are documented and approved;
-* documentation reflects the implemented architecture;
-* compliance reviews are repeatable and auditable;
-* architectural integrity takes precedence over implementation convenience.
-
----
-
-# 29. Related Documents
-
-* `README.md`
-* `ImplementationChecklist.md`
-* `TraceabilityMatrix.md`
-* `AcceptanceCriteria.md`
-* `ReleaseReadiness.md`
-* `FinalReview.md`
-* Architecture Principles
-* Architecture Constraints
-* Quality Attributes
-* Architecture Decision Records (ADRs)
-
----
-
-# 30. Status
-
-**Approved**
-
-The Architecture Compliance framework is frozen as the authoritative mechanism for verifying conformity between the KnowledgeOS Master Library implementation and the approved Architecture V3 baseline.
-
-Every production release shall successfully complete an Architecture Compliance review before being declared architecturally complete.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

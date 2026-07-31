@@ -1,427 +1,174 @@
+# Non Functional Requirements
 
-# Desktop Application Non-Functional Requirements
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Desktop Application
-
-**Layer:** Requirements
-
-**Document:** Non-Functional Requirements
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Desktop Application / 01-Requirements  
+**Document:** NonFunctionalRequirements  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Platform:** macOS  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
+
+Define the non functional requirements for the KnowledgeOS macOS application, covering product requirements and user-facing acceptance criteria.
 
-This document defines the non-functional requirements of the KnowledgeOS Desktop Application.
+## 2. Scope
 
-Non-functional requirements specify the quality characteristics that the application shall satisfy independently of its functional capabilities.
+This document applies to the native macOS client and its integration with:
 
-These requirements establish measurable expectations for performance, reliability, usability, maintainability and operational behavior.
+- the device Local Library;
+- the NAS-hosted Master Library;
+- Personal Knowledge;
+- UDM and DPM;
+- Platform Engines;
+- Kernel execution services;
+- Apple platform services.
 
----
+It does not redefine Domain authority, acquisition semantics, synchronization ownership or Platform Engine responsibilities.
 
-# 2. Scope
+## 3. Product Context
 
-These requirements apply to every Desktop Application subsystem, including:
+The macOS application is the primary KnowledgeOS client.
 
-* application lifecycle;
-* workspace;
-* navigation;
-* editors;
-* rendering;
-* interaction;
-* platform integration;
-* plugins;
-* AI integration;
-* background services.
+It SHALL support:
 
----
+- local device scanning from user-authorized locations;
+- an independent offline-first Local Library;
+- browsing the remote Master Catalog;
+- explicit acquisition of selected publications;
+- reading and rendering;
+- annotations and Personal Knowledge;
+- search;
+- optional AI;
+- workspace and multi-window behavior;
+- future personal synchronization through iCloud/CloudKit.
 
-# 3. Objectives
+The NAS is not mounted as the working Local Library and is not a Personal Knowledge synchronization peer.
 
-The Desktop Application shall provide:
+## 4. Normative Language
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+## 5. Normative Requirements
+
+- The macOS application SHALL maintain an independent Local Library.
+- The application SHALL remain usable offline for locally available publications.
+- The application SHALL browse the Master Catalog without treating the Local Library as a replica.
+- Publication acquisition SHALL be explicit and separate from Personal Knowledge synchronization.
+- Personal Knowledge SHALL synchronize only through the approved iCloud/CloudKit profile.
+- The application SHALL NOT write annotations, highlights, reading progress or personal relationships to the NAS Master Library.
+- UI components SHALL invoke public Platform contracts and SHALL NOT access repositories directly.
+- Long-running work SHALL expose durable operation identity, progress, cancellation and failure state.
+- Stable Domain identity SHALL be preserved across windows, workspaces, navigation and restoration.
+- Requirements SHALL be testable and SHALL distinguish mandatory behavior from future capability.
+- Acceptance criteria SHALL include offline, failure and recovery scenarios.
+- Views SHALL be declarative projections of state and SHALL not own business rules.
+- Accessibility, keyboard navigation and native macOS conventions SHALL be supported.
+- View lifecycle SHALL not leak tasks, subscriptions or security-sensitive state.
+
+## 6. Architecture and Design Guidance
 
-* high responsiveness;
-* predictable behavior;
-* reliable operation;
-* efficient resource utilization;
-* long-term maintainability;
-* consistent user experience.
+Implementation SHOULD:
 
----
+- use explicit module composition at application startup;
+- keep SwiftUI/AppKit view code separate from Platform services;
+- expose commands, queries and observable state through stable façades or ViewModels;
+- preserve stable Domain identity in navigation and restoration payloads;
+- treat render, search, graph and AI projections as derived;
+- use structured concurrency with lifecycle-bound tasks;
+- propagate cancellation and correlation;
+- validate all persisted UI and workspace state before restoration;
+- avoid singleton mutable state except for explicitly governed application services;
+- keep framework-specific types out of shared public contracts;
+- support graceful degradation when the Master Library or remote providers are unavailable.
 
-# 4. Quality Principles
+## 7. State and Lifecycle
 
-Every implementation shall be:
+Desktop state SHALL be classified as:
 
-* deterministic;
-* recoverable;
-* observable;
-* maintainable;
-* extensible;
-* testable.
+| State Class | Examples | Persistence |
+|---|---|---|
+| Domain-backed | Local Library membership, annotations | Domain repositories |
+| Restorable workspace | windows, tabs, open documents | local restoration store |
+| Session | active navigation, transient filters | scoped session |
+| Ephemeral UI | hover, focus, animation | memory only |
+| Derived | render cache, search results | rebuildable cache |
 
-Quality shall never be treated as an optional feature.
+Lifecycle transitions SHALL release subscriptions, tasks, file handles and security-scoped resources deterministically.
 
----
+## 8. Failure and Recovery
 
-# 5. Performance
+The application SHALL preserve:
 
-The Desktop Application shall:
+- Local Library identity;
+- locally available publications;
+- committed Personal Knowledge;
+- workspace restoration evidence;
+- operation identities;
+- import and acquisition progress;
+- provenance and integrity findings.
 
-* provide responsive interaction;
-* minimize startup latency;
-* avoid unnecessary UI blocking;
-* efficiently process large document collections;
-* support background processing without degrading the user experience.
+Unavailable NAS access SHALL degrade Master Catalog browsing and acquisition only. It SHALL NOT prevent reading or annotating locally available publications.
 
-Long-running operations shall not block the main user interface.
+Invalid restoration state SHALL be isolated and repaired without deleting authoritative user data.
 
----
+## 9. Security and Privacy
 
-# 6. Responsiveness
+- User-selected files SHALL use approved macOS security-scoped access where required.
+- Credentials and tokens SHALL use Keychain or another approved secure store.
+- Personal Knowledge SHALL not be written to NAS.
+- Logs SHALL not contain publication content, private paths, annotations or credentials.
+- Remote AI or OCR SHALL require policy authorization.
+- Window and workspace restoration payloads SHALL avoid sensitive content where identity references suffice.
 
-The user interface shall remain responsive during:
+## 10. Accessibility and Native Experience
 
-* document loading;
-* indexing requests;
-* searches;
-* imports;
-* exports;
-* synchronization;
-* AI processing.
+The desktop application SHOULD follow native macOS conventions for:
 
-Background operations shall execute asynchronously whenever possible.
+- keyboard navigation;
+- menus and commands;
+- window restoration;
+- focus;
+- accessibility labels and reading order;
+- drag and drop;
+- document opening;
+- toolbar and sidebar behavior;
+- VoiceOver;
+- reduced motion and contrast preferences.
 
----
+Accessibility transformations SHALL preserve UDM semantic order.
 
-# 7. Scalability
+## 11. Verification and Acceptance
 
-The application shall support gradual growth in:
+- The behavior is covered by automated tests where technically feasible.
+- Offline behavior is verified.
+- Master Catalog and Local Library scopes remain visibly distinct.
+- Personal Knowledge never enters Master Library persistence.
+- Cancellation, timeout and failure behavior are verified.
+- Architecture traceability is documented.
+- Accessibility implications are reviewed.
+- No direct private-repository access exists from UI code.
 
-* number of documents;
-* knowledge objects;
-* annotations;
-* relationships;
-* assets;
-* plugins.
+## 12. Traceability
 
-Scalability shall not require architectural redesign.
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/04-Platform/README.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Annotation/README.md`
+- `00-Architecture/04-Platform/Render/README.md`
+- `00-Architecture/04-Platform/Search/README.md`
+- `00-Architecture/04-Platform/Sync/README.md`
+- `00-Architecture/03-Kernel/README.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
----
+## 13. Compatibility and Evolution
 
-# 8. Reliability
+Breaking changes to restoration formats, Local Library identity mapping, public client contracts or acquisition behavior require migration guidance and architecture review.
 
-The Desktop Application shall:
+Persisted workspace and session formats SHALL be versioned.
 
-* preserve user work;
-* recover from recoverable failures;
-* avoid data corruption;
-* maintain session consistency;
-* tolerate temporary service unavailability.
+## 14. Status
 
-Unexpected failures shall never silently discard user changes.
-
----
-
-# 9. Availability
-
-The application shall remain usable when:
-
-* network connectivity is unavailable;
-* remote AI providers are unreachable;
-* synchronization is temporarily suspended.
-
-Offline operation is mandatory.
-
----
-
-# 10. Recoverability
-
-The application shall support:
-
-* automatic session recovery;
-* recovery after abnormal termination;
-* restoration of unsaved workspace state where possible;
-* graceful restart.
-
-Recovery procedures shall be deterministic.
-
----
-
-# 11. Resource Utilization
-
-The Desktop Application shall use:
-
-* CPU efficiently;
-* memory responsibly;
-* storage predictably;
-* background threads appropriately.
-
-Resource consumption shall scale proportionally with workload.
-
----
-
-# 12. Memory Management
-
-The application shall:
-
-* release unused resources;
-* avoid unnecessary memory retention;
-* support efficient caching;
-* prevent uncontrolled memory growth.
-
-Memory management shall remain observable during development.
-
----
-
-# 13. Concurrency
-
-Concurrent operations shall:
-
-* preserve application consistency;
-* avoid race conditions;
-* maintain deterministic state transitions;
-* isolate independent tasks.
-
-Concurrency shall remain explicitly managed.
-
----
-
-# 14. Security
-
-The Desktop Application shall:
-
-* protect user credentials;
-* isolate plugins;
-* validate external input;
-* preserve local privacy;
-* respect platform security mechanisms.
-
-Security shall not depend upon user behavior.
-
----
-
-# 15. Privacy
-
-The application shall:
-
-* minimize external data transmission;
-* clearly identify remote operations;
-* allow local AI execution when available;
-* preserve user ownership of knowledge.
-
-Privacy remains a fundamental architectural principle.
-
----
-
-# 16. Maintainability
-
-The implementation shall:
-
-* use modular architecture;
-* minimize coupling;
-* maximize cohesion;
-* isolate responsibilities;
-* support incremental evolution.
-
-Maintainability shall be preserved throughout the product lifecycle.
-
----
-
-# 17. Extensibility
-
-The Desktop Application shall support extension through:
-
-* Platform Engines;
-* Plugin SDK;
-* documented contracts;
-* configuration.
-
-Extensions shall not require modification of existing architectural boundaries.
-
----
-
-# 18. Testability
-
-Every subsystem shall be testable through:
-
-* unit tests;
-* integration tests;
-* UI tests;
-* automated validation;
-* reproducible scenarios.
-
-Architectural design shall facilitate automated testing.
-
----
-
-# 19. Accessibility
-
-Accessibility requirements include:
-
-* complete keyboard navigation;
-* screen reader compatibility;
-* scalable interface elements;
-* sufficient visual contrast;
-* predictable focus behavior.
-
-Accessibility shall be considered from the beginning of implementation.
-
----
-
-# 20. Usability
-
-The Desktop Application shall provide:
-
-* consistent navigation;
-* discoverable functionality;
-* clear visual hierarchy;
-* minimal cognitive load;
-* efficient workflows.
-
-User interaction shall prioritize clarity over complexity.
-
----
-
-# 21. Observability
-
-The application shall expose sufficient information to support:
-
-* diagnostics;
-* performance analysis;
-* debugging;
-* operational monitoring;
-* issue reproduction.
-
-Observability shall not expose sensitive user information.
-
----
-
-# 22. Compatibility
-
-The Desktop Application shall remain compatible with:
-
-* supported macOS versions;
-* approved Platform Engines;
-* Master Library contracts;
-* Plugin SDK versions;
-* supported document formats.
-
-Compatibility shall be evaluated before every major release.
-
----
-
-# 23. Configuration
-
-Configuration shall be:
-
-* explicit;
-* versioned where appropriate;
-* recoverable;
-* validated;
-* independent from application code.
-
-Configuration errors shall be detectable.
-
----
-
-# 24. Logging
-
-Logging shall:
-
-* support diagnostics;
-* record significant events;
-* avoid sensitive user content;
-* distinguish operational events from developer diagnostics.
-
-Logging shall support troubleshooting without compromising privacy.
-
----
-
-# 25. Internationalization
-
-The architecture shall support:
-
-* multiple interface languages;
-* locale-aware formatting;
-* Unicode text;
-* future localization.
-
-Language support shall remain independent from business logic.
-
----
-
-# 26. Non-Functional Requirement Matrix
-
-| Quality Attribute | Required |
-| ----------------- | -------- |
-| Performance       | Yes      |
-| Responsiveness    | Yes      |
-| Reliability       | Yes      |
-| Recoverability    | Yes      |
-| Scalability       | Yes      |
-| Security          | Yes      |
-| Privacy           | Yes      |
-| Accessibility     | Yes      |
-| Maintainability   | Yes      |
-| Extensibility     | Yes      |
-| Testability       | Yes      |
-| Observability     | Yes      |
-
----
-
-# 27. Anti-Patterns
-
-The following are prohibited:
-
-* blocking the user interface during long-running operations;
-* introducing hidden architectural dependencies;
-* exposing sensitive information through logs;
-* coupling UI components directly to persistence mechanisms;
-* implementing functionality that violates Offline First.
-
----
-
-# 28. Non-Functional Invariants
-
-The following invariants are mandatory:
-
-* the application remains responsive during normal operation;
-* user work is preserved across failures whenever possible;
-* Offline First remains a core operational principle;
-* privacy is preserved by default;
-* quality attributes remain measurable and verifiable;
-* architectural responsibilities remain clearly separated.
-
----
-
-# 29. Related Documents
-
-* `README.md`
-* `FunctionalRequirements.md`
-* `UserExperienceGoals.md`
-* `UseCases.md`
-* `ApplicationArchitecture.md`
-* `QualityAttributes.md`
-* `ArchitecturePrinciples.md`
-* Architecture Decision Records (ADRs)
-
----
-
-# 30. Status
-
-**Approved**
-
-This document defines the authoritative non-functional requirements for the KnowledgeOS Desktop Application
+This document is part of the KnowledgeOS Desktop Application V4 implementation baseline.

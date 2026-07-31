@@ -1,606 +1,176 @@
+# Workspace Recovery
 
-# Desktop Application Workspace Recovery
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Desktop Application
-
-**Layer:** Workspace
-
-**Document:** Workspace Recovery
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Desktop Application / 03-Workspace  
+**Document:** WorkspaceRecovery  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Platform:** macOS  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the authoritative recovery model for Workspace instances within the KnowledgeOS Desktop Application.
+Define the workspace recovery for the KnowledgeOS macOS application, covering workspace, windows, tabs, panels, selection, restoration and editing behavior.
 
-Workspace Recovery is responsible for returning a Workspace to a valid operational state after failures that cannot be resolved by the normal restoration process.
+## 2. Scope
 
-Recovery is deterministic.
+This document applies to the native macOS client and its integration with:
 
-Recovery never becomes the owner of Workspace state.
+- the device Local Library;
+- the NAS-hosted Master Library;
+- Personal Knowledge;
+- UDM and DPM;
+- Platform Engines;
+- Kernel execution services;
+- Apple platform services.
 
-Recovery produces a new valid logical state.
+It does not redefine Domain authority, acquisition semantics, synchronization ownership or Platform Engine responsibilities.
 
----
+## 3. Product Context
 
-# 2. Scope
+The macOS application is the primary KnowledgeOS client.
 
-This document governs:
+It SHALL support:
 
-* recovery ownership;
-* recovery lifecycle;
-* failure detection;
-* recovery strategies;
-* checkpoint selection;
-* state validation;
-* state quarantine;
-* rollback;
-* partial recovery;
-* plugin recovery;
-* recovery diagnostics;
-* recovery completion.
+- local device scanning from user-authorized locations;
+- an independent offline-first Local Library;
+- browsing the remote Master Catalog;
+- explicit acquisition of selected publications;
+- reading and rendering;
+- annotations and Personal Knowledge;
+- search;
+- optional AI;
+- workspace and multi-window behavior;
+- future personal synchronization through iCloud/CloudKit.
 
-It does not define Workspace persistence or restoration serialization.
+The NAS is not mounted as the working Local Library and is not a Personal Knowledge synchronization peer.
 
----
+## 4. Normative Language
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+## 5. Normative Requirements
+
+- The macOS application SHALL maintain an independent Local Library.
+- The application SHALL remain usable offline for locally available publications.
+- The application SHALL browse the Master Catalog without treating the Local Library as a replica.
+- Publication acquisition SHALL be explicit and separate from Personal Knowledge synchronization.
+- Personal Knowledge SHALL synchronize only through the approved iCloud/CloudKit profile.
+- The application SHALL NOT write annotations, highlights, reading progress or personal relationships to the NAS Master Library.
+- UI components SHALL invoke public Platform contracts and SHALL NOT access repositories directly.
+- Long-running work SHALL expose durable operation identity, progress, cancellation and failure state.
+- Stable Domain identity SHALL be preserved across windows, workspaces, navigation and restoration.
+- Workspace state SHALL remain local or personal according to its declared scope.
+- Workspace restoration SHALL tolerate missing publications, unavailable NAS access and stale derived artifacts.
+- Selection and focus SHALL remain ephemeral unless explicitly promoted to restorable state.
+
+## 6. Architecture and Design Guidance
+
+Implementation SHOULD:
+
+- use explicit module composition at application startup;
+- keep SwiftUI/AppKit view code separate from Platform services;
+- expose commands, queries and observable state through stable façades or ViewModels;
+- preserve stable Domain identity in navigation and restoration payloads;
+- treat render, search, graph and AI projections as derived;
+- use structured concurrency with lifecycle-bound tasks;
+- propagate cancellation and correlation;
+- validate all persisted UI and workspace state before restoration;
+- avoid singleton mutable state except for explicitly governed application services;
+- keep framework-specific types out of shared public contracts;
+- support graceful degradation when the Master Library or remote providers are unavailable.
 
-# 3. Objectives
+## 7. State and Lifecycle
 
-Workspace Recovery shall:
+Desktop state SHALL be classified as:
 
-* recover deterministically;
-* preserve valid state;
-* isolate corrupted state;
-* minimize user data loss;
-* preserve Workspace identity;
-* support partial recovery;
-* isolate plugins;
-* never fabricate authoritative knowledge;
-* support diagnostics.
+| State Class | Examples | Persistence |
+|---|---|---|
+| Domain-backed | Local Library membership, annotations | Domain repositories |
+| Restorable workspace | windows, tabs, open documents | local restoration store |
+| Session | active navigation, transient filters | scoped session |
+| Ephemeral UI | hover, focus, animation | memory only |
+| Derived | render cache, search results | rebuildable cache |
 
----
+Lifecycle transitions SHALL release subscriptions, tasks, file handles and security-scoped resources deterministically.
 
-# 4. Definition
+## 8. Failure and Recovery
 
-Workspace Recovery is the controlled process of reconstructing a valid Workspace after restoration cannot safely continue.
+The application SHALL preserve:
 
-Recovery may:
+- Local Library identity;
+- locally available publications;
+- committed Personal Knowledge;
+- workspace restoration evidence;
+- operation identities;
+- import and acquisition progress;
+- provenance and integrity findings.
 
-* repair;
-* normalize;
-* rollback;
-* quarantine;
-* rebuild;
-* discard invalid state.
+Unavailable NAS access SHALL degrade Master Catalog browsing and acquisition only. It SHALL NOT prevent reading or annotating locally available publications.
 
-Recovery shall never silently ignore inconsistencies.
-
----
-
-# 5. Architectural Position
-
-```text
-Persisted State
-        │
-        ▼
-Workspace Restoration
-        │
-        ├───────────────┐
-        │               │
-Success          Failure Detected
-        │               │
-        ▼               ▼
- Activation     Workspace Recovery
-                        │
-                        ▼
-               Valid Workspace State
-                        │
-                        ▼
-                 Native Projection
-```
-
----
-
-# 6. Ownership
-
-Workspace Recovery belongs to the Workspace Runtime.
-
-Recovery owns only:
-
-* Recovery Session;
-* Recovery Strategy;
-* Recovery Diagnostics.
-
-Recovered state immediately returns to Workspace ownership.
-
----
-
-# 7. Recovery Session
-
-Each recovery operation creates one immutable Recovery Session.
-
-The session contains:
-
-* Recovery Identity;
-* Workspace Identity;
-* Restoration Identity;
-* Failure Category;
-* Recovery Strategy;
-* Start Time;
-* Completion Time;
-* Diagnostics;
-* Result.
-
----
-
-# 8. Recovery Triggers
-
-Recovery may begin after:
-
-* restoration failure;
-* corrupted checkpoint;
-* invalid layout;
-* missing references;
-* plugin incompatibility;
-* persistence corruption;
-* failed migration;
-* unrecoverable validation.
-
----
-
-# 9. Failure Categories
-
-Typical categories include:
-
-* Persistence Corruption;
-* Invalid Schema;
-* Invalid References;
-* Layout Failure;
-* Plugin Failure;
-* Missing Resources;
-* Migration Failure;
-* Integrity Failure;
-* Version Conflict;
-* Unknown Failure.
-
-Categories remain explicit.
-
----
-
-# 10. Recovery Lifecycle
-
-```text
-Pending
-    ↓
-Diagnosing
-    ↓
-Selecting Strategy
-    ↓
-Recovering
-    ↓
-Validating
-    ↓
-Normalizing
-    ↓
-Activating
-    ↓
-Completed
-```
-
-If recovery cannot succeed:
-
-```text
-Recovering
-      ↓
-Failed
-```
-
----
-
-# 11. Recovery Strategies
-
-Supported strategies include:
-
-* Retry Restoration;
-* Restore Previous Checkpoint;
-* Partial Recovery;
-* Normalize State;
-* Quarantine Invalid State;
-* Rebuild Default Workspace;
-* Plugin Isolation.
-
-Strategies are explicit.
-
----
-
-# 12. Retry Restoration
-
-Recovery may retry restoration when failure is transient.
-
-Retry shall remain bounded.
-
-Infinite retry loops are prohibited.
-
----
-
-# 13. Previous Checkpoint Recovery
-
-Recovery may restore the latest validated checkpoint.
-
-Checkpoint selection shall be deterministic.
-
----
-
-# 14. Partial Recovery
-
-Partial recovery preserves all validated components.
-
-Only invalid components are replaced or discarded.
-
----
-
-# 15. Default Workspace Recovery
-
-If no valid checkpoint exists, Recovery may rebuild a minimal Workspace.
-
-The rebuilt Workspace contains:
-
-* one Window;
-* one Navigation Context;
-* default Layout;
-* empty History;
-* empty Recent Items.
-
-Knowledge remains unaffected.
-
----
-
-# 16. Quarantine
-
-Invalid descriptors may be quarantined.
-
-Quarantined components:
-
-* are excluded from activation;
-* remain available for diagnostics;
-* never become authoritative.
-
----
-
-# 17. Plugin Recovery
-
-Plugins recover independently.
-
-A failed plugin:
-
-* shall not prevent Workspace activation;
-* may lose plugin-specific state;
-* shall not affect core Workspace state.
-
----
-
-# 18. Missing Plugins
-
-Missing plugins result in:
-
-* skipped restoration;
-* skipped recovery;
-* diagnostic entry.
-
-Core functionality continues.
-
----
-
-# 19. Validation
-
-Recovered state shall validate:
-
-* identities;
-* ownership;
-* references;
-* constraints;
-* schema;
-* versions.
-
-Only validated state becomes active.
-
----
-
-# 20. Normalization
-
-Normalization may:
-
-* remove invalid references;
-* rebuild ordering;
-* merge duplicates;
-* normalize Layout;
-* normalize Navigation;
-* normalize Selection;
-* rebuild Panel Groups.
-
----
-
-# 21. Rollback
-
-Recovery may rollback to:
-
-* previous checkpoint;
-* previous Layout;
-* previous Navigation;
-* previous Workspace snapshot.
-
-Rollback is explicit.
-
----
-
-# 22. Non-Recoverable State
-
-If state cannot be recovered safely:
-
-* it shall be discarded;
-* diagnostics shall record the loss;
-* Workspace activation shall continue whenever possible.
-
----
-
-# 23. Recovery Ordering
-
-Recovery follows dependency order.
-
-```text
-Workspace
-    ↓
-Configuration
-    ↓
-Layout
-    ↓
-Windows
-    ↓
-Tabs
-    ↓
-Navigation
-    ↓
-Selection
-    ↓
-Editors
-    ↓
-Panels
-    ↓
-History
-    ↓
-Recent Items
-```
-
----
-
-# 24. Recovery Commands
-
-Representative Commands include:
-
-* BeginRecovery;
-* SelectRecoveryStrategy;
-* RestoreCheckpoint;
-* NormalizeWorkspace;
-* QuarantineState;
-* ActivateRecoveredWorkspace.
-
----
-
-# 25. Recovery Events
-
-Representative Events include:
-
-* RecoveryStarted;
-* RecoveryStrategySelected;
-* RecoveryCheckpointLoaded;
-* RecoveryNormalized;
-* RecoveryCompleted;
-* RecoveryFailed.
-
----
-
-# 26. Recovery Queries
-
-Representative Queries include:
-
-* GetRecoveryStatus;
-* GetRecoveryDiagnostics;
-* GetRecoveryStrategy;
-* CanRecoverWorkspace.
-
----
-
-# 27. Diagnostics
-
-Recovery diagnostics include:
-
-* Recovery Identity;
-* Workspace Identity;
-* Failure Category;
-* Selected Strategy;
-* Recovered Components;
-* Lost Components;
-* Plugin Failures;
-* Recovery Duration.
-
-Diagnostics shall remain bounded.
-
----
-
-# 28. User Notification
-
-Recovery may notify the user when:
-
-* state was discarded;
-* previous checkpoint restored;
-* plugin data skipped;
-* manual intervention is recommended.
-
-Notifications shall clearly distinguish recovered state from lost state.
-
----
-
-# 29. Recovery Policies
-
-Policies may define:
-
-* automatic recovery;
-* user confirmation;
-* checkpoint preference;
-* retry limits;
-* plugin isolation;
-* default Workspace reconstruction.
-
-Policies remain configurable.
-
----
-
-# 30. Persistence Interaction
-
-Recovery never writes new persistence until recovered state has been validated.
-
-Only validated Workspace state may replace previous persistence.
-
----
-
-# 31. Accessibility
-
-Recovery shall preserve:
-
-* accessibility preferences;
-* keyboard navigation;
-* reduced motion;
-* high contrast settings.
-
-Accessibility failures shall never prevent Workspace activation.
-
----
-
-# 32. Performance
-
-Recovery implementation shall support:
-
-* asynchronous recovery;
-* bounded checkpoints;
-* incremental normalization;
-* parallel validation where safe.
-
-Recovery shall minimize startup delay.
-
----
-
-# 33. Security
-
-Recovery shall validate:
-
-* Workspace ownership;
-* checkpoint authenticity;
-* persistence integrity;
-* plugin authorization.
-
-Recovery shall never bypass security validation.
-
----
-
-# 34. Privacy
-
-Recovery diagnostics shall avoid exposing:
-
-* document contents;
-* AI prompts;
-* annotations;
-* sensitive metadata.
-
-Only identifiers and recovery metadata shall be retained.
-
----
-
-# 35. Plugin Contracts
-
-Plugin recovery shall occur only through Plugin SDK contracts.
-
-Plugins shall declare:
-
-* recovery schema;
-* migration compatibility;
-* fallback behavior;
-* disposal rules.
-
----
-
-# 36. Recovery Failure
-
-If recovery fails completely:
-
-* Workspace activation is aborted;
-* diagnostics are persisted where possible;
-* user receives a deterministic failure notification.
-
-Failure shall never leave partially active Workspace state.
-
----
-
-# 37. Testing
-
-Tests shall verify:
-
-* corrupted Layout recovery;
-* checkpoint recovery;
-* plugin isolation;
-* rollback;
-* partial recovery;
-* recovery ordering;
-* diagnostics;
-* complete recovery failure.
-
----
-
-# 38. Architectural Invariants
-
-The following invariants are mandatory:
-
-* Recovery never owns Workspace state permanently;
-* only validated state becomes authoritative;
-* Recovery preserves Workspace Identity;
-* plugins recover independently;
-* quarantined state never becomes active;
-* deterministic strategy selection;
-* dependency ordering is preserved;
-* Recovery completes before native UI projection.
-
----
-
-# 39. Related Documents
-
-* `WorkspaceRestoration.md`
-* `Layout.md`
-* `LayoutPersistence.md`
-* `Navigation.md`
-* `Selection.md`
-* `History.md`
-* `RecentItems.md`
-* `Panels.md`
-* `Editors.md`
-* `Plugin SDK Contracts`
-
----
-
-# 40. Status
-
-**Approved**
-
-This document establishes the authoritative recovery model for Workspace instances within the KnowledgeOS Desktop Application.
-
-Workspace Recovery restores the Workspace to a valid operational state after restoration failures by applying deterministic recovery strategies, validating reconstructed state, isolating corrupted components and preserving the maximum amount of valid user context possible. Recovery is completed before native UI projection and never compromises Workspace ownership, consistency or security.
+Invalid restoration state SHALL be isolated and repaired without deleting authoritative user data.
+
+## 9. Security and Privacy
+
+- User-selected files SHALL use approved macOS security-scoped access where required.
+- Credentials and tokens SHALL use Keychain or another approved secure store.
+- Personal Knowledge SHALL not be written to NAS.
+- Logs SHALL not contain publication content, private paths, annotations or credentials.
+- Remote AI or OCR SHALL require policy authorization.
+- Window and workspace restoration payloads SHALL avoid sensitive content where identity references suffice.
+
+## 10. Accessibility and Native Experience
+
+The desktop application SHOULD follow native macOS conventions for:
+
+- keyboard navigation;
+- menus and commands;
+- window restoration;
+- focus;
+- accessibility labels and reading order;
+- drag and drop;
+- document opening;
+- toolbar and sidebar behavior;
+- VoiceOver;
+- reduced motion and contrast preferences.
+
+Accessibility transformations SHALL preserve UDM semantic order.
+
+## 11. Verification and Acceptance
+
+- The behavior is covered by automated tests where technically feasible.
+- Offline behavior is verified.
+- Master Catalog and Local Library scopes remain visibly distinct.
+- Personal Knowledge never enters Master Library persistence.
+- Cancellation, timeout and failure behavior are verified.
+- Architecture traceability is documented.
+- Accessibility implications are reviewed.
+- No direct private-repository access exists from UI code.
+- Recovery from missing local files and unavailable Master Library is tested.
+- Invalid restoration payloads fail safely.
+
+## 12. Traceability
+
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/04-Platform/README.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Annotation/README.md`
+- `00-Architecture/04-Platform/Render/README.md`
+- `00-Architecture/04-Platform/Search/README.md`
+- `00-Architecture/04-Platform/Sync/README.md`
+- `00-Architecture/03-Kernel/README.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
+- `01-Implementation/02-DesktopApplication/02-Architecture/WorkspaceArchitecture.md`
+- `01-Implementation/02-DesktopApplication/03-Workspace/README.md`
+
+## 13. Compatibility and Evolution
+
+Breaking changes to restoration formats, Local Library identity mapping, public client contracts or acquisition behavior require migration guidance and architecture review.
+
+Persisted workspace and session formats SHALL be versioned.
+
+## 14. Status
+
+This document is part of the KnowledgeOS Desktop Application V4 implementation baseline.

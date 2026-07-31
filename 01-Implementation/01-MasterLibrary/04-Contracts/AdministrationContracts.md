@@ -1,469 +1,149 @@
+# Administration Contracts
 
-# Master Library Administration Contracts
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Contracts
-
-**Document:** Administration Contracts
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3.0 + Amendment V3.0-001
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 04-Contracts  
+**Document:** AdministrationContracts  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines every administrative operation that can modify the Master Library.
+Define the administration contracts for the KnowledgeOS Master Library implementation.
 
-Unlike the Reader API, the Administration API is **state-changing**.
+## 2. Scope
 
-Only the NAS-hosted Master Library exposes these endpoints.
+This document covers versioned server and client contracts for the NAS-hosted Master Library and its client-facing integration.
 
-No Reader client shall execute these operations.
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
----
+## 3. Architectural Baseline
 
-# 2. Scope
-
-This document defines:
-
-* Master Library initialization
-* Library configuration
-* Device registration
-* Device revocation
-* Pairing management
-* Publication registration
-* Publication metadata update
-* Cover replacement
-* Source replacement
-* Publication withdrawal
-* Publication restoration
-* Publication deletion
-* Integrity validation
-* Maintenance operations
-
----
-
-# 3. Core Principle
-
-> Only the Master Library modifies authoritative data.
-
-Clients never modify:
-
-* metadata
-* covers
-* publications
-* source versions
-
-Clients only consume them.
-
----
-
-# 4. Administrative Roles
-
-Supported roles:
+The implementation is governed by the following fixed model:
 
 ```text
-OWNER
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
 
-ADMINISTRATOR
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
 ```
 
-Future versions may include:
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Public contracts SHALL be versioned and SHALL not expose PostgreSQL rows, filesystem paths or private server implementation types.
+- Retryable mutations SHALL support idempotency and concurrency control.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
+
+## 5. Design Guidance
+
+Implementation SHOULD:
+
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
+
+## 6. Failure and Recovery
+
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
+
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
+
+Recovery SHALL preserve:
+
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
+
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
+
+## 7. Security and Privacy
+
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
+
+## 8. Observability
+
+Relevant operations SHALL expose:
+
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
+
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
+
+## 9. Verification and Acceptance
+
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
+
+## 10. Traceability
+
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
+
+## 11. Compatibility and Migration
 
-```text
-MAINTAINER
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-OPERATOR
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-AUDITOR
-```
+## 12. Status
 
----
-
-# 5. Authentication
-
-Every endpoint requires:
-
-```text
-Authorization: Bearer <credential>
-```
-
-plus:
-
-```text
-Role = OWNER
-```
-
-or
-
-```text
-Role = ADMINISTRATOR
-```
-
----
-
-# 6. Administrative Endpoints
-
-```text
-POST   /v1/admin/library/init
-
-GET    /v1/admin/library
-
-PATCH  /v1/admin/library
-
-POST   /v1/admin/pairing
-
-DELETE /v1/admin/pairing/{pairingId}
-
-GET    /v1/admin/devices
-
-DELETE /v1/admin/devices/{deviceId}
-
-POST   /v1/admin/publications
-
-PATCH  /v1/admin/publications/{publicationId}
-
-POST   /v1/admin/publications/{publicationId}/cover
-
-POST   /v1/admin/publications/{publicationId}/source
-
-POST   /v1/admin/publications/{publicationId}/withdraw
-
-POST   /v1/admin/publications/{publicationId}/restore
-
-DELETE /v1/admin/publications/{publicationId}
-
-POST   /v1/admin/integrity
-
-POST   /v1/admin/reindex
-```
-
----
-
-# 7. Library Initialization
-
-Executed only once.
-
-Creates:
-
-* ServerId
-* MasterLibraryId
-* Storage
-* Catalog
-* Metadata Store
-* Configuration
-
-After completion the Library becomes immutable regarding identity.
-
----
-
-# 8. Pairing
-
-Creates temporary pairing codes.
-
-Response example:
-
-```json
-{
-  "pairingCode":"ABCD-EFGH",
-  "expiresAt":"2026-07-20T20:00:00Z"
-}
-```
-
----
-
-# 9. Device Registration
-
-Successful pairing creates:
-
-* DeviceId
-* Credential
-* Device metadata
-
-The Administration API never exposes credential secrets again.
-
----
-
-# 10. Device Revocation
-
-Revoking a device:
-
-* blocks future requests
-* invalidates credentials
-* does NOT delete local libraries
-* does NOT delete annotations
-* does NOT delete downloaded publications
-
----
-
-# 11. Publication Registration
-
-Registers a new logical Publication.
-
-Creates:
-
-* PublicationId
-* Metadata
-* Initial SourceVersion
-* Cover
-* Catalog entry
-
----
-
-# 12. Metadata Update
-
-Updates only metadata.
-
-Never creates a new SourceVersion.
-
-Allowed fields include:
-
-* title
-* subtitle
-* description
-* contributors
-* publisher
-* subjects
-* keywords
-
----
-
-# 13. Cover Replacement
-
-Replacing a cover:
-
-* updates CoverDescriptor
-* changes Cover ETag
-* does NOT change SourceVersion
-
----
-
-# 14. Source Replacement
-
-Uploading a new PDF creates:
-
-```text
-SourceVersion +1
-```
-
-The previous SourceVersion remains available until the replacement is committed successfully.
-
----
-
-# 15. Publication Withdrawal
-
-Changes:
-
-```text
-Availability
-
-↓
-
-WITHDRAWN
-```
-
-Effects:
-
-* Readers cannot acquire it
-* Local copies remain valid
-* Metadata remains available
-
----
-
-# 16. Publication Restoration
-
-Changes:
-
-```text
-WITHDRAWN
-
-↓
-
-AVAILABLE
-```
-
-No new PublicationId is created.
-
----
-
-# 17. Publication Deletion
-
-Permanent deletion is exceptional.
-
-Deletion requires:
-
-* no active maintenance
-* administrator confirmation
-* audit logging
-
-Deletion removes:
-
-* metadata
-* catalog entry
-* covers
-* source versions
-
-Already downloaded local copies remain untouched.
-
----
-
-# 18. Integrity Validation
-
-Administrative validation verifies:
-
-* Catalog consistency
-* Metadata consistency
-* Missing covers
-* Missing sources
-* Invalid checksums
-* Corrupted PDFs
-* Orphan files
-
-No client state is modified.
-
----
-
-# 19. Reindex
-
-Rebuilds:
-
-* search indexes
-* metadata indexes
-* subject indexes
-
-Publication identity never changes.
-
----
-
-# 20. Audit Logging
-
-Every administrative operation shall generate an immutable audit record.
-
-Minimum fields:
-
-```text
-timestamp
-
-administrator
-
-operation
-
-publicationId
-
-result
-
-requestId
-```
-
----
-
-# 21. Idempotency
-
-Every POST operation that creates state shall support:
-
-```text
-Idempotency-Key
-```
-
-Repeated requests with the same key shall never duplicate:
-
-* publications
-* pairing codes
-* source versions
-
----
-
-# 22. Security Rules
-
-Administrative endpoints shall:
-
-* require HTTPS
-* require authenticated administrators
-* validate every identifier
-* never expose filesystem paths
-* never expose secrets
-* log every mutation
-
----
-
-# 23. Errors
-
-Possible errors include:
-
-```text
-AUTHENTICATION_REQUIRED
-
-AUTHORIZATION_DENIED
-
-DEVICE_NOT_FOUND
-
-PUBLICATION_NOT_FOUND
-
-SOURCE_ALREADY_EXISTS
-
-INVALID_METADATA
-
-INVALID_SOURCE
-
-CHECKSUM_MISMATCH
-
-INTEGRITY_FAILED
-
-PAIRING_EXPIRED
-
-PAIRING_ALREADY_USED
-
-MASTER_LIBRARY_LOCKED
-```
-
----
-
-# 24. Invariants
-
-The following rules always apply:
-
-* Only the Master Library modifies authoritative information.
-* PublicationId never changes.
-* ServerId never changes.
-* MasterLibraryId never changes.
-* Metadata updates never create SourceVersions.
-* Source replacements always create a new SourceVersion.
-* Cover replacements never create a SourceVersion.
-* Withdrawal never deletes local copies.
-* Restoration preserves Publication identity.
-* Audit logging is mandatory.
-* Administrative operations are authenticated.
-* Administrative operations are fully traceable.
-
----
-
-# 25. Related Documents
-
-* Authentication.md
-* ErrorContracts.md
-* CatalogContracts.md
-* PublicationContracts.md
-* AcquisitionContracts.md
-* Versioning.md
-* Compatibility.md
-
----
-
-# 26. Status
-
-**Approved**
-
-The Administration API is frozen for Version 1.0.
-
-It defines the complete authoritative management interface for the Master Library.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

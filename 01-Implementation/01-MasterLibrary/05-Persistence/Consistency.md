@@ -1,412 +1,147 @@
+# Consistency
 
-# Master Library Consistency
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Persistence
-
-**Document:** Consistency
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 05-Persistence  
+**Document:** Consistency  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the consistency model of the KnowledgeOS Master Library.
+Define the consistency for the KnowledgeOS Master Library implementation.
 
-Consistency guarantees that every authoritative component of the Master Library evolves toward a coherent state while preserving data integrity, deterministic behavior and recoverability.
+## 2. Scope
 
-The consistency model coordinates:
+This document covers PostgreSQL and authoritative file-storage implementation for the NAS-hosted Master Library and its client-facing integration.
 
-* Catalog Storage;
-* Source Storage;
-* Cover Storage;
-* Asset Storage;
-* operational workflows;
-* synchronization;
-* backup;
-* recovery.
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
----
+## 3. Architectural Baseline
 
-# 2. Scope
-
-This document applies to every operation that modifies or validates authoritative persistent data.
-
-Including:
-
-* imports;
-* updates;
-* replacements;
-* synchronization;
-* recovery;
-* backup;
-* restore;
-* administrative operations.
-
-Read-only operations are outside the scope unless they participate in consistency verification.
-
----
-
-# 3. Architectural Goals
-
-The consistency architecture shall guarantee:
-
-* deterministic state evolution;
-* recoverable failures;
-* explicit transitions;
-* immutable history;
-* reproducible synchronization;
-* implementation independence;
-* eventual convergence.
-
----
-
-# 4. Fundamental Principles
-
-The consistency model follows these principles:
-
-* no distributed transactions across storage services;
-* authoritative state is explicit;
-* consistency is verified, never assumed;
-* every mutation is recoverable;
-* failures leave detectable states;
-* recovery is deterministic;
-* historical revisions remain immutable.
-
----
-
-# 5. Consistency Domains
-
-Consistency is evaluated independently for:
-
-* Catalog;
-* Sources;
-* Covers;
-* Assets;
-* Relationships;
-* Metadata;
-* Manifests;
-* Backups.
-
-A failure in one domain does not invalidate the verification process of the others, but it does prevent the Master Library from reaching a globally consistent state.
-
----
-
-# 6. Consistency Levels
-
-KnowledgeOS recognizes four consistency levels.
-
-### Strong Consistency
-
-Applied within a single transactional boundary.
-
-Examples:
-
-* PostgreSQL transactions;
-* aggregate persistence;
-* Catalog updates.
-
----
-
-### Coordinated Consistency
-
-Applied across multiple persistence services.
-
-Examples:
-
-* Catalog + Source Storage;
-* Catalog + Cover Storage;
-* Catalog + Asset Storage.
-
-Coordination uses explicit commit protocols.
-
-Distributed two-phase commit is prohibited.
-
----
-
-### Eventual Consistency
-
-Applied where asynchronous processing is acceptable.
-
-Examples:
-
-* search indexes;
-* preview generation;
-* thumbnail generation;
-* AI embeddings;
-* analytics.
-
-These projections never become authoritative.
-
----
-
-### Verified Consistency
-
-Achieved only after successful Integrity verification.
-
-This is the only state considered fully operational.
-
----
-
-# 7. Consistency Boundaries
-
-Each aggregate defines its own consistency boundary.
-
-Examples include:
-
-* Publication;
-* Asset;
-* Collection;
-* Contributor;
-* Subject.
-
-Cross-aggregate consistency is achieved through coordination rather than shared transactions.
-
----
-
-# 8. State Transitions
-
-Every persistent object evolves through explicit state transitions.
-
-Typical lifecycle:
+The implementation is governed by the following fixed model:
 
 ```text
-Pending
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
 
-↓
-
-Validated
-
-↓
-
-Committed
-
-↓
-
-Current
-
-↓
-
-Superseded
-
-↓
-
-Archived
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
 ```
 
-Intermediate states are visible only to operational workflows.
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
 
----
+## 5. Design Guidance
 
-# 9. Coordinated Commit
+Implementation SHOULD:
 
-Operations spanning multiple services follow this logical sequence:
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
 
-```text
-Validate
+## 6. Failure and Recovery
 
-↓
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
 
-Persist Binary
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
 
-↓
+Recovery SHALL preserve:
 
-Verify Binary
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
 
-↓
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
 
-Persist Catalog
+## 7. Security and Privacy
 
-↓
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
 
-Publish Events
+## 8. Observability
 
-↓
+Relevant operations SHALL expose:
 
-Verify Integrity
-```
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
 
-A service becoming available before the sequence completes does not imply a consistent state.
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
 
----
+## 9. Verification and Acceptance
 
-# 10. Interrupted Operations
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
 
-Interrupted operations produce recoverable states.
+## 10. Traceability
 
-Examples:
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
-* binary committed, catalog pending;
-* catalog committed, event pending;
-* manifest pending.
+## 11. Compatibility and Migration
 
-Such states are never considered operationally consistent until Recovery completes.
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
----
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-# 11. Synchronization Consistency
+## 12. Status
 
-Synchronization guarantees convergence toward the same authoritative state.
-
-Synchronization never assumes:
-
-* clocks;
-* timestamps;
-* filenames;
-* storage paths.
-
-Consistency is determined by identities, revisions and integrity verification.
-
----
-
-# 12. Backup Consistency
-
-A backup represents one consistency point.
-
-Objects originating from different consistency points shall never be combined into a single authoritative backup.
-
----
-
-# 13. Restore Consistency
-
-Restore preserves:
-
-* identities;
-* revisions;
-* references;
-* manifests;
-* checksums.
-
-Activation occurs only after successful Integrity verification.
-
----
-
-# 14. Operational Consistency
-
-Operational metadata may temporarily diverge from authoritative data during execution.
-
-Examples:
-
-* import queues;
-* synchronization queues;
-* recovery plans;
-* background jobs.
-
-These structures never define authoritative state.
-
----
-
-# 15. Failure Model
-
-Consistency failures include:
-
-* broken references;
-* missing binaries;
-* duplicate Current revisions;
-* orphan objects;
-* checksum mismatches;
-* manifest inconsistencies.
-
-Every failure is explicit.
-
----
-
-# 16. Recovery Integration
-
-Recovery restores consistency.
-
-Recovery never introduces new authoritative information.
-
-Every recovery concludes with Integrity verification.
-
----
-
-# 17. Event Ordering
-
-Events generated from committed operations preserve causal ordering.
-
-Consumers shall tolerate delayed delivery.
-
-Consumers shall never assume immediate delivery.
-
----
-
-# 18. Idempotency
-
-Every consistency operation shall be idempotent whenever possible.
-
-Executing the same operation multiple times shall not create duplicated authoritative state.
-
----
-
-# 19. Convergence
-
-Regardless of temporary failures, the architecture shall converge toward a unique authoritative state once:
-
-* synchronization completes;
-* recovery succeeds;
-* integrity verification passes.
-
----
-
-# 20. Forbidden Operations
-
-The following are prohibited:
-
-* distributed two-phase commit across storage services;
-* implicit state transitions;
-* silent conflict resolution;
-* hidden metadata mutation;
-* publishing inconsistent state as authoritative;
-* bypassing integrity verification.
-
----
-
-# 21. Invariants
-
-The following invariants are mandatory:
-
-* every authoritative object belongs to exactly one consistent revision history;
-* only one Current revision exists per aggregate;
-* consistency is verified before activation;
-* interrupted operations remain recoverable;
-* historical revisions are immutable;
-* asynchronous projections never become authoritative;
-* consistency failures always remain detectable;
-* recovery preserves identities;
-* verification never mutates authoritative data.
-
----
-
-# 22. Related Documents
-
-* `CatalogDatabase.md`
-* `CatalogSchema.md`
-* `SourceStorage.md`
-* `CoverStorage.md`
-* `AssetStorage.md`
-* `Checksums.md`
-* `Integrity.md`
-* `Recovery.md`
-* `BackupRestore.md`
-* `Locking.md`
-
----
-
-# 23. Status
-
-**Approved**
-
-The Consistency architecture is frozen as the authoritative model governing state evolution within the KnowledgeOS Master Library. It defines deterministic coordination across persistence services while preserving immutable history, recoverable execution and implementation-independent consistency semantics.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

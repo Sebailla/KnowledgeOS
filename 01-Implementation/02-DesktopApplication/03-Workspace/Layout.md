@@ -1,545 +1,174 @@
+# Layout
 
-# Desktop Application Workspace Layout
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Desktop Application
-
-**Layer:** Workspace
-
-**Document:** Layout
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Desktop Application / 03-Workspace  
+**Document:** Layout  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Platform:** macOS  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the authoritative implementation model for the Workspace Layout subsystem within the KnowledgeOS Desktop Application.
+Define the layout for the KnowledgeOS macOS application, covering workspace, windows, tabs, panels, selection, restoration and editing behavior.
 
-Workspace Layout describes the logical spatial organization of Windows, Tabs, Editors, Panels and auxiliary interaction surfaces.
+## 2. Scope
 
-The Layout model defines **what the user sees and where it is positioned**, independently of any native UI framework.
+This document applies to the native macOS client and its integration with:
 
-The Layout is Workspace-owned logical state.
+- the device Local Library;
+- the NAS-hosted Master Library;
+- Personal Knowledge;
+- UDM and DPM;
+- Platform Engines;
+- Kernel execution services;
+- Apple platform services.
 
-Native UI frameworks are projections of this model.
+It does not redefine Domain authority, acquisition semantics, synchronization ownership or Platform Engine responsibilities.
 
----
+## 3. Product Context
 
-# 2. Scope
+The macOS application is the primary KnowledgeOS client.
 
-This document governs:
-
-* Workspace Layout;
-* Layout ownership;
-* Layout identity;
-* Layout regions;
-* Window Layout;
-* Panel Layout;
-* Editor Layout;
-* Split Layout;
-* Docking;
-* Floating surfaces;
-* Layout mutations;
-* Layout Commands;
-* Layout Events;
-* Layout Queries;
-* Layout validation;
-* Layout restoration;
-* Layout recovery;
-* Layout normalization;
-* plugin layout contributions;
-* accessibility;
-* performance.
-
-This document does not define persistence (see `LayoutPersistence.md`) nor Workspace restoration sequencing (see `WorkspaceRestoration.md`).
-
----
-
-# 3. Objectives
-
-The Layout subsystem shall:
+It SHALL support:
 
-* represent layout as immutable logical state;
-* remain independent from native windows;
-* support deterministic reconstruction;
-* preserve user customization;
-* support multiple displays;
-* support floating components;
-* support docking;
-* support plugin extensions;
-* support responsive resizing;
-* support accessibility;
-* remain bounded and serializable.
+- local device scanning from user-authorized locations;
+- an independent offline-first Local Library;
+- browsing the remote Master Catalog;
+- explicit acquisition of selected publications;
+- reading and rendering;
+- annotations and Personal Knowledge;
+- search;
+- optional AI;
+- workspace and multi-window behavior;
+- future personal synchronization through iCloud/CloudKit.
 
----
+The NAS is not mounted as the working Local Library and is not a Personal Knowledge synchronization peer.
 
-# 4. Definition
+## 4. Normative Language
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-Workspace Layout is the logical arrangement of interaction surfaces inside a Workspace.
+## 5. Normative Requirements
 
-Layout determines:
+- The macOS application SHALL maintain an independent Local Library.
+- The application SHALL remain usable offline for locally available publications.
+- The application SHALL browse the Master Catalog without treating the Local Library as a replica.
+- Publication acquisition SHALL be explicit and separate from Personal Knowledge synchronization.
+- Personal Knowledge SHALL synchronize only through the approved iCloud/CloudKit profile.
+- The application SHALL NOT write annotations, highlights, reading progress or personal relationships to the NAS Master Library.
+- UI components SHALL invoke public Platform contracts and SHALL NOT access repositories directly.
+- Long-running work SHALL expose durable operation identity, progress, cancellation and failure state.
+- Stable Domain identity SHALL be preserved across windows, workspaces, navigation and restoration.
+- Workspace state SHALL remain local or personal according to its declared scope.
+- Workspace restoration SHALL tolerate missing publications, unavailable NAS access and stale derived artifacts.
+- Selection and focus SHALL remain ephemeral unless explicitly promoted to restorable state.
+
+## 6. Architecture and Design Guidance
+
+Implementation SHOULD:
 
-* which Windows exist;
-* which Tabs belong to each Window;
-* Editor placement;
-* Panel placement;
-* split configuration;
-* docking;
-* floating surfaces;
-* dimensions;
-* visibility;
-* ordering.
+- use explicit module composition at application startup;
+- keep SwiftUI/AppKit view code separate from Platform services;
+- expose commands, queries and observable state through stable façades or ViewModels;
+- preserve stable Domain identity in navigation and restoration payloads;
+- treat render, search, graph and AI projections as derived;
+- use structured concurrency with lifecycle-bound tasks;
+- propagate cancellation and correlation;
+- validate all persisted UI and workspace state before restoration;
+- avoid singleton mutable state except for explicitly governed application services;
+- keep framework-specific types out of shared public contracts;
+- support graceful degradation when the Master Library or remote providers are unavailable.
 
-Layout never owns the underlying application state.
+## 7. State and Lifecycle
 
----
+Desktop state SHALL be classified as:
 
-# 5. Ownership
+| State Class | Examples | Persistence |
+|---|---|---|
+| Domain-backed | Local Library membership, annotations | Domain repositories |
+| Restorable workspace | windows, tabs, open documents | local restoration store |
+| Session | active navigation, transient filters | scoped session |
+| Ephemeral UI | hover, focus, animation | memory only |
+| Derived | render cache, search results | rebuildable cache |
 
-Workspace Layout belongs exclusively to the Workspace.
+Lifecycle transitions SHALL release subscriptions, tasks, file handles and security-scoped resources deterministically.
 
-The Workspace owns:
+## 8. Failure and Recovery
 
-* Layout Tree;
-* Layout Identity;
-* Layout Version;
-* Layout Regions;
-* Split hierarchy;
-* Docking state;
-* Floating layout descriptors.
+The application SHALL preserve:
 
-Managers coordinate layout changes but never own Layout State.
+- Local Library identity;
+- locally available publications;
+- committed Personal Knowledge;
+- workspace restoration evidence;
+- operation identities;
+- import and acquisition progress;
+- provenance and integrity findings.
 
----
+Unavailable NAS access SHALL degrade Master Catalog browsing and acquisition only. It SHALL NOT prevent reading or annotating locally available publications.
 
-# 6. Architectural Position
-
-```text
-Workspace
-│
-├── Layout State
-│
-├── Windows
-│
-├── Tabs
-│
-├── Editors
-│
-├── Panels
-│
-└── Native Projection Layer
-```
-
-The Layout State is authoritative.
-
-Native UI is derived.
-
----
-
-# 7. Layout Aggregate
-
-```text
-WorkspaceLayout
-│
-├── LayoutIdentity
-├── WorkspaceIdentity
-├── WindowLayouts
-├── SplitTree
-├── PanelGroups
-├── FloatingLayouts
-├── DisplayAssignments
-├── LayoutConstraints
-├── RestorationMetadata
-└── LayoutVersion
-```
-
----
-
-# 8. Layout Identity
-
-Each committed Layout shall have a stable Layout Identity.
-
-Layout Identity supports:
-
-* restoration;
-* diagnostics;
-* version validation;
-* synchronization of projections;
-* plugin compatibility.
-
----
-
-# 9. Layout Version
-
-Every committed layout mutation increments Layout Version.
-
-Versioning supports:
-
-* stale projection rejection;
-* optimistic updates;
-* deterministic restoration;
-* diagnostics.
-
----
-
-# 10. Layout Tree
-
-The Layout Tree represents the logical hierarchy of all visible interaction regions.
-
-It contains only logical descriptors.
-
-Native split views, constraints or platform widgets shall never be stored.
-
----
-
-# 11. Layout Regions
-
-Core regions include:
-
-* Window Root;
-* Primary Editor Area;
-* Leading Sidebar;
-* Trailing Sidebar;
-* Bottom Region;
-* Floating Region;
-* Overlay Region.
-
-Regions are logical concepts.
-
----
-
-# 12. Window Layout
-
-Each Window owns one Window Layout descriptor.
-
-The descriptor defines:
-
-* frame;
-* display assignment;
-* root split;
-* panel regions;
-* active Tab;
-* layout version.
-
----
-
-# 13. Editor Area
-
-The Editor Area is the primary content region.
-
-It may contain:
-
-* one Editor;
-* multiple split Editors;
-* comparison Editors;
-* plugin Editors.
-
-The Editor Area never owns Editors.
-
----
-
-# 14. Split Layout
-
-Split Layout represents the subdivision of available space.
-
-Supported orientations include:
-
-* horizontal;
-* vertical.
-
-Each split stores normalized proportions rather than pixel values whenever possible.
-
----
-
-# 15. Split Nodes
-
-Split Tree nodes may be:
-
-* Split Node;
-* Leaf Node;
-* Placeholder Node.
-
-Leaf nodes reference interaction surfaces.
-
----
-
-# 16. Docking
-
-Docking determines the attachment of Panels or floating surfaces to predefined Layout Regions.
-
-Docking changes layout only after explicit Commands.
-
----
-
-# 17. Floating Layout
-
-Floating surfaces remain logically owned by the Workspace.
-
-Floating descriptors include:
-
-* Window reference;
-* region;
-* frame;
-* z-order;
-* visibility.
-
-Floating UI does not create duplicate logical state.
-
----
-
-# 18. Panel Groups
-
-Panel Groups define tabbed or stacked auxiliary panels.
-
-Each group stores:
-
-* Group Identity;
-* ordered Panel list;
-* active Panel;
-* size;
-* visibility.
-
----
-
-# 19. Display Assignment
-
-A Window Layout may target a specific display.
-
-Assignments reference logical display descriptors rather than transient platform identifiers whenever possible.
-
-Unavailable displays shall trigger normalization.
-
----
-
-# 20. Constraints
-
-Layout Constraints include:
-
-* minimum sizes;
-* maximum sizes;
-* split limits;
-* docking compatibility;
-* accessibility limits;
-* plugin constraints.
-
-Constraints shall be validated before committing Layout.
-
----
-
-# 21. Layout Commands
-
-Representative Commands include:
-
-* CreateSplit;
-* RemoveSplit;
-* ResizeSplit;
-* MovePanel;
-* DockPanel;
-* UndockPanel;
-* FloatPanel;
-* RestorePanel;
-* MoveWindow;
-* ResizeWindow;
-* AssignDisplay;
-* ActivatePanelGroup;
-* ResetLayout.
-
----
-
-# 22. Layout Events
-
-Representative Events include:
-
-* LayoutChanged;
-* SplitCreated;
-* SplitRemoved;
-* SplitResized;
-* PanelDocked;
-* PanelUndocked;
-* PanelFloated;
-* WindowMoved;
-* WindowResized;
-* DisplayChanged;
-* LayoutNormalized.
-
----
-
-# 23. Layout Queries
-
-Representative Queries include:
-
-* GetLayout;
-* GetWindowLayout;
-* GetSplitTree;
-* GetPanelGroups;
-* GetFloatingLayouts;
-* CanDockPanel;
-* CanSplitEditor;
-* ValidateLayout.
-
-Queries return immutable projections.
-
----
-
-# 24. Layout Validation
-
-Every Layout mutation shall validate:
-
-* ownership;
-* constraints;
-* split consistency;
-* region compatibility;
-* display availability;
-* plugin compatibility.
-
-Invalid layouts shall never be committed.
-
----
-
-# 25. Layout Normalization
-
-Normalization may:
-
-* remove invalid regions;
-* merge redundant splits;
-* relocate orphaned panels;
-* normalize proportions;
-* replace unavailable displays;
-* remove duplicate references.
-
-Normalization shall preserve user intent whenever possible.
-
----
-
-# 26. Restoration
-
-Layout restoration shall:
-
-1. restore Window descriptors;
-2. rebuild Split Trees;
-3. restore Panel Groups;
-4. assign displays;
-5. validate constraints;
-6. normalize layout;
-7. publish restoration diagnostics.
-
----
-
-# 27. Recovery
-
-Layout recovery may:
-
-* rebuild corrupted split trees;
-* replace invalid layouts;
-* collapse redundant structures;
-* move floating panels to default regions;
-* assign unavailable displays to the primary display.
-
-Recovery shall never fabricate application state.
-
----
-
-# 28. Plugins
-
-Plugins may contribute Layout components through Plugin SDK contracts.
-
-Plugin Layout descriptors shall declare:
-
-* supported regions;
-* minimum size;
-* docking rules;
-* serialization schema;
-* restoration behavior.
-
-Missing plugins shall not prevent Layout restoration.
-
----
-
-# 29. Accessibility
-
-Layout shall support:
-
-* keyboard navigation;
-* resizable regions;
-* minimum accessible sizes;
-* logical focus traversal;
-* high-contrast layouts;
-* reduced motion.
-
-Accessibility constraints override user layouts when required.
-
----
-
-# 30. Performance
-
-The Layout subsystem shall support:
-
-* immutable updates;
-* incremental projections;
-* efficient split traversal;
-* bounded serialization;
-* lazy native reconstruction.
-
----
-
-# 31. Testing
-
-Tests shall verify:
-
-* split creation;
-* docking;
-* floating panels;
-* layout normalization;
-* constraint validation;
-* restoration;
-* plugin layouts;
-* multi-display behavior;
-* accessibility.
-
----
-
-# 32. Architectural Invariants
-
-The following invariants are mandatory:
-
-* Layout belongs to exactly one Workspace;
-* Layout is immutable after commit;
-* native UI never owns Layout;
-* all interaction surfaces appear only once in the Layout Tree;
-* Split Trees remain acyclic;
-* Panel Groups contain unique Panels;
-* floating surfaces remain Workspace-owned;
-* Layout is deterministic and serializable;
-* invalid Layout never blocks Workspace startup.
-
----
-
-# 33. Related Documents
-
-* `Panels.md`
-* `Windows.md`
-* `Editors.md`
-* `LayoutPersistence.md`
-* `WorkspaceRestoration.md`
-* `WorkspaceRecovery.md`
-* `StateManagement.md`
-
----
-
-# 34. Status
-
-**Approved**
-
-This document establishes the authoritative implementation model for the Workspace Layout subsystem within the KnowledgeOS Desktop Application.
-
-Workspace Layout is immutable logical state that defines the spatial organization of Windows, Editors, Panels and interaction surfaces. Native UI frameworks are projections of this model, ensuring deterministic restoration, platform independence and consistent user experience.
+Invalid restoration state SHALL be isolated and repaired without deleting authoritative user data.
+
+## 9. Security and Privacy
+
+- User-selected files SHALL use approved macOS security-scoped access where required.
+- Credentials and tokens SHALL use Keychain or another approved secure store.
+- Personal Knowledge SHALL not be written to NAS.
+- Logs SHALL not contain publication content, private paths, annotations or credentials.
+- Remote AI or OCR SHALL require policy authorization.
+- Window and workspace restoration payloads SHALL avoid sensitive content where identity references suffice.
+
+## 10. Accessibility and Native Experience
+
+The desktop application SHOULD follow native macOS conventions for:
+
+- keyboard navigation;
+- menus and commands;
+- window restoration;
+- focus;
+- accessibility labels and reading order;
+- drag and drop;
+- document opening;
+- toolbar and sidebar behavior;
+- VoiceOver;
+- reduced motion and contrast preferences.
+
+Accessibility transformations SHALL preserve UDM semantic order.
+
+## 11. Verification and Acceptance
+
+- The behavior is covered by automated tests where technically feasible.
+- Offline behavior is verified.
+- Master Catalog and Local Library scopes remain visibly distinct.
+- Personal Knowledge never enters Master Library persistence.
+- Cancellation, timeout and failure behavior are verified.
+- Architecture traceability is documented.
+- Accessibility implications are reviewed.
+- No direct private-repository access exists from UI code.
+
+## 12. Traceability
+
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/04-Platform/README.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Annotation/README.md`
+- `00-Architecture/04-Platform/Render/README.md`
+- `00-Architecture/04-Platform/Search/README.md`
+- `00-Architecture/04-Platform/Sync/README.md`
+- `00-Architecture/03-Kernel/README.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
+- `01-Implementation/02-DesktopApplication/02-Architecture/WorkspaceArchitecture.md`
+- `01-Implementation/02-DesktopApplication/03-Workspace/README.md`
+
+## 13. Compatibility and Evolution
+
+Breaking changes to restoration formats, Local Library identity mapping, public client contracts or acquisition behavior require migration guidance and architecture review.
+
+Persisted workspace and session formats SHALL be versioned.
+
+## 14. Status
+
+This document is part of the KnowledgeOS Desktop Application V4 implementation baseline.

@@ -1,585 +1,151 @@
+# Synchronization Tests
 
-# Master Library Synchronization Tests
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Testing
-
-**Document:** Synchronization Tests
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 08-Testing  
+**Document:** SynchronizationTests  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the testing strategy for the Synchronization subsystem of the KnowledgeOS Master Library.
+Define the synchronization tests for the KnowledgeOS Master Library implementation.
 
-Synchronization is one of the most critical architectural capabilities of the platform. It is responsible for maintaining consistency between the Client Local Library, the Master Library Server, the PostgreSQL Catalog and the NAS Source Storage.
+## 2. Scope
 
-Synchronization Tests verify that data remains correct, deterministic, recoverable and conflict-safe under every supported operating condition.
+This document covers verification and conformance strategy for the NAS-hosted Master Library and its client-facing integration.
 
----
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
-# 2. Scope
+## 3. Architectural Baseline
 
-Synchronization Tests apply to:
-
-* Client synchronization engine;
-* Server synchronization engine;
-* Pending Change Store;
-* Synchronization Queue;
-* Checkpoint management;
-* Conflict resolution;
-* Metadata synchronization;
-* Asset synchronization;
-* Source synchronization;
-* Annotation synchronization;
-* Plugin-generated content;
-* AI-generated metadata.
-
----
-
-# 3. Objectives
-
-Synchronization Tests verify:
-
-* correctness;
-* consistency;
-* durability;
-* idempotency;
-* resumability;
-* recoverability;
-* deterministic ordering;
-* conflict handling;
-* protocol compatibility.
-
----
-
-# 4. Architectural Principles
-
-Synchronization shall always satisfy the following principles:
-
-* Offline First;
-* Server Authority;
-* NAS Source of Truth;
-* Eventual Consistency;
-* Idempotent Operations;
-* Deterministic Execution;
-* Recoverable Failures.
-
----
-
-# 5. Synchronization Workflow
-
-Every synchronization cycle follows the same logical flow.
+The implementation is governed by the following fixed model:
 
 ```text
-Detect Local Changes
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
 
-↓
-
-Create Pending Operations
-
-↓
-
-Build Synchronization Batch
-
-↓
-
-Send Batch to Server
-
-↓
-
-Validate Operations
-
-↓
-
-Execute Transaction
-
-↓
-
-Commit
-
-↓
-
-Generate Server Events
-
-↓
-
-Return Result
-
-↓
-
-Advance Checkpoint
-
-↓
-
-Confirm Local State
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
 ```
 
-Every stage shall be independently testable.
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Verification SHALL include failure, retry, migration and recovery behavior, not only successful requests.
+- Tests SHALL prove that Personal Knowledge never enters Master Library persistence.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
+
+## 5. Design Guidance
+
+Implementation SHOULD:
+
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
+
+## 6. Failure and Recovery
+
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
+
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
+
+Recovery SHALL preserve:
+
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
+
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
+
+## 7. Security and Privacy
+
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
+
+## 8. Observability
+
+Relevant operations SHALL expose:
+
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
+
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
+
+## 9. Verification and Acceptance
+
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
+- The test suite is automated where technically possible.
+- Test data contains no production secrets or unapproved personal data.
+
+## 10. Traceability
+
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
----
+## 11. Compatibility and Migration
 
-# 6. Initial Synchronization
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-Tests verify:
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-* empty client;
-* populated server;
-* empty server;
-* identical repositories;
-* interrupted first synchronization;
-* restart after interruption.
+## 12. Status
 
----
-
-# 7. Incremental Synchronization
-
-Validation includes:
-
-* single modification;
-* multiple modifications;
-* mixed operations;
-* large batches;
-* empty batches;
-* repeated synchronization.
-
----
-
-# 8. Pending Change Store
-
-Tests verify:
-
-* operation persistence;
-* ordering;
-* recovery after restart;
-* duplicate prevention;
-* checkpoint association;
-* cleanup after commit.
-
----
-
-# 9. Synchronization Queue
-
-Queue validation includes:
-
-* enqueue;
-* dequeue;
-* ordering;
-* retry;
-* cancellation;
-* resume;
-* overflow behavior.
-
----
-
-# 10. Checkpoint Management
-
-Checkpoint tests verify:
-
-* creation;
-* advancement;
-* persistence;
-* rollback;
-* recovery;
-* corruption detection.
-
-Checkpoints shall never advance before a successful server commit.
-
----
-
-# 11. Upload Operations
-
-Validation includes:
-
-* metadata upload;
-* document upload;
-* asset upload;
-* cover upload;
-* annotation upload;
-* deletion requests.
-
----
-
-# 12. Download Operations
-
-Tests verify:
-
-* metadata updates;
-* asset retrieval;
-* annotation updates;
-* document updates;
-* deletions;
-* collection changes.
-
----
-
-# 13. Metadata Synchronization
-
-Synchronization verifies:
-
-* creation;
-* update;
-* deletion;
-* property changes;
-* tag updates;
-* relationship updates.
-
----
-
-# 14. Source Synchronization
-
-Tests verify:
-
-* new source files;
-* updated source files;
-* deleted sources;
-* checksum validation;
-* duplicate detection.
-
-The NAS remains authoritative for source storage.
-
----
-
-# 15. Asset Synchronization
-
-Validation includes:
-
-* images;
-* PDFs;
-* attachments;
-* thumbnails;
-* generated assets;
-* derived assets.
-
----
-
-# 16. Annotation Synchronization
-
-Tests verify:
-
-* highlights;
-* notes;
-* handwritten annotations;
-* bookmarks;
-* reading position;
-* presentation metadata.
-
----
-
-# 17. AI Metadata
-
-Synchronization verifies:
-
-* embeddings;
-* summaries;
-* extracted keywords;
-* classifications;
-* generated metadata.
-
-AI-derived data shall never replace user-authored content.
-
----
-
-# 18. Conflict Detection
-
-Tests verify detection of:
-
-* concurrent edits;
-* concurrent deletions;
-* concurrent moves;
-* conflicting metadata;
-* conflicting annotations;
-* duplicate identities.
-
----
-
-# 19. Conflict Resolution
-
-Validation includes:
-
-* automatic resolution;
-* manual resolution;
-* merge scenarios;
-* rejected operations;
-* retry after resolution.
-
-Every decision shall be reproducible.
-
----
-
-# 20. Idempotency
-
-Repeated synchronization requests shall never produce duplicated state.
-
-Operations may be executed multiple times without changing the final result.
-
----
-
-# 21. Ordering
-
-Synchronization verifies deterministic ordering of:
-
-* creates;
-* updates;
-* deletes;
-* relationships;
-* events.
-
-Ordering shall never depend on network timing.
-
----
-
-# 22. Partial Failures
-
-Validation includes:
-
-* failed uploads;
-* failed downloads;
-* interrupted commits;
-* timeout;
-* cancelled requests.
-
-Successfully committed operations shall never be reverted unintentionally.
-
----
-
-# 23. Retry Policy
-
-Retry validation verifies:
-
-* immediate retry;
-* delayed retry;
-* exponential backoff;
-* retry exhaustion;
-* manual retry.
-
----
-
-# 24. Offline Operation
-
-Tests verify:
-
-* offline acquisition;
-* offline annotation;
-* offline editing;
-* offline deletion;
-* synchronization after reconnection.
-
-Offline work shall never be lost.
-
----
-
-# 25. Network Failures
-
-Simulation includes:
-
-* connection loss;
-* high latency;
-* intermittent connectivity;
-* packet loss;
-* server restart.
-
----
-
-# 26. Server Failures
-
-Validation includes:
-
-* transaction rollback;
-* temporary unavailability;
-* restart during synchronization;
-* maintenance mode;
-* storage errors.
-
----
-
-# 27. Client Restart
-
-Synchronization shall resume correctly after:
-
-* application restart;
-* operating system restart;
-* unexpected termination;
-* power loss.
-
----
-
-# 28. Storage Failures
-
-Tests verify:
-
-* missing files;
-* corrupted files;
-* checksum mismatch;
-* unavailable NAS;
-* disk full.
-
----
-
-# 29. Duplicate Detection
-
-Synchronization validates:
-
-* duplicate identities;
-* duplicate assets;
-* duplicate uploads;
-* duplicate events.
-
-Duplicates shall never produce duplicated knowledge.
-
----
-
-# 30. Integrity Verification
-
-Every synchronization cycle validates:
-
-* checksums;
-* identifiers;
-* relationships;
-* metadata consistency;
-* storage consistency.
-
----
-
-# 31. Event Validation
-
-Synchronization events verify:
-
-* publication;
-* ordering;
-* replay;
-* deduplication;
-* persistence.
-
----
-
-# 32. Performance Validation
-
-Synchronization tests measure:
-
-* batch size;
-* throughput;
-* latency;
-* memory consumption;
-* queue growth.
-
----
-
-# 33. Scalability
-
-Validation includes:
-
-* thousands of documents;
-* millions of metadata records;
-* large asset collections;
-* long synchronization history.
-
----
-
-# 34. Observability
-
-Every synchronization execution shall expose:
-
-* synchronization identifier;
-* checkpoint;
-* batch identifier;
-* duration;
-* transferred objects;
-* transferred bytes;
-* retries;
-* failures.
-
----
-
-# 35. Regression Policy
-
-Every synchronization defect shall generate a permanent automated Synchronization Test.
-
-Synchronization regressions are considered critical defects.
-
----
-
-# 36. Anti-Patterns
-
-The following are prohibited:
-
-* non-idempotent synchronization;
-* hidden retries;
-* silent conflicts;
-* implicit conflict resolution;
-* checkpoint advancement before commit;
-* duplicated operations;
-* nondeterministic ordering.
-
----
-
-# 37. Synchronization Test Matrix
-
-Mandatory scenarios include:
-
-| Scenario                    | Required |
-| --------------------------- | -------- |
-| Initial Synchronization     | Yes      |
-| Incremental Synchronization | Yes      |
-| Offline Recovery            | Yes      |
-| Conflict Resolution         | Yes      |
-| Retry                       | Yes      |
-| Interrupted Synchronization | Yes      |
-| Client Restart              | Yes      |
-| Server Restart              | Yes      |
-| Checkpoint Recovery         | Yes      |
-| Large Batch                 | Yes      |
-| Duplicate Detection         | Yes      |
-| Storage Recovery            | Yes      |
-
----
-
-# 38. Synchronization Invariants
-
-The following invariants are mandatory:
-
-* synchronization is deterministic;
-* synchronization is idempotent;
-* NAS remains the Source of Truth for source files;
-* PostgreSQL remains authoritative for metadata;
-* Client Local Library remains a synchronized replica;
-* checkpoints never advance before commit;
-* conflicts are always explicit;
-* interrupted synchronization is resumable;
-* committed operations are durable;
-* synchronization never corrupts user knowledge.
-
----
-
-# 39. Related Documents
-
-* `TestStrategy.md`
-* `IntegrationTests.md`
-* `RecoveryTests.md`
-* `StorageArchitecture.md`
-* `Synchronization Architecture`
-* `CatalogDatabase.md`
-* `LocalLibrary.md`
-
----
-
-# 40. Status
-
-**Approved**
-
-The Synchronization Testing strategy is frozen as the authoritative validation model for the synchronization subsystem of the KnowledgeOS Master Library.
-
-Every synchronization operation shall demonstrate deterministic execution, recoverable behavior, explicit conflict management and complete preservation of user knowledge under all supported operating conditions.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

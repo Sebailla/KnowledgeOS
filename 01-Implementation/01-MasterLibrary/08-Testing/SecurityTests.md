@@ -1,555 +1,153 @@
-# Master Library Security Tests
+# Security Tests
 
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Testing
-
-**Document:** Security Tests
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 08-Testing  
+**Document:** SecurityTests  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the security testing strategy for the KnowledgeOS Master Library.
+Define the security tests for the KnowledgeOS Master Library implementation.
 
-Security Tests verify that confidentiality, integrity, availability and privacy are continuously preserved across every architectural layer.
+## 2. Scope
+
+This document covers verification and conformance strategy for the NAS-hosted Master Library and its client-facing integration.
+
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
+
+## 3. Architectural Baseline
 
-Security is treated as an architectural requirement rather than a deployment concern.
+The implementation is governed by the following fixed model:
 
----
+```text
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
+
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
+```
+
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Administrative and client access SHALL use authenticated, least-privilege identities.
+- Credentials and tokens SHALL be stored through approved secret-management mechanisms and SHALL NOT appear in logs.
+- Verification SHALL include failure, retry, migration and recovery behavior, not only successful requests.
+- Tests SHALL prove that Personal Knowledge never enters Master Library persistence.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
 
-# 2. Scope
+## 5. Design Guidance
 
-Security Tests apply to:
+Implementation SHOULD:
 
-* Client Application;
-* Master Library Server;
-* Local Library;
-* PostgreSQL Catalog;
-* NAS Storage;
-* Synchronization Protocol;
-* Plugin Runtime;
-* AI Providers;
-* Import Pipeline;
-* Export Pipeline;
-* Configuration;
-* Public APIs.
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
 
----
+## 6. Failure and Recovery
 
-# 3. Objectives
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
 
-Security Tests verify:
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
 
-* authentication;
-* authorization;
-* confidentiality;
-* integrity;
-* availability;
-* auditability;
-* privacy;
-* supply chain security.
+Recovery SHALL preserve:
 
----
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
 
-# 4. Security Principles
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
 
-Every security validation shall preserve:
+## 7. Security and Privacy
 
-* least privilege;
-* explicit trust boundaries;
-* defense in depth;
-* secure defaults;
-* fail-safe behavior;
-* complete observability.
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
 
----
+## 8. Observability
 
-# 5. Trust Boundaries
+Relevant operations SHALL expose:
 
-Security Tests validate every architectural boundary:
-
-* Client ↔ Server;
-* Server ↔ PostgreSQL;
-* Server ↔ NAS;
-* Server ↔ AI Providers;
-* Plugin ↔ Host;
-* Import ↔ External Files;
-* Export ↔ External Consumers.
-
-Every boundary shall explicitly validate trust assumptions.
-
----
-
-# 6. Authentication
-
-Authentication validation includes:
-
-* valid credentials;
-* invalid credentials;
-* expired credentials;
-* revoked credentials;
-* anonymous access;
-* session expiration.
-
-Authentication failures shall never expose protected information.
-
----
-
-# 7. Authorization
-
-Authorization tests verify:
-
-* permitted operations;
-* forbidden operations;
-* administrative capabilities;
-* ownership validation;
-* privilege escalation attempts.
-
----
-
-# 8. Session Management
-
-Validation includes:
-
-* session creation;
-* renewal;
-* expiration;
-* invalidation;
-* concurrent sessions.
-
----
-
-# 9. Credential Protection
-
-Tests verify:
-
-* encrypted storage;
-* secure transmission;
-* credential isolation;
-* secret rotation;
-* secret loading.
-
-Credentials shall never appear in logs.
-
----
-
-# 10. Encryption
-
-Encryption validation includes:
-
-* data at rest;
-* data in transit;
-* key usage;
-* key rotation;
-* unsupported algorithms.
-
----
-
-# 11. Local Library Protection
-
-Tests verify:
-
-* metadata protection;
-* cache protection;
-* temporary file cleanup;
-* permission validation;
-* encrypted sensitive configuration when applicable.
-
----
-
-# 12. NAS Security
-
-Validation includes:
-
-* access permissions;
-* unauthorized access;
-* path traversal prevention;
-* storage isolation;
-* integrity verification.
-
----
-
-# 13. Database Security
-
-Database validation verifies:
-
-* privilege separation;
-* parameterized queries;
-* constraint enforcement;
-* unauthorized modifications;
-* audit logging.
-
----
-
-# 14. SQL Injection
-
-Every public query interface shall reject SQL Injection attempts.
-
-Tests include:
-
-* malformed SQL;
-* nested statements;
-* escaped payloads;
-* encoded payloads.
-
----
-
-# 15. Path Traversal
-
-Import, export and storage operations shall reject:
-
-* "../"
-* absolute path attacks;
-* symbolic link escapes;
-* invalid mount locations.
-
----
-
-# 16. Command Injection
-
-Validation verifies rejection of:
-
-* shell metacharacters;
-* embedded commands;
-* command chaining;
-* environment manipulation.
-
----
-
-# 17. Deserialization
-
-Tests verify protection against:
-
-* malformed payloads;
-* oversized payloads;
-* unsupported object types;
-* recursive payload attacks.
-
----
-
-# 18. Input Validation
-
-Every external input shall validate:
-
-* length;
-* encoding;
-* type;
-* range;
-* required fields;
-* unexpected fields.
-
----
-
-# 19. File Import Security
-
-Import validation includes:
-
-* malformed documents;
-* oversized files;
-* unsupported formats;
-* corrupted archives;
-* nested archive attacks.
-
-Import shall never compromise platform stability.
-
----
-
-# 20. Export Security
-
-Export validation verifies:
-
-* destination validation;
-* overwrite protection;
-* unauthorized paths;
-* integrity of exported content.
-
----
-
-# 21. Plugin Isolation
-
-Plugin security verifies:
-
-* capability restrictions;
-* filesystem isolation;
-* API restrictions;
-* event isolation;
-* failure containment.
-
-Plugins shall execute with the minimum required privileges.
-
----
-
-# 22. AI Provider Security
-
-Validation includes:
-
-* credential isolation;
-* request sanitization;
-* response validation;
-* timeout handling;
-* provider switching.
-
-Sensitive user information shall never be transmitted unless explicitly authorized.
-
----
-
-# 23. Synchronization Security
-
-Synchronization validation verifies:
-
-* authenticated sessions;
-* replay protection;
-* request integrity;
-* checkpoint validation;
-* idempotency keys.
-
----
-
-# 24. Replay Protection
-
-Security Tests verify rejection of:
-
-* duplicated synchronization requests;
-* duplicated commands;
-* replayed authentication tokens.
-
----
-
-# 25. Integrity Verification
-
-Validation includes:
-
-* checksum verification;
-* signature verification where applicable;
-* metadata consistency;
-* asset consistency.
-
----
-
-# 26. Audit Logging
-
-Security events shall record:
-
-* authentication;
-* authorization failures;
-* administrative actions;
-* configuration changes;
-* synchronization failures.
-
-Audit logs shall be immutable.
-
----
-
-# 27. Privacy
-
-Privacy validation verifies:
-
-* local AI execution;
-* remote AI consent;
-* metadata anonymization where required;
-* export privacy.
-
-User knowledge shall remain under user control.
-
----
-
-# 28. Denial of Service
-
-Validation includes:
-
-* oversized requests;
-* excessive synchronization;
-* malformed payload floods;
-* repeated authentication failures.
-
-Graceful degradation is preferred over service interruption.
-
----
-
-# 29. Resource Exhaustion
-
-Security Tests verify:
-
-* memory exhaustion;
-* disk exhaustion;
-* queue exhaustion;
-* excessive plugin activity.
-
----
-
-# 30. Dependency Security
-
-Validation includes:
-
-* dependency integrity;
-* signature verification where available;
-* known vulnerability detection;
-* version validation.
-
----
-
-# 31. Supply Chain Security
-
-Security verification includes:
-
-* trusted package sources;
-* reproducible builds;
-* dependency locking;
-* plugin provenance.
-
----
-
-# 32. Configuration Security
-
-Tests verify:
-
-* secure defaults;
-* invalid configuration;
-* insecure configuration detection;
-* secret isolation.
-
----
-
-# 33. Backup Security
-
-Validation includes:
-
-* backup integrity;
-* backup confidentiality;
-* restoration authorization;
-* encrypted backups where configured.
-
----
-
-# 34. Recovery Security
-
-Recovery procedures shall preserve:
-
-* authorization;
-* auditability;
-* integrity;
-* confidentiality.
-
-Recovery shall never bypass security controls.
-
----
-
-# 35. Security Observability
-
-Security diagnostics shall expose:
-
-* security event identifier;
-* timestamp;
-* subsystem;
-* severity;
-* outcome.
-
-Sensitive information shall never appear in diagnostic output.
-
----
-
-# 36. Penetration Testing
-
-Periodic penetration testing shall evaluate:
-
-* exposed interfaces;
-* synchronization protocol;
-* plugin subsystem;
-* import pipeline;
-* administrative functionality.
-
-Findings shall generate permanent regression tests where applicable.
-
----
-
-# 37. Regression Policy
-
-Every confirmed security defect shall generate:
-
-* a permanent automated Security Test;
-* an audit entry;
-* an architectural review when appropriate.
-
----
-
-# 38. Anti-Patterns
-
-The following are prohibited:
-
-* hardcoded credentials;
-* plaintext secrets;
-* implicit trust;
-* disabled validation;
-* unrestricted plugin access;
-* silent authorization failures;
-* logging confidential information.
-
----
-
-# 39. Security Test Matrix
-
-| Scenario                 | Required |
-| ------------------------ | -------- |
-| Authentication           | Yes      |
-| Authorization            | Yes      |
-| SQL Injection            | Yes      |
-| Path Traversal           | Yes      |
-| Command Injection        | Yes      |
-| Import Validation        | Yes      |
-| Plugin Isolation         | Yes      |
-| Synchronization Security | Yes      |
-| Replay Protection        | Yes      |
-| Dependency Security      | Yes      |
-| Backup Security          | Yes      |
-| Recovery Security        | Yes      |
-
----
-
-# 40. Security Invariants
-
-The following invariants are mandatory:
-
-* every external boundary is authenticated when required;
-* authorization is continuously validated;
-* secrets are never exposed;
-* plugins remain isolated;
-* synchronization is protected against replay;
-* imports never execute untrusted content;
-* audit logs remain complete and immutable;
-* user privacy is preserved by design;
-* every security regression generates a permanent automated test.
-
----
-
-# 41. Related Documents
-
-* `TestStrategy.md`
-* `ContractTests.md`
-* `SynchronizationTests.md`
-* `RecoveryTests.md`
-* `Security.md`
-* `PluginSDK/Capabilities.md`
-* `PluginSDK/Contracts.md`
-
----
-
-# 42. Status
-
-**Approved**
-
-The Security Testing strategy is frozen as the authoritative validation model for security, privacy and trust within the KnowledgeOS Master Library.
-
-Every release shall demonstrate compliance with the architectural security principles through deterministic, automated and continuously executed Security Tests.
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
+
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
+
+## 9. Verification and Acceptance
+
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
+- The test suite is automated where technically possible.
+- Test data contains no production secrets or unapproved personal data.
+
+## 10. Traceability
+
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
+
+## 11. Compatibility and Migration
+
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
+
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
+
+## 12. Status
+
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

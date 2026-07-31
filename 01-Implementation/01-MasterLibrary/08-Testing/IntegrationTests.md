@@ -1,441 +1,151 @@
+# Integration Tests
 
-# Master Library Integration Tests
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Testing
-
-**Document:** Integration Tests
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 08-Testing  
+**Document:** IntegrationTests  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the integration testing strategy for the KnowledgeOS Master Library.
+Define the integration tests for the KnowledgeOS Master Library implementation.
 
-Integration Tests verify that independently validated architectural modules collaborate correctly through their published contracts.
+## 2. Scope
 
-Their objective is to detect failures that cannot be identified through isolated unit testing.
+This document covers verification and conformance strategy for the NAS-hosted Master Library and its client-facing integration.
 
----
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
-# 2. Scope
+## 3. Architectural Baseline
 
-Integration testing applies to interactions between:
-
-* Client and Local Library;
-* Client and Synchronization;
-* Client and Server;
-* Server and Persistence;
-* Server and Providers;
-* Import and OCR;
-* Import and AI;
-* Search and Indexes;
-* Export and Rendering;
-* Plugin SDK and Host;
-* Kernel and Platform modules.
-
-Integration Tests do not replace End-to-End validation.
-
----
-
-# 3. Objectives
-
-Integration Tests verify:
-
-* interoperability;
-* contract compliance;
-* transaction boundaries;
-* event propagation;
-* state consistency;
-* error propagation;
-* recovery behavior;
-* version compatibility.
-
----
-
-# 4. Principles
-
-Integration Tests shall be:
-
-* deterministic;
-* reproducible;
-* isolated;
-* architecture-aware;
-* automated;
-* observable.
-
-Whenever practical they shall execute against real implementations rather than mocks.
-
----
-
-# 5. Architectural Boundaries
-
-Every architectural boundary shall have explicit Integration Tests.
-
-Examples include:
-
-* Kernel ↔ Platform;
-* Platform ↔ Persistence;
-* Client ↔ Synchronization;
-* Server ↔ Repository Layer;
-* Plugin ↔ SDK.
-
----
-
-# 6. Real Implementations
-
-Integration Tests should use:
-
-* real repositories;
-* real serialization;
-* real transactions;
-* real filesystem layout;
-* real synchronization engine;
-* real Local Library.
-
-Only unavoidable external systems may be replaced.
-
----
-
-# 7. Test Environment
-
-Integration environments shall provide:
-
-* isolated storage;
-* isolated databases;
-* temporary Local Libraries;
-* temporary indexes;
-* reproducible configuration;
-* deterministic clocks where required.
-
----
-
-# 8. Transaction Validation
-
-Every transaction boundary shall verify:
-
-* successful commit;
-* rollback;
-* nested operations;
-* partial failure;
-* recovery after interruption.
-
-No partial state shall remain visible after rollback.
-
----
-
-# 9. Client ↔ Local Library
-
-Tests verify:
-
-* Catalog queries;
-* metadata updates;
-* pending changes;
-* acquisition staging;
-* annotation persistence;
-* cache behavior;
-* recovery.
-
----
-
-# 10. Client ↔ Synchronization
-
-Tests verify:
-
-* upload queue creation;
-* download application;
-* checkpoint advancement;
-* retry;
-* interruption;
-* resume;
-* offline queue persistence.
-
----
-
-# 11. Client ↔ Server
-
-Validation includes:
-
-* authentication;
-* authorization;
-* request validation;
-* response handling;
-* version negotiation;
-* error handling;
-* retry policy.
-
----
-
-# 12. Server ↔ Persistence
-
-Tests verify:
-
-* repository behavior;
-* transaction integrity;
-* optimistic concurrency;
-* migrations;
-* rollback;
-* integrity constraints.
-
----
-
-# 13. Server ↔ NAS
-
-Integration verifies:
-
-* source storage;
-* asset storage;
-* cover storage;
-* checksum verification;
-* recovery;
-* storage consistency.
-
-The NAS remains the authoritative storage backend.
-
----
-
-# 14. Server ↔ AI Providers
-
-Validation includes:
-
-* request generation;
-* provider selection;
-* credential isolation;
-* timeout;
-* cancellation;
-* retry;
-* response normalization.
-
----
-
-# 15. Server ↔ OCR
-
-OCR integration verifies:
-
-* image submission;
-* page ordering;
-* language selection;
-* timeout;
-* error recovery;
-* output persistence.
-
----
-
-# 16. Search ↔ Index
-
-Tests verify:
-
-* indexing;
-* incremental updates;
-* rebuild;
-* deletion;
-* stale index recovery;
-* query correctness.
-
----
-
-# 17. Import ↔ Parser
-
-Validation includes:
-
-* supported formats;
-* malformed documents;
-* metadata extraction;
-* parser failures;
-* checksum preservation.
-
----
-
-# 18. Export ↔ Renderer
-
-Tests verify:
-
-* rendering correctness;
-* embedded assets;
-* typography;
-* image handling;
-* export completion.
-
----
-
-# 19. Plugin SDK
-
-Plugin integration validates:
-
-* capability negotiation;
-* lifecycle;
-* sandboxing;
-* event handling;
-* error isolation;
-* version compatibility.
-
-A plugin failure shall never compromise the host application.
-
----
-
-# 20. Event Propagation
-
-Every architectural event shall verify:
-
-* publication;
-* subscription;
-* ordering;
-* duplication prevention;
-* retry behavior;
-* idempotent consumption.
-
----
-
-# 21. Synchronization Workflow
-
-The complete synchronization workflow validates:
+The implementation is governed by the following fixed model:
 
 ```text
-Local Change
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
 
-↓
-
-Pending Queue
-
-↓
-
-Synchronization
-
-↓
-
-Server Validation
-
-↓
-
-Commit
-
-↓
-
-Checkpoint Update
-
-↓
-
-Local Confirmation
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
 ```
 
-Every step shall be individually observable.
+The Master Library is independent from Local Libraries.
 
----
+## 4. Normative Requirements
 
-# 22. Failure Injection
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-Integration Tests deliberately inject failures such as:
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Verification SHALL include failure, retry, migration and recovery behavior, not only successful requests.
+- Tests SHALL prove that Personal Knowledge never enters Master Library persistence.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
 
-* server unavailable;
-* database unavailable;
-* NAS unavailable;
-* provider timeout;
-* disk full;
-* interrupted synchronization;
-* malformed responses.
+## 5. Design Guidance
 
-Recovery shall be verified.
+Implementation SHOULD:
 
----
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
 
-# 23. Version Compatibility
+## 6. Failure and Recovery
 
-Integration verifies:
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
 
-* previous client versions;
-* previous protocol versions;
-* Plugin SDK compatibility;
-* persistence compatibility.
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
 
-Unsupported combinations shall fail predictably.
+Recovery SHALL preserve:
 
----
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
 
-# 24. Observability
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
 
-Integration execution shall expose:
+## 7. Security and Privacy
 
-* correlation identifiers;
-* transaction identifiers;
-* synchronization identifiers;
-* timing;
-* logs;
-* diagnostics.
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
 
----
+## 8. Observability
 
-# 25. Required Scenarios
+Relevant operations SHALL expose:
 
-Mandatory integration scenarios include:
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
 
-* acquire document;
-* synchronize;
-* recover interruption;
-* annotate;
-* synchronize annotations;
-* export;
-* delete;
-* restore;
-* migrate.
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
 
----
+## 9. Verification and Acceptance
 
-# 26. Anti-Patterns
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
+- The test suite is automated where technically possible.
+- Test data contains no production secrets or unapproved personal data.
 
-The following are prohibited:
+## 10. Traceability
 
-* testing implementation details;
-* depending on execution order;
-* shared mutable environments;
-* hidden retries;
-* nondeterministic assertions;
-* silent failures.
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
----
+## 11. Compatibility and Migration
 
-# 27. Integration Test Invariants
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-The following invariants are mandatory:
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-* published contracts are respected;
-* architectural boundaries remain intact;
-* transaction integrity is preserved;
-* synchronization remains deterministic;
-* failures are recoverable;
-* interoperability is continuously verified;
-* no module bypasses its public contracts.
+## 12. Status
 
----
-
-# 28. Related Documents
-
-* `README.md`
-* `TestStrategy.md`
-* `UnitTests.md`
-* `ContractTests.md`
-* `SynchronizationTests.md`
-* `RecoveryTests.md`
-* `EndToEndTests.md`
-
----
-
-# 29. Status
-
-**Approved**
-
-The Integration Testing strategy is frozen as the authoritative validation model for inter-module collaboration within the KnowledgeOS Master Library.
-
-Every architectural boundary shall demonstrate deterministic, observable and recoverable behavior through automated integration testing before release.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

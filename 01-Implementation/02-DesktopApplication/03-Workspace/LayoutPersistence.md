@@ -1,460 +1,174 @@
+# Layout Persistence
 
-# Desktop Application Workspace Layout Persistence
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Desktop Application
-
-**Layer:** Workspace
-
-**Document:** Layout Persistence
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Desktop Application / 03-Workspace  
+**Document:** LayoutPersistence  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Platform:** macOS  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the authoritative persistence model for Workspace Layout within the KnowledgeOS Desktop Application.
+Define the layout persistence for the KnowledgeOS macOS application, covering workspace, windows, tabs, panels, selection, restoration and editing behavior.
 
-Layout Persistence is responsible for serializing, validating, versioning, migrating and restoring the logical Workspace Layout.
+## 2. Scope
 
-It does not define the Layout model itself, which is specified in `Layout.md`.
+This document applies to the native macOS client and its integration with:
 
----
+- the device Local Library;
+- the NAS-hosted Master Library;
+- Personal Knowledge;
+- UDM and DPM;
+- Platform Engines;
+- Kernel execution services;
+- Apple platform services.
 
-# 2. Scope
+It does not redefine Domain authority, acquisition semantics, synchronization ownership or Platform Engine responsibilities.
 
-This document governs:
+## 3. Product Context
 
-* Layout serialization;
-* persistence ownership;
-* storage model;
-* schema versioning;
-* compatibility;
-* migration;
-* validation;
-* checkpoints;
-* restoration descriptors;
-* integrity verification;
-* persistence lifecycle;
-* plugin layout persistence;
-* diagnostics;
-* recovery support.
+The macOS application is the primary KnowledgeOS client.
 
-It does not define Window state, Editor state, Workspace lifecycle or UI rendering.
+It SHALL support:
 
----
+- local device scanning from user-authorized locations;
+- an independent offline-first Local Library;
+- browsing the remote Master Catalog;
+- explicit acquisition of selected publications;
+- reading and rendering;
+- annotations and Personal Knowledge;
+- search;
+- optional AI;
+- workspace and multi-window behavior;
+- future personal synchronization through iCloud/CloudKit.
 
-# 3. Objectives
+The NAS is not mounted as the working Local Library and is not a Personal Knowledge synchronization peer.
 
-Layout Persistence shall:
+## 4. Normative Language
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-* serialize only logical state;
-* remain deterministic;
-* support forward-compatible migrations;
-* detect corruption;
-* preserve user customization;
-* remain bounded;
-* isolate plugins;
-* support incremental persistence;
-* support crash recovery.
+## 5. Normative Requirements
 
----
+- The macOS application SHALL maintain an independent Local Library.
+- The application SHALL remain usable offline for locally available publications.
+- The application SHALL browse the Master Catalog without treating the Local Library as a replica.
+- Publication acquisition SHALL be explicit and separate from Personal Knowledge synchronization.
+- Personal Knowledge SHALL synchronize only through the approved iCloud/CloudKit profile.
+- The application SHALL NOT write annotations, highlights, reading progress or personal relationships to the NAS Master Library.
+- UI components SHALL invoke public Platform contracts and SHALL NOT access repositories directly.
+- Long-running work SHALL expose durable operation identity, progress, cancellation and failure state.
+- Stable Domain identity SHALL be preserved across windows, workspaces, navigation and restoration.
+- Workspace state SHALL remain local or personal according to its declared scope.
+- Workspace restoration SHALL tolerate missing publications, unavailable NAS access and stale derived artifacts.
+- Selection and focus SHALL remain ephemeral unless explicitly promoted to restorable state.
+
+## 6. Architecture and Design Guidance
+
+Implementation SHOULD:
 
-# 4. Architectural Position
+- use explicit module composition at application startup;
+- keep SwiftUI/AppKit view code separate from Platform services;
+- expose commands, queries and observable state through stable façades or ViewModels;
+- preserve stable Domain identity in navigation and restoration payloads;
+- treat render, search, graph and AI projections as derived;
+- use structured concurrency with lifecycle-bound tasks;
+- propagate cancellation and correlation;
+- validate all persisted UI and workspace state before restoration;
+- avoid singleton mutable state except for explicitly governed application services;
+- keep framework-specific types out of shared public contracts;
+- support graceful degradation when the Master Library or remote providers are unavailable.
 
-```text
-Workspace Layout
-        │
-        ▼
-Layout Persistence
-        │
-        ▼
-Persistence Repository
-        │
-        ▼
-Workspace Storage
-```
+## 7. State and Lifecycle
 
-Persistence is an infrastructure concern.
+Desktop state SHALL be classified as:
 
-It never owns Layout State.
+| State Class | Examples | Persistence |
+|---|---|---|
+| Domain-backed | Local Library membership, annotations | Domain repositories |
+| Restorable workspace | windows, tabs, open documents | local restoration store |
+| Session | active navigation, transient filters | scoped session |
+| Ephemeral UI | hover, focus, animation | memory only |
+| Derived | render cache, search results | rebuildable cache |
 
----
+Lifecycle transitions SHALL release subscriptions, tasks, file handles and security-scoped resources deterministically.
 
-# 5. Ownership
+## 8. Failure and Recovery
 
-Layout Persistence belongs to the Workspace.
+The application SHALL preserve:
 
-The subsystem owns:
+- Local Library identity;
+- locally available publications;
+- committed Personal Knowledge;
+- workspace restoration evidence;
+- operation identities;
+- import and acquisition progress;
+- provenance and integrity findings.
 
-* serialized descriptors;
-* schema version;
-* persistence metadata;
-* integrity information;
-* migration metadata.
+Unavailable NAS access SHALL degrade Master Catalog browsing and acquisition only. It SHALL NOT prevent reading or annotating locally available publications.
 
-The authoritative Layout remains owned by the Workspace.
-
----
-
-# 6. Persistence Aggregate
-
-```text
-LayoutPersistenceState
-│
-├── WorkspaceIdentity
-├── LayoutIdentity
-├── LayoutVersion
-├── SchemaVersion
-├── SerializedLayout
-├── IntegrityChecksum
-├── PersistenceTimestamp
-├── MigrationMetadata
-└── PersistenceVersion
-```
-
----
-
-# 7. Serialization Principles
-
-Serialization shall contain only:
-
-* logical identities;
-* layout hierarchy;
-* split descriptors;
-* docking descriptors;
-* floating descriptors;
-* display assignments;
-* layout preferences;
-* restoration metadata.
-
-Native UI objects shall never be serialized.
-
----
-
-# 8. Serialization Format
-
-The persistence format shall be:
-
-* deterministic;
-* versioned;
-* platform independent;
-* human-inspectable where practical;
-* extensible.
-
-Implementation details remain internal to the persistence layer.
-
----
-
-# 9. Schema Version
-
-Every persisted Layout shall declare its Schema Version.
-
-Schema Version supports:
-
-* migration;
-* compatibility checks;
-* diagnostics;
-* recovery.
-
----
-
-# 10. Layout Version
-
-Layout Version identifies the logical Layout revision.
-
-Schema Version and Layout Version are independent.
-
----
-
-# 11. Incremental Persistence
-
-The implementation may persist only modified Layout descriptors.
-
-Incremental persistence shall preserve deterministic reconstruction.
-
----
-
-# 12. Persistence Triggers
-
-Layout persistence may occur after:
-
-* Window creation;
-* Window closure;
-* split changes;
-* panel movement;
-* docking changes;
-* display assignment;
-* explicit save;
-* periodic checkpoint;
-* application backgrounding;
-* graceful shutdown.
-
----
-
-# 13. Checkpoints
-
-Layout checkpoints represent recoverable persistence snapshots.
-
-Each checkpoint shall include:
-
-* Layout Identity;
-* Schema Version;
-* checksum;
-* timestamp;
-* descriptor reference.
-
----
-
-# 14. Integrity Verification
-
-Integrity validation shall verify:
-
-* checksum;
-* schema;
-* descriptor completeness;
-* reference consistency;
-* layout hierarchy.
-
-Corrupted descriptors shall never be loaded silently.
-
----
-
-# 15. Validation
-
-Before persistence:
-
-* Layout shall be normalized;
-* constraints validated;
-* duplicate references removed;
-* plugin descriptors validated.
-
-Only valid Layouts may be persisted.
-
----
-
-# 16. Migration
-
-Older Layout schemas may be migrated.
-
-Migration shall:
-
-* preserve user intent;
-* remain deterministic;
-* be repeatable;
-* produce diagnostics.
-
----
-
-# 17. Migration Pipeline
-
-```text
-Serialized Layout
-        │
-Validate Schema
-        │
-Migration
-        │
-Normalization
-        │
-Validation
-        │
-Current Schema
-```
-
----
-
-# 18. Compatibility
-
-Compatibility policies include:
-
-* current schema;
-* supported legacy schemas;
-* unsupported schemas.
-
-Unsupported schemas shall fail explicitly.
-
----
-
-# 19. Restoration Descriptor
-
-A restoration descriptor contains:
-
-* Layout Identity;
-* Schema Version;
-* serialized hierarchy;
-* persistence metadata;
-* integrity checksum.
-
-It does not contain native UI state.
-
----
-
-# 20. Restoration
-
-Restoration shall:
-
-1. validate checksum;
-2. validate schema;
-3. migrate if required;
-4. normalize;
-5. validate constraints;
-6. rebuild logical Layout;
-7. publish diagnostics.
-
----
-
-# 21. Recovery
-
-Recovery may:
-
-* restore previous checkpoint;
-* discard corrupted descriptors;
-* rebuild default Layout;
-* quarantine plugin descriptors;
-* preserve unaffected regions.
-
-Recovery shall favor consistency over completeness.
-
----
-
-# 22. Plugin Persistence
-
-Plugins may persist Layout contributions through Plugin SDK contracts.
-
-Plugin persistence descriptors shall declare:
-
-* plugin identity;
-* schema version;
-* serialization contract;
-* migration support.
-
-Plugins shall never modify core persistence structures directly.
-
----
-
-# 23. Missing Plugin
-
-If a persisted plugin descriptor cannot be restored:
-
-* plugin contribution shall be ignored;
-* core Layout restoration continues;
-* diagnostics shall record the omission.
-
----
-
-# 24. Storage
-
-Persisted Layout shall be stored through approved Workspace repositories.
-
-Direct writes to arbitrary files are prohibited.
-
----
-
-# 25. Security
-
-Persistence shall validate:
-
-* Workspace ownership;
-* descriptor integrity;
-* plugin authorization;
-* schema authenticity.
-
----
-
-# 26. Privacy
-
-Persisted Layout may contain:
-
-* Window arrangement;
-* panel visibility;
-* recent display assignments.
-
-Sensitive document content shall never be stored in Layout persistence.
-
----
-
-# 27. Performance
-
-Implementation shall support:
-
-* incremental serialization;
-* bounded checkpoints;
-* lazy loading;
-* asynchronous persistence;
-* efficient migration.
-
----
-
-# 28. Diagnostics
-
-Diagnostics should include:
-
-* Layout Identity;
-* Schema Version;
-* Layout Version;
-* checksum status;
-* migration result;
-* persistence duration;
-* restoration result.
-
----
-
-# 29. Testing
-
-Tests shall verify:
-
-* serialization;
-* deserialization;
-* migration;
-* schema validation;
-* integrity verification;
-* restoration;
-* checkpoint recovery;
-* plugin persistence.
-
----
-
-# 30. Architectural Invariants
-
-The following invariants are mandatory:
-
-* persisted Layout represents only logical state;
-* serialization is deterministic;
-* native UI objects are never persisted;
-* every persisted Layout declares a Schema Version;
-* integrity verification precedes restoration;
-* invalid descriptors never become authoritative;
-* plugin persistence uses approved Plugin SDK contracts;
-* persistence remains bounded.
-
----
-
-# 31. Related Documents
-
-* `Layout.md`
-* `WorkspaceRestoration.md`
-* `WorkspaceRecovery.md`
-* `Panels.md`
-* `Windows.md`
-* `Plugin SDK Contracts`
-
----
-
-# 32. Status
-
-**Approved**
-
-This document establishes the authoritative persistence model for Workspace Layout within the KnowledgeOS Desktop Application.
-
-Layout Persistence serializes and restores the logical Layout independently from the native UI, ensuring deterministic reconstruction, schema evolution, integrity verification and safe recovery while preserving user customization.
+Invalid restoration state SHALL be isolated and repaired without deleting authoritative user data.
+
+## 9. Security and Privacy
+
+- User-selected files SHALL use approved macOS security-scoped access where required.
+- Credentials and tokens SHALL use Keychain or another approved secure store.
+- Personal Knowledge SHALL not be written to NAS.
+- Logs SHALL not contain publication content, private paths, annotations or credentials.
+- Remote AI or OCR SHALL require policy authorization.
+- Window and workspace restoration payloads SHALL avoid sensitive content where identity references suffice.
+
+## 10. Accessibility and Native Experience
+
+The desktop application SHOULD follow native macOS conventions for:
+
+- keyboard navigation;
+- menus and commands;
+- window restoration;
+- focus;
+- accessibility labels and reading order;
+- drag and drop;
+- document opening;
+- toolbar and sidebar behavior;
+- VoiceOver;
+- reduced motion and contrast preferences.
+
+Accessibility transformations SHALL preserve UDM semantic order.
+
+## 11. Verification and Acceptance
+
+- The behavior is covered by automated tests where technically feasible.
+- Offline behavior is verified.
+- Master Catalog and Local Library scopes remain visibly distinct.
+- Personal Knowledge never enters Master Library persistence.
+- Cancellation, timeout and failure behavior are verified.
+- Architecture traceability is documented.
+- Accessibility implications are reviewed.
+- No direct private-repository access exists from UI code.
+
+## 12. Traceability
+
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/04-Platform/README.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Annotation/README.md`
+- `00-Architecture/04-Platform/Render/README.md`
+- `00-Architecture/04-Platform/Search/README.md`
+- `00-Architecture/04-Platform/Sync/README.md`
+- `00-Architecture/03-Kernel/README.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
+- `01-Implementation/02-DesktopApplication/02-Architecture/WorkspaceArchitecture.md`
+- `01-Implementation/02-DesktopApplication/03-Workspace/README.md`
+
+## 13. Compatibility and Evolution
+
+Breaking changes to restoration formats, Local Library identity mapping, public client contracts or acquisition behavior require migration guidance and architecture review.
+
+Persisted workspace and session formats SHALL be versioned.
+
+## 14. Status
+
+This document is part of the KnowledgeOS Desktop Application V4 implementation baseline.

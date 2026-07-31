@@ -1,463 +1,147 @@
+# Locking
 
-# Master Library Locking
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Persistence
-
-**Document:** Locking
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 05-Persistence  
+**Document:** Locking  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the concurrency and locking architecture of the KnowledgeOS Master Library.
+Define the locking for the KnowledgeOS Master Library implementation.
 
-Its purpose is to coordinate concurrent operations without compromising consistency, integrity or recoverability.
+## 2. Scope
 
-Locking prevents conflicting modifications while allowing maximum parallelism for independent operations.
+This document covers PostgreSQL and authoritative file-storage implementation for the NAS-hosted Master Library and its client-facing integration.
 
----
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
-# 2. Scope
+## 3. Architectural Baseline
 
-This document applies to every operation that modifies authoritative data.
-
-Including:
-
-* imports;
-* replacements;
-* synchronization;
-* recovery;
-* backup preparation;
-* metadata updates;
-* administrative operations.
-
-Read-only operations are normally lock-free.
-
----
-
-# 3. Architectural Goals
-
-The locking architecture shall guarantee:
-
-* deterministic concurrency;
-* conflict prevention;
-* deadlock avoidance;
-* recoverable execution;
-* scalable parallelism;
-* implementation independence.
-
----
-
-# 4. Principles
-
-The locking model follows these principles:
-
-* logical locks instead of filesystem locks;
-* short-lived exclusive locks;
-* optimistic concurrency whenever possible;
-* explicit ownership;
-* lease-based expiration;
-* recoverable lock state;
-* no permanent locks;
-* no hidden synchronization.
-
----
-
-# 5. Architectural Model
-
-Locking is coordinated by the Master Library rather than individual storage services.
+The implementation is governed by the following fixed model:
 
 ```text
-Operation
-      │
-      ▼
-Lock Manager
-      │
-      ▼
-Lease
-      │
-      ▼
-Protected Resource
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
+
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
 ```
 
-Storage services never coordinate locks independently.
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
 
----
+## 5. Design Guidance
 
-# 6. Lock Manager
+Implementation SHOULD:
 
-The Lock Manager is responsible for:
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
 
-* creating locks;
-* renewing leases;
-* releasing locks;
-* detecting stale locks;
-* preventing conflicts;
-* publishing lock events.
+## 6. Failure and Recovery
 
-The Lock Manager does not modify business data.
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
 
----
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
 
-# 7. Lock Types
+Recovery SHALL preserve:
 
-KnowledgeOS defines four lock types.
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
 
-### Shared Lock
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
 
-Allows multiple concurrent readers.
+## 7. Security and Privacy
 
-No modifications are permitted.
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
 
----
+## 8. Observability
 
-### Exclusive Lock
+Relevant operations SHALL expose:
 
-Allows exactly one modifying operation.
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
 
-No concurrent modifications are permitted.
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
 
----
+## 9. Verification and Acceptance
 
-### Intent Lock
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
 
-Indicates that a workflow will request stronger locks.
+## 10. Traceability
 
-Intent locks reduce contention during complex operations.
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
----
+## 11. Compatibility and Migration
 
-### Administrative Lock
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-Used during maintenance operations such as migration, recovery or restore.
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-Administrative locks override normal operational scheduling.
+## 12. Status
 
----
-
-# 8. Lock Scope
-
-Locks may protect:
-
-* Publication;
-* Asset;
-* Collection;
-* Import Session;
-* Synchronization Session;
-* Recovery Session;
-* Backup Session.
-
-Lock scope shall be as small as possible.
-
----
-
-# 9. Lease Model
-
-Every lock is implemented as a lease.
-
-A lease contains:
-
-* LeaseId;
-* Owner;
-* ResourceId;
-* LockType;
-* CreationTime;
-* ExpirationTime;
-* RenewalCount.
-
-Leases are immutable except for renewal metadata.
-
----
-
-# 10. Lease Expiration
-
-Expired leases are no longer authoritative.
-
-Expiration never modifies protected resources.
-
-Expired leases become eligible for cleanup.
-
----
-
-# 11. Lease Renewal
-
-Long-running operations renew their leases periodically.
-
-Renewal extends expiration without changing ownership.
-
-Failure to renew eventually releases the resource.
-
----
-
-# 12. Lock Acquisition
-
-General acquisition sequence:
-
-```text
-Request
-
-↓
-
-Conflict Detection
-
-↓
-
-Lease Allocation
-
-↓
-
-Operation Start
-```
-
-Only conflict-free requests receive a lease.
-
----
-
-# 13. Lock Release
-
-Locks are released:
-
-* after successful completion;
-* after cancellation;
-* after rollback;
-* after expiration.
-
-Release is always explicit or lease-driven.
-
----
-
-# 14. Conflict Detection
-
-Conflicts occur when:
-
-* two exclusive locks target the same resource;
-* an exclusive lock conflicts with existing shared locks;
-* administrative locks suspend operational work.
-
-Conflicts are resolved before execution begins.
-
----
-
-# 15. Deadlock Prevention
-
-The architecture avoids deadlocks by:
-
-* deterministic acquisition order;
-* bounded lock lifetime;
-* lease expiration;
-* lock hierarchy;
-* retry policies.
-
-Deadlock detection becomes an exceptional safety mechanism rather than the primary strategy.
-
----
-
-# 16. Optimistic Concurrency
-
-Whenever possible, metadata updates use optimistic concurrency.
-
-Typical workflow:
-
-```text
-Read Revision
-
-↓
-
-Modify
-
-↓
-
-Compare Revision
-
-↓
-
-Commit
-```
-
-Revision mismatch rejects the operation.
-
----
-
-# 17. Long-Running Operations
-
-Operations such as:
-
-* import;
-* synchronization;
-* recovery;
-* migration;
-* backup preparation;
-
-maintain renewable leases throughout execution.
-
----
-
-# 18. Read Operations
-
-Read operations normally execute without exclusive locks.
-
-Readers rely on:
-
-* committed revisions;
-* MVCC (where applicable);
-* immutable binaries.
-
-Reading never blocks committed history.
-
----
-
-# 19. Recovery Integration
-
-Recovery may reclaim abandoned leases.
-
-Recovery never interrupts healthy operations.
-
-Recovered leases generate audit records.
-
----
-
-# 20. Backup Integration
-
-Backup acquires consistency leases before establishing its consistency point.
-
-Normal reads continue whenever possible.
-
-Long exclusive pauses are prohibited.
-
----
-
-# 21. Synchronization Integration
-
-Synchronization acquires locks only for resources being updated.
-
-Independent Publications may synchronize concurrently.
-
-Global synchronization locks are prohibited.
-
----
-
-# 22. Administrative Operations
-
-Administrative workflows may acquire broader lock scopes.
-
-Examples include:
-
-* restore;
-* migration;
-* integrity rebuild;
-* storage relocation.
-
-Administrative locks remain fully auditable.
-
----
-
-# 23. Lock Events
-
-The Lock Manager publishes events such as:
-
-* LockGranted;
-* LockRenewed;
-* LockReleased;
-* LeaseExpired;
-* LockRejected.
-
-Events are informational.
-
-They never define authoritative state.
-
----
-
-# 24. Audit
-
-Every lease operation records:
-
-* LeaseId;
-* owner;
-* resource;
-* timestamps;
-* renewals;
-* release reason;
-* final status.
-
-Audit history is append-only.
-
----
-
-# 25. Failure Handling
-
-Possible failures include:
-
-* owner crash;
-* network interruption;
-* process termination;
-* timeout;
-* renewal failure.
-
-Lease expiration guarantees eventual recovery.
-
----
-
-# 26. Forbidden Operations
-
-The following are prohibited:
-
-* permanent locks;
-* manual filesystem locking;
-* hidden lock ownership;
-* lock acquisition without timeout;
-* global exclusive library locks during normal operation;
-* modifying committed history while bypassing Lock Manager.
-
----
-
-# 27. Invariants
-
-The following invariants are mandatory:
-
-* every exclusive lock has one owner;
-* every lease has an expiration time;
-* abandoned leases become recoverable;
-* committed history remains readable;
-* lock ownership is explicit;
-* lock state is auditable;
-* deadlock prevention is deterministic;
-* lock acquisition never bypasses conflict detection;
-* lease expiration never modifies authoritative data;
-* concurrency never compromises integrity.
-
----
-
-# 28. Related Documents
-
-* `CatalogDatabase.md`
-* `CatalogSchema.md`
-* `SourceStorage.md`
-* `CoverStorage.md`
-* `AssetStorage.md`
-* `Checksums.md`
-* `Integrity.md`
-* `Consistency.md`
-* `Recovery.md`
-* `BackupRestore.md`
-
----
-
-# 29. Status
-
-**Approved**
-
-The Locking architecture is frozen as the authoritative concurrency model for the KnowledgeOS Master Library. It defines lease-based coordination, deterministic conflict prevention, optimistic concurrency, recoverable execution and implementation-independent synchronization while preserving immutable history and the integrity of authoritative data.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

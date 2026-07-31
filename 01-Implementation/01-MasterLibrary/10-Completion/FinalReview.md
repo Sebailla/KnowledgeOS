@@ -1,407 +1,149 @@
+# Final Review
 
-# Master Library Final Review
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Completion
-
-**Document:** Final Review
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 10-Completion  
+**Document:** FinalReview  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document records the final architectural review of the KnowledgeOS Master Library implementation.
+Define the final review for the KnowledgeOS Master Library implementation.
 
-Its purpose is to formally confirm that the approved Architecture V3 has been completely specified, consistently documented and validated, establishing the official implementation baseline from which product development shall begin.
+## 2. Scope
+
+This document covers release completion, traceability and residual risk for the NAS-hosted Master Library and its client-facing integration.
 
-This document concludes the architectural design phase.
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
----
+## 3. Architectural Baseline
 
-# 2. Scope
+The implementation is governed by the following fixed model:
 
-The Final Review evaluates the complete architectural baseline, including:
+```text
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
 
-* Foundation;
-* Domain;
-* Kernel;
-* Platform;
-* Integration;
-* Persistence;
-* Server;
-* Client Applications;
-* Operations;
-* Testing;
-* Documentation;
-* Governance.
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
+```
+
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-# 3. Objectives
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Verification SHALL include failure, retry, migration and recovery behavior, not only successful requests.
+- Tests SHALL prove that Personal Knowledge never enters Master Library persistence.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
 
-The Final Review pursues the following objectives:
+## 5. Design Guidance
 
-* confirm architectural completeness;
-* verify documentation consistency;
-* validate implementation readiness;
-* establish the official baseline;
-* authorize transition to development;
-* preserve long-term architectural integrity.
+Implementation SHOULD:
 
----
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
 
-# 4. Review Principles
+## 6. Failure and Recovery
 
-The final review shall be:
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
 
-* objective;
-* comprehensive;
-* evidence-based;
-* reproducible;
-* auditable;
-* formally approved.
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
 
-Architectural approval shall never depend upon undocumented assumptions.
+Recovery SHALL preserve:
 
----
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
 
-# 5. Architecture Baseline
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
 
-Architecture V3 establishes the official baseline for future development.
+## 7. Security and Privacy
 
-The baseline consists of:
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
 
-* Product Vision;
-* Foundation;
-* Domain;
-* Kernel;
-* Platform;
-* Integration;
-* Master Library;
-* Operations;
-* Completion Documentation;
-* Architecture Decision Records.
+## 8. Observability
 
-All future implementation shall conform to this baseline.
+Relevant operations SHALL expose:
 
----
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
 
-# 6. Architectural Verification
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
 
-The review confirms that:
+## 9. Verification and Acceptance
 
-* architectural principles are defined;
-* constraints are documented;
-* quality attributes are specified;
-* architectural responsibilities are assigned;
-* subsystem boundaries are explicit;
-* architectural dependencies are controlled.
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
 
-The architecture is internally consistent.
+## 10. Traceability
 
----
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
-# 7. Domain Verification
+## 11. Compatibility and Migration
 
-The Domain architecture includes:
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-* Universal Document Model;
-* Document Presentation Model;
-* Knowledge Objects;
-* Identity Model;
-* Relationship Model;
-* Lifecycle definitions.
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-The knowledge model is considered complete for Architecture V3.
+## 12. Status
 
----
-
-# 8. Platform Verification
-
-Platform verification confirms the definition of:
-
-* Import Engine;
-* Export Engine;
-* Library Engine;
-* Search Engine;
-* Synchronization Engine;
-* AI Engine;
-* Annotation Engine;
-* Plugin Engine;
-* Render Engine;
-* Knowledge Engine.
-
-Every Platform Engine has documented responsibilities.
-
----
-
-# 9. Integration Verification
-
-Integration verification confirms:
-
-* Public Contracts;
-* Plugin SDK;
-* OAuth architecture;
-* MCP integration;
-* external providers;
-* serialization model.
-
-External integration architecture is fully documented.
-
----
-
-# 10. Persistence Verification
-
-Persistence verification confirms:
-
-* PostgreSQL Catalog;
-* NAS Source Storage;
-* metadata architecture;
-* checksum validation;
-* recovery strategy;
-* backup architecture.
-
-The authoritative storage model is fully specified.
-
----
-
-# 11. Operational Verification
-
-Operations verification confirms completion of:
-
-* deployment architecture;
-* monitoring;
-* logging;
-* alerting;
-* backup;
-* disaster recovery;
-* maintenance;
-* upgrades;
-* health checks;
-* capacity planning;
-* operational runbooks;
-* incident management.
-
-Operational architecture is considered complete.
-
----
-
-# 12. Testing Verification
-
-Testing verification confirms the definition of:
-
-* Unit Tests;
-* Integration Tests;
-* Contract Tests;
-* Migration Tests;
-* Recovery Tests;
-* Performance Tests;
-* Security Tests;
-* End-to-End Tests.
-
-The testing architecture satisfies the approved quality objectives.
-
----
-
-# 13. Documentation Verification
-
-Documentation verification confirms:
-
-* complete architectural coverage;
-* consistent terminology;
-* version consistency;
-* document relationships;
-* maintained traceability.
-
-Documentation is considered an integral architectural artifact.
-
----
-
-# 14. Traceability Verification
-
-The review confirms complete traceability between:
-
-* Product Vision;
-* Architecture Principles;
-* Quality Attributes;
-* ADRs;
-* Technical Specifications;
-* Implementation;
-* Testing;
-* Operations.
-
-Architectural traceability is complete.
-
----
-
-# 15. Compliance Verification
-
-Architecture Compliance confirms:
-
-* implementation consistency;
-* documentation consistency;
-* architectural governance;
-* operational readiness;
-* quality verification.
-
-No unresolved architectural non-compliance remains.
-
----
-
-# 16. Acceptance Verification
-
-Acceptance Criteria have been fully defined.
-
-Release approval requires:
-
-* successful implementation;
-* successful validation;
-* successful testing;
-* successful operational verification.
-
-Acceptance requirements are complete.
-
----
-
-# 17. Remaining Work
-
-Following approval of Architecture V3, the remaining work belongs exclusively to implementation activities, including:
-
-* source code development;
-* database implementation;
-* API implementation;
-* client implementation;
-* infrastructure deployment;
-* testing execution;
-* operational rollout.
-
-No additional architectural redesign is required as part of the initial implementation.
-
----
-
-# 18. Future Governance
-
-Future architectural evolution shall occur only through:
-
-* Architecture Decision Records;
-* Architecture Reviews;
-* Traceability updates;
-* Compliance reviews;
-* governance approval.
-
-The Architecture V3 baseline shall remain stable.
-
----
-
-# 19. Architecture Quality Assessment
-
-The final assessment concludes that the architecture satisfies the following quality objectives:
-
-| Quality Attribute | Status   |
-| ----------------- | -------- |
-| Consistency       | Approved |
-| Completeness      | Approved |
-| Maintainability   | Approved |
-| Extensibility     | Approved |
-| Scalability       | Approved |
-| Security          | Approved |
-| Reliability       | Approved |
-| Recoverability    | Approved |
-| Traceability      | Approved |
-| Documentation     | Approved |
-
----
-
-# 20. Risks
-
-The architecture identifies the following ongoing risks:
-
-* implementation complexity;
-* long-term documentation maintenance;
-* future compatibility management;
-* operational discipline;
-* external dependency evolution.
-
-These risks are governed through the approved architectural processes.
-
----
-
-# 21. Architectural Conclusions
-
-The final review concludes that:
-
-* the architecture is internally coherent;
-* architectural responsibilities are clearly defined;
-* documentation is comprehensive;
-* operational architecture is complete;
-* governance mechanisms are established;
-* implementation may begin without further architectural redesign.
-
----
-
-# 22. Architectural Invariants
-
-The following invariants remain permanently applicable:
-
-* user knowledge remains under user ownership;
-* the NAS remains the authoritative source for binary content;
-* PostgreSQL remains the authoritative metadata repository;
-* Offline First remains mandatory;
-* architectural governance remains active throughout the product lifecycle;
-* every architectural evolution requires traceability and formal approval.
-
----
-
-# 23. Related Documents
-
-* `README.md`
-* `ImplementationChecklist.md`
-* `ArchitectureCompliance.md`
-* `TraceabilityMatrix.md`
-* `AcceptanceCriteria.md`
-* `ReleaseReadiness.md`
-* `KnownLimitations.md`
-* `FutureEvolution.md`
-* Architecture Decision Records (ADRs)
-* Product Vision
-* Architecture Principles
-
----
-
-# 24. Final Statement
-
-The KnowledgeOS Master Library Architecture Version 3 is hereby declared **architecturally complete**.
-
-The architecture has been:
-
-* fully specified;
-* internally consistent;
-* comprehensively documented;
-* operationally defined;
-* governance enabled;
-* prepared for implementation.
-
-Future modifications shall be introduced exclusively through the established architectural governance process.
-
----
-
-# 25. Status
-
-**Approved**
-
-This document officially closes the architectural design phase of the KnowledgeOS Master Library.
-
-Architecture Version 3 becomes the official implementation baseline for all future development activities and supersedes every previous architectural revision.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

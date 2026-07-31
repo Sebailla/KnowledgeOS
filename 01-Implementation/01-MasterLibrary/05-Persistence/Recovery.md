@@ -1,507 +1,151 @@
+# Recovery
 
-# Master Library Recovery
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Persistence
-
-**Document:** Recovery
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 05-Persistence  
+**Document:** Recovery  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Recovery architecture of the KnowledgeOS Master Library.
+Define the recovery for the KnowledgeOS Master Library implementation.
 
-Recovery is responsible for restoring the Master Library to a consistent and verifiable state after failures, interruptions, corruption, migrations or operational incidents.
+## 2. Scope
 
-Recovery never creates authoritative information.
+This document covers PostgreSQL and authoritative file-storage implementation for the NAS-hosted Master Library and its client-facing integration.
 
-Recovery restores consistency using existing authoritative information.
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
----
+## 3. Architectural Baseline
 
-# 2. Scope
-
-Recovery applies to every persistence service participating in the Master Library.
-
-Including:
-
-* Catalog Storage
-* Source Storage
-* Cover Storage
-* Asset Storage
-* Backup Packages
-* Recovery Packages
-* Synchronization
-* Migration
-* Operational Metadata
-
----
-
-# 3. Architectural Role
-
-Recovery is activated only after an inconsistency has been detected.
-
-The architectural flow is:
+The implementation is governed by the following fixed model:
 
 ```text
-Integrity Verification
-        │
-        ▼
-Recovery Request
-        │
-        ▼
-Recovery Plan
-        │
-        ▼
-Recovery Execution
-        │
-        ▼
-Integrity Verification
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
+
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
 ```
 
-Recovery never bypasses Integrity verification.
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Backup and recovery SHALL cover PostgreSQL and authoritative files as one verified recovery set while preserving their independent volumes.
+- Restore tests SHALL verify identity, checksums, catalog/source consistency and server readiness.
+- Physical paths SHALL remain replaceable location data, not Domain identity.
+- Authoritative source files SHALL be immutable after successful registration; derived assets remain rebuildable.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
+
+## 5. Design Guidance
+
+Implementation SHOULD:
+
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
+
+## 6. Failure and Recovery
+
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
+
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
+
+Recovery SHALL preserve:
+
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
+
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
+
+## 7. Security and Privacy
+
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
+
+## 8. Observability
+
+Relevant operations SHALL expose:
+
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
+
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
+
+## 9. Verification and Acceptance
+
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
+
+## 10. Traceability
+
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
----
+## 11. Compatibility and Migration
 
-# 4. Recovery Principles
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-Recovery follows these principles:
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-* deterministic execution;
-* explicit planning;
-* complete auditability;
-* no silent repair;
-* authority preservation;
-* reproducible execution;
-* append-only history;
-* recoverability over availability.
+## 12. Status
 
----
-
-# 5. Recovery Model
-
-Recovery consists of four phases:
-
-```text
-Detection
-
-↓
-
-Planning
-
-↓
-
-Execution
-
-↓
-
-Verification
-```
-
-Every recovery operation executes the complete lifecycle.
-
----
-
-# 6. Recovery Authority
-
-Recovery does not decide what is correct.
-
-The authoritative sources remain:
-
-* Catalog Storage;
-* committed Source binaries;
-* committed Cover binaries;
-* committed Asset binaries;
-* validated manifests;
-* verified backups.
-
-Recovery only reconciles those authorities.
-
----
-
-# 7. Recovery Requests
-
-Recovery may be initiated by:
-
-* Integrity verification;
-* synchronization;
-* restore;
-* migration;
-* administrative request;
-* startup validation;
-* scheduled maintenance.
-
-Every request receives a unique Recovery Identifier.
-
----
-
-# 8. Recovery Planning
-
-Before execution a Recovery Plan is generated.
-
-The plan defines:
-
-* detected inconsistencies;
-* affected objects;
-* authoritative sources;
-* execution order;
-* expected outcome;
-* rollback strategy.
-
-The plan is immutable once approved.
-
----
-
-# 9. Recovery Categories
-
-Recovery operations are classified as:
-
-```text
-Reference Recovery
-
-Metadata Recovery
-
-Binary Recovery
-
-Manifest Recovery
-
-Catalog Recovery
-
-Backup Recovery
-```
-
-Each category follows dedicated execution rules.
-
----
-
-# 10. Reference Recovery
-
-Reference Recovery restores logical consistency between aggregates.
-
-Examples:
-
-* missing PublicationAsset;
-* orphan Asset;
-* orphan SourceVersion;
-* orphan CoverRevision.
-
-References are never recreated by inference.
-
-They are restored only from authoritative information.
-
----
-
-# 11. Metadata Recovery
-
-Metadata Recovery restores:
-
-* timestamps;
-* provenance;
-* version ordering;
-* storage metadata;
-* revision metadata.
-
-Business metadata is never reconstructed heuristically.
-
----
-
-# 12. Binary Recovery
-
-Binary Recovery verifies:
-
-* binary existence;
-* checksum;
-* byte length;
-* logical storage key.
-
-Recovery never edits committed binaries.
-
-Missing binaries are restored only from verified backups.
-
----
-
-# 13. Manifest Recovery
-
-Manifest Recovery restores consistency between:
-
-* manifests;
-* storage keys;
-* checksums;
-* binary inventory.
-
-Recovered manifests are regenerated only from authoritative binaries.
-
----
-
-# 14. Catalog Recovery
-
-Catalog Recovery restores:
-
-* storage references;
-* revision references;
-* relationship integrity;
-* operational metadata.
-
-Catalog Recovery never invents missing Publications or Assets.
-
----
-
-# 15. Backup Recovery
-
-Backup Recovery validates:
-
-* archive completeness;
-* manifest consistency;
-* binary integrity;
-* catalog consistency.
-
-Only verified backups participate in Recovery.
-
----
-
-# 16. Recovery Execution
-
-Execution follows a deterministic order.
-
-General sequence:
-
-```text
-Validate Authorities
-
-↓
-
-Lock Recovery Scope
-
-↓
-
-Execute Planned Operations
-
-↓
-
-Verify Results
-
-↓
-
-Publish Audit
-
-↓
-
-Release Locks
-
-↓
-
-Integrity Verification
-```
-
-Every execution is repeatable.
-
----
-
-# 17. Partial Recovery
-
-Recovery may target:
-
-* a single Publication;
-* one Asset;
-* one Collection;
-* one Storage Space;
-* one Backup;
-* one synchronization session.
-
-Partial recovery never compromises global consistency.
-
----
-
-# 18. Recovery Transactions
-
-Recovery operations are logically transactional.
-
-If execution cannot complete successfully:
-
-* partial authoritative state is never published;
-* Recovery is aborted;
-* failure is audited.
-
----
-
-# 19. Interrupted Recovery
-
-If Recovery is interrupted:
-
-* execution state is preserved;
-* audit remains available;
-* unfinished operations remain identifiable.
-
-Restart continues from the last confirmed checkpoint whenever possible.
-
----
-
-# 20. Verification
-
-Every Recovery concludes with a complete Integrity verification.
-
-Recovery is not considered successful until verification succeeds.
-
----
-
-# 21. Rollback
-
-Rollback applies only to operational state.
-
-Committed authoritative revisions are never rolled back.
-
-Rollback may restore:
-
-* temporary metadata;
-* operational queues;
-* execution checkpoints.
-
-Rollback never deletes committed history.
-
----
-
-# 22. Audit
-
-Every Recovery records:
-
-* RecoveryId;
-* execution time;
-* initiator;
-* affected objects;
-* detected inconsistencies;
-* executed actions;
-* verification results;
-* final status.
-
-Audit records are immutable.
-
----
-
-# 23. Notifications
-
-Recovery may publish events including:
-
-* RecoveryStarted;
-* RecoveryCompleted;
-* RecoveryFailed;
-* RecoveryCancelled;
-* RecoveryVerified.
-
-Events are informational.
-
-They never replace audit records.
-
----
-
-# 24. Recovery Metrics
-
-Recommended metrics include:
-
-* recovery duration;
-* recovered objects;
-* failed recoveries;
-* repeated failures;
-* restored binaries;
-* restored references;
-* verification success rate.
-
-Metrics support operational monitoring.
-
----
-
-# 25. Failure Handling
-
-Recovery execution may fail due to:
-
-* unavailable storage;
-* missing backup;
-* corrupted backup;
-* inconsistent manifests;
-* storage exhaustion;
-* authorization failure.
-
-Failures never invalidate previously committed authoritative data.
-
----
-
-# 26. Administrative Recovery
-
-Administrators may request Recovery manually.
-
-Manual execution still requires:
-
-* planning;
-* audit;
-* verification;
-* integrity validation.
-
-Administrative execution never bypasses architectural rules.
-
----
-
-# 27. Forbidden Operations
-
-Recovery shall never:
-
-* overwrite committed binaries;
-* silently modify metadata;
-* fabricate missing objects;
-* ignore checksum failures;
-* bypass audit;
-* bypass verification;
-* delete historical revisions;
-* change object identities.
-
----
-
-# 28. Recovery Invariants
-
-The following invariants are mandatory:
-
-* Recovery never creates authoritative information;
-* every Recovery has a Recovery Plan;
-* every Recovery is auditable;
-* every Recovery is verified;
-* committed binaries remain immutable;
-* identities never change;
-* verification follows execution;
-* authoritative history is preserved;
-* silent repair is prohibited;
-* interrupted Recovery remains recoverable.
-
----
-
-# 29. Related Documents
-
-* `StorageArchitecture.md`
-* `CatalogDatabase.md`
-* `CatalogSchema.md`
-* `Checksums.md`
-* `Integrity.md`
-* `SourceStorage.md`
-* `CoverStorage.md`
-* `AssetStorage.md`
-* `BackupRestore.md`
-* `Consistency.md`
-
----
-
-# 30. Status
-
-**Approved**
-
-The Recovery architecture is frozen as the authoritative mechanism for restoring the KnowledgeOS Master Library to a consistent, verifiable and auditable state. Recovery operates exclusively from authoritative information, preserves immutable history, prohibits silent repair and always concludes with a complete integrity verification before the library is considered operational again.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

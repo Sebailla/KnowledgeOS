@@ -1,507 +1,171 @@
+# Use Cases
 
-# Desktop Application Use Cases
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Desktop Application
-
-**Layer:** Requirements
-
-**Document:** Use Cases
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Desktop Application / 01-Requirements  
+**Document:** UseCases  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Platform:** macOS  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the primary use cases of the KnowledgeOS Desktop Application.
+Define the use cases for the KnowledgeOS macOS application, covering product requirements and user-facing acceptance criteria.
 
-Use cases describe how users interact with the application to accomplish meaningful knowledge management tasks while respecting the architectural principles established by KnowledgeOS Architecture V3.
+## 2. Scope
 
-These use cases define user intent rather than implementation details.
+This document applies to the native macOS client and its integration with:
 
----
+- the device Local Library;
+- the NAS-hosted Master Library;
+- Personal Knowledge;
+- UDM and DPM;
+- Platform Engines;
+- Kernel execution services;
+- Apple platform services.
 
-# 2. Scope
+It does not redefine Domain authority, acquisition semantics, synchronization ownership or Platform Engine responsibilities.
 
-The documented use cases cover:
+## 3. Product Context
 
-* application startup;
-* workspace management;
-* knowledge creation;
-* document editing;
-* navigation;
-* search;
-* annotation;
-* AI-assisted workflows;
-* plugin usage;
-* application shutdown.
+The macOS application is the primary KnowledgeOS client.
 
----
+It SHALL support:
 
-# 3. Objectives
+- local device scanning from user-authorized locations;
+- an independent offline-first Local Library;
+- browsing the remote Master Catalog;
+- explicit acquisition of selected publications;
+- reading and rendering;
+- annotations and Personal Knowledge;
+- search;
+- optional AI;
+- workspace and multi-window behavior;
+- future personal synchronization through iCloud/CloudKit.
 
-The use cases establish:
+The NAS is not mounted as the working Local Library and is not a Personal Knowledge synchronization peer.
 
-* expected user interactions;
-* supported workflows;
-* system responsibilities;
-* interaction boundaries;
-* primary application scenarios.
+## 4. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-# 4. Primary Actor
+## 5. Normative Requirements
 
-The primary actor is:
+- The macOS application SHALL maintain an independent Local Library.
+- The application SHALL remain usable offline for locally available publications.
+- The application SHALL browse the Master Catalog without treating the Local Library as a replica.
+- Publication acquisition SHALL be explicit and separate from Personal Knowledge synchronization.
+- Personal Knowledge SHALL synchronize only through the approved iCloud/CloudKit profile.
+- The application SHALL NOT write annotations, highlights, reading progress or personal relationships to the NAS Master Library.
+- UI components SHALL invoke public Platform contracts and SHALL NOT access repositories directly.
+- Long-running work SHALL expose durable operation identity, progress, cancellation and failure state.
+- Stable Domain identity SHALL be preserved across windows, workspaces, navigation and restoration.
+- Requirements SHALL be testable and SHALL distinguish mandatory behavior from future capability.
+- Acceptance criteria SHALL include offline, failure and recovery scenarios.
 
-**Knowledge Worker**
+## 6. Architecture and Design Guidance
 
-A person who creates, studies, organizes, connects and retrieves knowledge using KnowledgeOS.
+Implementation SHOULD:
 
----
+- use explicit module composition at application startup;
+- keep SwiftUI/AppKit view code separate from Platform services;
+- expose commands, queries and observable state through stable façades or ViewModels;
+- preserve stable Domain identity in navigation and restoration payloads;
+- treat render, search, graph and AI projections as derived;
+- use structured concurrency with lifecycle-bound tasks;
+- propagate cancellation and correlation;
+- validate all persisted UI and workspace state before restoration;
+- avoid singleton mutable state except for explicitly governed application services;
+- keep framework-specific types out of shared public contracts;
+- support graceful degradation when the Master Library or remote providers are unavailable.
 
-# 5. Supporting Actors
+## 7. State and Lifecycle
 
-Supporting actors include:
+Desktop state SHALL be classified as:
 
-* Master Library;
-* Platform Engines;
-* AI Engine;
-* Search Engine;
-* Plugin Engine;
-* Synchronization Engine;
-* Operating System Services.
+| State Class | Examples | Persistence |
+|---|---|---|
+| Domain-backed | Local Library membership, annotations | Domain repositories |
+| Restorable workspace | windows, tabs, open documents | local restoration store |
+| Session | active navigation, transient filters | scoped session |
+| Ephemeral UI | hover, focus, animation | memory only |
+| Derived | render cache, search results | rebuildable cache |
 
-These actors collaborate with the Desktop Application through documented contracts.
+Lifecycle transitions SHALL release subscriptions, tasks, file handles and security-scoped resources deterministically.
 
----
+## 8. Failure and Recovery
 
-# 6. UC-01 — Launch Application
+The application SHALL preserve:
 
-## Goal
+- Local Library identity;
+- locally available publications;
+- committed Personal Knowledge;
+- workspace restoration evidence;
+- operation identities;
+- import and acquisition progress;
+- provenance and integrity findings.
 
-Start the Desktop Application.
+Unavailable NAS access SHALL degrade Master Catalog browsing and acquisition only. It SHALL NOT prevent reading or annotating locally available publications.
 
-### Preconditions
+Invalid restoration state SHALL be isolated and repaired without deleting authoritative user data.
 
-* application installed;
-* configuration available.
+## 9. Security and Privacy
 
-### Main Flow
+- User-selected files SHALL use approved macOS security-scoped access where required.
+- Credentials and tokens SHALL use Keychain or another approved secure store.
+- Personal Knowledge SHALL not be written to NAS.
+- Logs SHALL not contain publication content, private paths, annotations or credentials.
+- Remote AI or OCR SHALL require policy authorization.
+- Window and workspace restoration payloads SHALL avoid sensitive content where identity references suffice.
 
-1. User launches the application.
-2. Configuration is loaded.
-3. Master Library is initialized.
-4. Previous session is detected.
-5. Workspace is restored.
-6. Application becomes interactive.
+## 10. Accessibility and Native Experience
 
-### Postconditions
+The desktop application SHOULD follow native macOS conventions for:
 
-* application ready;
-* previous context restored when available.
+- keyboard navigation;
+- menus and commands;
+- window restoration;
+- focus;
+- accessibility labels and reading order;
+- drag and drop;
+- document opening;
+- toolbar and sidebar behavior;
+- VoiceOver;
+- reduced motion and contrast preferences.
 
----
+Accessibility transformations SHALL preserve UDM semantic order.
 
-# 7. UC-02 — Open Workspace
+## 11. Verification and Acceptance
 
-## Goal
+- The behavior is covered by automated tests where technically feasible.
+- Offline behavior is verified.
+- Master Catalog and Local Library scopes remain visibly distinct.
+- Personal Knowledge never enters Master Library persistence.
+- Cancellation, timeout and failure behavior are verified.
+- Architecture traceability is documented.
+- Accessibility implications are reviewed.
+- No direct private-repository access exists from UI code.
 
-Resume work within a selected workspace.
+## 12. Traceability
 
-### Preconditions
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/04-Platform/README.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Annotation/README.md`
+- `00-Architecture/04-Platform/Render/README.md`
+- `00-Architecture/04-Platform/Search/README.md`
+- `00-Architecture/04-Platform/Sync/README.md`
+- `00-Architecture/03-Kernel/README.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
-* Master Library available.
+## 13. Compatibility and Evolution
 
-### Main Flow
+Breaking changes to restoration formats, Local Library identity mapping, public client contracts or acquisition behavior require migration guidance and architecture review.
 
-1. User selects a workspace.
-2. Workspace metadata is loaded.
-3. Windows are restored.
-4. Editors are restored.
-5. Navigation state is restored.
+Persisted workspace and session formats SHALL be versioned.
 
-### Postconditions
+## 14. Status
 
-* workspace active.
-
----
-
-# 8. UC-03 — Create Knowledge Object
-
-## Goal
-
-Create a new knowledge object.
-
-### Main Flow
-
-1. User chooses "New".
-2. Appropriate editor opens.
-3. User creates content.
-4. Metadata is generated.
-5. Object is stored through approved contracts.
-
-### Postconditions
-
-* new knowledge object available.
-
----
-
-# 9. UC-04 — Open Existing Knowledge
-
-## Goal
-
-Continue working with an existing knowledge object.
-
-### Main Flow
-
-1. User locates the object.
-2. Object metadata is retrieved.
-3. Appropriate editor is selected.
-4. Content is displayed.
-
-### Postconditions
-
-* object available for interaction.
-
----
-
-# 10. UC-05 — Edit Knowledge
-
-## Goal
-
-Modify existing knowledge.
-
-### Main Flow
-
-1. User edits content.
-2. Local state is updated.
-3. Validation occurs.
-4. Changes are persisted through the Master Library.
-
-### Postconditions
-
-* updated knowledge preserved.
-
----
-
-# 11. UC-06 — Navigate Knowledge
-
-## Goal
-
-Explore connected knowledge.
-
-### Main Flow
-
-1. User selects a relationship.
-2. Related knowledge is retrieved.
-3. Navigation context is updated.
-4. User continues exploration.
-
-### Postconditions
-
-* navigation history updated.
-
----
-
-# 12. UC-07 — Search Knowledge
-
-## Goal
-
-Locate knowledge.
-
-### Main Flow
-
-1. User enters a query.
-2. Search Engine executes the request.
-3. Results are presented.
-4. User selects a result.
-5. Corresponding document opens.
-
-### Postconditions
-
-* requested knowledge located.
-
----
-
-# 13. UC-08 — Annotate Content
-
-## Goal
-
-Attach additional knowledge to existing content.
-
-### Main Flow
-
-1. User selects content.
-2. Annotation is created.
-3. Anchor is established.
-4. Annotation is persisted.
-
-### Postconditions
-
-* annotation available.
-
----
-
-# 14. UC-09 — Use Artificial Intelligence
-
-## Goal
-
-Request AI assistance.
-
-### Main Flow
-
-1. User invokes AI.
-2. Request is sent to the AI Engine.
-3. Response is received.
-4. User reviews suggestions.
-5. User explicitly accepts or rejects changes.
-
-### Postconditions
-
-* authoritative knowledge remains under user control.
-
----
-
-# 15. UC-10 — Import Documents
-
-## Goal
-
-Incorporate external information.
-
-### Main Flow
-
-1. User selects files.
-2. Import Engine processes content.
-3. Metadata is generated.
-4. Imported objects appear in the library.
-
-### Postconditions
-
-* imported knowledge available.
-
----
-
-# 16. UC-11 — Export Knowledge
-
-## Goal
-
-Produce portable output.
-
-### Main Flow
-
-1. User selects export format.
-2. Export Engine generates output.
-3. User chooses destination.
-4. Export completes.
-
-### Postconditions
-
-* exported artifact available.
-
----
-
-# 17. UC-12 — Install Plugin
-
-## Goal
-
-Extend application capabilities.
-
-### Main Flow
-
-1. User selects plugin.
-2. Plugin compatibility verified.
-3. Plugin installed.
-4. Plugin activated.
-
-### Postconditions
-
-* new capability available.
-
----
-
-# 18. UC-13 — Restore Previous Session
-
-## Goal
-
-Continue interrupted work.
-
-### Main Flow
-
-1. Application detects previous session.
-2. Session validated.
-3. Windows restored.
-4. Editors restored.
-5. Navigation restored.
-
-### Postconditions
-
-* previous working environment recovered.
-
----
-
-# 19. UC-14 — Synchronize Library
-
-## Goal
-
-Synchronize with the Master Library.
-
-### Main Flow
-
-1. Synchronization requested.
-2. Synchronization Engine executes.
-3. Progress reported.
-4. Results displayed.
-
-### Postconditions
-
-* local state synchronized.
-
----
-
-# 20. UC-15 — Close Application
-
-## Goal
-
-Terminate the application safely.
-
-### Main Flow
-
-1. Unsaved work validated.
-2. Session persisted.
-3. Background tasks completed.
-4. Application exits gracefully.
-
-### Postconditions
-
-* application state preserved.
-
----
-
-# 21. Exceptional Flows
-
-Representative exceptional scenarios include:
-
-* Master Library unavailable;
-* synchronization failure;
-* corrupted session;
-* unsupported plugin;
-* unavailable AI provider;
-* import failure;
-* insufficient permissions.
-
-The application shall provide meaningful recovery paths.
-
----
-
-# 22. Preconditions
-
-Typical preconditions include:
-
-* authenticated user where applicable;
-* valid Master Library;
-* supported application version;
-* available local configuration.
-
----
-
-# 23. Postconditions
-
-Representative postconditions include:
-
-* knowledge preserved;
-* session updated;
-* history maintained;
-* navigation context preserved;
-* application state consistent.
-
----
-
-# 24. Use Case Relationships
-
-Use cases may extend or include one another.
-
-Examples:
-
-* Open Workspace includes Restore Session.
-* Edit Knowledge includes Save Changes.
-* Search Knowledge may lead to Open Existing Knowledge.
-* AI Assistance may extend Edit Knowledge.
-* Import Documents creates Knowledge Objects.
-
----
-
-# 25. Coverage Matrix
-
-| Capability         | Covered |
-| ------------------ | ------- |
-| Startup            | Yes     |
-| Workspace          | Yes     |
-| Knowledge Creation | Yes     |
-| Editing            | Yes     |
-| Navigation         | Yes     |
-| Search             | Yes     |
-| Annotation         | Yes     |
-| AI                 | Yes     |
-| Import             | Yes     |
-| Export             | Yes     |
-| Plugins            | Yes     |
-| Synchronization    | Yes     |
-| Shutdown           | Yes     |
-
----
-
-# 26. Anti-Patterns
-
-The following are prohibited:
-
-* undocumented workflows;
-* bypassing Platform Engines;
-* modifying authoritative knowledge without user intent;
-* creating hidden system behavior;
-* inconsistent interaction flows.
-
----
-
-# 27. Use Case Invariants
-
-The following invariants are mandatory:
-
-* every workflow preserves user ownership;
-* every persistent modification follows approved architectural contracts;
-* user actions remain explicit;
-* workflows are recoverable;
-* navigation remains deterministic;
-* the Desktop Application never assumes responsibilities belonging to the Master Library.
-
----
-
-# 28. Related Documents
-
-* `README.md`
-* `FunctionalRequirements.md`
-* `NonFunctionalRequirements.md`
-* `UserExperienceGoals.md`
-* `ApplicationArchitecture.md`
-* `WorkspaceArchitecture.md`
-* `Architecture Decision Records (ADRs)`
-
----
-
-# 29. Status
-
-**Approved**
-
-This document defines the primary interaction scenarios for the KnowledgeOS Desktop Application.
-
-The use cases constitute the functional reference for the architectural design and implementation of the Desktop Application and shall remain aligned with the principles established by Architecture V3.
+This document is part of the KnowledgeOS Desktop Application V4 implementation baseline.

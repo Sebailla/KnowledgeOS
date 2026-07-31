@@ -1,445 +1,147 @@
+# Release Readiness
 
-# Master Library Release Readiness
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Completion
-
-**Document:** Release Readiness
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 10-Completion  
+**Document:** ReleaseReadiness  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Release Readiness framework for the KnowledgeOS Master Library.
+Define the release readiness for the KnowledgeOS Master Library implementation.
 
-Release Readiness determines whether an implementation baseline is sufficiently complete, stable and validated to be released for production deployment.
+## 2. Scope
 
-Release Readiness is the final operational verification performed before publication.
+This document covers release completion, traceability and residual risk for the NAS-hosted Master Library and its client-facing integration.
 
----
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
-# 2. Scope
+## 3. Architectural Baseline
 
-This document applies to every production release of:
+The implementation is governed by the following fixed model:
 
-* Master Library Server;
-* Client Applications;
-* PostgreSQL Catalog;
-* NAS Storage Architecture;
-* Platform Engines;
-* Integration Components;
-* Operational Infrastructure.
+```text
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
 
-It also applies to Release Candidates (RC).
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
+```
 
----
+The Master Library is independent from Local Libraries.
 
-# 3. Objectives
+## 4. Normative Requirements
 
-Release Readiness pursues the following objectives:
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-* reduce deployment risk;
-* validate implementation completeness;
-* verify operational readiness;
-* confirm release quality;
-* ensure architectural integrity;
-* authorize production deployment.
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
 
----
+## 5. Design Guidance
 
-# 4. Release Principles
+Implementation SHOULD:
 
-Every production release shall be:
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
 
-* complete;
-* stable;
-* reproducible;
-* documented;
-* validated;
-* approved.
+## 6. Failure and Recovery
 
-No release shall depend upon undocumented behavior.
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
 
----
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
 
-# 5. Release Classification
+Recovery SHALL preserve:
 
-KnowledgeOS defines the following release types:
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
 
-| Release Type      | Purpose                     |
-| ----------------- | --------------------------- |
-| Development       | Internal implementation     |
-| Alpha             | Internal feature validation |
-| Beta              | Extended validation         |
-| Release Candidate | Production validation       |
-| Production        | Official release            |
-| Hotfix            | Critical corrective release |
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
 
-Each release type follows its own approval process.
+## 7. Security and Privacy
 
----
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
 
-# 6. Mandatory Preconditions
+## 8. Observability
 
-Before a release may proceed, the following shall be completed:
+Relevant operations SHALL expose:
 
-* Architecture Compliance approved;
-* Implementation Checklist completed;
-* Acceptance Criteria satisfied;
-* Traceability verified;
-* Documentation frozen;
-* Testing completed.
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
 
-Failure of any mandatory precondition blocks the release.
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
 
----
+## 9. Verification and Acceptance
 
-# 7. Functional Readiness
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
 
-Functional validation verifies:
+## 10. Traceability
 
-* implemented features;
-* documented capabilities;
-* expected workflows;
-* interoperability.
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
-All mandatory functionality shall operate correctly.
+## 11. Compatibility and Migration
 
----
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-# 8. Architectural Readiness
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-Architecture readiness verifies:
+## 12. Status
 
-* Product Vision compliance;
-* Architecture Principles;
-* Architecture Constraints;
-* ADR implementation;
-* Quality Attributes.
-
-Architecture shall remain internally consistent.
-
----
-
-# 9. Operational Readiness
-
-Operational validation includes:
-
-* deployment procedures;
-* monitoring;
-* logging;
-* alerting;
-* backups;
-* maintenance;
-* incident management;
-* disaster recovery.
-
-Operational procedures shall be executable without undocumented knowledge.
-
----
-
-# 10. Infrastructure Readiness
-
-Infrastructure validation verifies:
-
-* PostgreSQL;
-* NAS;
-* storage capacity;
-* networking;
-* configuration;
-* security.
-
-Infrastructure shall satisfy operational requirements.
-
----
-
-# 11. Database Readiness
-
-Database validation includes:
-
-* schema verification;
-* migration validation;
-* integrity verification;
-* performance validation;
-* backup verification.
-
-Database consistency is mandatory.
-
----
-
-# 12. Client Readiness
-
-Client validation verifies:
-
-* Local Library;
-* Offline First behavior;
-* synchronization;
-* upgrade compatibility;
-* recovery.
-
-Clients shall successfully synchronize with the Master Library.
-
----
-
-# 13. Security Readiness
-
-Security validation includes:
-
-* authentication;
-* authorization;
-* encryption;
-* audit logging;
-* secrets;
-* privacy controls.
-
-Security reviews shall be completed before production deployment.
-
----
-
-# 14. Performance Readiness
-
-Performance validation verifies:
-
-* startup time;
-* indexing performance;
-* synchronization throughput;
-* API responsiveness;
-* operational stability.
-
-Performance objectives shall satisfy documented quality targets.
-
----
-
-# 15. Testing Readiness
-
-Release approval requires successful execution of:
-
-* unit tests;
-* integration tests;
-* contract tests;
-* migration tests;
-* recovery tests;
-* performance tests;
-* security tests;
-* end-to-end tests.
-
-No mandatory test may remain unresolved.
-
----
-
-# 16. Documentation Readiness
-
-Documentation shall verify:
-
-* architectural consistency;
-* implementation accuracy;
-* operational completeness;
-* version consistency;
-* reference integrity.
-
-Documentation shall be synchronized with the released implementation.
-
----
-
-# 17. Compatibility Validation
-
-Compatibility verification includes:
-
-* client compatibility;
-* server compatibility;
-* database compatibility;
-* plugin compatibility;
-* API compatibility.
-
-Backward compatibility shall be preserved whenever documented.
-
----
-
-# 18. Upgrade Validation
-
-Upgrade readiness verifies:
-
-* supported upgrade paths;
-* migration procedures;
-* rollback procedures;
-* recovery validation.
-
-Every supported upgrade path shall be tested.
-
----
-
-# 19. Rollback Readiness
-
-Rollback validation verifies:
-
-* verified backups;
-* restoration procedures;
-* operational documentation;
-* rollback testing.
-
-Rollback capability shall exist before production deployment.
-
----
-
-# 20. Release Evidence
-
-Release approval requires objective evidence, including:
-
-* architecture review reports;
-* implementation reports;
-* test reports;
-* operational validation;
-* deployment validation;
-* release notes.
-
-Evidence shall remain permanently archived.
-
----
-
-# 21. Release Decision
-
-Release decisions shall be classified as:
-
-| Decision               | Meaning                          |
-| ---------------------- | -------------------------------- |
-| Approved               | Ready for production             |
-| Conditionally Approved | Minor documented issues accepted |
-| Rejected               | Release blocked                  |
-
-Conditional approval requires documented acceptance of residual risk.
-
----
-
-# 22. Residual Risk Assessment
-
-Residual risks shall identify:
-
-* affected subsystem;
-* probability;
-* operational impact;
-* mitigation strategy;
-* monitoring requirements.
-
-Accepted risks shall be formally documented.
-
----
-
-# 23. Release Approval Authority
-
-Production releases require formal approval following successful completion of:
-
-* Architecture Review;
-* Operational Review;
-* Security Review;
-* Quality Review;
-* Release Review.
-
-Approval records shall remain auditable.
-
----
-
-# 24. Post-Release Verification
-
-Following deployment, the platform shall verify:
-
-* service availability;
-* monitoring;
-* health status;
-* synchronization;
-* operational metrics;
-* error rates.
-
-Release validation continues after deployment.
-
----
-
-# 25. Release Metrics
-
-Representative release metrics include:
-
-* deployment duration;
-* rollback frequency;
-* release success rate;
-* post-release incidents;
-* recovery time;
-* validation coverage.
-
-Metrics support release process improvement.
-
----
-
-# 26. Release Test Matrix
-
-| Verification             | Required |
-| ------------------------ | -------- |
-| Functional Readiness     | Yes      |
-| Architecture Compliance  | Yes      |
-| Security Validation      | Yes      |
-| Operational Validation   | Yes      |
-| Performance Validation   | Yes      |
-| Documentation Validation | Yes      |
-| Upgrade Validation       | Yes      |
-| Rollback Validation      | Yes      |
-| Post-Release Validation  | Yes      |
-
----
-
-# 27. Anti-Patterns
-
-The following are prohibited:
-
-* releasing without completed architecture reviews;
-* releasing without successful mandatory testing;
-* undocumented release procedures;
-* missing rollback plans;
-* incomplete operational documentation;
-* accepting unknown production risks.
-
----
-
-# 28. Release Readiness Invariants
-
-The following invariants are mandatory:
-
-* every production release satisfies the approved architecture;
-* mandatory reviews are completed;
-* release decisions are evidence-based;
-* rollback capability exists before deployment;
-* documentation reflects the released implementation;
-* operational readiness is demonstrated prior to production.
-
----
-
-# 29. Related Documents
-
-* `README.md`
-* `ImplementationChecklist.md`
-* `ArchitectureCompliance.md`
-* `TraceabilityMatrix.md`
-* `AcceptanceCriteria.md`
-* `KnownLimitations.md`
-* `FutureEvolution.md`
-* `FinalReview.md`
-
----
-
-# 30. Status
-
-**Approved**
-
-The Release Readiness framework is frozen as the authoritative production release validation model for the KnowledgeOS Master Library.
-
-No production release shall be authorized until every requirement defined in this document has been successfully validated, documented and formally approved.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

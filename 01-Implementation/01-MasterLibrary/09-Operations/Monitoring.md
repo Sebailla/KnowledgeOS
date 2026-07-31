@@ -1,490 +1,151 @@
+# Monitoring
 
-# Master Library Monitoring
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Operations
-
-**Document:** Monitoring
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 09-Operations  
+**Document:** Monitoring  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the monitoring architecture of the KnowledgeOS Master Library.
+Define the monitoring for the KnowledgeOS Master Library implementation.
 
-Monitoring provides continuous visibility into the operational state of the platform, enabling proactive detection of failures, performance degradation and abnormal behavior before they impact users.
+## 2. Scope
 
-Monitoring is a core architectural capability rather than an operational add-on.
+This document covers deployment, monitoring, backup and operational readiness for the NAS-hosted Master Library and its client-facing integration.
 
----
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
-# 2. Scope
+## 3. Architectural Baseline
 
-Monitoring applies to:
-
-* Master Library Server;
-* PostgreSQL Catalog;
-* NAS Source Storage;
-* Client Applications;
-* Synchronization Engine;
-* Search Engine;
-* Plugin Runtime;
-* AI Services;
-* Background Jobs;
-* Operational Infrastructure.
-
----
-
-# 3. Objectives
-
-Monitoring pursues the following objectives:
-
-* continuous observability;
-* early anomaly detection;
-* operational transparency;
-* performance measurement;
-* capacity forecasting;
-* incident support;
-* architecture validation.
-
----
-
-# 4. Monitoring Principles
-
-Every monitored component shall expose:
-
-* health;
-* availability;
-* performance;
-* utilization;
-* failures;
-* operational events.
-
-Monitoring shall be continuous, non-intrusive and deterministic.
-
----
-
-# 5. Monitoring Domains
-
-KnowledgeOS monitoring consists of:
-
-* Infrastructure Monitoring;
-* Service Monitoring;
-* Storage Monitoring;
-* Database Monitoring;
-* Synchronization Monitoring;
-* Search Monitoring;
-* Client Monitoring;
-* AI Monitoring;
-* Plugin Monitoring.
-
----
-
-# 6. Monitoring Architecture
+The implementation is governed by the following fixed model:
 
 ```text
-                 Monitoring Platform
-                         │
-        ┌────────────────┼────────────────┐
-        │                │                │
-        ▼                ▼                ▼
-   Infrastructure     Services       Applications
-        │                │                │
-        └────────────────┼────────────────┘
-                         ▼
-                 Metrics Repository
-                         │
-                         ▼
-                 Dashboards & Alerts
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
+
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
 ```
 
-Each subsystem publishes telemetry independently.
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Operational telemetry SHALL expose service, database, storage, workflow and integrity health without logging publication contents or private paths.
+- Alerts SHALL distinguish availability, integrity, capacity, security and backup failures.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
+
+## 5. Design Guidance
+
+Implementation SHOULD:
+
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
+
+## 6. Failure and Recovery
+
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
+
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
+
+Recovery SHALL preserve:
+
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
+
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
+
+## 7. Security and Privacy
+
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
+
+## 8. Observability
+
+Relevant operations SHALL expose:
+
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
+
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
+
+## 9. Verification and Acceptance
+
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
+- A runbook exists for the relevant operational scenario.
+- Health, alerting, backup and recovery paths are verifiable.
+
+## 10. Traceability
+
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
----
+## 11. Compatibility and Migration
 
-# 7. Infrastructure Monitoring
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-Infrastructure monitoring verifies:
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-* CPU utilization;
-* memory consumption;
-* disk utilization;
-* filesystem health;
-* network availability;
-* process status.
+## 12. Status
 
----
-
-# 8. Server Monitoring
-
-The Master Library Server exposes:
-
-* uptime;
-* request throughput;
-* active sessions;
-* command execution;
-* query execution;
-* background job activity.
-
----
-
-# 9. PostgreSQL Monitoring
-
-Database monitoring verifies:
-
-* connectivity;
-* query latency;
-* transaction throughput;
-* connection pool utilization;
-* lock contention;
-* storage growth;
-* replication status (future).
-
----
-
-# 10. NAS Monitoring
-
-NAS monitoring includes:
-
-* connectivity;
-* available capacity;
-* filesystem integrity;
-* read performance;
-* write performance;
-* permission validation.
-
-The NAS shall remain continuously reachable during normal operation.
-
----
-
-# 11. Synchronization Monitoring
-
-Synchronization monitoring verifies:
-
-* active sessions;
-* synchronization latency;
-* pending operations;
-* failed operations;
-* retry count;
-* conflict rate;
-* checkpoint progression.
-
-Synchronization health shall be continuously observable.
-
----
-
-# 12. Search Monitoring
-
-Search monitoring includes:
-
-* index availability;
-* indexing throughput;
-* search latency;
-* rebuild operations;
-* index growth;
-* failed indexing jobs.
-
-Indexes shall remain rebuildable.
-
----
-
-# 13. Client Monitoring
-
-Client monitoring collects:
-
-* startup duration;
-* shutdown duration;
-* synchronization duration;
-* Local Library status;
-* cache utilization;
-* crash reports where enabled.
-
-Client telemetry shall respect user privacy.
-
----
-
-# 14. Plugin Monitoring
-
-Plugin monitoring verifies:
-
-* loaded plugins;
-* startup duration;
-* execution time;
-* failures;
-* resource consumption;
-* compatibility status.
-
-Plugin failures shall remain isolated.
-
----
-
-# 15. AI Monitoring
-
-AI monitoring includes:
-
-* provider availability;
-* inference latency;
-* request volume;
-* timeout frequency;
-* model availability;
-* local model utilization.
-
-Core functionality shall remain unaffected by AI outages.
-
----
-
-# 16. Background Jobs
-
-Monitoring shall include:
-
-* queued jobs;
-* active jobs;
-* completed jobs;
-* failed jobs;
-* retry attempts;
-* execution duration.
-
----
-
-# 17. Backup Monitoring
-
-Backup monitoring verifies:
-
-* scheduled execution;
-* successful completion;
-* backup duration;
-* verification status;
-* restoration validation.
-
-A completed backup is not considered successful until verification passes.
-
----
-
-# 18. Capacity Monitoring
-
-Capacity monitoring tracks:
-
-* metadata growth;
-* asset growth;
-* storage utilization;
-* index growth;
-* database growth;
-* synchronization volume.
-
-Historical trends shall support capacity planning.
-
----
-
-# 19. Performance Monitoring
-
-Performance metrics include:
-
-* response times;
-* throughput;
-* latency;
-* queue length;
-* processing duration;
-* resource utilization.
-
----
-
-# 20. Operational Metrics
-
-Representative operational metrics include:
-
-* documents imported;
-* annotations created;
-* synchronization cycles;
-* exports completed;
-* OCR jobs executed;
-* AI requests processed.
-
-These metrics support operational insight rather than business analytics.
-
----
-
-# 21. Health Indicators
-
-Every subsystem exposes one of the following states:
-
-* Healthy;
-* Degraded;
-* Unavailable;
-* Maintenance.
-
-Health evaluation shall be deterministic.
-
----
-
-# 22. Service Level Indicators (SLIs)
-
-Representative SLIs include:
-
-* synchronization success rate;
-* search latency;
-* database response time;
-* backup success rate;
-* import completion rate;
-* server availability.
-
----
-
-# 23. Service Level Objectives (SLOs)
-
-Operational objectives shall be defined for:
-
-* availability;
-* synchronization;
-* storage;
-* database responsiveness;
-* search responsiveness;
-* backup completion.
-
-SLO values shall be reviewed periodically.
-
----
-
-# 24. Dashboards
-
-Operational dashboards shall provide:
-
-* overall platform health;
-* infrastructure overview;
-* synchronization status;
-* storage utilization;
-* database activity;
-* active incidents.
-
-Dashboards shall prioritize operational clarity.
-
----
-
-# 25. Data Retention
-
-Monitoring data retention shall define:
-
-* metric lifetime;
-* aggregation intervals;
-* archival policy;
-* deletion policy.
-
-Retention shall balance operational usefulness and storage costs.
-
----
-
-# 26. Privacy
-
-Monitoring data shall never expose:
-
-* document contents;
-* user annotations;
-* authentication secrets;
-* encryption keys;
-* confidential metadata.
-
-Operational telemetry shall be privacy-preserving.
-
----
-
-# 27. Observability Correlation
-
-Every monitored event shall support correlation through:
-
-* timestamp;
-* component identifier;
-* correlation identifier;
-* operation identifier;
-* execution context.
-
----
-
-# 28. Automation
-
-Monitoring shall support automated:
-
-* health evaluation;
-* metric collection;
-* anomaly detection;
-* dashboard updates;
-* alert generation.
-
-Automation shall not modify production state.
-
----
-
-# 29. Monitoring Test Matrix
-
-Mandatory monitoring validation includes:
-
-| Scenario                | Required |
-| ----------------------- | -------- |
-| Server Startup          | Yes      |
-| Database Failure        | Yes      |
-| NAS Failure             | Yes      |
-| Synchronization Failure | Yes      |
-| Search Failure          | Yes      |
-| Plugin Failure          | Yes      |
-| AI Provider Failure     | Yes      |
-| Backup Failure          | Yes      |
-| Capacity Threshold      | Yes      |
-
----
-
-# 30. Anti-Patterns
-
-The following are prohibited:
-
-* undocumented metrics;
-* inconsistent metric names;
-* duplicate telemetry;
-* monitoring business content;
-* exposing confidential information;
-* monitoring without validation.
-
----
-
-# 31. Monitoring Invariants
-
-The following invariants are mandatory:
-
-* every critical component exposes health metrics;
-* monitoring remains continuously available;
-* telemetry collection never modifies application state;
-* monitoring data is versioned and documented;
-* operational dashboards reflect real system state;
-* privacy is preserved at all times;
-* monitoring supports incident investigation and capacity planning.
-
----
-
-# 32. Related Documents
-
-* `README.md`
-* `Logging.md`
-* `Alerting.md`
-* `HealthChecks.md`
-* `CapacityPlanning.md`
-* `IncidentManagement.md`
-
----
-
-# 33. Status
-
-**Approved**
-
-The Monitoring architecture is frozen as the authoritative observability model for the KnowledgeOS Master Library.
-
-Every operational component shall continuously expose standardized telemetry to ensure reliable monitoring, rapid diagnosis and proactive operational management throughout the platform lifecycle.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

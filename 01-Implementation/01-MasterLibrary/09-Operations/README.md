@@ -1,382 +1,149 @@
+# Readme
 
-# Operations
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Operations
-
-**Document:** Operations Overview
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 09-Operations  
+**Document:** README  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the operational architecture of the KnowledgeOS Master Library.
+Provide the rector guide for deployment, monitoring, backup and operational readiness in the Master Library implementation.
 
-Operations encompass every activity required to deploy, configure, monitor, maintain, recover and evolve the platform throughout its operational lifecycle.
+## 2. Scope
 
-Operational concerns are considered architectural responsibilities rather than post-development activities.
+This document covers deployment, monitoring, backup and operational readiness for the NAS-hosted Master Library and its client-facing integration.
 
----
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
-# 2. Scope
+## 3. Architectural Baseline
 
-This section applies to every operational aspect of the platform, including:
-
-* deployment;
-* configuration;
-* monitoring;
-* logging;
-* alerting;
-* backups;
-* disaster recovery;
-* maintenance;
-* upgrades;
-* operational health;
-* capacity planning;
-* incident response.
-
-These practices apply to development, testing and production environments.
-
----
-
-# 3. Objectives
-
-The Operations layer pursues the following objectives:
-
-* ensure continuous availability;
-* preserve user knowledge;
-* maintain operational consistency;
-* simplify administration;
-* enable safe upgrades;
-* provide complete observability;
-* support long-term maintainability.
-
----
-
-# 4. Operational Principles
-
-Every operational process shall satisfy the following principles:
-
-* deterministic;
-* observable;
-* recoverable;
-* repeatable;
-* automated whenever practical;
-* fully documented.
-
-Manual procedures shall be minimized.
-
----
-
-# 5. Operational Responsibilities
-
-The Operations layer is responsible for:
-
-* runtime configuration;
-* deployment procedures;
-* service lifecycle;
-* monitoring infrastructure;
-* operational diagnostics;
-* backup execution;
-* recovery procedures;
-* maintenance activities;
-* operational security;
-* release operations.
-
-Business logic is outside the scope of Operations.
-
----
-
-# 6. Operational Architecture
-
-The operational architecture consists of the following domains:
+The implementation is governed by the following fixed model:
 
 ```text
-Deployment
-        │
-        ▼
-Configuration
-        │
-        ▼
-Runtime Services
-        │
-        ├──────── Monitoring
-        ├──────── Logging
-        ├──────── Alerting
-        ├──────── Health Checks
-        ├──────── Backup
-        ├──────── Maintenance
-        ├──────── Capacity Planning
-        └──────── Incident Management
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
+
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
 ```
 
-Each domain operates independently while remaining coordinated through common operational policies.
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
+
+## 5. Design Guidance
+
+Implementation SHOULD:
+
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
+
+## 6. Failure and Recovery
+
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
+
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
+
+Recovery SHALL preserve:
+
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
+
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
+
+## 7. Security and Privacy
+
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
+
+## 8. Observability
+
+Relevant operations SHALL expose:
+
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
+
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
+
+## 9. Verification and Acceptance
+
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
+- A runbook exists for the relevant operational scenario.
+- Health, alerting, backup and recovery paths are verifiable.
+
+## 10. Traceability
+
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
+
+## 11. Compatibility and Migration
 
----
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-# 7. Deployment
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-Deployment defines how platform components are installed, configured and started.
+## 12. Status
 
-Deployment documentation specifies:
-
-* installation;
-* dependencies;
-* startup sequence;
-* shutdown sequence;
-* rollback procedures.
-
----
-
-# 8. Configuration
-
-Configuration governs every runtime parameter.
-
-Configuration shall be:
-
-* versioned;
-* validated;
-* documented;
-* reproducible;
-* environment-aware.
-
-Configuration is external to application code.
-
----
-
-# 9. Monitoring
-
-Monitoring continuously evaluates platform health.
-
-Monitoring includes:
-
-* availability;
-* resource utilization;
-* synchronization;
-* storage;
-* database;
-* search indexes;
-* background jobs.
-
-Monitoring shall detect degradation before user impact.
-
----
-
-# 10. Logging
-
-Logging provides complete operational visibility.
-
-Logs shall support:
-
-* troubleshooting;
-* auditing;
-* performance analysis;
-* incident investigation;
-* operational metrics.
-
-Logging shall never expose confidential information.
-
----
-
-# 11. Alerting
-
-Alerting notifies operators of abnormal conditions.
-
-Alerts shall be:
-
-* actionable;
-* prioritized;
-* deduplicated;
-* traceable;
-* documented.
-
-Alert fatigue shall be minimized.
-
----
-
-# 12. Backup Operations
-
-Operational backup procedures verify:
-
-* PostgreSQL backups;
-* NAS integrity;
-* configuration backups;
-* backup verification;
-* restoration testing.
-
-A backup is considered valid only after successful restoration testing.
-
----
-
-# 13. Disaster Recovery
-
-Disaster Recovery defines procedures for restoring platform operation after catastrophic failures.
-
-Recovery objectives include:
-
-* preserving user knowledge;
-* restoring availability;
-* maintaining integrity;
-* minimizing downtime.
-
----
-
-# 14. Maintenance
-
-Maintenance activities include:
-
-* database optimization;
-* storage verification;
-* index rebuilding;
-* cleanup;
-* integrity verification;
-* dependency updates.
-
-Maintenance shall be planned whenever possible.
-
----
-
-# 15. Upgrade Management
-
-Platform upgrades shall preserve:
-
-* compatibility;
-* configuration;
-* metadata;
-* storage integrity;
-* synchronization state.
-
-Every upgrade shall have a documented rollback procedure.
-
----
-
-# 16. Health Checks
-
-Health monitoring validates:
-
-* service availability;
-* storage accessibility;
-* database connectivity;
-* synchronization readiness;
-* search readiness;
-* plugin subsystem status.
-
-Health checks shall execute continuously.
-
----
-
-# 17. Capacity Planning
-
-Operational capacity planning monitors:
-
-* storage growth;
-* database growth;
-* asset growth;
-* synchronization volume;
-* search index growth;
-* hardware utilization.
-
-Capacity planning supports long-term scalability.
-
----
-
-# 18. Incident Management
-
-Incident Management defines:
-
-* incident classification;
-* response procedures;
-* escalation;
-* communication;
-* resolution;
-* post-incident review.
-
-Every significant incident shall produce architectural learning.
-
----
-
-# 19. Automation
-
-Operational automation is preferred for:
-
-* deployments;
-* backups;
-* monitoring;
-* validation;
-* maintenance;
-* health verification;
-* reporting.
-
-Automation shall remain deterministic and observable.
-
----
-
-# 20. Documentation
-
-Every operational procedure shall include:
-
-* purpose;
-* prerequisites;
-* execution steps;
-* validation;
-* rollback;
-* troubleshooting.
-
-Operational documentation shall evolve together with the platform.
-
----
-
-# 21. Operational Invariants
-
-The following invariants are mandatory:
-
-* operational procedures are documented;
-* deployments are reproducible;
-* configuration remains version controlled;
-* monitoring provides complete observability;
-* backups are periodically verified;
-* disaster recovery procedures are continuously tested;
-* upgrades are reversible;
-* incidents are auditable;
-* operational automation never bypasses architectural constraints.
-
----
-
-# 22. Related Documents
-
-* `DeploymentArchitecture.md`
-* `ConfigurationManagement.md`
-* `Monitoring.md`
-* `Logging.md`
-* `Alerting.md`
-* `BackupOperations.md`
-* `DisasterRecovery.md`
-* `Maintenance.md`
-* `UpgradeProcedure.md`
-* `HealthChecks.md`
-* `CapacityPlanning.md`
-* `OperationalRunbooks.md`
-* `IncidentManagement.md`
-
----
-
-# 23. Status
-
-**Approved**
-
-The Operations module is frozen as the authoritative operational architecture for the KnowledgeOS Master Library.
-
-Every deployment, maintenance activity, recovery procedure and operational process shall conform to the principles defined in this document to ensure long-term reliability, consistency and preservation of user knowledge.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

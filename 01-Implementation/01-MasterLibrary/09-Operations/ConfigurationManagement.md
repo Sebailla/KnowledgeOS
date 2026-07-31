@@ -1,508 +1,149 @@
+# Configuration Management
 
-# Master Library Configuration Management
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Operations
-
-**Document:** Configuration Management
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 09-Operations  
+**Document:** ConfigurationManagement  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the configuration management architecture for the KnowledgeOS Master Library.
+Define the configuration management for the KnowledgeOS Master Library implementation.
 
-Configuration Management governs how operational parameters are defined, validated, versioned, secured and consumed across all platform components.
+## 2. Scope
 
-Configuration shall remain external to application code and reproducible across every supported environment.
+This document covers deployment, monitoring, backup and operational readiness for the NAS-hosted Master Library and its client-facing integration.
 
----
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
-# 2. Scope
+## 3. Architectural Baseline
 
-This document applies to:
-
-* Master Library Server;
-* Client Applications;
-* PostgreSQL;
-* NAS Storage;
-* Synchronization Engine;
-* Search Engine;
-* AI Providers;
-* Plugin Runtime;
-* Operational Services.
-
----
-
-# 3. Objectives
-
-Configuration Management pursues the following objectives:
-
-* deterministic configuration;
-* reproducible deployments;
-* secure secret handling;
-* environment isolation;
-* operational consistency;
-* version compatibility;
-* simplified administration.
-
----
-
-# 4. Configuration Principles
-
-Every configuration shall be:
-
-* externalized;
-* version controlled;
-* schema validated;
-* documented;
-* deterministic;
-* environment specific.
-
-Configuration shall never depend on undocumented defaults.
-
----
-
-# 5. Configuration Categories
-
-KnowledgeOS classifies configuration into:
-
-* System Configuration;
-* Storage Configuration;
-* Database Configuration;
-* Synchronization Configuration;
-* Search Configuration;
-* AI Configuration;
-* Plugin Configuration;
-* Security Configuration;
-* Operational Configuration.
-
-Each category evolves independently.
-
----
-
-# 6. Configuration Sources
-
-Configuration may originate from:
-
-* configuration files;
-* environment variables;
-* secret providers;
-* operating system services.
-
-Application source code is never considered a configuration source.
-
----
-
-# 7. Configuration Hierarchy
-
-Configuration precedence follows:
+The implementation is governed by the following fixed model:
 
 ```text
-Default Values
-        ↓
-Configuration Files
-        ↓
-Environment Variables
-        ↓
-Secret Providers
-        ↓
-Runtime Overrides (when supported)
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
+
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
 ```
 
-Higher levels override lower levels.
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
+
+## 5. Design Guidance
+
+Implementation SHOULD:
+
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
+
+## 6. Failure and Recovery
+
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
+
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
+
+Recovery SHALL preserve:
+
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
+
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
+
+## 7. Security and Privacy
+
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
+
+## 8. Observability
+
+Relevant operations SHALL expose:
+
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
+
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
+
+## 9. Verification and Acceptance
+
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
+- A runbook exists for the relevant operational scenario.
+- Health, alerting, backup and recovery paths are verifiable.
+
+## 10. Traceability
+
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
+
+## 11. Compatibility and Migration
 
----
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-# 8. Environment Profiles
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-Supported profiles include:
+## 12. Status
 
-* Development;
-* Testing;
-* Staging;
-* Production.
-
-Each profile maintains independent configuration values.
-
-Cross-environment reuse shall be minimized.
-
----
-
-# 9. Configuration Schema
-
-Every configuration file shall define:
-
-* schema version;
-* required fields;
-* optional fields;
-* default values;
-* validation rules.
-
-Configuration shall fail validation before startup if mandatory values are missing.
-
----
-
-# 10. Versioning
-
-Configuration versions evolve independently from application versions.
-
-Every configuration includes:
-
-* configuration version;
-* schema version;
-* compatibility information.
-
----
-
-# 11. Validation
-
-Configuration validation verifies:
-
-* syntax;
-* schema;
-* data types;
-* value ranges;
-* mandatory properties;
-* unsupported options.
-
-Invalid configuration shall prevent application startup.
-
----
-
-# 12. Secret Management
-
-Sensitive configuration includes:
-
-* passwords;
-* API keys;
-* authentication tokens;
-* encryption keys;
-* certificates.
-
-Secrets shall never be stored in source repositories.
-
----
-
-# 13. Secret Providers
-
-Supported secret providers may include:
-
-* operating system secure storage;
-* dedicated secret management systems;
-* encrypted environment variables.
-
-The implementation remains provider-independent.
-
----
-
-# 14. Storage Configuration
-
-Storage configuration defines:
-
-* NAS location;
-* Local Library location;
-* backup directories;
-* temporary storage;
-* cache directories.
-
-Storage paths shall be validated during startup.
-
----
-
-# 15. Database Configuration
-
-Database configuration includes:
-
-* connection parameters;
-* pooling configuration;
-* migration policy;
-* timeout values;
-* retry policy.
-
-Database credentials shall be treated as secrets.
-
----
-
-# 16. Synchronization Configuration
-
-Synchronization configuration defines:
-
-* synchronization interval;
-* retry limits;
-* checkpoint policy;
-* batch size;
-* timeout values.
-
-Synchronization behavior shall remain deterministic.
-
----
-
-# 17. Search Configuration
-
-Search configuration includes:
-
-* index location;
-* rebuild policy;
-* cache limits;
-* indexing workers;
-* update intervals.
-
-Indexes remain rebuildable.
-
----
-
-# 18. AI Configuration
-
-AI configuration defines:
-
-* provider selection;
-* local model paths;
-* inference parameters;
-* timeout values;
-* privacy policy.
-
-AI remains optional.
-
-Core platform functionality shall not depend upon AI configuration.
-
----
-
-# 19. Plugin Configuration
-
-Plugin configuration includes:
-
-* installation directories;
-* capability permissions;
-* runtime limits;
-* compatibility policy;
-* plugin-specific settings.
-
-Plugins shall remain isolated from global configuration.
-
----
-
-# 20. Logging Configuration
-
-Logging configuration defines:
-
-* log levels;
-* destinations;
-* retention policy;
-* structured logging options;
-* rotation settings.
-
----
-
-# 21. Monitoring Configuration
-
-Monitoring configuration specifies:
-
-* metrics collection;
-* sampling intervals;
-* health check frequency;
-* telemetry endpoints.
-
----
-
-# 22. Feature Flags
-
-Feature flags may enable controlled rollout of functionality.
-
-Feature flags shall:
-
-* default to documented values;
-* be auditable;
-* be removable after stabilization.
-
-Business logic shall not permanently depend upon feature flags.
-
----
-
-# 23. Runtime Reload
-
-Configuration may be classified as:
-
-* static;
-* reloadable;
-* restart-required.
-
-Every configuration parameter shall explicitly define its reload policy.
-
----
-
-# 24. Configuration Persistence
-
-Configuration persistence shall preserve:
-
-* version;
-* modification history;
-* validation status;
-* audit information.
-
----
-
-# 25. Configuration Migration
-
-Configuration migration verifies:
-
-* deprecated properties;
-* renamed fields;
-* removed options;
-* automatic migration where supported.
-
-Migration shall preserve semantic meaning.
-
----
-
-# 26. Configuration Backup
-
-Operational configuration shall be included in backup procedures.
-
-Backup verification shall confirm:
-
-* completeness;
-* integrity;
-* compatibility.
-
----
-
-# 27. Configuration Audit
-
-Every configuration modification shall record:
-
-* timestamp;
-* operator;
-* affected parameters;
-* previous value where appropriate;
-* new value;
-* reason for change.
-
----
-
-# 28. Security Validation
-
-Configuration validation verifies:
-
-* missing secrets;
-* insecure defaults;
-* weak permissions;
-* exposed credentials;
-* unsupported algorithms.
-
----
-
-# 29. Error Handling
-
-Configuration errors shall produce:
-
-* explicit diagnostics;
-* validation failures;
-* recovery guidance;
-* affected subsystem.
-
-Silent configuration correction is prohibited.
-
----
-
-# 30. Observability
-
-Configuration diagnostics shall expose:
-
-* configuration version;
-* schema version;
-* validation result;
-* active environment;
-* loaded providers.
-
-Sensitive values shall never appear in diagnostics.
-
----
-
-# 31. Automation
-
-Configuration management should support:
-
-* automated validation;
-* automated deployment;
-* automated compatibility checks;
-* automated documentation generation where practical.
-
----
-
-# 32. Configuration Test Matrix
-
-Mandatory validation includes:
-
-| Scenario              | Required              |
-| --------------------- | --------------------- |
-| Missing Configuration | Yes                   |
-| Invalid Schema        | Yes                   |
-| Missing Secrets       | Yes                   |
-| Unsupported Version   | Yes                   |
-| Environment Override  | Yes                   |
-| Runtime Reload        | Yes (where supported) |
-| Migration             | Yes                   |
-| Backup Restore        | Yes                   |
-
----
-
-# 33. Anti-Patterns
-
-The following are prohibited:
-
-* hardcoded secrets;
-* undocumented configuration;
-* implicit defaults;
-* duplicate configuration sources;
-* manual production edits without audit;
-* configuration embedded in binaries.
-
----
-
-# 34. Configuration Invariants
-
-The following invariants are mandatory:
-
-* configuration remains external to application code;
-* schemas are versioned;
-* configuration is validated before startup;
-* secrets are never exposed;
-* precedence rules are deterministic;
-* every change is auditable;
-* environments remain isolated;
-* configuration evolution remains backward compatible whenever practical.
-
----
-
-# 35. Related Documents
-
-* `README.md`
-* `DeploymentArchitecture.md`
-* `Security.md`
-* `UpgradeProcedure.md`
-* `BackupOperations.md`
-* `HealthChecks.md`
-
----
-
-# 36. Status
-
-**Approved**
-
-The Configuration Management architecture is frozen as the authoritative configuration model for the KnowledgeOS Master Library.
-
-Every runtime component shall consume validated, versioned and externally managed configuration to ensure deterministic, secure and reproducible platform operation.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

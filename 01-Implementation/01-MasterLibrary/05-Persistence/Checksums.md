@@ -1,397 +1,147 @@
+# Checksums
 
-# Master Library Checksums
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Persistence
-
-**Document:** Checksums
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 05-Persistence  
+**Document:** Checksums  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the checksum architecture used throughout the KnowledgeOS Master Library.
+Define the checksums for the KnowledgeOS Master Library implementation.
 
-Checksums provide deterministic verification of binary integrity across every authoritative storage service.
+## 2. Scope
 
-They are fundamental for:
+This document covers PostgreSQL and authoritative file-storage implementation for the NAS-hosted Master Library and its client-facing integration.
 
-* integrity verification;
-* commit validation;
-* backup verification;
-* restore validation;
-* synchronization;
-* migration;
-* recovery;
-* reconciliation;
-* corruption detection.
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
-Checksums are never used as object identities.
+## 3. Architectural Baseline
 
----
-
-# 2. Scope
-
-This document applies to every authoritative binary object managed by the Master Library.
-
-Including:
-
-* Sources;
-* Covers;
-* Assets;
-* Backup components;
-* Recovery packages;
-* Export packages (when preserved);
-* Manifest files.
-
-Catalog tables themselves rely on PostgreSQL durability rather than per-row checksums unless explicitly required.
-
----
-
-# 3. Architectural Role
-
-Checksums answer one question only:
-
-> **"Are these bytes exactly the same?"**
-
-They do **not** answer:
-
-* Is this the same Publication?
-* Is this the same Asset?
-* Is this a duplicate object?
-* Should this object be merged?
-
-Identity and integrity are intentionally independent concerns.
-
----
-
-# 4. Principles
-
-The checksum architecture follows these principles:
-
-* deterministic computation;
-* algorithm independence;
-* immutable values;
-* explicit algorithm versioning;
-* reproducibility;
-* storage independence;
-* append-only history;
-* verification before trust.
-
----
-
-# 5. Checksum Model
-
-Every committed binary stores:
+The implementation is governed by the following fixed model:
 
 ```text
-ChecksumAlgorithm
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
 
-ChecksumValue
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
 ```
 
-Example:
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
 
-```text
-Algorithm : SHA-256
+## 5. Design Guidance
 
-Value :
+Implementation SHOULD:
 
-6b51d431df5d7f141cbececcf79edf3d...
-```
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
 
-The algorithm is always stored together with the checksum.
+## 6. Failure and Recovery
 
----
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
 
-# 6. Supported Algorithms
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
 
-The architecture supports multiple algorithms.
+Recovery SHALL preserve:
 
-Initial approved algorithms:
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
 
-```text
-SHA-256
-```
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
 
-Future compatible algorithms may include:
+## 7. Security and Privacy
 
-```text
-SHA-512
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
 
-BLAKE3
+## 8. Observability
 
-SHA3-256
-```
+Relevant operations SHALL expose:
 
-Adding algorithms shall not invalidate previously committed objects.
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
 
----
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
 
-# 7. Algorithm Independence
+## 9. Verification and Acceptance
 
-Applications shall never assume a fixed checksum algorithm.
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
 
-Every verification uses:
+## 10. Traceability
 
-```text
-algorithm
-+
-checksum
-```
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
-Hardcoding SHA-256 into business logic is prohibited.
+## 11. Compatibility and Migration
 
----
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-# 8. Immutable Checksums
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-Once a binary reaches the **Committed** state:
+## 12. Status
 
-* checksum algorithm;
-* checksum value;
-
-become immutable.
-
-Changing either requires a new binary version.
-
----
-
-# 9. Checksum Generation
-
-Checksums are calculated over the complete committed binary.
-
-The calculation occurs before Catalog commit.
-
-No truncated or partial checksum is permitted.
-
----
-
-# 10. Commit Validation
-
-A binary cannot become authoritative until:
-
-1. binary persistence succeeds;
-2. checksum is calculated;
-3. checksum is verified from persisted storage;
-4. Catalog record is created.
-
-Verification is mandatory.
-
----
-
-# 11. Verification Sources
-
-Integrity verification compares:
-
-```text
-Catalog Metadata
-        │
-        ▼
-Stored Checksum
-        │
-        ▼
-Filesystem Binary
-        │
-        ▼
-Calculated Checksum
-```
-
-All values shall match.
-
----
-
-# 12. Verification Events
-
-Checksum verification occurs during:
-
-* commit;
-* restore;
-* reconciliation;
-* scheduled integrity scans;
-* migration;
-* manual validation;
-* administrative verification.
-
-Additional verification may occur during synchronization.
-
----
-
-# 13. Failure Handling
-
-Checksum mismatch immediately marks the binary as inconsistent.
-
-Automatic overwrite is prohibited.
-
-The object enters the Recovery workflow.
-
----
-
-# 14. Duplicate Detection
-
-Checksums may be used to detect identical binary content.
-
-Duplicate content does not imply identical domain identity.
-
-Example:
-
-```text
-Asset A
-↓
-
-SHA-256 X
-
-Asset B
-↓
-
-SHA-256 X
-```
-
-Both Assets remain distinct if their identities differ.
-
----
-
-# 15. Collision Policy
-
-The architecture assumes cryptographically secure algorithms.
-
-Potential collisions are treated as security events.
-
-The system shall never silently merge objects based solely on checksum equality.
-
----
-
-# 16. Manifests
-
-Every backup or migration manifest records:
-
-* algorithm;
-* checksum;
-* byte length;
-* logical storage key.
-
-The manifest itself may also be checksummed.
-
----
-
-# 17. Backup Verification
-
-Backup validation verifies:
-
-* binary existence;
-* byte length;
-* checksum;
-* manifest consistency.
-
-Incomplete verification never marks a backup as valid.
-
----
-
-# 18. Restore Verification
-
-Every restored binary is revalidated.
-
-Restoration is incomplete until checksum verification succeeds.
-
----
-
-# 19. Recovery
-
-Recovery never recalculates authoritative checksums as replacements.
-
-It only compares:
-
-stored checksum
-
-versus
-
-calculated checksum.
-
----
-
-# 20. Migration
-
-Storage migrations preserve checksum values.
-
-Migration shall not alter binary contents.
-
-A migrated binary producing a different checksum is considered corrupted.
-
----
-
-# 21. Performance
-
-Checksum calculation is optimized for:
-
-* sequential streaming;
-* low memory usage;
-* deterministic execution.
-
-Entire binaries shall not be loaded into memory solely for checksum computation.
-
----
-
-# 22. Security
-
-Checksums provide integrity verification.
-
-They do not provide:
-
-* confidentiality;
-* authenticity;
-* authorization;
-* encryption.
-
-Cryptographic signatures are outside the scope of this document.
-
----
-
-# 23. Invariants
-
-The following invariants are mandatory:
-
-* every committed binary has exactly one checksum algorithm;
-* every committed binary has exactly one checksum value;
-* checksum values never change;
-* checksum algorithms never change after commit;
-* checksum calculation always uses the full binary;
-* verification precedes Catalog commit;
-* checksum mismatch initiates recovery;
-* checksums never define object identity;
-* duplicate checksums never force object merging;
-* backup and restore always verify checksums.
-
----
-
-# 24. Related Documents
-
-* `StorageArchitecture.md`
-* `CatalogDatabase.md`
-* `CatalogSchema.md`
-* `SourceStorage.md`
-* `CoverStorage.md`
-* `AssetStorage.md`
-* `Integrity.md`
-* `Recovery.md`
-* `BackupRestore.md`
-
----
-
-# 25. Status
-
-**Approved**
-
-The checksum architecture is frozen as the authoritative integrity verification mechanism for every committed binary managed by the KnowledgeOS Master Library. It guarantees deterministic validation while remaining independent from domain identity, storage implementation and future hashing algorithms.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

@@ -1,448 +1,149 @@
-# Master Library Acceptance Criteria
+# Acceptance Criteria
 
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Completion
-
-**Document:** Acceptance Criteria
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 10-Completion  
+**Document:** AcceptanceCriteria  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the formal acceptance criteria for the KnowledgeOS Master Library.
+Define the acceptance criteria for the KnowledgeOS Master Library implementation.
 
-Acceptance Criteria establish the objective conditions that shall be satisfied before the implementation is considered complete and eligible for production release.
+## 2. Scope
+
+This document covers release completion, traceability and residual risk for the NAS-hosted Master Library and its client-facing integration.
 
-Acceptance is based exclusively on verifiable evidence.
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
----
+## 3. Architectural Baseline
 
-# 2. Scope
+The implementation is governed by the following fixed model:
 
-These criteria apply to every implementation artifact, including:
+```text
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
 
-* Architecture;
-* Domain;
-* Kernel;
-* Platform;
-* Integration;
-* Persistence;
-* Server;
-* Client Applications;
-* Operations;
-* Testing;
-* Documentation.
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
+```
+
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
 
-No subsystem is exempt from acceptance.
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
----
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Verification SHALL include failure, retry, migration and recovery behavior, not only successful requests.
+- Tests SHALL prove that Personal Knowledge never enters Master Library persistence.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
 
-# 3. Objectives
+## 5. Design Guidance
 
-Acceptance Criteria pursue the following objectives:
+Implementation SHOULD:
 
-* verify implementation completeness;
-* validate architectural compliance;
-* ensure operational readiness;
-* confirm quality objectives;
-* reduce release risk;
-* establish a production baseline.
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
 
----
+## 6. Failure and Recovery
 
-# 4. Acceptance Principles
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
 
-Acceptance shall be:
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
 
-* objective;
-* measurable;
-* repeatable;
-* evidence-based;
-* documented;
-* auditable.
+Recovery SHALL preserve:
 
-Subjective approval is insufficient.
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
 
----
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
 
-# 5. Mandatory Acceptance Requirements
+## 7. Security and Privacy
 
-The implementation shall satisfy all of the following:
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
 
-* approved architecture;
-* completed implementation;
-* successful validation;
-* complete documentation;
-* operational readiness;
-* formal review.
+## 8. Observability
 
-Failure of any mandatory requirement blocks acceptance.
+Relevant operations SHALL expose:
 
----
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
 
-# 6. Functional Acceptance
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
 
-Functional acceptance verifies:
+## 9. Verification and Acceptance
 
-* implemented capabilities;
-* expected behavior;
-* documented functionality;
-* user workflows;
-* system interactions.
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
 
-All mandatory functionality shall operate as specified.
+## 10. Traceability
 
----
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
-# 7. Architectural Acceptance
+## 11. Compatibility and Migration
 
-Architectural acceptance verifies:
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-* Architecture Principles;
-* Architecture Constraints;
-* Quality Attributes;
-* ADR implementation;
-* dependency rules;
-* architectural invariants.
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-Architecture shall remain internally consistent.
+## 12. Status
 
----
-
-# 8. Domain Acceptance
-
-Domain acceptance verifies:
-
-* Universal Document Model;
-* Document Presentation Model;
-* Knowledge Objects;
-* Identity Model;
-* Relationship Model;
-* lifecycle consistency.
-
-The implemented domain shall faithfully represent the approved domain architecture.
-
----
-
-# 9. Persistence Acceptance
-
-Persistence acceptance verifies:
-
-* PostgreSQL schema;
-* NAS organization;
-* metadata integrity;
-* checksum validation;
-* recovery procedures;
-* backup procedures.
-
-Authoritative knowledge shall remain protected.
-
----
-
-# 10. Client Acceptance
-
-Client validation verifies:
-
-* Local Library;
-* Offline First behavior;
-* synchronization;
-* cache consistency;
-* user preferences.
-
-Clients shall operate correctly while disconnected.
-
----
-
-# 11. Platform Acceptance
-
-Platform validation verifies:
-
-* Engine responsibilities;
-* service boundaries;
-* extensibility;
-* plugin support;
-* AI integration;
-* search functionality.
-
-Each Platform Engine shall satisfy its documented responsibilities.
-
----
-
-# 12. Integration Acceptance
-
-Integration validation verifies:
-
-* public contracts;
-* Plugin SDK;
-* external services;
-* OAuth;
-* MCP;
-* serialization compatibility.
-
-Interfaces shall remain stable and documented.
-
----
-
-# 13. Operational Acceptance
-
-Operational validation verifies:
-
-* deployment;
-* monitoring;
-* logging;
-* alerting;
-* backup;
-* disaster recovery;
-* maintenance;
-* incident management.
-
-Operational procedures shall be executable.
-
----
-
-# 14. Security Acceptance
-
-Security validation verifies:
-
-* authentication;
-* authorization;
-* encryption;
-* audit logging;
-* privacy controls;
-* credential management.
-
-Security controls shall satisfy architectural requirements.
-
----
-
-# 15. Performance Acceptance
-
-Performance validation verifies:
-
-* response times;
-* indexing performance;
-* synchronization throughput;
-* database performance;
-* startup time;
-* recovery time.
-
-Performance objectives shall satisfy documented Quality Attributes.
-
----
-
-# 16. Reliability Acceptance
-
-Reliability validation verifies:
-
-* fault tolerance;
-* recovery;
-* consistency;
-* operational stability;
-* integrity preservation.
-
-Critical failures shall be recoverable.
-
----
-
-# 17. Testing Acceptance
-
-Acceptance requires successful execution of:
-
-* unit tests;
-* integration tests;
-* contract tests;
-* migration tests;
-* recovery tests;
-* security tests;
-* performance tests;
-* end-to-end tests.
-
-Mandatory tests shall not fail.
-
----
-
-# 18. Documentation Acceptance
-
-Documentation shall be:
-
-* complete;
-* consistent;
-* versioned;
-* reviewed;
-* synchronized with implementation.
-
-Documentation is a release artifact.
-
----
-
-# 19. Compliance Acceptance
-
-Acceptance requires successful completion of:
-
-* Architecture Compliance Review;
-* Implementation Checklist;
-* Traceability Review;
-* Operational Review.
-
-All mandatory reviews shall be approved.
-
----
-
-# 20. Evidence Requirements
-
-Acceptance evidence shall include:
-
-* implementation artifacts;
-* architectural documents;
-* test reports;
-* review reports;
-* validation reports;
-* operational reports.
-
-Evidence shall remain permanently archived.
-
----
-
-# 21. Acceptance Decision
-
-Acceptance decisions shall be classified as:
-
-| Result                 | Meaning                     |
-| ---------------------- | --------------------------- |
-| Accepted               | Ready for release           |
-| Conditionally Accepted | Minor documented deviations |
-| Rejected               | Release blocked             |
-
-Conditional acceptance shall include an approved remediation plan.
-
----
-
-# 22. Acceptance Authority
-
-Formal acceptance requires approval by the designated architectural governance authority.
-
-Approval shall verify:
-
-* implementation;
-* documentation;
-* testing;
-* operations;
-* compliance.
-
-Approvals shall be auditable.
-
----
-
-# 23. Rejection Conditions
-
-Acceptance shall be rejected when:
-
-* critical defects remain unresolved;
-* mandatory documentation is incomplete;
-* architecture compliance fails;
-* required tests fail;
-* operational readiness is not demonstrated;
-* authoritative data integrity cannot be guaranteed.
-
----
-
-# 24. Post-Acceptance Obligations
-
-Following acceptance:
-
-* documentation becomes the official baseline;
-* architectural governance continues;
-* future changes require traceability;
-* architectural deviations require formal approval.
-
-Acceptance does not eliminate governance responsibilities.
-
----
-
-# 25. Acceptance Review Frequency
-
-Formal acceptance reviews shall occur:
-
-* before every major release;
-* after major architectural revisions;
-* after significant operational changes;
-* before declaring an implementation baseline complete.
-
----
-
-# 26. Acceptance Test Matrix
-
-| Verification            | Required |
-| ----------------------- | -------- |
-| Functional Validation   | Yes      |
-| Architecture Compliance | Yes      |
-| Domain Validation       | Yes      |
-| Persistence Validation  | Yes      |
-| Operational Validation  | Yes      |
-| Security Validation     | Yes      |
-| Performance Validation  | Yes      |
-| Documentation Review    | Yes      |
-| Traceability Review     | Yes      |
-| Release Review          | Yes      |
-
----
-
-# 27. Anti-Patterns
-
-The following are prohibited:
-
-* accepting undocumented implementations;
-* approving releases with failed mandatory tests;
-* accepting unresolved critical defects;
-* bypassing architecture reviews;
-* approving releases without traceability;
-* relying on subjective judgement instead of objective evidence.
-
----
-
-# 28. Acceptance Invariants
-
-The following invariants are mandatory:
-
-* every accepted implementation satisfies the approved architecture;
-* acceptance decisions are evidence-based;
-* mandatory validation is completed before approval;
-* documentation reflects the implemented system;
-* every release is operationally validated;
-* accepted baselines remain reproducible.
-
----
-
-# 29. Related Documents
-
-* `README.md`
-* `ImplementationChecklist.md`
-* `ArchitectureCompliance.md`
-* `TraceabilityMatrix.md`
-* `ReleaseReadiness.md`
-* `KnownLimitations.md`
-* `FutureEvolution.md`
-* `FinalReview.md`
-
----
-
-# 30. Status
-
-**Approved**
-
-The Acceptance Criteria are frozen as the authoritative acceptance framework for the KnowledgeOS Master Library.
-
-An implementation shall only be declared complete when every mandatory criterion defined in this document has been objectively verified, documented and formally approved.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

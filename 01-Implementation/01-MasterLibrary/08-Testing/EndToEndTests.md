@@ -1,592 +1,151 @@
+# End To End Tests
 
-# Master Library End-to-End Tests
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Testing
-
-**Document:** End-to-End Tests
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 08-Testing  
+**Document:** EndToEndTests  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the End-to-End (E2E) testing strategy for the KnowledgeOS Master Library.
+Define the end to end tests for the KnowledgeOS Master Library implementation.
 
-End-to-End Tests validate complete user workflows across the entire platform, ensuring that all architectural components collaborate correctly from the user's perspective.
+## 2. Scope
 
-Unlike Unit, Integration or Contract Tests, End-to-End Tests validate complete business scenarios.
+This document covers verification and conformance strategy for the NAS-hosted Master Library and its client-facing integration.
 
----
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
-# 2. Scope
+## 3. Architectural Baseline
 
-End-to-End Tests cover complete workflows involving:
-
-* Client Application;
-* Master Library Server;
-* PostgreSQL Catalog;
-* NAS Source Storage;
-* Local Library;
-* Synchronization Engine;
-* Search Engine;
-* Import Pipeline;
-* Export Pipeline;
-* Plugin Runtime;
-* AI Services.
-
----
-
-# 3. Objectives
-
-End-to-End Tests verify:
-
-* complete user workflows;
-* architectural consistency;
-* cross-module collaboration;
-* data preservation;
-* synchronization correctness;
-* recoverability;
-* user experience continuity.
-
----
-
-# 4. Testing Philosophy
-
-Every End-to-End Test represents a real-world usage scenario.
-
-Each scenario shall execute using production-like configurations whenever practical.
-
-Artificial scenarios shall be minimized.
-
----
-
-# 5. Architectural Coverage
-
-Every critical architectural capability shall appear in one or more complete workflows.
-
-No major subsystem may remain untested at the workflow level.
-
----
-
-# 6. Execution Environment
-
-End-to-End environments shall include:
-
-* Client;
-* Master Library Server;
-* PostgreSQL;
-* NAS;
-* Search Index;
-* Synchronization Service;
-* Plugin Runtime;
-* AI Provider simulators or controlled providers.
-
----
-
-# 7. Test Library
-
-Each execution uses a representative library including:
-
-* books;
-* papers;
-* scanned documents;
-* handwritten notes;
-* images;
-* PDFs;
-* annotations;
-* collections.
-
-The library shall be deterministic and version-controlled.
-
----
-
-# 8. Primary Workflow Categories
-
-KnowledgeOS defines the following End-to-End workflow families:
-
-* Acquisition;
-* Reading;
-* Annotation;
-* Organization;
-* Search;
-* Synchronization;
-* Recovery;
-* Migration;
-* Export;
-* AI;
-* Plugins.
-
----
-
-# 9. Scenario 1 — Initial Installation
-
-Validation includes:
-
-* first launch;
-* Local Library creation;
-* server registration;
-* initial synchronization;
-* configuration generation.
-
-Expected outcome:
-
-A fully operational system with an empty synchronized library.
-
----
-
-# 10. Scenario 2 — Initial Library Download
-
-Validation verifies:
-
-* catalog download;
-* asset download;
-* source availability;
-* search initialization;
-* synchronization checkpoint creation.
-
-The client becomes an accurate replica of the server state.
-
----
-
-# 11. Scenario 3 — Import a New Document
-
-Workflow:
+The implementation is governed by the following fixed model:
 
 ```text
-User selects document
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
 
-↓
-
-Import Pipeline
-
-↓
-
-Metadata Extraction
-
-↓
-
-OCR (if required)
-
-↓
-
-Duplicate Detection
-
-↓
-
-Local Library
-
-↓
-
-Pending Change Store
-
-↓
-
-Synchronization
-
-↓
-
-Server Validation
-
-↓
-
-NAS Storage
-
-↓
-
-Catalog Update
-
-↓
-
-Client Confirmation
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
 ```
 
-The imported document shall appear consistently across the entire platform.
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Verification SHALL include failure, retry, migration and recovery behavior, not only successful requests.
+- Tests SHALL prove that Personal Knowledge never enters Master Library persistence.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
+
+## 5. Design Guidance
+
+Implementation SHOULD:
+
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
+
+## 6. Failure and Recovery
+
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
+
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
+
+Recovery SHALL preserve:
+
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
+
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
+
+## 7. Security and Privacy
+
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
+
+## 8. Observability
+
+Relevant operations SHALL expose:
+
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
+
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
+
+## 9. Verification and Acceptance
+
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
+- The test suite is automated where technically possible.
+- Test data contains no production secrets or unapproved personal data.
+
+## 10. Traceability
+
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
----
+## 11. Compatibility and Migration
 
-# 12. Scenario 4 — Annotate a Document
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-Validation includes:
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-* highlight;
-* handwritten note;
-* bookmark;
-* comment;
-* reading progress.
+## 12. Status
 
-Annotations shall synchronize without modifying the original source document.
-
----
-
-# 13. Scenario 5 — Organize Knowledge
-
-Workflow verifies:
-
-* collections;
-* folders;
-* tags;
-* relationships;
-* graph links.
-
-Organization changes shall synchronize correctly.
-
----
-
-# 14. Scenario 6 — Search
-
-Validation includes:
-
-* metadata search;
-* full-text search;
-* semantic search;
-* filtered search;
-* graph navigation.
-
-Returned results shall remain consistent before and after synchronization.
-
----
-
-# 15. Scenario 7 — Offline Operation
-
-Workflow:
-
-* disconnect network;
-* import documents;
-* annotate;
-* reorganize;
-* perform searches.
-
-Reconnect.
-
-Synchronization shall preserve every local modification.
-
----
-
-# 16. Scenario 8 — Multi-Device Synchronization
-
-Validation verifies:
-
-Device A:
-
-* modifies metadata.
-
-Device B:
-
-* downloads modifications.
-
-Device C:
-
-* verifies consistency.
-
-All replicas shall converge to the same final state.
-
----
-
-# 17. Scenario 9 — Synchronization Conflict
-
-Validation includes:
-
-* simultaneous modification;
-* conflict detection;
-* conflict resolution;
-* synchronization continuation.
-
-Conflict resolution shall preserve user knowledge.
-
----
-
-# 18. Scenario 10 — AI Processing
-
-Workflow verifies:
-
-* embedding generation;
-* summarization;
-* keyword extraction;
-* semantic indexing.
-
-AI-generated metadata shall synchronize correctly.
-
----
-
-# 19. Scenario 11 — Plugin Execution
-
-Validation includes:
-
-* plugin installation;
-* capability negotiation;
-* plugin execution;
-* generated metadata;
-* synchronization.
-
-Plugin failures shall remain isolated.
-
----
-
-# 20. Scenario 12 — Export
-
-Tests verify:
-
-* PDF;
-* Markdown;
-* EPUB;
-* HTML.
-
-Exported content shall faithfully represent the stored knowledge.
-
----
-
-# 21. Scenario 13 — Recovery
-
-Workflow:
-
-* interrupt synchronization;
-* restart application;
-* resume synchronization.
-
-No committed data shall be lost.
-
----
-
-# 22. Scenario 14 — Backup Restoration
-
-Validation includes:
-
-* restore backup;
-* validate metadata;
-* validate assets;
-* validate search;
-* validate synchronization.
-
-The restored library shall match the backed-up state.
-
----
-
-# 23. Scenario 15 — Version Migration
-
-Workflow verifies:
-
-* application upgrade;
-* schema migration;
-* Local Library migration;
-* synchronization continuation.
-
-Migration shall preserve all knowledge.
-
----
-
-# 24. Scenario 16 — Large Library
-
-Validation includes:
-
-* very large catalog;
-* large asset repository;
-* extensive annotations;
-* graph traversal.
-
-System responsiveness shall remain acceptable.
-
----
-
-# 25. Scenario 17 — Long-Term Operation
-
-Continuous execution validates:
-
-* synchronization;
-* indexing;
-* searching;
-* importing;
-* exporting.
-
-No progressive degradation shall occur.
-
----
-
-# 26. Failure Scenarios
-
-Mandatory failures include:
-
-* network interruption;
-* NAS unavailable;
-* PostgreSQL unavailable;
-* server restart;
-* client crash;
-* disk full;
-* plugin failure.
-
-Each workflow shall recover deterministically.
-
----
-
-# 27. Data Integrity Verification
-
-After every workflow the following shall verify:
-
-* metadata integrity;
-* relationship integrity;
-* storage integrity;
-* search integrity;
-* synchronization integrity.
-
----
-
-# 28. Cross-Platform Validation
-
-End-to-End Tests shall execute across supported clients:
-
-* macOS;
-* iPadOS;
-* iOS;
-* Web (when implemented).
-
-Behavior shall remain functionally equivalent.
-
----
-
-# 29. Performance Validation
-
-Every workflow measures:
-
-* execution duration;
-* synchronization latency;
-* search latency;
-* import throughput;
-* export throughput.
-
-Performance regressions shall be reported.
-
----
-
-# 30. Observability
-
-Every workflow shall expose:
-
-* workflow identifier;
-* correlation identifier;
-* execution duration;
-* executed modules;
-* generated events;
-* failures;
-* recovery actions.
-
----
-
-# 31. Acceptance Criteria
-
-A workflow succeeds only when:
-
-* every architectural invariant remains valid;
-* user-visible behavior is correct;
-* synchronization completes successfully;
-* no integrity violations exist;
-* recoverability is preserved.
-
----
-
-# 32. Regression Policy
-
-Every production defect affecting complete workflows shall generate a permanent End-to-End Test.
-
-Regression scenarios become part of the continuous validation suite.
-
----
-
-# 33. Execution Frequency
-
-End-to-End suites execute:
-
-| Stage                 | Frequency          |
-| --------------------- | ------------------ |
-| Pull Request          | Critical workflows |
-| Nightly Build         | Complete suite     |
-| Release Candidate     | Complete suite     |
-| Production Validation | Smoke workflows    |
-
----
-
-# 34. Anti-Patterns
-
-The following are prohibited:
-
-* validating implementation details;
-* unstable datasets;
-* manual verification without automation;
-* hidden dependencies between workflows;
-* nondeterministic execution;
-* incomplete cleanup between executions.
-
----
-
-# 35. End-to-End Test Matrix
-
-| Workflow                | Mandatory |
-| ----------------------- | --------- |
-| Initial Installation    | Yes       |
-| Initial Synchronization | Yes       |
-| Import Document         | Yes       |
-| Annotate Document       | Yes       |
-| Search                  | Yes       |
-| Organize Library        | Yes       |
-| Offline Operation       | Yes       |
-| Multi-Device Sync       | Yes       |
-| Conflict Resolution     | Yes       |
-| AI Processing           | Yes       |
-| Plugin Execution        | Yes       |
-| Export                  | Yes       |
-| Recovery                | Yes       |
-| Backup Restore          | Yes       |
-| Migration               | Yes       |
-| Large Library           | Yes       |
-
----
-
-# 36. End-to-End Invariants
-
-The following invariants are mandatory:
-
-* every complete workflow preserves user knowledge;
-* NAS remains the Source of Truth for source documents;
-* PostgreSQL remains authoritative for metadata;
-* Local Libraries converge after synchronization;
-* synchronization remains deterministic;
-* failures are recoverable;
-* plugins remain isolated;
-* exported knowledge faithfully represents stored knowledge;
-* no workflow introduces architectural inconsistencies;
-* every release successfully executes the complete End-to-End suite before publication.
-
----
-
-# 37. Related Documents
-
-* `TestStrategy.md`
-* `UnitTests.md`
-* `IntegrationTests.md`
-* `ContractTests.md`
-* `SynchronizationTests.md`
-* `RecoveryTests.md`
-* `MigrationTests.md`
-* `PerformanceTests.md`
-* `SecurityTests.md`
-
----
-
-# 38. Status
-
-**Approved**
-
-The End-to-End Testing strategy is frozen as the authoritative validation model for complete KnowledgeOS workflows.
-
-Every release shall successfully execute the complete End-to-End suite, demonstrating that all architectural components collaborate correctly to preserve user knowledge across the entire lifecycle of the platform.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

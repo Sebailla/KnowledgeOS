@@ -1,493 +1,147 @@
+# Integrity
 
-# Master Library Integrity
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Persistence
-
-**Document:** Integrity
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 05-Persistence  
+**Document:** Integrity  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the integrity architecture of the KnowledgeOS Master Library.
+Define the integrity for the KnowledgeOS Master Library implementation.
 
-Integrity is the property that guarantees the Master Library remains internally consistent across all persistence services, regardless of failures, interruptions, migrations or recovery operations.
+## 2. Scope
 
-Integrity extends beyond binary validation.
+This document covers PostgreSQL and authoritative file-storage implementation for the NAS-hosted Master Library and its client-facing integration.
 
-It includes the consistency of:
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
-* Catalog Storage;
-* Source Storage;
-* Cover Storage;
-* Asset Storage;
-* manifests;
-* indexes;
-* relationships;
-* references;
-* operational metadata.
+## 3. Architectural Baseline
 
----
-
-# 2. Scope
-
-This document applies to every persistent component that participates in the authoritative Master Library.
-
-Including:
-
-* PostgreSQL Catalog;
-* Source Storage;
-* Cover Storage;
-* Asset Storage;
-* Backup packages;
-* Recovery packages;
-* Import staging;
-* Export validation;
-* Synchronization.
-
----
-
-# 3. Integrity Model
-
-Integrity is evaluated across four architectural layers:
+The implementation is governed by the following fixed model:
 
 ```text
-Domain Integrity
-        │
-Reference Integrity
-        │
-Storage Integrity
-        │
-Binary Integrity
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
+
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
 ```
 
-Every layer must be valid.
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
 
-A valid checksum alone does not imply a valid Master Library.
+## 5. Design Guidance
 
----
+Implementation SHOULD:
 
-# 4. Architectural Principles
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
 
-The integrity architecture follows these principles:
+## 6. Failure and Recovery
 
-* deterministic verification;
-* explicit validation;
-* reproducible evaluation;
-* append-only history;
-* recoverable consistency;
-* no silent repair;
-* independent verification;
-* implementation independence.
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
 
----
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
 
-# 5. Integrity Domains
+Recovery SHALL preserve:
 
-Integrity is evaluated independently for:
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
 
-* identities;
-* relationships;
-* metadata;
-* binary objects;
-* revisions;
-* storage references;
-* manifests;
-* backups.
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
 
-Each domain produces its own verification result.
+## 7. Security and Privacy
 
----
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
 
-# 6. Domain Integrity
+## 8. Observability
 
-Domain Integrity verifies that every aggregate satisfies its architectural rules.
+Relevant operations SHALL expose:
 
-Examples include:
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
 
-* every Publication has one identity;
-* every Asset has one identity;
-* every CoverRevision belongs to one Publication;
-* every SourceVersion belongs to one Publication.
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
 
-Business validation is outside the scope of this document.
+## 9. Verification and Acceptance
 
----
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
 
-# 7. Reference Integrity
+## 10. Traceability
 
-Reference Integrity verifies all logical relationships.
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
-Examples:
+## 11. Compatibility and Migration
 
-```text
-Publication
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-↓
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-SourceVersion
+## 12. Status
 
-↓
-
-Binary
-```
-
-```text
-Publication
-
-↓
-
-CoverRevision
-
-↓
-
-Binary
-```
-
-```text
-Publication
-
-↓
-
-PublicationAsset
-
-↓
-
-Asset
-```
-
-Broken references invalidate the library.
-
----
-
-# 8. Storage Integrity
-
-Storage Integrity verifies that every Catalog reference corresponds to exactly one authoritative binary.
-
-Verification includes:
-
-* storage key;
-* storage space;
-* binary existence;
-* byte length;
-* checksum.
-
----
-
-# 9. Binary Integrity
-
-Binary Integrity verifies:
-
-* checksum;
-* binary readability;
-* byte length;
-* corruption detection.
-
-Binary Integrity uses the checksum architecture defined in `Checksums.md`.
-
----
-
-# 10. Metadata Integrity
-
-Metadata verification includes:
-
-* valid identifiers;
-* revision consistency;
-* timestamps;
-* provenance;
-* version ordering;
-* required attributes.
-
-Metadata corruption invalidates the corresponding aggregate.
-
----
-
-# 11. Version Integrity
-
-Version verification ensures:
-
-* monotonically increasing revisions;
-* immutable historical revisions;
-* exactly one Current revision;
-* no revision gaps created by storage failures.
-
-Historical revisions remain verifiable.
-
----
-
-# 12. Manifest Integrity
-
-Every storage manifest shall be internally consistent.
-
-Verification includes:
-
-* logical storage keys;
-* checksum values;
-* algorithms;
-* byte length;
-* object count.
-
-Manifest inconsistency triggers Recovery.
-
----
-
-# 13. Backup Integrity
-
-Backup verification confirms:
-
-* complete Catalog snapshot;
-* complete binary set;
-* manifest consistency;
-* checksum validation;
-* version compatibility.
-
-Incomplete backups are never considered valid.
-
----
-
-# 14. Restore Integrity
-
-Restore verification confirms:
-
-* restored binaries exist;
-* Catalog references resolve correctly;
-* manifests match restored content;
-* checksum validation succeeds.
-
-Only after successful verification is the restored library considered authoritative.
-
----
-
-# 15. Synchronization Integrity
-
-Synchronization verifies that both sides converge to the same authoritative state.
-
-Verification includes:
-
-* identities;
-* revisions;
-* binary availability;
-* manifests;
-* checksums.
-
-Synchronization never assumes correctness.
-
-It always verifies.
-
----
-
-# 16. Migration Integrity
-
-Migration must preserve:
-
-* identities;
-* revisions;
-* logical storage keys;
-* checksums;
-* relationships.
-
-Migration may change implementation details but never architectural state.
-
----
-
-# 17. Integrity Verification Levels
-
-KnowledgeOS defines four verification levels:
-
-### Level 1 — Structural
-
-Verifies:
-
-* schema;
-* manifests;
-* references.
-
----
-
-### Level 2 — Metadata
-
-Verifies:
-
-* revisions;
-* timestamps;
-* identities;
-* provenance.
-
----
-
-### Level 3 — Binary
-
-Verifies:
-
-* file existence;
-* byte length;
-* checksums.
-
----
-
-### Level 4 — Complete
-
-Executes every verification defined by this document.
-
----
-
-# 18. Scheduled Verification
-
-Integrity verification may execute:
-
-* at startup;
-* periodically;
-* before backup;
-* after restore;
-* after migration;
-* after synchronization;
-* on administrative request.
-
-Verification frequency is configurable.
-
-Verification rules are not.
-
----
-
-# 19. Integrity Reports
-
-Every verification produces an immutable report containing:
-
-* execution identifier;
-* timestamp;
-* verification scope;
-* detected inconsistencies;
-* verification duration;
-* result.
-
-Reports are append-only.
-
----
-
-# 20. Failure Classification
-
-Integrity failures are classified as:
-
-```text
-Information
-
-↓
-
-Warning
-
-↓
-
-Error
-
-↓
-
-Critical
-```
-
-Severity determines operational response.
-
----
-
-# 21. Recovery Trigger
-
-Integrity verification never performs repairs directly.
-
-Instead it requests Recovery.
-
-Examples:
-
-* orphan binary;
-* missing binary;
-* broken reference;
-* checksum mismatch;
-* manifest inconsistency;
-* revision inconsistency.
-
-Repair belongs exclusively to the Recovery architecture.
-
----
-
-# 22. Forbidden Behavior
-
-The following actions are prohibited:
-
-* silently recreating binaries;
-* silently modifying metadata;
-* silently fixing checksums;
-* silently deleting objects;
-* silently replacing revisions;
-* silently rebuilding manifests.
-
-Every repair must be explicit and auditable.
-
----
-
-# 23. Integrity Metrics
-
-Recommended operational metrics include:
-
-* verified objects;
-* verification duration;
-* failures by severity;
-* orphan count;
-* checksum mismatches;
-* reference inconsistencies;
-* recovery requests.
-
-Metrics never replace verification reports.
-
----
-
-# 24. Invariants
-
-The following invariants are mandatory:
-
-* every aggregate has a valid identity;
-* every Catalog reference resolves;
-* every committed binary exists;
-* every committed binary passes checksum verification;
-* every manifest is internally consistent;
-* every backup is verifiable;
-* every restore is verified before activation;
-* historical revisions remain immutable;
-* verification never modifies authoritative state;
-* integrity failures always produce explicit reports;
-* recovery is always initiated explicitly;
-* silent repair is prohibited.
-
----
-
-# 25. Related Documents
-
-* `StorageArchitecture.md`
-* `CatalogDatabase.md`
-* `CatalogSchema.md`
-* `SourceStorage.md`
-* `CoverStorage.md`
-* `AssetStorage.md`
-* `Checksums.md`
-* `Recovery.md`
-* `BackupRestore.md`
-* `Consistency.md`
-
----
-
-# 26. Status
-
-**Approved**
-
-The Integrity architecture is frozen as the authoritative verification framework for the KnowledgeOS Master Library. It defines deterministic, reproducible and implementation-independent validation across domain objects, references, metadata, storage services and binary content, ensuring that every authoritative library state can be verified without modifying persistent data.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

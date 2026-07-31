@@ -1,309 +1,147 @@
-# Completion
+# Readme
 
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Completion
-
-**Document:** README
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 10-Completion  
+**Document:** README  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-The Completion layer defines the criteria that determine when the Master Library implementation is considered architecturally complete.
+Provide the rector guide for release completion, traceability and residual risk in the Master Library implementation.
 
-Its purpose is to verify that every architectural decision has been implemented, validated, documented and approved before development transitions into long-term maintenance and product evolution.
+## 2. Scope
 
-Completion is not the end of development.
+This document covers release completion, traceability and residual risk for the NAS-hosted Master Library and its client-facing integration.
 
-Completion is the formal verification that the implemented system faithfully represents the approved architecture.
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
----
+## 3. Architectural Baseline
 
-# 2. Scope
-
-This layer applies to every implementation artifact, including:
-
-* Architecture;
-* Domain Model;
-* Persistence;
-* Services;
-* APIs;
-* Synchronization;
-* Search;
-* AI;
-* Plugins;
-* Security;
-* Operations;
-* Documentation;
-* Testing.
-
----
-
-# 3. Objectives
-
-The Completion layer pursues the following objectives:
-
-* verify architectural completeness;
-* ensure implementation consistency;
-* validate documentation quality;
-* confirm operational readiness;
-* establish release confidence;
-* provide a baseline for future evolution.
-
----
-
-# 4. Completion Principles
-
-Implementation completion shall satisfy the following principles:
-
-* complete;
-* consistent;
-* deterministic;
-* documented;
-* reproducible;
-* auditable.
-
-No architectural component shall remain partially specified.
-
----
-
-# 5. Completion Domains
-
-Completion evaluates the following domains:
-
-* Functional implementation;
-* Architectural compliance;
-* Documentation;
-* Testing;
-* Operations;
-* Security;
-* Deployment;
-* Quality;
-* Maintainability.
-
-Each domain contributes to the overall completion assessment.
-
----
-
-# 6. Completion Workflow
+The implementation is governed by the following fixed model:
 
 ```text
-Architecture
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
 
-↓
-
-Implementation
-
-↓
-
-Verification
-
-↓
-
-Testing
-
-↓
-
-Documentation
-
-↓
-
-Operational Validation
-
-↓
-
-Acceptance
-
-↓
-
-Release Readiness
-
-↓
-
-Architecture Baseline Frozen
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
 ```
 
-Each phase shall be successfully completed before advancing.
+The Master Library is independent from Local Libraries.
 
----
+## 4. Normative Requirements
 
-# 7. Completion Documents
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-This directory contains the following documents:
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
 
-| Document                   | Purpose                                   |
-| -------------------------- | ----------------------------------------- |
-| ImplementationChecklist.md | Verify implementation completeness        |
-| ArchitectureCompliance.md  | Validate architectural conformance        |
-| TraceabilityMatrix.md      | Map requirements to implementation        |
-| AcceptanceCriteria.md      | Define completion requirements            |
-| ReleaseReadiness.md        | Evaluate deployment readiness             |
-| KnownLimitations.md        | Register accepted limitations             |
-| FutureEvolution.md         | Define architectural evolution guidelines |
-| FinalReview.md             | Final architecture assessment             |
+## 5. Design Guidance
 
----
+Implementation SHOULD:
 
-# 8. Architecture Verification
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
 
-Completion verifies that:
+## 6. Failure and Recovery
 
-* every architectural decision has been implemented;
-* every subsystem is documented;
-* every interface is specified;
-* every dependency is justified;
-* every invariant remains satisfied.
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
 
-Architecture verification is mandatory.
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
 
----
+Recovery SHALL preserve:
 
-# 9. Documentation Verification
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
 
-Documentation shall be:
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
 
-* complete;
-* internally consistent;
-* versioned;
-* reviewed;
-* synchronized with implementation.
+## 7. Security and Privacy
 
-Documentation becomes part of the product baseline.
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
 
----
+## 8. Observability
 
-# 10. Testing Verification
+Relevant operations SHALL expose:
 
-Completion verifies:
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
 
-* unit tests;
-* integration tests;
-* contract tests;
-* recovery tests;
-* operational validation;
-* architecture validation.
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
 
-Testing evidence shall be preserved.
+## 9. Verification and Acceptance
 
----
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
 
-# 11. Operational Verification
+## 10. Traceability
 
-Operational readiness includes validation of:
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
-* deployment;
-* monitoring;
-* logging;
-* backups;
-* disaster recovery;
-* maintenance;
-* incident response.
+## 11. Compatibility and Migration
 
-Operational capabilities shall be fully documented.
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
----
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-# 12. Quality Verification
+## 12. Status
 
-Quality verification evaluates:
-
-* reliability;
-* performance;
-* maintainability;
-* scalability;
-* security;
-* observability.
-
-Quality attributes shall comply with the approved architecture.
-
----
-
-# 13. Completion Evidence
-
-Completion shall produce objective evidence, including:
-
-* architecture reviews;
-* test reports;
-* validation reports;
-* compliance reports;
-* operational reports;
-* release documentation.
-
-Completion is evidence-driven rather than opinion-driven.
-
----
-
-# 14. Governance
-
-Completion requires approval of:
-
-* architectural review;
-* implementation review;
-* documentation review;
-* operational review;
-* release review.
-
-Approval shall be recorded and auditable.
-
----
-
-# 15. Continuous Improvement
-
-Completion findings shall be used to:
-
-* improve documentation;
-* refine architecture;
-* improve testing;
-* improve operational procedures;
-* guide future releases.
-
-Completion contributes to long-term architectural maturity.
-
----
-
-# 16. Related Documents
-
-* `ImplementationChecklist.md`
-* `ArchitectureCompliance.md`
-* `TraceabilityMatrix.md`
-* `AcceptanceCriteria.md`
-* `ReleaseReadiness.md`
-* `KnownLimitations.md`
-* `FutureEvolution.md`
-* `FinalReview.md`
-
----
-
-# 17. Architectural Invariants
-
-The following invariants are mandatory:
-
-* architecture remains internally consistent;
-* implementation matches approved architecture;
-* documentation accurately reflects implementation;
-* testing validates architectural behavior;
-* operational readiness is demonstrated;
-* completion evidence remains permanently available.
-
----
-
-# 18. Status
-
-**Approved**
-
-The Completion layer is frozen as the authoritative framework for validating the successful implementation of the KnowledgeOS Master Library.
-
-A release shall only be considered complete when every document in this directory has been successfully validated and approved.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

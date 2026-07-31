@@ -1,378 +1,147 @@
+# Known Limitations
 
-# Master Library Known Limitations
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Completion
-
-**Document:** Known Limitations
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 10-Completion  
+**Document:** KnownLimitations  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the known architectural and implementation limitations of the KnowledgeOS Master Library.
+Define the known limitations for the KnowledgeOS Master Library implementation.
 
-Its purpose is to explicitly document accepted limitations, assumptions and intentional exclusions so that they remain visible, traceable and governed throughout the product lifecycle.
+## 2. Scope
 
-Known limitations are not architectural defects.
+This document covers release completion, traceability and residual risk for the NAS-hosted Master Library and its client-facing integration.
 
-They represent conscious decisions accepted by architectural governance.
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
----
+## 3. Architectural Baseline
 
-# 2. Scope
+The implementation is governed by the following fixed model:
 
-This document applies to:
+```text
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
 
-* Architecture;
-* Domain Model;
-* Platform;
-* Integration;
-* Persistence;
-* Client Applications;
-* Operations;
-* Infrastructure;
-* Future Releases.
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
+```
 
----
+The Master Library is independent from Local Libraries.
 
-# 3. Objectives
+## 4. Normative Requirements
 
-This document pursues the following objectives:
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-* document accepted limitations;
-* distinguish limitations from defects;
-* avoid undocumented assumptions;
-* support future planning;
-* improve architectural transparency;
-* simplify long-term evolution.
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
 
----
+## 5. Design Guidance
 
-# 4. Guiding Principles
+Implementation SHOULD:
 
-Every limitation shall be:
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
 
-* explicitly documented;
-* technically justified;
-* periodically reviewed;
-* traceable;
-* approved.
+## 6. Failure and Recovery
 
-Undocumented limitations are prohibited.
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
 
----
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
 
-# 5. Classification
+Recovery SHALL preserve:
 
-Known limitations are classified as:
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
 
-| Category      | Description                          |
-| ------------- | ------------------------------------ |
-| Architectural | Intentional architectural boundary   |
-| Technical     | Current implementation restriction   |
-| Operational   | Operational constraint               |
-| External      | Dependency outside platform control  |
-| Product       | Functionality intentionally excluded |
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
 
----
+## 7. Security and Privacy
 
-# 6. Architectural Boundaries
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
 
-The following boundaries are intentional:
+## 8. Observability
 
-* the NAS remains the single authoritative storage for binary assets;
-* PostgreSQL stores metadata only;
-* clients never write directly to the NAS;
-* clients never modify PostgreSQL directly;
-* synchronization always occurs through the Master Library Server.
+Relevant operations SHALL expose:
 
-These boundaries shall not be considered limitations requiring correction.
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
 
----
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
 
-# 7. Platform Scope
+## 9. Verification and Acceptance
 
-The current architecture prioritizes:
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
 
-* macOS;
-* iPadOS;
-* iOS.
+## 10. Traceability
 
-A Web client may exist in future releases but is not required for architectural completeness.
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
-Platform prioritization is intentional.
+## 11. Compatibility and Migration
 
----
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-# 8. Artificial Intelligence
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-AI capabilities are intentionally constrained by the following principles:
+## 12. Status
 
-* AI is optional;
-* AI never owns user knowledge;
-* AI never modifies authoritative information autonomously;
-* AI providers may be local or remote;
-* AI availability shall not affect core platform operation.
-
-These constraints preserve determinism and user ownership.
-
----
-
-# 9. Plugin Ecosystem
-
-Current architectural limitations include:
-
-* plugins execute only through the published SDK;
-* internal platform APIs are not exposed;
-* plugins cannot bypass security boundaries;
-* plugins cannot directly manipulate persistence.
-
-These restrictions preserve platform stability.
-
----
-
-# 10. Offline Operation
-
-Offline functionality intentionally excludes:
-
-* real-time synchronization;
-* remote AI inference;
-* cloud-dependent integrations.
-
-Offline operation shall continue using locally available capabilities.
-
----
-
-# 11. External Dependencies
-
-The platform depends upon external components including:
-
-* PostgreSQL;
-* NAS infrastructure;
-* operating system services;
-* AI providers;
-* external authentication providers where configured.
-
-Failures of external systems cannot always be eliminated by architecture.
-
----
-
-# 12. Scalability
-
-The architecture supports gradual scaling.
-
-It does not currently target:
-
-* globally distributed deployments;
-* multi-region replication;
-* high-frequency transactional workloads;
-* massive multi-tenant architectures.
-
-KnowledgeOS is designed primarily as a personal knowledge platform.
-
----
-
-# 13. Hardware Constraints
-
-Actual performance depends upon:
-
-* available CPU;
-* memory;
-* storage performance;
-* NAS performance;
-* network quality.
-
-Hardware limitations are deployment-specific.
-
----
-
-# 14. Operating System Dependencies
-
-Native client capabilities may depend upon operating system features including:
-
-* file system services;
-* local security mechanisms;
-* native rendering;
-* OCR frameworks;
-* hardware acceleration.
-
-These dependencies are expected and documented.
-
----
-
-# 15. Search Limitations
-
-Search capabilities depend upon:
-
-* available indexes;
-* metadata quality;
-* indexing completion;
-* language support;
-* installed search components.
-
-Search indexes remain rebuildable.
-
----
-
-# 16. Synchronization Limitations
-
-Synchronization assumes:
-
-* eventual connectivity;
-* deterministic conflict resolution;
-* consistent metadata;
-* reliable checkpoint storage.
-
-Permanent network availability is not required.
-
----
-
-# 17. Security Assumptions
-
-Security architecture assumes:
-
-* trusted operating system;
-* protected credentials;
-* authenticated users;
-* properly configured infrastructure.
-
-No software architecture can compensate for a compromised execution environment.
-
----
-
-# 18. Documentation Limitations
-
-Documentation reflects the approved architecture at the time of publication.
-
-Future architectural evolution may supersede portions of this documentation through approved governance procedures.
-
----
-
-# 19. Accepted Technical Debt
-
-Technical debt may be accepted only when:
-
-* documented;
-* risk assessed;
-* approved;
-* traceable;
-* scheduled for review.
-
-Undocumented technical debt is prohibited.
-
----
-
-# 20. Deferred Capabilities
-
-Examples of intentionally deferred capabilities include:
-
-* distributed clustering;
-* collaborative real-time editing;
-* enterprise administration features;
-* advanced multi-user governance;
-* horizontal infrastructure scaling.
-
-Deferred capabilities remain outside the current architectural scope.
-
----
-
-# 21. Review Process
-
-Known limitations shall be reviewed:
-
-* before every major release;
-* after major architectural revisions;
-* during architecture governance reviews;
-* when implementation assumptions change.
-
-Limitations may be removed only through approved architectural evolution.
-
----
-
-# 22. Documentation Requirements
-
-Every limitation shall include:
-
-* description;
-* rationale;
-* affected components;
-* architectural impact;
-* review status.
-
-Documentation shall remain current.
-
----
-
-# 23. Limitation Register
-
-Each documented limitation shall maintain:
-
-* unique identifier;
-* category;
-* severity;
-* architectural impact;
-* mitigation strategy;
-* review history.
-
-The limitation register shall remain auditable.
-
----
-
-# 24. Anti-Patterns
-
-The following are prohibited:
-
-* undocumented architectural assumptions;
-* hidden implementation restrictions;
-* treating defects as accepted limitations;
-* introducing permanent temporary solutions;
-* bypassing governance when accepting limitations.
-
----
-
-# 25. Known Limitations Invariants
-
-The following invariants are mandatory:
-
-* every accepted limitation is documented;
-* accepted limitations preserve architectural integrity;
-* limitations remain periodically reviewed;
-* deferred functionality is explicitly identified;
-* technical debt is traceable;
-* architectural boundaries remain intentional.
-
----
-
-# 26. Related Documents
-
-* `README.md`
-* `ArchitectureCompliance.md`
-* `AcceptanceCriteria.md`
-* `ReleaseReadiness.md`
-* `FutureEvolution.md`
-* `FinalReview.md`
-* Architecture Decision Records (ADRs)
-
----
-
-# 27. Status
-
-**Approved**
-
-The Known Limitations document is frozen as the authoritative register of accepted architectural limitations for the KnowledgeOS Master Library.
-
-Every documented limitation shall remain visible, justified, periodically reviewed and governed to ensure that future evolution occurs deliberately without compromising the architectural integrity of KnowledgeOS.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

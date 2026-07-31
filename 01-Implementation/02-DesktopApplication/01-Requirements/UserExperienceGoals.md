@@ -1,450 +1,171 @@
+# User Experience Goals
 
-# Desktop Application User Experience Goals
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Desktop Application
-
-**Layer:** Requirements
-
-**Document:** User Experience Goals
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Desktop Application / 01-Requirements  
+**Document:** UserExperienceGoals  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Platform:** macOS  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the User Experience (UX) goals for the KnowledgeOS Desktop Application.
+Define the user experience goals for the KnowledgeOS macOS application, covering product requirements and user-facing acceptance criteria.
 
-The objective is to establish a coherent experience that enables users to focus on thinking, learning and creating knowledge rather than operating software.
+## 2. Scope
 
-User Experience is considered an architectural concern and shall influence every implementation decision.
+This document applies to the native macOS client and its integration with:
 
----
+- the device Local Library;
+- the NAS-hosted Master Library;
+- Personal Knowledge;
+- UDM and DPM;
+- Platform Engines;
+- Kernel execution services;
+- Apple platform services.
 
-# 2. Scope
+It does not redefine Domain authority, acquisition semantics, synchronization ownership or Platform Engine responsibilities.
 
-These goals apply to:
+## 3. Product Context
 
-* application behavior;
-* workspace organization;
-* navigation;
-* document editing;
-* search;
-* interaction patterns;
-* visual design;
-* accessibility;
-* operating system integration.
+The macOS application is the primary KnowledgeOS client.
 
-They complement the Functional and Non-Functional Requirements.
+It SHALL support:
 
----
+- local device scanning from user-authorized locations;
+- an independent offline-first Local Library;
+- browsing the remote Master Catalog;
+- explicit acquisition of selected publications;
+- reading and rendering;
+- annotations and Personal Knowledge;
+- search;
+- optional AI;
+- workspace and multi-window behavior;
+- future personal synchronization through iCloud/CloudKit.
 
-# 3. Objectives
+The NAS is not mounted as the working Local Library and is not a Personal Knowledge synchronization peer.
 
-The Desktop Application shall provide an experience that is:
+## 4. Normative Language
 
-* intuitive;
-* predictable;
-* calm;
-* efficient;
-* responsive;
-* consistent;
-* unobtrusive;
-* trustworthy.
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-The application shall help users think, not distract them.
+## 5. Normative Requirements
 
----
+- The macOS application SHALL maintain an independent Local Library.
+- The application SHALL remain usable offline for locally available publications.
+- The application SHALL browse the Master Catalog without treating the Local Library as a replica.
+- Publication acquisition SHALL be explicit and separate from Personal Knowledge synchronization.
+- Personal Knowledge SHALL synchronize only through the approved iCloud/CloudKit profile.
+- The application SHALL NOT write annotations, highlights, reading progress or personal relationships to the NAS Master Library.
+- UI components SHALL invoke public Platform contracts and SHALL NOT access repositories directly.
+- Long-running work SHALL expose durable operation identity, progress, cancellation and failure state.
+- Stable Domain identity SHALL be preserved across windows, workspaces, navigation and restoration.
+- Requirements SHALL be testable and SHALL distinguish mandatory behavior from future capability.
+- Acceptance criteria SHALL include offline, failure and recovery scenarios.
 
-# 4. Design Philosophy
+## 6. Architecture and Design Guidance
 
-KnowledgeOS is a knowledge workspace, not a document editor.
+Implementation SHOULD:
 
-The interface shall emphasize:
+- use explicit module composition at application startup;
+- keep SwiftUI/AppKit view code separate from Platform services;
+- expose commands, queries and observable state through stable façades or ViewModels;
+- preserve stable Domain identity in navigation and restoration payloads;
+- treat render, search, graph and AI projections as derived;
+- use structured concurrency with lifecycle-bound tasks;
+- propagate cancellation and correlation;
+- validate all persisted UI and workspace state before restoration;
+- avoid singleton mutable state except for explicitly governed application services;
+- keep framework-specific types out of shared public contracts;
+- support graceful degradation when the Master Library or remote providers are unavailable.
 
-* understanding;
-* exploration;
-* relationships;
-* context;
-* continuity.
+## 7. State and Lifecycle
 
-The software shall disappear behind the user's work.
+Desktop state SHALL be classified as:
 
----
+| State Class | Examples | Persistence |
+|---|---|---|
+| Domain-backed | Local Library membership, annotations | Domain repositories |
+| Restorable workspace | windows, tabs, open documents | local restoration store |
+| Session | active navigation, transient filters | scoped session |
+| Ephemeral UI | hover, focus, animation | memory only |
+| Derived | render cache, search results | rebuildable cache |
 
-# 5. Cognitive Load
+Lifecycle transitions SHALL release subscriptions, tasks, file handles and security-scoped resources deterministically.
 
-The application shall minimize unnecessary cognitive effort.
+## 8. Failure and Recovery
 
-This includes:
+The application SHALL preserve:
 
-* reducing visual clutter;
-* avoiding unnecessary dialogs;
-* limiting interruptions;
-* presenting only relevant actions;
-* maintaining contextual continuity.
+- Local Library identity;
+- locally available publications;
+- committed Personal Knowledge;
+- workspace restoration evidence;
+- operation identities;
+- import and acquisition progress;
+- provenance and integrity findings.
 
-Users shall spend their attention on knowledge rather than interface mechanics.
+Unavailable NAS access SHALL degrade Master Catalog browsing and acquisition only. It SHALL NOT prevent reading or annotating locally available publications.
 
----
+Invalid restoration state SHALL be isolated and repaired without deleting authoritative user data.
 
-# 6. Predictability
+## 9. Security and Privacy
 
-Equivalent actions shall always produce equivalent results.
+- User-selected files SHALL use approved macOS security-scoped access where required.
+- Credentials and tokens SHALL use Keychain or another approved secure store.
+- Personal Knowledge SHALL not be written to NAS.
+- Logs SHALL not contain publication content, private paths, annotations or credentials.
+- Remote AI or OCR SHALL require policy authorization.
+- Window and workspace restoration payloads SHALL avoid sensitive content where identity references suffice.
 
-Users shall be able to predict:
+## 10. Accessibility and Native Experience
 
-* navigation;
-* editor behavior;
-* commands;
-* search results;
-* window behavior;
-* session restoration.
+The desktop application SHOULD follow native macOS conventions for:
 
-Predictability increases confidence.
+- keyboard navigation;
+- menus and commands;
+- window restoration;
+- focus;
+- accessibility labels and reading order;
+- drag and drop;
+- document opening;
+- toolbar and sidebar behavior;
+- VoiceOver;
+- reduced motion and contrast preferences.
 
----
+Accessibility transformations SHALL preserve UDM semantic order.
 
-# 7. Learnability
+## 11. Verification and Acceptance
 
-New users shall be able to become productive quickly.
+- The behavior is covered by automated tests where technically feasible.
+- Offline behavior is verified.
+- Master Catalog and Local Library scopes remain visibly distinct.
+- Personal Knowledge never enters Master Library persistence.
+- Cancellation, timeout and failure behavior are verified.
+- Architecture traceability is documented.
+- Accessibility implications are reviewed.
+- No direct private-repository access exists from UI code.
 
-The application shall favor:
+## 12. Traceability
 
-* familiar interaction models;
-* progressive disclosure;
-* contextual guidance;
-* meaningful defaults.
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/04-Platform/README.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Annotation/README.md`
+- `00-Architecture/04-Platform/Render/README.md`
+- `00-Architecture/04-Platform/Search/README.md`
+- `00-Architecture/04-Platform/Sync/README.md`
+- `00-Architecture/03-Kernel/README.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
-Advanced functionality shall remain discoverable without overwhelming beginners.
+## 13. Compatibility and Evolution
 
----
+Breaking changes to restoration formats, Local Library identity mapping, public client contracts or acquisition behavior require migration guidance and architecture review.
 
-# 8. Efficiency
+Persisted workspace and session formats SHALL be versioned.
 
-Experienced users shall complete frequent tasks with minimal effort.
+## 14. Status
 
-The application shall support:
-
-* keyboard shortcuts;
-* command palette;
-* contextual actions;
-* drag and drop;
-* automation through plugins;
-* AI-assisted workflows.
-
-Efficiency shall never reduce clarity.
-
----
-
-# 9. Focus
-
-The interface shall protect user concentration.
-
-The application shall:
-
-* minimize interruptions;
-* reduce modal dialogs;
-* defer non-critical notifications;
-* preserve reading context;
-* avoid unnecessary animations.
-
-Focused work is the primary interaction mode.
-
----
-
-# 10. Continuity
-
-The user shall be able to resume work exactly where it was left.
-
-Continuity includes:
-
-* restored sessions;
-* restored windows;
-* restored tabs;
-* preserved selections;
-* preserved editor positions;
-* preserved workspace layout.
-
-Knowledge work shall remain uninterrupted across sessions.
-
----
-
-# 11. Visual Hierarchy
-
-Visual organization shall clearly communicate:
-
-* importance;
-* structure;
-* relationships;
-* navigation;
-* interaction affordances.
-
-Hierarchy shall guide attention without overwhelming the user.
-
----
-
-# 12. Navigation Experience
-
-Navigation shall feel:
-
-* immediate;
-* coherent;
-* location-aware;
-* history-aware;
-* relationship-aware.
-
-Users shall never feel lost inside their knowledge.
-
----
-
-# 13. Reading Experience
-
-Reading shall prioritize comprehension.
-
-The application shall provide:
-
-* comfortable typography;
-* adjustable layouts;
-* distraction-free modes;
-* consistent rendering;
-* smooth scrolling.
-
-Reading quality is a core product capability.
-
----
-
-# 14. Writing Experience
-
-Writing shall feel natural and uninterrupted.
-
-Editors shall support:
-
-* immediate feedback;
-* stable cursor behavior;
-* predictable formatting;
-* efficient editing;
-* contextual assistance.
-
-Writing workflows shall remain fluid.
-
----
-
-# 15. Knowledge Exploration
-
-Knowledge shall be easy to discover.
-
-The application shall encourage:
-
-* following relationships;
-* exploring references;
-* traversing semantic links;
-* inspecting provenance;
-* discovering related content.
-
-Exploration is a first-class capability.
-
----
-
-# 16. Search Experience
-
-Search shall be perceived as immediate and reliable.
-
-Users shall be able to:
-
-* locate information quickly;
-* refine searches progressively;
-* understand search results;
-* navigate directly from results.
-
-Search shall support exploration as well as retrieval.
-
----
-
-# 17. Multi-Window Experience
-
-Multiple windows shall behave consistently.
-
-Users shall easily understand:
-
-* active context;
-* shared application state;
-* independent window state;
-* workspace ownership.
-
-Window management shall never create confusion.
-
----
-
-# 18. Accessibility Experience
-
-Accessibility shall provide an equivalent experience for all users.
-
-Accessible interaction shall never be treated as an optional feature.
-
-Every interface shall remain usable through accessible technologies.
-
----
-
-# 19. Native Platform Experience
-
-The Desktop Application shall respect established macOS interaction conventions.
-
-Native behaviors include:
-
-* menus;
-* shortcuts;
-* window management;
-* drag and drop;
-* clipboard;
-* system appearance;
-* accessibility services.
-
-The application shall feel like a natural part of the operating system.
-
----
-
-# 20. Error Experience
-
-Errors shall be:
-
-* understandable;
-* actionable;
-* recoverable;
-* non-destructive.
-
-The application shall explain problems without exposing unnecessary technical details.
-
-Recovery options shall be presented whenever possible.
-
----
-
-# 21. Trust
-
-Users shall trust that:
-
-* their knowledge is safe;
-* actions are reversible where appropriate;
-* data is preserved;
-* synchronization is transparent;
-* AI actions require explicit confirmation when modifying authoritative knowledge.
-
-Trust is essential for long-term adoption.
-
----
-
-# 22. Emotional Goals
-
-The intended emotional characteristics of the application are:
-
-* calm;
-* confidence;
-* clarity;
-* curiosity;
-* control.
-
-The interface shall reduce anxiety rather than increase it.
-
----
-
-# 23. Success Indicators
-
-The User Experience is considered successful when users can:
-
-* locate information without confusion;
-* maintain focus for extended periods;
-* recover work effortlessly;
-* understand application behavior;
-* navigate naturally;
-* trust the platform.
-
----
-
-# 24. User Experience Constraints
-
-The Desktop Application shall not:
-
-* overwhelm users with excessive interface elements;
-* interrupt workflows unnecessarily;
-* require frequent manual configuration;
-* expose implementation details;
-* prioritize visual novelty over usability.
-
-Architectural consistency shall always prevail.
-
----
-
-# 25. User Experience Goal Matrix
-
-| Goal              | Required |
-| ----------------- | -------- |
-| Clarity           | Yes      |
-| Consistency       | Yes      |
-| Focus             | Yes      |
-| Continuity        | Yes      |
-| Efficiency        | Yes      |
-| Learnability      | Yes      |
-| Accessibility     | Yes      |
-| Native Experience | Yes      |
-| Trust             | Yes      |
-| Predictability    | Yes      |
-
----
-
-# 26. Anti-Patterns
-
-The following are prohibited:
-
-* inconsistent interaction models;
-* unnecessary modal dialogs;
-* hidden navigation paths;
-* disruptive notifications;
-* unexplained AI actions;
-* unpredictable interface behavior;
-* excessive visual complexity.
-
----
-
-# 27. User Experience Invariants
-
-The following invariants are mandatory:
-
-* the interface shall always prioritize user knowledge over application mechanics;
-* interactions remain predictable and reversible where appropriate;
-* navigation preserves context;
-* sessions restore the user's working environment;
-* accessibility is integral to every feature;
-* the application behaves consistently across all subsystems.
-
----
-
-# 28. Related Documents
-
-* `README.md`
-* `FunctionalRequirements.md`
-* `NonFunctionalRequirements.md`
-* `UseCases.md`
-* `ApplicationArchitecture.md`
-* `WorkspaceArchitecture.md`
-* `DesignSystem.md`
-* `QualityAttributes.md`
-
----
-
-# 29. Status
-
-**Approved**
-
-This document establishes the User Experience goals for the KnowledgeOS Desktop Application.
-
-Every interface, workflow and interaction shall contribute to a calm, predictable and efficient knowledge environment while preserving the architectural principles of KnowledgeOS Architecture V3.
+This document is part of the KnowledgeOS Desktop Application V4 implementation baseline.

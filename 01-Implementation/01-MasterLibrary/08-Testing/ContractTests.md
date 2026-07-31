@@ -1,590 +1,153 @@
+# Contract Tests
 
-# Master Library Contract Tests
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Testing
-
-**Document:** Contract Tests
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 08-Testing  
+**Document:** ContractTests  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Contract Testing strategy for the KnowledgeOS Master Library.
+Define the contract tests for the KnowledgeOS Master Library implementation.
 
-Contract Tests verify that independently evolving components continue to communicate through stable, versioned and backward-compatible contracts.
+## 2. Scope
+
+This document covers verification and conformance strategy for the NAS-hosted Master Library and its client-facing integration.
+
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
+
+## 3. Architectural Baseline
 
-Unlike Unit or Integration Tests, Contract Tests validate the behavior exposed at architectural boundaries rather than internal implementation.
+The implementation is governed by the following fixed model:
 
----
+```text
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
+
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
+```
+
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Verification SHALL include failure, retry, migration and recovery behavior, not only successful requests.
+- Tests SHALL prove that Personal Knowledge never enters Master Library persistence.
+- Public contracts SHALL be versioned and SHALL not expose PostgreSQL rows, filesystem paths or private server implementation types.
+- Retryable mutations SHALL support idempotency and concurrency control.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
 
-# 2. Scope
+## 5. Design Guidance
 
-Contract Tests apply to every published interface, including:
+Implementation SHOULD:
 
-* Client API;
-* Server API;
-* Synchronization Protocol;
-* Plugin SDK;
-* Provider SDK;
-* Public Contracts;
-* Serialization formats;
-* Import formats;
-* Export formats;
-* Event contracts;
-* Configuration contracts.
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
 
-Internal implementation details are outside the scope of Contract Tests.
+## 6. Failure and Recovery
 
----
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
 
-# 3. Objectives
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
 
-Contract Tests verify:
+Recovery SHALL preserve:
 
-* compatibility;
-* stability;
-* version correctness;
-* backward compatibility;
-* forward compatibility where supported;
-* deterministic serialization;
-* protocol evolution;
-* schema integrity.
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
 
----
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
 
-# 4. Architectural Principles
+## 7. Security and Privacy
 
-Every published contract shall be:
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
 
-* explicit;
-* versioned;
-* documented;
-* deterministic;
-* reproducible;
-* independently testable;
-* backward compatible unless explicitly deprecated.
+## 8. Observability
 
----
+Relevant operations SHALL expose:
 
-# 5. Contract Ownership
-
-Each contract has a single architectural owner.
-
-The owner is responsible for:
-
-* version evolution;
-* documentation;
-* compatibility policy;
-* deprecation policy;
-* regression prevention;
-* automated validation.
-
----
-
-# 6. Consumer-Driven Validation
-
-Whenever practical, contracts shall be validated from the perspective of consumers.
-
-Examples include:
-
-* Client consuming Server APIs;
-* Plugins consuming Plugin SDK;
-* Synchronization Client consuming Synchronization Protocol;
-* Providers consuming Provider SDK.
-
-Consumer expectations become executable tests.
-
----
-
-# 7. Provider Validation
-
-Every provider implementation shall verify that it satisfies the published contract.
-
-Providers may evolve internally provided that observable behavior remains compatible.
-
----
-
-# 8. Contract Categories
-
-KnowledgeOS defines the following contract categories:
-
-* API Contracts;
-* Event Contracts;
-* Synchronization Contracts;
-* Serialization Contracts;
-* Plugin Contracts;
-* Provider Contracts;
-* Configuration Contracts.
-
-Each category has dedicated validation rules.
-
----
-
-# 9. API Contracts
-
-API Contract Tests verify:
-
-* request schema;
-* response schema;
-* HTTP status codes;
-* authentication requirements;
-* authorization behavior;
-* validation failures;
-* pagination;
-* error models.
-
----
-
-# 10. Synchronization Contracts
-
-Synchronization Contracts verify:
-
-* request structure;
-* operation ordering;
-* checkpoints;
-* idempotency keys;
-* conflict payloads;
-* retry behavior;
-* protocol versions.
-
----
-
-# 11. Plugin SDK Contracts
-
-Plugin Contract Tests verify:
-
-* capability negotiation;
-* lifecycle callbacks;
-* extension registration;
-* event subscriptions;
-* command execution;
-* resource access;
-* version compatibility.
-
-Plugins shall fail gracefully when capabilities are unavailable.
-
----
-
-# 12. Provider Contracts
-
-Provider Contract Tests verify:
-
-* authentication;
-* request generation;
-* response normalization;
-* timeout handling;
-* retry semantics;
-* capability negotiation;
-* unsupported features.
-
----
-
-# 13. Event Contracts
-
-Event Contract Tests verify:
-
-* event identity;
-* schema;
-* required fields;
-* optional fields;
-* ordering guarantees;
-* version compatibility;
-* serialization.
-
----
-
-# 14. Serialization Contracts
-
-Serialization validation includes:
-
-* JSON;
-* binary formats;
-* metadata packages;
-* synchronization payloads;
-* exchange packages.
-
-Round-trip serialization shall preserve logical meaning.
-
----
-
-# 15. Configuration Contracts
-
-Configuration validation verifies:
-
-* schema;
-* required fields;
-* defaults;
-* deprecated options;
-* invalid values;
-* migration behavior.
-
----
-
-# 16. Versioning Policy
-
-Every contract exposes an explicit version.
-
-Version changes shall follow semantic compatibility rules.
-
-Breaking changes require a new incompatible version.
-
----
-
-# 17. Backward Compatibility
-
-Supported previous versions shall continue operating without modification.
-
-Compatibility duration is defined by architectural policy.
-
----
-
-# 18. Forward Compatibility
-
-Where practical:
-
-* unknown fields shall be ignored;
-* optional values shall remain optional;
-* additional capabilities shall negotiate explicitly.
-
-Forward compatibility shall never compromise correctness.
-
----
-
-# 19. Schema Validation
-
-Every contract shall validate:
-
-* required properties;
-* optional properties;
-* value types;
-* ranges;
-* enumerations;
-* identifiers;
-* nested structures.
-
----
-
-# 20. Unknown Fields
-
-Consumers shall explicitly define how unknown fields are handled.
-
-Silent corruption is prohibited.
-
----
-
-# 21. Required Fields
-
-Removing required fields without version evolution is prohibited.
-
----
-
-# 22. Optional Fields
-
-Optional fields shall have deterministic defaults.
-
-Absence shall never produce ambiguous behavior.
-
----
-
-# 23. Enumeration Evolution
-
-Enumerations shall evolve safely.
-
-Unknown enumeration values shall produce deterministic behavior.
-
----
-
-# 24. Identifier Validation
-
-Contract Tests verify:
-
-* identifier format;
-* uniqueness where applicable;
-* stability;
-* serialization.
-
----
-
-# 25. Pagination Contracts
-
-Pagination validation includes:
-
-* cursor structure;
-* deterministic ordering;
-* page boundaries;
-* empty pages;
-* invalid cursors.
-
----
-
-# 26. Error Contracts
-
-Errors shall expose:
-
-* error code;
-* classification;
-* recoverability;
-* human-readable message where appropriate.
-
-Stack traces shall never form part of the public contract.
-
----
-
-# 27. Authentication Contracts
-
-Authentication validation verifies:
-
-* credential requirements;
-* token validation;
-* expiration;
-* revocation;
-* anonymous access policy.
-
----
-
-# 28. Authorization Contracts
-
-Authorization validation verifies:
-
-* permitted operations;
-* forbidden operations;
-* capability restrictions;
-* ownership rules.
-
----
-
-# 29. Idempotency Contracts
-
-Repeated identical requests shall produce deterministic outcomes where the contract declares idempotency.
-
----
-
-# 30. Ordering Guarantees
-
-Contracts declaring ordered behavior shall verify deterministic ordering.
-
----
-
-# 31. Time Representation
-
-Contracts shall define:
-
-* timezone;
-* precision;
-* serialization format;
-* comparison rules.
-
----
-
-# 32. Locale Independence
-
-Machine-readable contracts shall remain locale independent.
-
-Localization belongs exclusively to presentation.
-
----
-
-# 33. Binary Compatibility
-
-Binary payloads shall validate:
-
-* encoding;
-* checksum;
-* version markers;
-* integrity.
-
----
-
-# 34. Checksum Validation
-
-Every payload checksum shall verify:
-
-* correct algorithm;
-* correct value;
-* mismatch behavior.
-
----
-
-# 35. Compression
-
-Compressed payloads shall verify:
-
-* supported algorithms;
-* decompression;
-* corruption handling;
-* size limits.
-
----
-
-# 36. Large Payloads
-
-Contract Tests validate:
-
-* streaming;
-* chunking;
-* interruption;
-* retry.
-
----
-
-# 37. Partial Responses
-
-Where supported, partial responses shall preserve contract validity.
-
----
-
-# 38. Capability Negotiation
-
-Capability negotiation verifies:
-
-* supported features;
-* unsupported features;
-* version negotiation;
-* fallback behavior.
-
----
-
-# 39. Deprecation
-
-Deprecated fields remain testable until officially removed.
-
-Removal requires major contract evolution.
-
----
-
-# 40. Migration
-
-Migration between contract versions shall preserve semantic meaning.
-
----
-
-# 41. Cross-Version Validation
-
-Supported versions shall be tested together.
-
-Examples:
-
-* Client V1 ↔ Server V2;
-* Plugin SDK V3 ↔ Plugin V2.
-
----
-
-# 42. Negative Testing
-
-Contracts shall reject:
-
-* malformed requests;
-* invalid identifiers;
-* missing fields;
-* incompatible versions;
-* unauthorized access;
-* corrupted payloads.
-
----
-
-# 43. Security Validation
-
-Contract Tests verify:
-
-* injection resistance;
-* malformed payloads;
-* oversized payloads;
-* credential exposure;
-* unauthorized fields.
-
----
-
-# 44. Observability
-
-Contract execution shall expose:
-
-* request identifiers;
-* protocol version;
-* execution time;
-* correlation identifiers.
-
----
-
-# 45. Regression Policy
-
-Every contract regression shall permanently generate a new automated Contract Test.
-
----
-
-# 46. Anti-Patterns
-
-The following are prohibited:
-
-* undocumented public fields;
-* hidden breaking changes;
-* implicit version negotiation;
-* silent schema evolution;
-* locale-dependent serialization;
-* undocumented defaults;
-* unstable identifiers.
-
----
-
-# 47. Required Contract Matrix
-
-The following interfaces require mandatory Contract Tests:
-
-| Contract        | Consumer       | Provider         |
-| --------------- | -------------- | ---------------- |
-| Client API      | Client         | Server           |
-| Synchronization | Client         | Server           |
-| Plugin SDK      | Plugin         | Host             |
-| Provider SDK    | Provider       | Server           |
-| Export Format   | External Tools | Export Engine    |
-| Import Format   | Import Engine  | External Sources |
-| Event Contracts | Subscribers    | Publishers       |
-
----
-
-# 48. Contract Test Invariants
-
-The following invariants are mandatory:
-
-* every public interface is versioned;
-* every published schema is validated;
-* compatibility is continuously verified;
-* serialization is deterministic;
-* breaking changes require explicit version evolution;
-* consumers and providers remain independently testable;
-* public behavior is never inferred from implementation.
-
----
-
-# 49. Related Documents
-
-* `README.md`
-* `TestStrategy.md`
-* `IntegrationTests.md`
-* `SynchronizationTests.md`
-* `MigrationTests.md`
-* `PublicContracts/*`
-* `PluginSDK/*`
-
----
-
-# 50. Status
-
-**Approved**
-
-The Contract Testing strategy is frozen as the authoritative validation model for all published interfaces of the KnowledgeOS Master Library.
-
-Every externally observable behavior shall remain versioned, deterministic, documented and continuously validated through automated Contract Tests.
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
+
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
+
+## 9. Verification and Acceptance
+
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
+- The test suite is automated where technically possible.
+- Test data contains no production secrets or unapproved personal data.
+
+## 10. Traceability
+
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
+
+## 11. Compatibility and Migration
+
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
+
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
+
+## 12. Status
+
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

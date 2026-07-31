@@ -1,436 +1,174 @@
+# Functional Requirements
 
-# Desktop Application Functional Requirements
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Desktop Application
-
-**Layer:** Requirements
-
-**Document:** Functional Requirements
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Desktop Application / 01-Requirements  
+**Document:** FunctionalRequirements  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Platform:** macOS  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
+
+Define the functional requirements for the KnowledgeOS macOS application, covering product requirements and user-facing acceptance criteria.
 
-This document defines the functional requirements of the KnowledgeOS Desktop Application.
+## 2. Scope
 
-Functional requirements specify the capabilities that the Desktop Application shall provide to support the complete user workflow while remaining fully aligned with the approved Architecture V3.
+This document applies to the native macOS client and its integration with:
 
-This document describes **what** the application shall do. Architectural implementation details are specified elsewhere.
+- the device Local Library;
+- the NAS-hosted Master Library;
+- Personal Knowledge;
+- UDM and DPM;
+- Platform Engines;
+- Kernel execution services;
+- Apple platform services.
 
----
+It does not redefine Domain authority, acquisition semantics, synchronization ownership or Platform Engine responsibilities.
 
-# 2. Scope
+## 3. Product Context
 
-These requirements apply to:
+The macOS application is the primary KnowledgeOS client.
 
-* application lifecycle;
-* workspace management;
-* document management;
-* navigation;
-* editors;
-* user interaction;
-* search;
-* annotations;
-* AI-assisted workflows;
-* plugin integration;
-* operating system integration.
+It SHALL support:
 
----
+- local device scanning from user-authorized locations;
+- an independent offline-first Local Library;
+- browsing the remote Master Catalog;
+- explicit acquisition of selected publications;
+- reading and rendering;
+- annotations and Personal Knowledge;
+- search;
+- optional AI;
+- workspace and multi-window behavior;
+- future personal synchronization through iCloud/CloudKit.
 
-# 3. Objectives
+The NAS is not mounted as the working Local Library and is not a Personal Knowledge synchronization peer.
 
-The Desktop Application shall enable users to:
+## 4. Normative Language
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+## 5. Normative Requirements
+
+- The macOS application SHALL maintain an independent Local Library.
+- The application SHALL remain usable offline for locally available publications.
+- The application SHALL browse the Master Catalog without treating the Local Library as a replica.
+- Publication acquisition SHALL be explicit and separate from Personal Knowledge synchronization.
+- Personal Knowledge SHALL synchronize only through the approved iCloud/CloudKit profile.
+- The application SHALL NOT write annotations, highlights, reading progress or personal relationships to the NAS Master Library.
+- UI components SHALL invoke public Platform contracts and SHALL NOT access repositories directly.
+- Long-running work SHALL expose durable operation identity, progress, cancellation and failure state.
+- Stable Domain identity SHALL be preserved across windows, workspaces, navigation and restoration.
+- Requirements SHALL be testable and SHALL distinguish mandatory behavior from future capability.
+- Acceptance criteria SHALL include offline, failure and recovery scenarios.
+- Views SHALL be declarative projections of state and SHALL not own business rules.
+- Accessibility, keyboard navigation and native macOS conventions SHALL be supported.
+- View lifecycle SHALL not leak tasks, subscriptions or security-sensitive state.
+
+## 6. Architecture and Design Guidance
 
-* manage their personal knowledge;
-* organize information efficiently;
-* work without permanent network connectivity;
-* interact naturally with different document types;
-* preserve their work across sessions;
-* extend functionality through plugins.
+Implementation SHOULD:
 
----
+- use explicit module composition at application startup;
+- keep SwiftUI/AppKit view code separate from Platform services;
+- expose commands, queries and observable state through stable façades or ViewModels;
+- preserve stable Domain identity in navigation and restoration payloads;
+- treat render, search, graph and AI projections as derived;
+- use structured concurrency with lifecycle-bound tasks;
+- propagate cancellation and correlation;
+- validate all persisted UI and workspace state before restoration;
+- avoid singleton mutable state except for explicitly governed application services;
+- keep framework-specific types out of shared public contracts;
+- support graceful degradation when the Master Library or remote providers are unavailable.
 
-# 4. General Functional Principles
+## 7. State and Lifecycle
 
-Every functional capability shall:
+Desktop state SHALL be classified as:
 
-* preserve user ownership;
-* operate consistently;
-* remain deterministic;
-* expose predictable behavior;
-* support recoverability;
-* integrate with Platform Engines.
+| State Class | Examples | Persistence |
+|---|---|---|
+| Domain-backed | Local Library membership, annotations | Domain repositories |
+| Restorable workspace | windows, tabs, open documents | local restoration store |
+| Session | active navigation, transient filters | scoped session |
+| Ephemeral UI | hover, focus, animation | memory only |
+| Derived | render cache, search results | rebuildable cache |
 
----
+Lifecycle transitions SHALL release subscriptions, tasks, file handles and security-scoped resources deterministically.
 
-# 5. Application Lifecycle
+## 8. Failure and Recovery
 
-The application shall support:
+The application SHALL preserve:
 
-* startup;
-* configuration loading;
-* library selection;
-* workspace restoration;
-* session persistence;
-* graceful shutdown;
-* automatic recovery after unexpected termination.
+- Local Library identity;
+- locally available publications;
+- committed Personal Knowledge;
+- workspace restoration evidence;
+- operation identities;
+- import and acquisition progress;
+- provenance and integrity findings.
 
----
+Unavailable NAS access SHALL degrade Master Catalog browsing and acquisition only. It SHALL NOT prevent reading or annotating locally available publications.
 
-# 6. Workspace Management
+Invalid restoration state SHALL be isolated and repaired without deleting authoritative user data.
 
-The application shall allow users to:
+## 9. Security and Privacy
 
-* create workspaces;
-* open existing workspaces;
-* switch between workspaces;
-* restore previous workspaces;
-* manage multiple active workspaces when supported.
+- User-selected files SHALL use approved macOS security-scoped access where required.
+- Credentials and tokens SHALL use Keychain or another approved secure store.
+- Personal Knowledge SHALL not be written to NAS.
+- Logs SHALL not contain publication content, private paths, annotations or credentials.
+- Remote AI or OCR SHALL require policy authorization.
+- Window and workspace restoration payloads SHALL avoid sensitive content where identity references suffice.
 
-Workspace state shall be preserved automatically.
+## 10. Accessibility and Native Experience
 
----
+The desktop application SHOULD follow native macOS conventions for:
 
-# 7. Window Management
+- keyboard navigation;
+- menus and commands;
+- window restoration;
+- focus;
+- accessibility labels and reading order;
+- drag and drop;
+- document opening;
+- toolbar and sidebar behavior;
+- VoiceOver;
+- reduced motion and contrast preferences.
 
-The application shall support:
+Accessibility transformations SHALL preserve UDM semantic order.
 
-* multiple windows;
-* independent window layouts;
-* window restoration;
-* detached windows;
-* window persistence.
+## 11. Verification and Acceptance
 
-Each window shall maintain its own navigation context.
+- The behavior is covered by automated tests where technically feasible.
+- Offline behavior is verified.
+- Master Catalog and Local Library scopes remain visibly distinct.
+- Personal Knowledge never enters Master Library persistence.
+- Cancellation, timeout and failure behavior are verified.
+- Architecture traceability is documented.
+- Accessibility implications are reviewed.
+- No direct private-repository access exists from UI code.
 
----
+## 12. Traceability
 
-# 8. Session Management
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/04-Platform/README.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Annotation/README.md`
+- `00-Architecture/04-Platform/Render/README.md`
+- `00-Architecture/04-Platform/Search/README.md`
+- `00-Architecture/04-Platform/Sync/README.md`
+- `00-Architecture/03-Kernel/README.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
-The application shall:
+## 13. Compatibility and Evolution
 
-* automatically save sessions;
-* restore interrupted sessions;
-* remember opened documents;
-* preserve editor state;
-* restore navigation history;
-* recover panel configuration.
+Breaking changes to restoration formats, Local Library identity mapping, public client contracts or acquisition behavior require migration guidance and architecture review.
 
-Session restoration shall require no manual intervention.
+Persisted workspace and session formats SHALL be versioned.
 
----
+## 14. Status
 
-# 9. Library Interaction
-
-The Desktop Application shall allow users to:
-
-* open the Master Library;
-* browse knowledge collections;
-* inspect metadata;
-* create new knowledge objects;
-* update existing objects through approved contracts;
-* monitor synchronization status.
-
-The application shall never bypass the Master Library architecture.
-
----
-
-# 10. Navigation
-
-Users shall be able to:
-
-* browse hierarchical collections;
-* browse semantic relationships;
-* navigate document history;
-* use breadcrumbs;
-* jump directly through search;
-* navigate using keyboard shortcuts.
-
-Navigation shall remain consistent across the application.
-
----
-
-# 11. Search
-
-The Desktop Application shall provide:
-
-* global search;
-* incremental search;
-* metadata search;
-* full-text search;
-* semantic search;
-* saved searches;
-* search history.
-
-Search execution shall be delegated to the Search Engine.
-
----
-
-# 12. Document Management
-
-Users shall be able to:
-
-* create documents;
-* open documents;
-* edit documents;
-* duplicate documents;
-* rename documents;
-* organize documents;
-* archive documents;
-* delete documents according to platform rules.
-
-Document identity shall remain stable.
-
----
-
-# 13. Editors
-
-The application shall support multiple specialized editors, including:
-
-* Markdown;
-* Rich Text;
-* PDF viewing;
-* Image viewing;
-* Web content;
-* Structured knowledge objects.
-
-Editors shall share a common interaction model.
-
----
-
-# 14. Annotation
-
-Users shall be able to:
-
-* highlight content;
-* create notes;
-* insert comments;
-* create anchors;
-* attach assets;
-* link annotations to knowledge objects.
-
-Annotation capabilities shall be provided through the Annotation Engine.
-
----
-
-# 15. Knowledge Relationships
-
-Users shall be able to:
-
-* create links;
-* inspect relationships;
-* navigate connected knowledge;
-* visualize semantic associations.
-
-Relationship management shall preserve graph consistency.
-
----
-
-# 16. Artificial Intelligence
-
-The Desktop Application shall support AI-assisted workflows including:
-
-* summarization;
-* classification;
-* document analysis;
-* semantic suggestions;
-* question answering;
-* workflow automation through approved providers.
-
-AI shall never modify authoritative knowledge without explicit user confirmation.
-
----
-
-# 17. Plugin Support
-
-The application shall allow:
-
-* plugin discovery;
-* installation;
-* activation;
-* deactivation;
-* removal;
-* configuration.
-
-Plugins shall execute exclusively through the Plugin SDK.
-
----
-
-# 18. User Preferences
-
-Users shall be able to configure:
-
-* appearance;
-* themes;
-* typography;
-* language;
-* shortcuts;
-* startup behavior;
-* workspace preferences.
-
-Preferences shall be persisted between sessions.
-
----
-
-# 19. Import and Export
-
-The Desktop Application shall allow users to:
-
-* import supported formats;
-* export supported formats;
-* monitor import progress;
-* monitor export progress;
-* review import results.
-
-Import and Export functionality shall be delegated to the respective Platform Engines.
-
----
-
-# 20. Notifications
-
-The application shall notify users about:
-
-* synchronization status;
-* background processing;
-* import completion;
-* export completion;
-* plugin events;
-* recoverable errors.
-
-Notifications shall not interrupt ongoing work unnecessarily.
-
----
-
-# 21. Accessibility
-
-The application shall support:
-
-* keyboard navigation;
-* screen readers;
-* scalable typography;
-* high-contrast themes;
-* accessible controls;
-* focus management.
-
-Accessibility shall be considered a core functional capability.
-
----
-
-# 22. Error Handling
-
-The Desktop Application shall:
-
-* detect recoverable errors;
-* provide meaningful diagnostics;
-* preserve user work;
-* support automatic recovery when possible;
-* report unexpected failures.
-
-Errors shall never silently discard user knowledge.
-
----
-
-# 23. Operating System Integration
-
-The application shall integrate with supported operating system capabilities including:
-
-* native file dialogs;
-* drag and drop;
-* clipboard;
-* notifications;
-* printing;
-* file associations;
-* system appearance.
-
-Platform integration shall respect native conventions.
-
----
-
-# 24. Functional Constraints
-
-The Desktop Application shall not:
-
-* implement synchronization algorithms;
-* own persistent storage;
-* modify database structures;
-* bypass Platform Engines;
-* bypass architectural contracts.
-
-Responsibilities remain separated according to Architecture V3.
-
----
-
-# 25. Functional Requirement Matrix
-
-| Area          | Required |
-| ------------- | -------- |
-| Workspace     | Yes      |
-| Windows       | Yes      |
-| Sessions      | Yes      |
-| Navigation    | Yes      |
-| Editors       | Yes      |
-| Search        | Yes      |
-| Annotation    | Yes      |
-| AI Assistance | Yes      |
-| Plugins       | Yes      |
-| Accessibility | Yes      |
-
----
-
-# 26. Anti-Patterns
-
-The following are prohibited:
-
-* embedding business rules within the user interface;
-* bypassing Platform Engines;
-* directly accessing authoritative storage;
-* creating undocumented workflows;
-* allowing UI behavior to diverge between equivalent components.
-
----
-
-# 27. Functional Invariants
-
-The following invariants are mandatory:
-
-* the Desktop Application presents knowledge but does not own it;
-* all persistent operations use approved architectural contracts;
-* sessions remain recoverable;
-* navigation remains deterministic;
-* user actions are explicitly represented;
-* functional behavior remains consistent across the application.
-
----
-
-# 28. Related Documents
-
-* `README.md`
-* `NonFunctionalRequirements.md`
-* `UserExperienceGoals.md`
-* `UseCases.md`
-* `ApplicationArchitecture.md`
-* Master Library README
-* Platform README
-* Architecture Decision Records (ADRs)
-
----
-
-# 29. Status
-
-**Approved**
-
-This document defines the complete functional requirements for the KnowledgeOS Desktop Application.
-
-All architectural and implementation decisions shall satisfy these requirements while preserving the principles and boundaries established by Architecture V3.
+This document is part of the KnowledgeOS Desktop Application V4 implementation baseline.

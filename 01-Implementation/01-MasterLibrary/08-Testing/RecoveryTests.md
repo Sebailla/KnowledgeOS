@@ -1,538 +1,155 @@
+# Recovery Tests
 
-# Master Library Recovery Tests
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Testing
-
-**Document:** Recovery Tests
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 08-Testing  
+**Document:** RecoveryTests  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
+
+Define the recovery tests for the KnowledgeOS Master Library implementation.
 
-This document defines the recovery testing strategy for the KnowledgeOS Master Library.
+## 2. Scope
+
+This document covers verification and conformance strategy for the NAS-hosted Master Library and its client-facing integration.
+
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
+
+## 3. Architectural Baseline
+
+The implementation is governed by the following fixed model:
+
+```text
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
+
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
+```
+
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Backup and recovery SHALL cover PostgreSQL and authoritative files as one verified recovery set while preserving their independent volumes.
+- Restore tests SHALL verify identity, checksums, catalog/source consistency and server readiness.
+- Physical paths SHALL remain replaceable location data, not Domain identity.
+- Authoritative source files SHALL be immutable after successful registration; derived assets remain rebuildable.
+- Verification SHALL include failure, retry, migration and recovery behavior, not only successful requests.
+- Tests SHALL prove that Personal Knowledge never enters Master Library persistence.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
 
-Recovery Tests verify that the platform can safely recover from failures without compromising user knowledge, architectural consistency or system integrity.
+## 5. Design Guidance
 
-Recoverability is considered a mandatory architectural quality attribute rather than an operational convenience.
+Implementation SHOULD:
 
----
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
 
-# 2. Scope
+## 6. Failure and Recovery
 
-Recovery Tests apply to every subsystem capable of persistent state, including:
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
 
-* Client Local Library;
-* Master Library Server;
-* PostgreSQL Catalog;
-* NAS Source Storage;
-* Search Indexes;
-* Synchronization Engine;
-* Pending Change Store;
-* Plugin Runtime;
-* AI Metadata Storage;
-* Configuration Repository.
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
 
----
+Recovery SHALL preserve:
 
-# 3. Objectives
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
 
-Recovery Tests verify:
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
 
-* durability;
-* consistency;
-* restartability;
-* resumability;
-* rollback correctness;
-* disaster recovery;
-* corruption detection;
-* integrity preservation.
+## 7. Security and Privacy
 
----
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
 
-# 4. Recovery Principles
+## 8. Observability
 
-Every recovery process shall satisfy the following principles:
+Relevant operations SHALL expose:
 
-* preserve user knowledge;
-* never silently discard information;
-* detect corruption before recovery;
-* prefer repair over recreation;
-* remain deterministic;
-* produce observable diagnostics.
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
 
----
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
 
-# 5. Recovery Levels
+## 9. Verification and Acceptance
 
-KnowledgeOS defines recovery at multiple levels:
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
+- The test suite is automated where technically possible.
+- Test data contains no production secrets or unapproved personal data.
 
-* Operation Recovery;
-* Transaction Recovery;
-* Process Recovery;
-* Application Recovery;
-* Storage Recovery;
-* Infrastructure Recovery;
-* Disaster Recovery.
+## 10. Traceability
 
-Each level shall be validated independently.
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
----
+## 11. Compatibility and Migration
 
-# 6. Operation Recovery
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-Tests verify recovery after interruption of individual operations such as:
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-* import;
-* export;
-* annotation;
-* synchronization;
-* indexing;
-* AI processing.
+## 12. Status
 
-Interrupted operations shall leave the system in a recoverable state.
-
----
-
-# 7. Transaction Recovery
-
-Validation includes:
-
-* rollback after failure;
-* interrupted commit;
-* nested transaction failure;
-* partial execution;
-* transaction replay.
-
-Atomicity shall always be preserved.
-
----
-
-# 8. Client Recovery
-
-Client recovery verifies:
-
-* application restart;
-* unexpected termination;
-* forced shutdown;
-* operating system restart;
-* suspended execution.
-
-The Local Library shall remain consistent after restart.
-
----
-
-# 9. Server Recovery
-
-Server recovery verifies:
-
-* unexpected termination;
-* service restart;
-* transaction interruption;
-* incomplete jobs;
-* scheduled maintenance restart.
-
-Server restart shall not require manual data repair.
-
----
-
-# 10. Synchronization Recovery
-
-Synchronization recovery validates:
-
-* interrupted upload;
-* interrupted download;
-* interrupted checkpoint update;
-* server restart during synchronization;
-* client restart during synchronization.
-
-Synchronization shall resume from the last confirmed checkpoint.
-
----
-
-# 11. Pending Change Store Recovery
-
-Validation verifies:
-
-* persistent queue restoration;
-* operation ordering;
-* duplicate prevention;
-* incomplete batches;
-* checkpoint reconstruction.
-
----
-
-# 12. PostgreSQL Recovery
-
-Tests verify:
-
-* restart after crash;
-* interrupted transaction;
-* WAL replay;
-* constraint preservation;
-* catalog consistency.
-
-Metadata integrity shall always be preserved.
-
----
-
-# 13. NAS Recovery
-
-Recovery validation includes:
-
-* temporary NAS unavailability;
-* restored NAS;
-* missing storage path;
-* delayed mount;
-* filesystem recovery.
-
-The system shall reconnect without manual metadata reconstruction.
-
----
-
-# 14. Local Library Recovery
-
-Tests verify:
-
-* corrupted cache;
-* missing cache files;
-* incomplete downloads;
-* damaged indexes;
-* inconsistent manifests.
-
-Recoverable components shall be rebuilt automatically.
-
----
-
-# 15. Search Index Recovery
-
-Validation includes:
-
-* missing indexes;
-* corrupted indexes;
-* incomplete indexing;
-* interrupted rebuild;
-* complete rebuild.
-
-The index shall always be reconstructable from authoritative data.
-
----
-
-# 16. Asset Recovery
-
-Recovery verifies:
-
-* missing assets;
-* corrupted assets;
-* checksum mismatch;
-* duplicate assets;
-* interrupted asset transfer.
-
----
-
-# 17. Source File Recovery
-
-Tests verify:
-
-* deleted source;
-* missing source;
-* checksum failure;
-* interrupted storage operation;
-* restored source.
-
-Source recovery shall always preserve authoritative NAS content.
-
----
-
-# 18. Backup Restoration
-
-Validation includes:
-
-* full restoration;
-* partial restoration;
-* selective restoration;
-* verification after restore;
-* interrupted restore.
-
----
-
-# 19. Configuration Recovery
-
-Tests verify:
-
-* invalid configuration;
-* missing configuration;
-* default configuration;
-* migration of configuration;
-* configuration rollback.
-
----
-
-# 20. Plugin Recovery
-
-Recovery validates:
-
-* plugin crash;
-* plugin removal;
-* plugin update;
-* plugin incompatibility;
-* plugin isolation.
-
-Plugin failures shall never compromise platform stability.
-
----
-
-# 21. AI Recovery
-
-Validation includes:
-
-* interrupted embedding generation;
-* interrupted summarization;
-* provider timeout;
-* provider replacement;
-* regeneration of derived metadata.
-
-Derived AI data shall always be reproducible.
-
----
-
-# 22. Import Recovery
-
-Tests verify:
-
-* interrupted import;
-* parser failure;
-* OCR interruption;
-* metadata extraction failure;
-* restart after interruption.
-
----
-
-# 23. Export Recovery
-
-Validation includes:
-
-* interrupted rendering;
-* storage failure;
-* write interruption;
-* retry after failure.
-
-Incomplete exports shall never overwrite valid output.
-
----
-
-# 24. Job Recovery
-
-Background jobs verify:
-
-* interruption;
-* restart;
-* retry;
-* duplicate prevention;
-* scheduling recovery.
-
----
-
-# 25. Power Failure
-
-Recovery validates:
-
-* client power loss;
-* server power loss;
-* storage interruption;
-* interrupted synchronization;
-* interrupted transactions.
-
----
-
-# 26. Disk Full
-
-Tests verify:
-
-* import failure;
-* export failure;
-* synchronization interruption;
-* cache exhaustion;
-* recovery after available space.
-
----
-
-# 27. Filesystem Corruption
-
-Validation includes:
-
-* damaged metadata;
-* damaged assets;
-* damaged manifests;
-* checksum mismatch;
-* automatic repair where possible.
-
----
-
-# 28. Recovery Validation
-
-Every recovery operation shall verify:
-
-* recovered data;
-* recovered relationships;
-* recovered metadata;
-* recovered indexes;
-* recovered synchronization state.
-
----
-
-# 29. Data Integrity
-
-Integrity validation includes:
-
-* checksum verification;
-* identifier verification;
-* relationship verification;
-* catalog consistency;
-* storage consistency.
-
----
-
-# 30. Recovery Logging
-
-Every recovery execution shall generate:
-
-* recovery identifier;
-* timestamp;
-* affected subsystem;
-* recovery duration;
-* repaired objects;
-* remaining failures.
-
----
-
-# 31. Observability
-
-Recovery diagnostics shall expose:
-
-* recovery phase;
-* failure cause;
-* executed actions;
-* resulting state;
-* verification outcome.
-
----
-
-# 32. Recovery Performance
-
-Recovery testing measures:
-
-* startup recovery time;
-* index rebuild duration;
-* synchronization recovery duration;
-* restore duration;
-* validation duration.
-
----
-
-# 33. Disaster Recovery
-
-Disaster scenarios include:
-
-* complete server replacement;
-* complete client replacement;
-* PostgreSQL restoration;
-* NAS restoration;
-* complete Local Library recreation.
-
-Every scenario shall have a documented recovery procedure.
-
----
-
-# 34. Regression Policy
-
-Every recovery defect shall generate a permanent automated Recovery Test.
-
-Recovery regressions are classified as high-severity defects.
-
----
-
-# 35. Anti-Patterns
-
-The following are prohibited:
-
-* silent recovery failures;
-* silent data loss;
-* implicit repair;
-* inconsistent rollback;
-* unrecoverable checkpoints;
-* partial metadata restoration;
-* manual repair as the default recovery path.
-
----
-
-# 36. Recovery Test Matrix
-
-Mandatory recovery scenarios include:
-
-| Scenario                     | Required |
-| ---------------------------- | -------- |
-| Client Crash                 | Yes      |
-| Server Crash                 | Yes      |
-| Synchronization Interruption | Yes      |
-| Transaction Rollback         | Yes      |
-| NAS Unavailable              | Yes      |
-| PostgreSQL Restart           | Yes      |
-| Local Library Reconstruction | Yes      |
-| Index Rebuild                | Yes      |
-| Backup Restore               | Yes      |
-| Disk Full                    | Yes      |
-| Filesystem Corruption        | Yes      |
-| Power Failure                | Yes      |
-
----
-
-# 37. Recovery Invariants
-
-The following invariants are mandatory:
-
-* no committed user knowledge is lost;
-* recovery is deterministic;
-* every interruption is detectable;
-* checkpoints remain valid;
-* synchronization resumes correctly;
-* authoritative data is never overwritten by corrupted replicas;
-* indexes remain reconstructable;
-* derived AI metadata is reproducible;
-* every recovery action is observable and auditable.
-
----
-
-# 38. Related Documents
-
-* `TestStrategy.md`
-* `SynchronizationTests.md`
-* `MigrationTests.md`
-* `BackupRestore.md`
-* `Integrity.md`
-* `Consistency.md`
-* `LocalLibrary.md`
-* `CatalogDatabase.md`
-
----
-
-# 39. Status
-
-**Approved**
-
-The Recovery Testing strategy is frozen as the authoritative validation model for resilience and failure recovery within the KnowledgeOS Master Library.
-
-Every recoverable component shall demonstrate deterministic restoration, preservation of user knowledge and complete architectural consistency under all supported failure scenarios.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

@@ -1,493 +1,151 @@
+# Health Checks
 
-# Master Library Health Checks
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Operations
-
-**Document:** Health Checks
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 09-Operations  
+**Document:** HealthChecks  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Health Check architecture for the KnowledgeOS Master Library.
+Define the health checks for the KnowledgeOS Master Library implementation.
 
-Health Checks continuously evaluate the operational condition of every critical subsystem, determining whether the platform is capable of safely accepting work, continuing normal operation or requiring maintenance or recovery.
+## 2. Scope
+
+This document covers deployment, monitoring, backup and operational readiness for the NAS-hosted Master Library and its client-facing integration.
 
-Health evaluation is an architectural capability and shall remain independent from business functionality.
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
----
+## 3. Architectural Baseline
 
-# 2. Scope
+The implementation is governed by the following fixed model:
 
-Health Checks apply to:
+```text
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
+
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
+```
+
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Operational telemetry SHALL expose service, database, storage, workflow and integrity health without logging publication contents or private paths.
+- Alerts SHALL distinguish availability, integrity, capacity, security and backup failures.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
 
-* Master Library Server;
-* PostgreSQL Catalog;
-* NAS Source Storage;
-* Client Applications;
-* Local Libraries;
-* Synchronization Engine;
-* Search Engine;
-* Plugin Runtime;
-* AI Services;
-* Operational Infrastructure.
+## 5. Design Guidance
 
----
+Implementation SHOULD:
 
-# 3. Objectives
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
 
-Health Checks pursue the following objectives:
+## 6. Failure and Recovery
 
-* determine operational readiness;
-* detect failures early;
-* support automated recovery;
-* improve observability;
-* prevent cascading failures;
-* simplify diagnostics.
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
 
----
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
 
-# 4. Health Principles
+Recovery SHALL preserve:
 
-Every health evaluation shall be:
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
 
-* deterministic;
-* lightweight;
-* continuously executable;
-* observable;
-* documented;
-* independent from business operations.
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
 
-Health checks shall never modify platform state.
+## 7. Security and Privacy
 
----
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
 
-# 5. Health States
+## 8. Observability
 
-KnowledgeOS defines four operational states.
+Relevant operations SHALL expose:
 
-| State       | Meaning                               |
-| ----------- | ------------------------------------- |
-| Healthy     | Fully operational                     |
-| Degraded    | Operational with reduced capabilities |
-| Unavailable | Unable to safely operate              |
-| Maintenance | Planned operational suspension        |
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
 
-Every subsystem shall report one of these states.
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
 
----
+## 9. Verification and Acceptance
 
-# 6. Health Check Categories
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
+- A runbook exists for the relevant operational scenario.
+- Health, alerting, backup and recovery paths are verifiable.
 
-Health evaluation includes:
+## 10. Traceability
 
-* Startup Checks;
-* Liveness Checks;
-* Readiness Checks;
-* Dependency Checks;
-* Integrity Checks;
-* Performance Checks.
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
-Each category addresses a different aspect of platform health.
+## 11. Compatibility and Migration
 
----
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-# 7. Startup Checks
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-Startup validation executes before the platform begins accepting requests.
+## 12. Status
 
-Validation includes:
-
-* configuration loading;
-* dependency verification;
-* storage accessibility;
-* database availability;
-* version compatibility.
-
-Startup shall fail if mandatory checks do not succeed.
-
----
-
-# 8. Liveness Checks
-
-Liveness verifies that a component is executing correctly.
-
-Typical validations include:
-
-* process responsiveness;
-* internal scheduler activity;
-* runtime stability;
-* thread availability.
-
-Liveness does not validate external dependencies.
-
----
-
-# 9. Readiness Checks
-
-Readiness verifies whether a component is capable of serving requests.
-
-Readiness includes:
-
-* database connectivity;
-* NAS accessibility;
-* synchronization availability;
-* search readiness;
-* configuration validity.
-
-Only ready components shall receive operational traffic.
-
----
-
-# 10. Dependency Checks
-
-Dependency validation includes:
-
-* PostgreSQL;
-* NAS;
-* Search Engine;
-* Plugin Runtime;
-* AI Providers.
-
-Dependency failures shall propagate predictable health states.
-
----
-
-# 11. Server Health
-
-The Master Library Server verifies:
-
-* startup completion;
-* command processing;
-* query processing;
-* background jobs;
-* resource availability;
-* dependency health.
-
----
-
-# 12. PostgreSQL Health
-
-Database health verifies:
-
-* connectivity;
-* transaction capability;
-* migration status;
-* schema compatibility;
-* connection pool availability.
-
-Metadata operations shall stop if PostgreSQL becomes unavailable.
-
----
-
-# 13. NAS Health
-
-Storage health verifies:
-
-* network accessibility;
-* permissions;
-* available capacity;
-* filesystem integrity;
-* read/write capability.
-
-The NAS remains the authoritative source for binary content.
-
----
-
-# 14. Local Library Health
-
-Client validation includes:
-
-* Local Library availability;
-* cache consistency;
-* synchronization state;
-* storage integrity;
-* pending operation status.
-
-Local Libraries shall remain internally consistent.
-
----
-
-# 15. Synchronization Health
-
-Synchronization health verifies:
-
-* checkpoint progression;
-* queue status;
-* retry activity;
-* conflict resolution;
-* communication with the Master Library.
-
-Temporary communication failures shall normally produce a **Degraded** state rather than **Unavailable**.
-
----
-
-# 16. Search Health
-
-Search validation includes:
-
-* index availability;
-* index consistency;
-* rebuild status;
-* query execution.
-
-Search indexes remain rebuildable.
-
----
-
-# 17. Plugin Health
-
-Plugin health verifies:
-
-* startup;
-* execution;
-* capability registration;
-* compatibility;
-* isolation.
-
-Individual plugin failures shall not compromise overall platform health.
-
----
-
-# 18. AI Health
-
-AI validation includes:
-
-* provider availability;
-* authentication;
-* model loading;
-* inference readiness.
-
-AI subsystem failures shall not make the platform unavailable.
-
----
-
-# 19. Resource Health
-
-Operational resources include:
-
-* CPU;
-* memory;
-* storage;
-* network;
-* thread pools;
-* file descriptors.
-
-Resource exhaustion shall generate degraded health before service interruption whenever possible.
-
----
-
-# 20. Configuration Health
-
-Configuration validation verifies:
-
-* schema compatibility;
-* required parameters;
-* secret availability;
-* version compatibility.
-
-Invalid configuration shall immediately report **Unavailable**.
-
----
-
-# 21. Backup Health
-
-Backup validation includes:
-
-* successful execution;
-* integrity verification;
-* restoration testing status;
-* retention compliance.
-
-Backup failures shall not remain silent.
-
----
-
-# 22. Security Health
-
-Security validation includes:
-
-* certificate validity;
-* authentication services;
-* authorization components;
-* secret management;
-* integrity monitoring.
-
-Security failures shall be clearly distinguished from operational failures.
-
----
-
-# 23. Composite Health
-
-Overall platform health is calculated from subsystem health.
-
-General rules:
-
-* any mandatory subsystem in **Unavailable** → platform **Unavailable**;
-* one or more mandatory subsystems in **Degraded** → platform **Degraded**;
-* optional subsystem failure → platform remains **Healthy** or **Degraded**, depending on impact.
-
----
-
-# 24. Health Evaluation Frequency
-
-Health checks shall execute periodically.
-
-Typical intervals include:
-
-* liveness: every few seconds;
-* readiness: every few seconds;
-* integrity: scheduled;
-* performance: continuous sampling.
-
-Intervals remain deployment configurable.
-
----
-
-# 25. Health Endpoints
-
-Operational deployments may expose dedicated health endpoints.
-
-Typical endpoint categories include:
-
-* startup;
-* liveness;
-* readiness;
-* comprehensive health.
-
-Health endpoints shall not expose confidential operational information.
-
----
-
-# 26. Failure Handling
-
-Health failures shall:
-
-* update health state;
-* generate monitoring events;
-* create alerts when required;
-* record diagnostic information.
-
-Recovery shall automatically update health status.
-
----
-
-# 27. Recovery Validation
-
-After recovery the platform verifies:
-
-* dependency availability;
-* metadata integrity;
-* synchronization;
-* search;
-* plugins;
-* operational stability.
-
-Recovery is complete only after health returns to **Healthy**.
-
----
-
-# 28. Monitoring Integration
-
-Health Checks integrate directly with:
-
-* Monitoring;
-* Logging;
-* Alerting;
-* Incident Management.
-
-Health evaluation provides the primary input for operational status.
-
----
-
-# 29. Automation
-
-Health automation may perform:
-
-* periodic validation;
-* dependency probing;
-* readiness evaluation;
-* dashboard updates;
-* alert generation.
-
-Health evaluation shall remain side-effect free.
-
----
-
-# 30. Health Test Matrix
-
-| Scenario                | Required |
-| ----------------------- | -------- |
-| Startup Validation      | Yes      |
-| PostgreSQL Failure      | Yes      |
-| NAS Failure             | Yes      |
-| Synchronization Failure | Yes      |
-| Search Failure          | Yes      |
-| Plugin Failure          | Yes      |
-| AI Provider Failure     | Yes      |
-| Configuration Failure   | Yes      |
-| Resource Exhaustion     | Yes      |
-| Recovery Validation     | Yes      |
-
----
-
-# 31. Anti-Patterns
-
-The following are prohibited:
-
-* health checks that modify platform state;
-* exposing confidential information through health endpoints;
-* long-running health evaluations;
-* undocumented health states;
-* inconsistent health criteria;
-* treating optional subsystem failures as critical platform failures.
-
----
-
-# 32. Health Check Invariants
-
-The following invariants are mandatory:
-
-* health evaluation remains deterministic;
-* health checks never modify application state;
-* every mandatory subsystem exposes health status;
-* readiness depends upon mandatory dependencies;
-* liveness remains independent of external services;
-* health transitions are observable and auditable;
-* overall platform health accurately reflects subsystem state.
-
----
-
-# 33. Related Documents
-
-* `README.md`
-* `Monitoring.md`
-* `Logging.md`
-* `Alerting.md`
-* `IncidentManagement.md`
-* `DisasterRecovery.md`
-* `OperationalRunbooks.md`
-
----
-
-# 34. Status
-
-**Approved**
-
-The Health Check architecture is frozen as the authoritative health evaluation model for the KnowledgeOS Master Library.
-
-Every deployment shall continuously evaluate, expose and monitor the operational condition of every critical subsystem to ensure reliable, observable and deterministic platform operation throughout its lifecycle.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

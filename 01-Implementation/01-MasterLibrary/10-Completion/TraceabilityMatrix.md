@@ -1,476 +1,147 @@
+# Traceability Matrix
 
-# Master Library Traceability Matrix
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Completion
-
-**Document:** Traceability Matrix
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 10-Completion  
+**Document:** TraceabilityMatrix  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the architectural traceability model for the KnowledgeOS Master Library.
+Define the traceability matrix for the KnowledgeOS Master Library implementation.
 
-Traceability establishes verifiable relationships between business objectives, architectural decisions, implementation artifacts, operational procedures and validation activities.
+## 2. Scope
 
-The objective is to demonstrate that every implemented capability originates from an approved architectural requirement and that every architectural decision has been implemented and validated.
+This document covers release completion, traceability and residual risk for the NAS-hosted Master Library and its client-facing integration.
 
----
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
-# 2. Scope
+## 3. Architectural Baseline
 
-This document applies to every architectural artifact produced during the lifecycle of KnowledgeOS, including:
-
-* Product Vision;
-* Architecture Principles;
-* Architecture Constraints;
-* Quality Attributes;
-* Architecture Decision Records (ADRs);
-* Domain Models;
-* Technical Specifications;
-* Source Code;
-* Test Suites;
-* Operational Procedures;
-* Documentation.
-
----
-
-# 3. Objectives
-
-The Traceability Matrix pursues the following objectives:
-
-* ensure complete architectural coverage;
-* identify implementation gaps;
-* support impact analysis;
-* simplify change management;
-* improve maintainability;
-* provide objective compliance evidence.
-
----
-
-# 4. Traceability Principles
-
-Every traceability relationship shall be:
-
-* unique;
-* documented;
-* bidirectional;
-* verifiable;
-* auditable;
-* maintained throughout the project lifecycle.
-
-Broken traceability shall be treated as an architectural defect.
-
----
-
-# 5. Traceability Levels
-
-KnowledgeOS defines the following traceability hierarchy:
+The implementation is governed by the following fixed model:
 
 ```text
-Business Vision
-        ↓
-Product Vision
-        ↓
-Architecture Principles
-        ↓
-Architecture Constraints
-        ↓
-Quality Attributes
-        ↓
-Architecture Decision Records
-        ↓
-Domain Architecture
-        ↓
-Technical Specifications
-        ↓
-Implementation
-        ↓
-Testing
-        ↓
-Operations
-        ↓
-Release
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
+
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
 ```
 
-Every level shall reference both its predecessors and successors where applicable.
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
 
----
+## 5. Design Guidance
 
-# 6. Traceability Sources
+Implementation SHOULD:
 
-The primary traceability sources include:
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
 
-* Product Vision;
-* Architecture Documentation;
-* ADRs;
-* Domain Specifications;
-* API Contracts;
-* Operational Documentation;
-* Test Documentation;
-* Release Documentation.
+## 6. Failure and Recovery
 
-These documents constitute the authoritative traceability baseline.
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
 
----
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
 
-# 7. Product Vision Traceability
+Recovery SHALL preserve:
 
-Every major capability shall trace back to the Product Vision.
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
 
-Examples include:
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
 
-* Offline First;
-* NAS as Source of Truth;
-* Local Library;
-* Universal Knowledge Model;
-* Plugin Architecture;
-* AI Integration.
+## 7. Security and Privacy
 
-No major capability shall exist without Product Vision justification.
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
 
----
+## 8. Observability
 
-# 8. Architecture Principle Traceability
+Relevant operations SHALL expose:
 
-Every implementation decision shall demonstrate compliance with one or more approved Architecture Principles.
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
 
-Examples include:
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
 
-* User Ownership;
-* Offline First;
-* Determinism;
-* Modularity;
-* Extensibility;
-* Security by Design.
+## 9. Verification and Acceptance
 
-Architectural principles govern all implementation decisions.
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
 
----
+## 10. Traceability
 
-# 9. Architecture Constraint Traceability
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
-Every architectural constraint shall be linked to:
+## 11. Compatibility and Migration
 
-* affected subsystem;
-* implementation artifact;
-* validation procedure.
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-Constraints remain mandatory unless formally superseded.
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
----
+## 12. Status
 
-# 10. Quality Attribute Traceability
-
-Quality attributes shall be traceable to:
-
-* architectural mechanisms;
-* implementation components;
-* operational validation;
-* performance tests.
-
-Every quality attribute shall have measurable verification.
-
----
-
-# 11. ADR Traceability
-
-Every Architecture Decision Record shall reference:
-
-* architectural motivation;
-* affected components;
-* implementation artifacts;
-* validation evidence;
-* operational impact.
-
-Every ADR shall remain implementable and testable.
-
----
-
-# 12. Domain Traceability
-
-Domain artifacts shall trace to:
-
-* business concepts;
-* architectural decisions;
-* persistence model;
-* APIs;
-* user functionality.
-
-Domain consistency shall remain demonstrable.
-
----
-
-# 13. Implementation Traceability
-
-Implementation artifacts shall reference:
-
-* technical specification;
-* responsible subsystem;
-* architectural layer;
-* corresponding ADR;
-* verification evidence.
-
-Implementation without architectural origin is prohibited.
-
----
-
-# 14. API Traceability
-
-Every public interface shall reference:
-
-* business capability;
-* architectural component;
-* security requirements;
-* compatibility requirements;
-* test coverage.
-
-Public contracts shall remain traceable throughout their lifecycle.
-
----
-
-# 15. Database Traceability
-
-Persistence artifacts shall reference:
-
-* domain entities;
-* architectural decisions;
-* synchronization requirements;
-* recovery procedures.
-
-Database evolution shall preserve traceability.
-
----
-
-# 16. Synchronization Traceability
-
-Synchronization features shall trace to:
-
-* Offline First;
-* Local Library;
-* Master Library;
-* conflict resolution;
-* operational validation.
-
-Synchronization shall remain architecture-driven.
-
----
-
-# 17. Search Traceability
-
-Search capabilities shall reference:
-
-* metadata model;
-* indexing architecture;
-* operational validation;
-* quality attributes.
-
-Search implementation shall remain reproducible.
-
----
-
-# 18. Plugin Traceability
-
-Plugin capabilities shall reference:
-
-* Plugin SDK;
-* capability contracts;
-* security requirements;
-* compatibility validation.
-
-Plugins shall not introduce undocumented behavior.
-
----
-
-# 19. AI Traceability
-
-AI functionality shall trace to:
-
-* Product Vision;
-* privacy requirements;
-* provider architecture;
-* operational constraints.
-
-AI shall remain an optional architectural capability.
-
----
-
-# 20. Test Traceability
-
-Every test shall identify:
-
-* requirement;
-* architecture component;
-* implementation artifact;
-* expected behavior.
-
-Every architectural requirement shall be covered by at least one verification activity.
-
----
-
-# 21. Operational Traceability
-
-Operational procedures shall reference:
-
-* implemented subsystem;
-* monitoring;
-* maintenance;
-* recovery;
-* incident management.
-
-Operational documentation shall remain synchronized with implementation.
-
----
-
-# 22. Documentation Traceability
-
-Every document shall define:
-
-* purpose;
-* scope;
-* related documents;
-* architectural dependencies.
-
-Documentation relationships shall remain explicit.
-
----
-
-# 23. Change Impact Analysis
-
-Before approving any architectural change, traceability shall identify:
-
-* affected documents;
-* affected ADRs;
-* affected code;
-* affected APIs;
-* affected tests;
-* affected operational procedures.
-
-Impact analysis shall precede implementation.
-
----
-
-# 24. Traceability Maintenance
-
-Traceability shall be updated whenever:
-
-* new capabilities are introduced;
-* architecture changes;
-* ADRs are approved;
-* APIs evolve;
-* documentation changes;
-* operational procedures change.
-
-Traceability maintenance is a continuous activity.
-
----
-
-# 25. Traceability Verification
-
-Architecture reviews shall verify:
-
-* missing references;
-* obsolete references;
-* broken relationships;
-* duplicate artifacts;
-* undocumented implementation.
-
-Every traceability defect shall be corrected.
-
----
-
-# 26. Traceability Evidence
-
-Acceptable evidence includes:
-
-* architecture documents;
-* approved ADRs;
-* implementation artifacts;
-* test reports;
-* review reports;
-* operational records.
-
-Evidence shall remain permanently available.
-
----
-
-# 27. Traceability Matrix
-
-| Source Artifact          | Implementation    | Validation            | Operations          |
-| ------------------------ | ----------------- | --------------------- | ------------------- |
-| Product Vision           | Components        | Acceptance Tests      | Release Review      |
-| Architecture Principles  | Services          | Architecture Review   | Compliance Audit    |
-| ADRs                     | Modules           | Implementation Review | Operational Review  |
-| Domain Model             | Database / APIs   | Integration Tests     | Maintenance         |
-| Quality Attributes       | Infrastructure    | Performance Tests     | Monitoring          |
-| Security Requirements    | Security Layer    | Security Tests        | Incident Management |
-| API Contracts            | Public Interfaces | Contract Tests        | Operations          |
-| Operational Requirements | Infrastructure    | Operational Tests     | Runbooks            |
-
-Every row shall remain complete throughout the project lifecycle.
-
----
-
-# 28. Anti-Patterns
-
-The following are prohibited:
-
-* implementation without architectural origin;
-* undocumented architectural decisions;
-* orphan requirements;
-* obsolete documentation;
-* missing validation evidence;
-* broken traceability chains.
-
----
-
-# 29. Traceability Invariants
-
-The following invariants are mandatory:
-
-* every requirement traces to implementation;
-* every implementation traces to an approved architectural source;
-* every implementation is validated;
-* every operational procedure traces to an implemented subsystem;
-* every release is fully traceable;
-* traceability remains complete throughout the product lifecycle.
-
----
-
-# 30. Related Documents
-
-* `README.md`
-* `ImplementationChecklist.md`
-* `ArchitectureCompliance.md`
-* `AcceptanceCriteria.md`
-* `ReleaseReadiness.md`
-* `KnownLimitations.md`
-* `FutureEvolution.md`
-* `FinalReview.md`
-* Architecture Decision Records (ADRs)
-* Product Vision
-* Architecture Principles
-
----
-
-# 31. Status
-
-**Approved**
-
-The Traceability Matrix is frozen as the authoritative traceability model for the KnowledgeOS Master Library.
-
-Every architectural decision, implementation artifact, operational procedure and validation activity shall remain continuously traceable to its originating business objective, ensuring complete architectural integrity throughout the lifecycle of KnowledgeOS.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

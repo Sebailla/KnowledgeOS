@@ -1,439 +1,147 @@
+# Future Evolution
 
-# Master Library Future Evolution
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Completion
-
-**Document:** Future Evolution
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 10-Completion  
+**Document:** FutureEvolution  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the architectural principles governing the future evolution of the KnowledgeOS Master Library.
+Define the future evolution for the KnowledgeOS Master Library implementation.
 
-Its purpose is to ensure that future development extends the platform without compromising the approved Architecture V3 baseline, preserving long-term consistency, maintainability and user ownership.
+## 2. Scope
 
-Architecture evolution is continuous, but it shall always remain controlled.
+This document covers release completion, traceability and residual risk for the NAS-hosted Master Library and its client-facing integration.
 
----
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
-# 2. Scope
+## 3. Architectural Baseline
 
-This document applies to every future change affecting:
+The implementation is governed by the following fixed model:
 
-* Foundation;
-* Domain;
-* Kernel;
-* Platform;
-* Integration;
-* Persistence;
-* Server;
-* Client Applications;
-* Operations;
-* Documentation.
+```text
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
 
----
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
+```
 
-# 3. Objectives
+The Master Library is independent from Local Libraries.
 
-Future Evolution pursues the following objectives:
+## 4. Normative Requirements
 
-* preserve architectural integrity;
-* enable controlled evolution;
-* reduce architectural drift;
-* maintain backward compatibility where appropriate;
-* simplify future development;
-* protect long-term maintainability.
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
----
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
 
-# 4. Evolution Principles
+## 5. Design Guidance
 
-Every architectural evolution shall be:
+Implementation SHOULD:
 
-* justified;
-* documented;
-* reviewed;
-* traceable;
-* validated;
-* approved.
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
 
-No architectural change shall bypass governance.
+## 6. Failure and Recovery
 
----
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
 
-# 5. Architectural Stability
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
 
-The following architectural concepts are considered stable:
+Recovery SHALL preserve:
 
-* User Ownership;
-* Offline First;
-* NAS as Source of Truth;
-* Local Library;
-* Metadata in PostgreSQL;
-* Universal Document Model;
-* Document Presentation Model;
-* Engine-Based Architecture;
-* Plugin Architecture.
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
 
-These concepts shall evolve only through formal architectural review.
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
 
----
+## 7. Security and Privacy
 
-# 6. Evolution Categories
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
 
-Architectural evolution is classified as:
+## 8. Observability
 
-| Category     | Description                        |
-| ------------ | ---------------------------------- |
-| Corrective   | Fixes architectural defects        |
-| Adaptive     | Supports external changes          |
-| Evolutionary | Introduces new capabilities        |
-| Structural   | Changes architectural organization |
-| Operational  | Improves operational architecture  |
+Relevant operations SHALL expose:
 
-Each category follows the governance process.
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
 
----
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
 
-# 7. Architectural Governance
+## 9. Verification and Acceptance
 
-Every architectural evolution shall include:
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
 
-* architectural motivation;
-* expected benefits;
-* impact analysis;
-* risk assessment;
-* migration strategy;
-* approval record.
+## 10. Traceability
 
-Governance preserves architectural coherence.
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
----
+## 11. Compatibility and Migration
 
-# 8. Architecture Decision Records
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-Any change affecting architectural behavior shall result in:
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-* a new ADR;
-* an updated ADR;
-* or a formally superseded ADR.
+## 12. Status
 
-Architectural decisions shall remain historically traceable.
-
----
-
-# 9. Backward Compatibility
-
-Future evolution shall preserve backward compatibility whenever practical.
-
-Compatibility evaluation shall consider:
-
-* public APIs;
-* storage formats;
-* Plugin SDK;
-* synchronization protocols;
-* exported data.
-
-Breaking changes require explicit approval.
-
----
-
-# 10. Domain Evolution
-
-Future domain evolution shall preserve:
-
-* semantic consistency;
-* identity stability;
-* relationship integrity;
-* lifecycle semantics;
-* serialization compatibility.
-
-Domain evolution shall not invalidate existing knowledge.
-
----
-
-# 11. Persistence Evolution
-
-Persistence evolution shall preserve:
-
-* metadata integrity;
-* document identity;
-* checksum validity;
-* recovery capability;
-* migration reproducibility.
-
-All storage migrations shall be deterministic.
-
----
-
-# 12. Platform Evolution
-
-Platform Engines may evolve through:
-
-* new capabilities;
-* performance improvements;
-* internal refactoring;
-* additional providers;
-* new integrations.
-
-Their public responsibilities shall remain stable unless formally changed.
-
----
-
-# 13. Integration Evolution
-
-Future integrations shall:
-
-* use published contracts;
-* preserve compatibility;
-* remain independently versioned;
-* support controlled migration.
-
-Integration changes shall not create hidden dependencies.
-
----
-
-# 14. Client Evolution
-
-Client applications may evolve independently provided they preserve:
-
-* synchronization compatibility;
-* Local Library architecture;
-* Offline First behavior;
-* user data ownership.
-
-Client evolution shall remain compatible with supported server versions.
-
----
-
-# 15. AI Evolution
-
-AI capabilities may evolve by:
-
-* supporting additional providers;
-* improving orchestration;
-* introducing local models;
-* enhancing prompt pipelines.
-
-AI shall remain optional and shall never become a mandatory dependency.
-
----
-
-# 16. Plugin Ecosystem Evolution
-
-Plugin evolution shall preserve:
-
-* SDK compatibility;
-* capability contracts;
-* security boundaries;
-* sandbox isolation;
-* version negotiation.
-
-Existing plugins shall remain functional whenever reasonably possible.
-
----
-
-# 17. Security Evolution
-
-Security improvements may include:
-
-* stronger authentication;
-* improved encryption;
-* enhanced auditing;
-* better secret management;
-* additional privacy protections.
-
-Security evolution shall strengthen, never weaken, the security model.
-
----
-
-# 18. Operational Evolution
-
-Operational architecture may evolve through:
-
-* improved monitoring;
-* enhanced automation;
-* deployment optimization;
-* recovery improvements;
-* maintenance simplification.
-
-Operational improvements shall remain observable and auditable.
-
----
-
-# 19. Documentation Evolution
-
-Documentation shall evolve together with implementation.
-
-Every architectural modification shall update:
-
-* architecture documents;
-* diagrams;
-* ADRs;
-* operational documentation;
-* traceability records.
-
-Documentation shall never lag behind architecture.
-
----
-
-# 20. Technical Debt Management
-
-Technical debt shall:
-
-* remain documented;
-* have identified ownership;
-* include remediation strategy;
-* be periodically reviewed.
-
-Permanent unmanaged technical debt is prohibited.
-
----
-
-# 21. Innovation Policy
-
-Innovation is encouraged provided it:
-
-* aligns with Product Vision;
-* respects Architecture Principles;
-* preserves user ownership;
-* maintains architectural consistency;
-* follows governance.
-
-Innovation shall complement the architecture rather than replace it.
-
----
-
-# 22. Evolution Review
-
-Major architectural evolution requires:
-
-* Architecture Review;
-* Impact Analysis;
-* Risk Assessment;
-* Compliance Verification;
-* Updated Traceability.
-
-Review shall precede implementation.
-
----
-
-# 23. Migration Strategy
-
-Architectural evolution shall define:
-
-* migration path;
-* compatibility requirements;
-* rollback strategy;
-* validation procedures.
-
-Migration shall preserve existing user knowledge.
-
----
-
-# 24. Long-Term Vision
-
-KnowledgeOS is intended to evolve over many years.
-
-Future evolution shall prioritize:
-
-* stability;
-* maintainability;
-* extensibility;
-* interoperability;
-* knowledge preservation.
-
-Short-term optimization shall never compromise long-term architecture.
-
----
-
-# 25. Evolution Metrics
-
-Representative evolution metrics include:
-
-* ADR growth;
-* architectural deviations;
-* compatibility preservation;
-* migration success rate;
-* documentation freshness;
-* technical debt reduction.
-
-Metrics support architectural maturity.
-
----
-
-# 26. Future Evolution Test Matrix
-
-| Verification           | Required |
-| ---------------------- | -------- |
-| Architecture Review    | Yes      |
-| ADR Review             | Yes      |
-| Compatibility Analysis | Yes      |
-| Migration Validation   | Yes      |
-| Documentation Update   | Yes      |
-| Traceability Review    | Yes      |
-| Compliance Review      | Yes      |
-
----
-
-# 27. Anti-Patterns
-
-The following are prohibited:
-
-* undocumented architectural evolution;
-* breaking public contracts without governance;
-* introducing hidden dependencies;
-* bypassing ADRs;
-* allowing architecture and documentation to diverge;
-* sacrificing long-term consistency for short-term convenience.
-
----
-
-# 28. Future Evolution Invariants
-
-The following invariants are mandatory:
-
-* architectural evolution is governed;
-* every significant change is traceable;
-* user ownership remains preserved;
-* architectural principles remain authoritative;
-* compatibility is evaluated before implementation;
-* documentation evolves together with the architecture.
-
----
-
-# 29. Related Documents
-
-* `README.md`
-* `ArchitectureCompliance.md`
-* `TraceabilityMatrix.md`
-* `AcceptanceCriteria.md`
-* `ReleaseReadiness.md`
-* `KnownLimitations.md`
-* `FinalReview.md`
-* Architecture Decision Records (ADRs)
-
----
-
-# 30. Status
-
-**Approved**
-
-The Future Evolution framework is frozen as the authoritative governance model for the long-term evolution of the KnowledgeOS Master Library.
-
-Every future architectural evolution shall preserve the principles, decisions and structural integrity established by Architecture V3 while enabling the platform to grow in a controlled, traceable and maintainable manner.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

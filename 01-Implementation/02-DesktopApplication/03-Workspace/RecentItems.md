@@ -1,395 +1,174 @@
+# Recent Items
 
-# Desktop Application Workspace Recent Items
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Desktop Application
-
-**Layer:** Workspace
-
-**Document:** Recent Items
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Desktop Application / 03-Workspace  
+**Document:** RecentItems  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Platform:** macOS  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the authoritative implementation model for the Recent Items subsystem within the KnowledgeOS Desktop Application.
+Define the recent items for the KnowledgeOS macOS application, covering workspace, windows, tabs, panels, selection, restoration and editing behavior.
 
-Recent Items provide fast access to knowledge objects, documents, searches, collections, workspaces, and other user-relevant entities that have been recently accessed or modified.
+## 2. Scope
 
-Recent Items are a derived Workspace projection.
+This document applies to the native macOS client and its integration with:
 
-They are not the authoritative source of user activity, navigation history, or knowledge ownership.
+- the device Local Library;
+- the NAS-hosted Master Library;
+- Personal Knowledge;
+- UDM and DPM;
+- Platform Engines;
+- Kernel execution services;
+- Apple platform services.
 
----
+It does not redefine Domain authority, acquisition semantics, synchronization ownership or Platform Engine responsibilities.
 
-# 2. Scope
+## 3. Product Context
 
-This document governs:
+The macOS application is the primary KnowledgeOS client.
 
-* Recent Item identity;
-* ownership;
-* Recent Item registry;
-* categorization;
-* ranking;
-* recency model;
-* pinning;
-* favorites interaction;
-* filtering;
-* grouping;
-* persistence;
-* restoration;
-* privacy;
-* plugin contributions;
-* synchronization awareness;
-* Commands;
-* Events;
-* Queries;
-* testing.
+It SHALL support:
 
-It does not define Navigation History, Activity History, Favorites or Library indexing.
+- local device scanning from user-authorized locations;
+- an independent offline-first Local Library;
+- browsing the remote Master Catalog;
+- explicit acquisition of selected publications;
+- reading and rendering;
+- annotations and Personal Knowledge;
+- search;
+- optional AI;
+- workspace and multi-window behavior;
+- future personal synchronization through iCloud/CloudKit.
 
----
+The NAS is not mounted as the working Local Library and is not a Personal Knowledge synchronization peer.
 
-# 3. Objectives
+## 4. Normative Language
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-The Recent Items subsystem shall:
+## 5. Normative Requirements
 
-* provide quick access to recently used entities;
-* remain deterministic;
-* avoid duplicate entries;
-* support multiple item categories;
-* support pinning;
-* preserve privacy;
-* remain lightweight;
-* support restoration;
-* support plugin extensions;
-* avoid becoming an activity log.
+- The macOS application SHALL maintain an independent Local Library.
+- The application SHALL remain usable offline for locally available publications.
+- The application SHALL browse the Master Catalog without treating the Local Library as a replica.
+- Publication acquisition SHALL be explicit and separate from Personal Knowledge synchronization.
+- Personal Knowledge SHALL synchronize only through the approved iCloud/CloudKit profile.
+- The application SHALL NOT write annotations, highlights, reading progress or personal relationships to the NAS Master Library.
+- UI components SHALL invoke public Platform contracts and SHALL NOT access repositories directly.
+- Long-running work SHALL expose durable operation identity, progress, cancellation and failure state.
+- Stable Domain identity SHALL be preserved across windows, workspaces, navigation and restoration.
+- Workspace state SHALL remain local or personal according to its declared scope.
+- Workspace restoration SHALL tolerate missing publications, unavailable NAS access and stale derived artifacts.
+- Selection and focus SHALL remain ephemeral unless explicitly promoted to restorable state.
+
+## 6. Architecture and Design Guidance
+
+Implementation SHOULD:
 
----
+- use explicit module composition at application startup;
+- keep SwiftUI/AppKit view code separate from Platform services;
+- expose commands, queries and observable state through stable façades or ViewModels;
+- preserve stable Domain identity in navigation and restoration payloads;
+- treat render, search, graph and AI projections as derived;
+- use structured concurrency with lifecycle-bound tasks;
+- propagate cancellation and correlation;
+- validate all persisted UI and workspace state before restoration;
+- avoid singleton mutable state except for explicitly governed application services;
+- keep framework-specific types out of shared public contracts;
+- support graceful degradation when the Master Library or remote providers are unavailable.
 
-# 4. Definition
+## 7. State and Lifecycle
 
-A Recent Item is a lightweight reference to a recently relevant entity.
+Desktop state SHALL be classified as:
 
-A Recent Item may reference:
+| State Class | Examples | Persistence |
+|---|---|---|
+| Domain-backed | Local Library membership, annotations | Domain repositories |
+| Restorable workspace | windows, tabs, open documents | local restoration store |
+| Session | active navigation, transient filters | scoped session |
+| Ephemeral UI | hover, focus, animation | memory only |
+| Derived | render cache, search results | rebuildable cache |
 
-* Knowledge Object;
-* document;
-* asset;
-* collection;
-* Workspace;
-* search;
-* annotation;
-* graph;
-* AI conversation;
-* plugin-defined resource.
+Lifecycle transitions SHALL release subscriptions, tasks, file handles and security-scoped resources deterministically.
 
-The Recent Items list never owns those entities.
+## 8. Failure and Recovery
 
----
+The application SHALL preserve:
 
-# 5. Ownership
+- Local Library identity;
+- locally available publications;
+- committed Personal Knowledge;
+- workspace restoration evidence;
+- operation identities;
+- import and acquisition progress;
+- provenance and integrity findings.
 
-Recent Items belong to the Workspace.
+Unavailable NAS access SHALL degrade Master Catalog browsing and acquisition only. It SHALL NOT prevent reading or annotating locally available publications.
 
-The Workspace owns:
-
-* Recent Item registry;
-* ordering;
-* ranking metadata;
-* persistence;
-* retention policy.
-
-Editors, Panels and Plugins may propose updates but never mutate the registry directly.
-
----
-
-# 6. Recent Items Aggregate
-
-```text
-RecentItemsState
-│
-├── WorkspaceIdentity
-├── RecentItemRegistry
-├── OrderingPolicy
-├── RetentionPolicy
-├── PinRegistry
-├── Filters
-├── PersistenceMetadata
-└── Version
-```
-
----
-
-# 7. Recent Item Descriptor
-
-Every Recent Item shall contain:
-
-* Recent Item Identity;
-* Target Identity;
-* Target Type;
-* Display Label Key;
-* Last Access Timestamp;
-* Access Sequence Number;
-* Source Context;
-* Pin State;
-* Privacy Classification;
-* Plugin Namespace (optional);
-* Schema Version.
-
-The descriptor shall remain lightweight.
-
----
-
-# 8. Categories
-
-Core categories include:
-
-* Documents;
-* Knowledge Objects;
-* Collections;
-* Assets;
-* Searches;
-* Annotations;
-* Graph Views;
-* AI Conversations;
-* Workspaces;
-* Plugin Resources.
-
----
-
-# 9. Ranking
-
-Ranking may consider:
-
-* recency;
-* access frequency;
-* pin state;
-* user preference;
-* Workspace policy.
-
-The algorithm shall be deterministic.
-
----
-
-# 10. Pinning
-
-Pinned items:
-
-* remain visible independently of recency;
-* preserve explicit ordering;
-* are not removed by retention;
-* do not alter authoritative ownership.
-
----
-
-# 11. Duplicate Prevention
-
-Only one Recent Item entry shall exist for the same logical target within the same Workspace.
-
-Repeated access updates the existing descriptor.
-
----
-
-# 12. Retention
-
-Retention policy may define:
-
-* maximum entries;
-* maximum age;
-* maximum storage size;
-* category limits.
-
-Eviction shall be deterministic.
-
----
-
-# 13. Updates
-
-Recent Items may be updated after:
-
-* opening a document;
-* navigating to a Knowledge Object;
-* opening a collection;
-* successful search execution;
-* opening an AI conversation;
-* plugin-defined operations.
-
-Background indexing shall not create Recent Items.
-
----
-
-# 14. Commands
-
-Representative Commands include:
-
-* RegisterRecentItem;
-* RemoveRecentItem;
-* PinRecentItem;
-* UnpinRecentItem;
-* ClearRecentItems;
-* ApplyRetentionPolicy.
-
----
-
-# 15. Events
-
-Representative Events include:
-
-* RecentItemRegistered;
-* RecentItemUpdated;
-* RecentItemPinned;
-* RecentItemUnpinned;
-* RecentItemRemoved;
-* RecentItemsCleared;
-* RetentionApplied.
-
----
-
-# 16. Queries
-
-Representative Queries include:
-
-* GetRecentItems;
-* GetRecentItemsByCategory;
-* GetPinnedItems;
-* GetRecentItem;
-* CanPinRecentItem.
-
-Queries return immutable projections.
-
----
-
-# 17. Persistence
-
-Recent Items may be persisted as Workspace preferences.
-
-Persistence shall include only:
-
-* stable identities;
-* ordering;
-* timestamps;
-* pin state;
-* lightweight metadata.
-
-Full entity data shall never be duplicated.
-
----
-
-# 18. Restoration
-
-During Workspace restoration:
-
-1. restore registry;
-2. validate identities;
-3. remove invalid entries;
-4. apply retention;
-5. restore pinned ordering;
-6. publish restoration diagnostics.
-
-Invalid Recent Items shall not block restoration.
-
----
-
-# 19. Privacy
-
-Privacy policy may:
-
-* disable persistence;
-* redact titles;
-* exclude AI conversations;
-* exclude private Workspaces;
-* clear entries on Workspace closure.
-
-Recent Items shall respect Workspace privacy classification.
-
----
-
-# 20. Plugins
-
-Plugins may contribute Recent Items through Plugin SDK contracts.
-
-Plugin descriptors shall declare:
-
-* target identity;
-* category;
-* display metadata;
-* serialization schema;
-* privacy classification.
-
-Missing plugins shall not prevent Workspace startup.
-
----
-
-# 21. Performance
-
-Implementation shall support:
-
-* O(1) lookup by identity;
-* incremental updates;
-* bounded storage;
-* lazy loading;
-* efficient filtering.
-
----
-
-# 22. Testing
-
-Tests shall verify:
-
-* duplicate prevention;
-* ranking;
-* pinning;
-* retention;
-* persistence;
-* restoration;
-* plugin items;
-* privacy policies.
-
----
-
-# 23. Architectural Invariants
-
-The following invariants are mandatory:
-
-* every Recent Item references one stable target;
-* Recent Items never own authoritative knowledge;
-* duplicates are prohibited;
-* ranking is deterministic;
-* pinning does not modify recency;
-* persistence remains bounded;
-* plugin entries use approved SDK contracts;
-* invalid entries never block restoration.
-
----
-
-# 24. Related Documents
-
-* `History.md`
-* `Navigation.md`
-* `Selection.md`
-* `WorkspaceRestoration.md`
-* `WorkspaceRecovery.md`
-* `Layout.md`
-* `Plugin SDK Contracts`
-
----
-
-# 25. Status
-
-**Approved**
-
-This document establishes the authoritative implementation model for the Recent Items subsystem within the KnowledgeOS Desktop Application.
-
-Recent Items provide a lightweight, deterministic and privacy-aware projection of recently accessed entities. They are Workspace-owned derived state, independent from Navigation History, Activity History and authoritative knowledge storage.
+Invalid restoration state SHALL be isolated and repaired without deleting authoritative user data.
+
+## 9. Security and Privacy
+
+- User-selected files SHALL use approved macOS security-scoped access where required.
+- Credentials and tokens SHALL use Keychain or another approved secure store.
+- Personal Knowledge SHALL not be written to NAS.
+- Logs SHALL not contain publication content, private paths, annotations or credentials.
+- Remote AI or OCR SHALL require policy authorization.
+- Window and workspace restoration payloads SHALL avoid sensitive content where identity references suffice.
+
+## 10. Accessibility and Native Experience
+
+The desktop application SHOULD follow native macOS conventions for:
+
+- keyboard navigation;
+- menus and commands;
+- window restoration;
+- focus;
+- accessibility labels and reading order;
+- drag and drop;
+- document opening;
+- toolbar and sidebar behavior;
+- VoiceOver;
+- reduced motion and contrast preferences.
+
+Accessibility transformations SHALL preserve UDM semantic order.
+
+## 11. Verification and Acceptance
+
+- The behavior is covered by automated tests where technically feasible.
+- Offline behavior is verified.
+- Master Catalog and Local Library scopes remain visibly distinct.
+- Personal Knowledge never enters Master Library persistence.
+- Cancellation, timeout and failure behavior are verified.
+- Architecture traceability is documented.
+- Accessibility implications are reviewed.
+- No direct private-repository access exists from UI code.
+
+## 12. Traceability
+
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/04-Platform/README.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Annotation/README.md`
+- `00-Architecture/04-Platform/Render/README.md`
+- `00-Architecture/04-Platform/Search/README.md`
+- `00-Architecture/04-Platform/Sync/README.md`
+- `00-Architecture/03-Kernel/README.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
+- `01-Implementation/02-DesktopApplication/02-Architecture/WorkspaceArchitecture.md`
+- `01-Implementation/02-DesktopApplication/03-Workspace/README.md`
+
+## 13. Compatibility and Evolution
+
+Breaking changes to restoration formats, Local Library identity mapping, public client contracts or acquisition behavior require migration guidance and architecture review.
+
+Persisted workspace and session formats SHALL be versioned.
+
+## 14. Status
+
+This document is part of the KnowledgeOS Desktop Application V4 implementation baseline.

@@ -1,576 +1,151 @@
+# Test Data
 
-# Master Library Test Data
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Testing
-
-**Document:** Test Data
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 08-Testing  
+**Document:** TestData  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the strategy for creating, organizing, maintaining and governing all datasets used during automated and manual testing of the KnowledgeOS Master Library.
+Define the test data for the KnowledgeOS Master Library implementation.
 
-Test Data is considered an architectural asset.
+## 2. Scope
 
-Its objective is to ensure that every test is deterministic, reproducible and representative of real-world knowledge libraries.
+This document covers verification and conformance strategy for the NAS-hosted Master Library and its client-facing integration.
 
----
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
-# 2. Scope
+## 3. Architectural Baseline
 
-This strategy applies to all datasets used by:
-
-* Unit Tests;
-* Integration Tests;
-* Contract Tests;
-* Synchronization Tests;
-* Recovery Tests;
-* Migration Tests;
-* Performance Tests;
-* Security Tests;
-* End-to-End Tests.
-
----
-
-# 3. Objectives
-
-Test Data shall provide:
-
-* reproducibility;
-* realism;
-* determinism;
-* maintainability;
-* scalability;
-* portability;
-* version compatibility.
-
----
-
-# 4. Principles
-
-Every dataset shall be:
-
-* version controlled;
-* documented;
-* deterministic;
-* reproducible;
-* immutable once released;
-* independently identifiable.
-
----
-
-# 5. Dataset Categories
-
-KnowledgeOS defines the following dataset categories:
-
-* Minimal Dataset;
-* Standard Dataset;
-* Large Dataset;
-* Stress Dataset;
-* Migration Dataset;
-* Security Dataset;
-* Corrupted Dataset;
-* Performance Dataset;
-* End-to-End Dataset.
-
-Each category targets different validation objectives.
-
----
-
-# 6. Dataset Versioning
-
-Every dataset shall expose:
-
-* Dataset Identifier;
-* Version;
-* Creation Date;
-* Schema Version;
-* Compatible Product Versions.
-
-Datasets evolve independently from application releases.
-
----
-
-# 7. Minimal Dataset
-
-The Minimal Dataset contains the smallest valid KnowledgeOS library.
-
-Typical contents:
-
-* one collection;
-* one document;
-* one asset;
-* one annotation;
-* one relationship.
-
-Used primarily by Unit and Integration Tests.
-
----
-
-# 8. Standard Dataset
-
-The Standard Dataset represents a typical personal knowledge library.
-
-Typical contents include:
-
-* books;
-* scientific papers;
-* scanned documents;
-* handwritten notes;
-* images;
-* bookmarks;
-* collections;
-* annotations;
-* graph relationships.
-
-Used for continuous integration.
-
----
-
-# 9. Large Dataset
-
-Large Dataset characteristics include:
-
-* hundreds of thousands of documents;
-* millions of metadata records;
-* extensive annotation history;
-* large asset repositories.
-
-Used for scalability validation.
-
----
-
-# 10. Stress Dataset
-
-Stress Datasets intentionally push architectural limits.
-
-Examples include:
-
-* oversized metadata;
-* deep graph structures;
-* long filenames;
-* extremely large attachments;
-* massive collections.
-
----
-
-# 11. Migration Dataset
-
-Migration Datasets preserve historical formats.
-
-Each supported product version shall have corresponding migration datasets.
-
-These datasets verify forward and backward compatibility.
-
----
-
-# 12. Corrupted Dataset
-
-Corrupted Datasets intentionally contain invalid information.
-
-Examples include:
-
-* damaged metadata;
-* missing assets;
-* invalid checksums;
-* incomplete synchronization;
-* malformed indexes.
-
-Used exclusively by Recovery and Security Tests.
-
----
-
-# 13. Security Dataset
-
-Security Datasets include malicious or malformed inputs.
-
-Examples:
-
-* SQL Injection payloads;
-* path traversal attempts;
-* malformed archives;
-* oversized payloads;
-* recursive structures;
-* invalid authentication data.
-
----
-
-# 14. Performance Dataset
-
-Performance Datasets represent realistic production-scale libraries.
-
-They include:
-
-* large PDFs;
-* high-resolution images;
-* OCR documents;
-* AI metadata;
-* semantic indexes.
-
----
-
-# 15. End-to-End Dataset
-
-End-to-End datasets simulate complete personal knowledge libraries.
-
-They shall contain:
-
-* multiple collections;
-* heterogeneous document types;
-* handwritten annotations;
-* imported assets;
-* synchronized history;
-* plugin-generated metadata;
-* AI-generated metadata.
-
----
-
-# 16. Supported Document Types
-
-Datasets should include representative examples of:
-
-* PDF;
-* EPUB;
-* Markdown;
-* HTML;
-* TXT;
-* DOCX;
-* RTF;
-* Images;
-* Audio metadata where supported;
-* Video metadata where supported.
-
----
-
-# 17. OCR Samples
-
-OCR datasets shall include:
-
-* scanned books;
-* handwritten pages;
-* invoices;
-* receipts;
-* magazines;
-* multilingual documents.
-
-OCR quality shall vary intentionally.
-
----
-
-# 18. Language Coverage
-
-Datasets should include multiple languages.
-
-Recommended coverage:
-
-* English;
-* Spanish;
-* French;
-* German;
-* Portuguese;
-* multilingual mixed documents.
-
-Unicode support shall always be validated.
-
----
-
-# 19. Character Encoding
-
-Validation includes:
-
-* UTF-8;
-* UTF-16;
-* Unicode normalization;
-* emoji;
-* combining characters;
-* right-to-left text where supported.
-
----
-
-# 20. Metadata Coverage
-
-Datasets verify:
-
-* complete metadata;
-* incomplete metadata;
-* conflicting metadata;
-* duplicated metadata;
-* optional fields.
-
----
-
-# 21. Relationship Coverage
-
-Datasets shall include:
-
-* hierarchical relationships;
-* graph links;
-* backlinks;
-* citations;
-* references;
-* collections.
-
----
-
-# 22. Annotation Coverage
-
-Annotation datasets include:
-
-* highlights;
-* handwritten notes;
-* comments;
-* bookmarks;
-* reading progress.
-
----
-
-# 23. AI Metadata
-
-Datasets verify:
-
-* embeddings;
-* summaries;
-* keywords;
-* classifications;
-* confidence scores.
-
-AI metadata shall never replace authored content.
-
----
-
-# 24. Asset Coverage
-
-Assets include:
-
-* images;
-* covers;
-* thumbnails;
-* attachments;
-* generated assets.
-
----
-
-# 25. Duplicate Coverage
-
-Datasets intentionally include:
-
-* duplicated files;
-* duplicated metadata;
-* duplicated identifiers where appropriate;
-* near duplicates.
-
-Duplicate detection shall be validated continuously.
-
----
-
-# 26. Invalid Data
-
-Datasets include invalid cases such as:
-
-* missing identifiers;
-* invalid timestamps;
-* malformed relationships;
-* corrupted metadata;
-* invalid checksums.
-
----
-
-# 27. Deterministic Generation
-
-Automatically generated datasets shall use:
-
-* deterministic seeds;
-* documented generation algorithms;
-* reproducible procedures.
-
----
-
-# 28. Synthetic Data
-
-Synthetic data is preferred over personal information.
-
-Real user data shall never be required for automated testing.
-
----
-
-# 29. Privacy
-
-Datasets shall not contain:
-
-* personal documents;
-* confidential information;
-* authentication secrets;
-* proprietary material;
-* copyrighted content without authorization.
-
----
-
-# 30. Dataset Storage
-
-Datasets shall be stored separately from application source code whenever practical.
-
-Each dataset shall expose:
-
-* manifest;
-* version;
-* checksum;
-* documentation.
-
----
-
-# 31. Integrity Verification
-
-Every dataset shall verify:
-
-* checksum;
-* manifest;
-* file count;
-* metadata consistency;
-* relationship consistency.
-
----
-
-# 32. Dataset Lifecycle
-
-The lifecycle consists of:
+The implementation is governed by the following fixed model:
 
 ```text
-Design
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
 
-↓
-
-Generation
-
-↓
-
-Validation
-
-↓
-
-Versioning
-
-↓
-
-Publication
-
-↓
-
-Maintenance
-
-↓
-
-Deprecation
-
-↓
-
-Archive
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
 ```
 
----
+The Master Library is independent from Local Libraries.
 
-# 33. Continuous Validation
+## 4. Normative Requirements
 
-Datasets shall be validated periodically to detect:
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-* corruption;
-* missing files;
-* obsolete formats;
-* compatibility issues.
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Verification SHALL include failure, retry, migration and recovery behavior, not only successful requests.
+- Tests SHALL prove that Personal Knowledge never enters Master Library persistence.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
 
----
+## 5. Design Guidance
 
-# 34. Observability
+Implementation SHOULD:
 
-Dataset execution shall expose:
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
 
-* dataset identifier;
-* version;
-* execution environment;
-* validation outcome.
+## 6. Failure and Recovery
 
----
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
 
-# 35. Regression Policy
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
 
-Every production defect requiring new representative data shall produce a new permanent dataset or extend an existing one.
+Recovery SHALL preserve:
 
----
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
 
-# 36. Anti-Patterns
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
 
-The following are prohibited:
+## 7. Security and Privacy
 
-* undocumented datasets;
-* mutable released datasets;
-* production user data;
-* random datasets without reproducible generation;
-* datasets with unknown provenance;
-* hidden modifications.
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
 
----
+## 8. Observability
 
-# 37. Dataset Matrix
+Relevant operations SHALL expose:
 
-| Dataset     | Purpose               |
-| ----------- | --------------------- |
-| Minimal     | Unit Tests            |
-| Standard    | Integration           |
-| Large       | Scalability           |
-| Stress      | Limits                |
-| Migration   | Version Compatibility |
-| Corrupted   | Recovery              |
-| Security    | Security Validation   |
-| Performance | Benchmarks            |
-| End-to-End  | Workflow Validation   |
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
 
----
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
 
-# 38. Test Data Invariants
+## 9. Verification and Acceptance
 
-The following invariants are mandatory:
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
+- The test suite is automated where technically possible.
+- Test data contains no production secrets or unapproved personal data.
 
-* every dataset is versioned;
-* every dataset is reproducible;
-* every dataset is deterministic;
-* released datasets remain immutable;
-* datasets never contain confidential user information;
-* every automated test identifies the dataset version used;
-* integrity is continuously verified;
-* datasets evolve under architectural governance.
+## 10. Traceability
 
----
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
-# 39. Related Documents
+## 11. Compatibility and Migration
 
-* `README.md`
-* `TestStrategy.md`
-* `EndToEndTests.md`
-* `PerformanceTests.md`
-* `RecoveryTests.md`
-* `MigrationTests.md`
-* `SecurityTests.md`
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
----
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-# 40. Status
+## 12. Status
 
-**Approved**
-
-The Test Data strategy is frozen as the authoritative specification governing all datasets used by the KnowledgeOS Master Library.
-
-Every validation process shall execute using deterministic, versioned and reproducible datasets to ensure consistent verification across all supported platforms and product versions.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

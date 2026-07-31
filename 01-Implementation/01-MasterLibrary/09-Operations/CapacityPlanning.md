@@ -1,465 +1,149 @@
+# Capacity Planning
 
-# Master Library Capacity Planning
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Operations
-
-**Document:** Capacity Planning
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 09-Operations  
+**Document:** CapacityPlanning  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Capacity Planning architecture for the KnowledgeOS Master Library.
+Define the capacity planning for the KnowledgeOS Master Library implementation.
 
-Capacity Planning ensures that computing, storage and network resources evolve predictably as user knowledge grows, maintaining operational performance without compromising architectural principles.
+## 2. Scope
 
-Capacity planning is a continuous operational process.
+This document covers deployment, monitoring, backup and operational readiness for the NAS-hosted Master Library and its client-facing integration.
 
----
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
-# 2. Scope
+## 3. Architectural Baseline
 
-Capacity Planning applies to:
+The implementation is governed by the following fixed model:
 
-* Master Library Server;
-* PostgreSQL Catalog;
-* NAS Source Storage;
-* Client Applications;
-* Local Libraries;
-* Search Engine;
-* Synchronization Engine;
-* Plugin Runtime;
-* AI Services;
-* Operational Infrastructure.
+```text
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
 
----
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
+```
+
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
 
-# 3. Objectives
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-Capacity Planning pursues the following objectives:
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
 
-* anticipate resource growth;
-* prevent resource exhaustion;
-* maintain performance;
-* optimize infrastructure utilization;
-* support long-term scalability;
-* simplify operational evolution.
+## 5. Design Guidance
 
----
+Implementation SHOULD:
 
-# 4. Capacity Planning Principles
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
 
-Every capacity decision shall be:
+## 6. Failure and Recovery
 
-* evidence-based;
-* measurable;
-* documented;
-* periodically reviewed;
-* architecture-aware;
-* economically justified.
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
 
-Capacity planning shall be driven by observed trends rather than assumptions.
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
 
----
+Recovery SHALL preserve:
 
-# 5. Capacity Domains
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
 
-KnowledgeOS plans capacity for:
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
 
-* Storage;
-* Metadata;
-* Processing;
-* Memory;
-* CPU;
-* Network;
-* Search;
-* Synchronization;
-* AI Processing.
+## 7. Security and Privacy
 
-Each domain evolves independently.
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
 
----
+## 8. Observability
 
-# 6. Planning Horizon
+Relevant operations SHALL expose:
 
-Capacity planning considers three horizons:
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
 
-| Horizon     | Purpose                                             |
-| ----------- | --------------------------------------------------- |
-| Short Term  | Daily and operational adjustments                   |
-| Medium Term | Hardware upgrades and optimization                  |
-| Long Term   | Architectural evolution and infrastructure planning |
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
 
-Planning frequency depends upon deployment scale.
+## 9. Verification and Acceptance
 
----
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
+- A runbook exists for the relevant operational scenario.
+- Health, alerting, backup and recovery paths are verifiable.
 
-# 7. Storage Capacity
+## 10. Traceability
 
-Storage planning evaluates:
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
-* NAS utilization;
-* Local Library growth;
-* asset storage;
-* backup storage;
-* temporary storage.
+## 11. Compatibility and Migration
 
-Storage projections shall consider long-term document preservation.
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
----
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-# 8. PostgreSQL Capacity
+## 12. Status
 
-Database planning monitors:
-
-* metadata growth;
-* relationship growth;
-* annotation growth;
-* transaction volume;
-* index size.
-
-Metadata growth trends shall be periodically reviewed.
-
----
-
-# 9. NAS Capacity
-
-NAS planning evaluates:
-
-* available capacity;
-* annual growth;
-* redundancy requirements;
-* filesystem limits;
-* backup requirements.
-
-The NAS shall always maintain adequate free capacity for operational safety.
-
----
-
-# 10. Search Capacity
-
-Search planning includes:
-
-* index size;
-* indexing throughput;
-* rebuild duration;
-* query volume;
-* storage utilization.
-
-Indexes remain rebuildable and therefore expandable.
-
----
-
-# 11. Synchronization Capacity
-
-Synchronization planning evaluates:
-
-* synchronization frequency;
-* concurrent clients;
-* pending operation volume;
-* conflict rate;
-* transferred data volume.
-
-Bandwidth utilization shall remain predictable.
-
----
-
-# 12. CPU Capacity
-
-CPU planning monitors:
-
-* average utilization;
-* peak utilization;
-* sustained workload;
-* background processing;
-* AI inference load.
-
-Persistent saturation indicates capacity expansion requirements.
-
----
-
-# 13. Memory Capacity
-
-Memory planning includes:
-
-* runtime memory;
-* cache utilization;
-* search indexing;
-* synchronization;
-* plugin execution.
-
-Memory exhaustion shall be proactively detected.
-
----
-
-# 14. Network Capacity
-
-Network planning evaluates:
-
-* synchronization bandwidth;
-* NAS communication;
-* client traffic;
-* AI provider communication;
-* backup traffic.
-
-Network bottlenecks shall be identified before affecting users.
-
----
-
-# 15. Local Library Capacity
-
-Client planning includes:
-
-* local storage growth;
-* cache expansion;
-* offline data volume;
-* synchronization queue size.
-
-Local Libraries shall remain operational throughout expected growth.
-
----
-
-# 16. AI Capacity
-
-AI capacity planning evaluates:
-
-* local inference workload;
-* GPU utilization where applicable;
-* model storage;
-* provider usage;
-* request frequency.
-
-AI remains an optional computational workload.
-
----
-
-# 17. Plugin Capacity
-
-Plugin planning includes:
-
-* installed plugin count;
-* resource utilization;
-* execution frequency;
-* memory consumption;
-* storage usage.
-
-Plugin growth shall remain operationally manageable.
-
----
-
-# 18. Background Jobs
-
-Capacity planning monitors:
-
-* queued jobs;
-* processing duration;
-* worker utilization;
-* retry activity;
-* scheduling efficiency.
-
-Background processing shall remain scalable.
-
----
-
-# 19. Growth Metrics
-
-Representative growth indicators include:
-
-* documents per year;
-* assets per year;
-* annotations per year;
-* collections;
-* graph relationships;
-* metadata volume.
-
-Historical growth supports future projections.
-
----
-
-# 20. Utilization Thresholds
-
-Operational thresholds shall define:
-
-* normal utilization;
-* warning level;
-* critical level.
-
-Threshold values are deployment specific and shall be periodically reviewed.
-
----
-
-# 21. Forecasting
-
-Forecasting shall consider:
-
-* historical trends;
-* seasonal behavior;
-* expected adoption;
-* new platform capabilities;
-* hardware lifecycle.
-
-Forecasts shall be revised regularly.
-
----
-
-# 22. Scalability Strategies
-
-Capacity expansion may include:
-
-* larger storage;
-* additional memory;
-* faster processors;
-* improved networking;
-* storage optimization;
-* software optimization.
-
-Architectural consistency shall be preserved during scaling.
-
----
-
-# 23. Capacity Reports
-
-Periodic reports shall summarize:
-
-* current utilization;
-* growth trends;
-* projected exhaustion;
-* recommended actions;
-* operational risks.
-
-Reports support strategic planning.
-
----
-
-# 24. Capacity Reviews
-
-Periodic reviews evaluate:
-
-* forecast accuracy;
-* infrastructure utilization;
-* operational efficiency;
-* hardware lifecycle;
-* future investments.
-
-Capacity reviews shall be documented.
-
----
-
-# 25. Operational Monitoring
-
-Monitoring continuously supplies:
-
-* utilization metrics;
-* growth metrics;
-* workload metrics;
-* saturation indicators;
-* operational trends.
-
-Capacity planning depends upon continuous monitoring.
-
----
-
-# 26. Maintenance Integration
-
-Capacity planning integrates with:
-
-* maintenance;
-* upgrades;
-* backups;
-* disaster recovery;
-* operational reviews.
-
-Planning supports preventive operations.
-
----
-
-# 27. Automation
-
-Automation may support:
-
-* trend analysis;
-* threshold evaluation;
-* report generation;
-* capacity forecasting;
-* notification.
-
-Operational decisions remain under human supervision.
-
----
-
-# 28. Capacity Test Matrix
-
-| Scenario               | Required |
-| ---------------------- | -------- |
-| Storage Growth         | Yes      |
-| Metadata Growth        | Yes      |
-| Database Growth        | Yes      |
-| Search Growth          | Yes      |
-| Synchronization Growth | Yes      |
-| CPU Saturation         | Yes      |
-| Memory Saturation      | Yes      |
-| Network Saturation     | Yes      |
-| Backup Growth          | Yes      |
-
----
-
-# 29. Anti-Patterns
-
-The following are prohibited:
-
-* planning without measurements;
-* ignoring growth trends;
-* operating continuously near resource limits;
-* expanding infrastructure without analysis;
-* treating temporary spikes as permanent demand;
-* relying upon optimistic assumptions.
-
----
-
-# 30. Capacity Planning Invariants
-
-The following invariants are mandatory:
-
-* capacity planning is continuously updated;
-* operational decisions are metric-driven;
-* growth projections are documented;
-* critical resources remain continuously monitored;
-* resource exhaustion is anticipated before operational impact;
-* scalability preserves architectural principles;
-* capacity planning supports long-term preservation of user knowledge.
-
----
-
-# 31. Related Documents
-
-* `README.md`
-* `Monitoring.md`
-* `HealthChecks.md`
-* `Maintenance.md`
-* `BackupOperations.md`
-* `UpgradeProcedure.md`
-* `IncidentManagement.md`
-
----
-
-# 32. Status
-
-**Approved**
-
-The Capacity Planning architecture is frozen as the authoritative capacity management model for the KnowledgeOS Master Library.
-
-Every deployment shall continuously evaluate infrastructure growth, resource utilization and operational trends to ensure that the platform scales predictably while preserving performance, reliability and architectural consistency.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

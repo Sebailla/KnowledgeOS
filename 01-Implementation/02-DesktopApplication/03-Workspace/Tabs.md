@@ -1,642 +1,174 @@
+# Tabs
 
-# Desktop Application Workspace Tabs
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Desktop Application
-
-**Layer:** Workspace
-
-**Document:** Tabs
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Desktop Application / 03-Workspace  
+**Document:** Tabs  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Platform:** macOS  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
-
-This document defines the architectural and implementation model for Tabs within a Workspace.
+## 1. Purpose
 
-Tabs are logical presentation containers that organize user work inside a Window. They own navigation context, editor association and presentation state, while referencing authoritative knowledge through stable identities.
+Define the tabs for the KnowledgeOS macOS application, covering workspace, windows, tabs, panels, selection, restoration and editing behavior.
 
-A Tab is not a document.
+## 2. Scope
 
-A Tab is a reusable working context that may present many kinds of knowledge.
+This document applies to the native macOS client and its integration with:
 
----
+- the device Local Library;
+- the NAS-hosted Master Library;
+- Personal Knowledge;
+- UDM and DPM;
+- Platform Engines;
+- Kernel execution services;
+- Apple platform services.
 
-# 2. Scope
+It does not redefine Domain authority, acquisition semantics, synchronization ownership or Platform Engine responsibilities.
 
-This document governs:
+## 3. Product Context
 
-* Tab identity;
-* Tab ownership;
-* Tab lifecycle;
-* Tab state;
-* Tab registry;
-* Tab ordering;
-* active Tab selection;
-* preview Tabs;
-* pinned Tabs;
-* split views;
-* editor association;
-* navigation association;
-* restoration;
-* recovery;
-* movement;
-* closure;
-* plugin Tabs;
-* commands;
-* events;
-* concurrency;
-* testing.
+The macOS application is the primary KnowledgeOS client.
 
----
+It SHALL support:
 
-# 3. Objectives
-
-The Tab implementation shall:
-
-* belong to exactly one Window;
-* belong to exactly one Workspace;
-* support deterministic restoration;
-* separate presentation from knowledge;
-* support multiple editor types;
-* preserve navigation history;
-* support previews;
-* support pinned Tabs;
-* support drag between Windows;
-* isolate plugin contributions;
-* remain platform independent.
+- local device scanning from user-authorized locations;
+- an independent offline-first Local Library;
+- browsing the remote Master Catalog;
+- explicit acquisition of selected publications;
+- reading and rendering;
+- annotations and Personal Knowledge;
+- search;
+- optional AI;
+- workspace and multi-window behavior;
+- future personal synchronization through iCloud/CloudKit.
 
----
+The NAS is not mounted as the working Local Library and is not a Personal Knowledge synchronization peer.
 
-# 4. Tab Definition
+## 4. Normative Language
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-A Tab represents one logical working surface.
+## 5. Normative Requirements
 
-A Tab may display:
+- The macOS application SHALL maintain an independent Local Library.
+- The application SHALL remain usable offline for locally available publications.
+- The application SHALL browse the Master Catalog without treating the Local Library as a replica.
+- Publication acquisition SHALL be explicit and separate from Personal Knowledge synchronization.
+- Personal Knowledge SHALL synchronize only through the approved iCloud/CloudKit profile.
+- The application SHALL NOT write annotations, highlights, reading progress or personal relationships to the NAS Master Library.
+- UI components SHALL invoke public Platform contracts and SHALL NOT access repositories directly.
+- Long-running work SHALL expose durable operation identity, progress, cancellation and failure state.
+- Stable Domain identity SHALL be preserved across windows, workspaces, navigation and restoration.
+- Workspace state SHALL remain local or personal according to its declared scope.
+- Workspace restoration SHALL tolerate missing publications, unavailable NAS access and stale derived artifacts.
+- Selection and focus SHALL remain ephemeral unless explicitly promoted to restorable state.
+
+## 6. Architecture and Design Guidance
+
+Implementation SHOULD:
 
-* a Knowledge Object;
-* a document;
-* search results;
-* graph exploration;
-* Workspace Home;
-* Library;
-* settings;
-* AI conversation;
-* plugin contribution.
+- use explicit module composition at application startup;
+- keep SwiftUI/AppKit view code separate from Platform services;
+- expose commands, queries and observable state through stable façades or ViewModels;
+- preserve stable Domain identity in navigation and restoration payloads;
+- treat render, search, graph and AI projections as derived;
+- use structured concurrency with lifecycle-bound tasks;
+- propagate cancellation and correlation;
+- validate all persisted UI and workspace state before restoration;
+- avoid singleton mutable state except for explicitly governed application services;
+- keep framework-specific types out of shared public contracts;
+- support graceful degradation when the Master Library or remote providers are unavailable.
 
-The displayed content is replaceable without changing Tab identity unless explicitly recreated.
+## 7. State and Lifecycle
 
----
+Desktop state SHALL be classified as:
 
-# 5. Architectural Position
+| State Class | Examples | Persistence |
+|---|---|---|
+| Domain-backed | Local Library membership, annotations | Domain repositories |
+| Restorable workspace | windows, tabs, open documents | local restoration store |
+| Session | active navigation, transient filters | scoped session |
+| Ephemeral UI | hover, focus, animation | memory only |
+| Derived | render cache, search results | rebuildable cache |
 
-```text
-Workspace
-    │
-    ├── Tab Registry
-    │
-    ├── Window
-    │      │
-    │      ├── Tab A
-    │      ├── Tab B
-    │      └── Tab C
-    │
-    └── Editor Registry
-```
+Lifecycle transitions SHALL release subscriptions, tasks, file handles and security-scoped resources deterministically.
 
-Tab ordering belongs to the Window.
+## 8. Failure and Recovery
 
-Tab identity belongs to the Workspace.
-
----
+The application SHALL preserve:
 
-# 6. Ownership
+- Local Library identity;
+- locally available publications;
+- committed Personal Knowledge;
+- workspace restoration evidence;
+- operation identities;
+- import and acquisition progress;
+- provenance and integrity findings.
 
-Workspace owns:
+Unavailable NAS access SHALL degrade Master Catalog browsing and acquisition only. It SHALL NOT prevent reading or annotating locally available publications.
 
-* Tab registry;
-* Tab identities;
-* Tab lifecycle;
-* serialization.
-
-Window owns:
-
-* Tab ordering;
-* active Tab;
-* grouping;
-* split assignment.
-
-Editor owns:
-
-* presentation behavior.
-
-Knowledge ownership remains in Platform Engines.
-
----
-
-# 7. Tab Aggregate
-
-```text
-TabState
-│
-├── TabIdentity
-├── WorkspaceIdentity
-├── WindowIdentity
-├── LifecycleState
-├── ContentReference
-├── EditorIdentity
-├── NavigationContextIdentity
-├── PresentationMode
-├── PreviewState
-├── PinState
-├── SplitRegion
-├── DirtyIndicator
-├── RestorationMetadata
-└── Version
-```
-
----
-
-# 8. Identity
-
-Every Tab shall have a stable identity.
-
-Identity supports:
-
-* restoration;
-* command routing;
-* event routing;
-* drag operations;
-* diagnostics;
-* editor association;
-* navigation association.
-
-Titles are never identities.
-
----
-
-# 9. Lifecycle
-
-A Tab may occupy:
-
-* Created;
-* Opening;
-* Open;
-* Active;
-* Inactive;
-* Preview;
-* Suspended;
-* Closing;
-* Closed;
-* Recovering;
-* Failed.
-
----
-
-# 10. Creation
-
-Tab creation shall:
-
-1. validate Workspace;
-2. validate Window;
-3. allocate identity;
-4. create Tab State;
-5. resolve Editor;
-6. create Navigation Context;
-7. register Tab;
-8. insert ordering;
-9. optionally activate;
-10. publish `TabOpened`.
-
----
-
-# 11. Content Reference
-
-A Tab references content.
-
-It never owns content.
-
-A reference may target:
-
-* Knowledge Object;
-* document;
-* annotation;
-* graph node;
-* collection;
-* search session;
-* plugin surface.
-
----
-
-# 12. Presentation Mode
-
-Presentation mode may include:
-
-* Reader;
-* Editor;
-* Outline;
-* Graph;
-* Comparison;
-* Presentation;
-* AI Assistant;
-* Plugin View.
-
-Changing presentation mode does not require creating a new Tab.
-
----
-
-# 13. Editor Association
-
-Each Tab references one active Editor.
-
-Editors may change while the Tab identity remains constant.
-
-Editor replacement shall preserve transferable state.
-
----
-
-# 14. Navigation Association
-
-Each Tab owns one Navigation Context.
-
-Navigation history remains independent from other Tabs.
-
----
-
-# 15. Active Tab
-
-Only one Tab per Window region may be active.
-
-Activation shall:
-
-* update Active Context;
-* activate Editor;
-* restore focus;
-* refresh Commands;
-* publish `TabActivated`.
-
----
-
-# 16. Preview Tabs
-
-Preview Tabs allow temporary inspection.
-
-A Preview Tab:
-
-* is replaceable;
-* is not pinned;
-* becomes persistent only after promotion;
-* maintains its own Navigation Context.
-
-Promotion triggers include:
-
-* edit;
-* pin;
-* explicit keep;
-* drag;
-* move.
-
----
-
-# 17. Pinned Tabs
-
-Pinned Tabs:
-
-* remain at the beginning of ordering;
-* cannot become Preview Tabs;
-* preserve position;
-* survive Window reorder.
-
----
-
-# 18. Dirty State
-
-Dirty state represents local presentation changes requiring user attention.
-
-It does not necessarily indicate unsynchronized knowledge.
-
-Dirty indicators are derived state.
-
----
-
-# 19. Moving Tabs
-
-Tabs may move:
-
-* inside the same Window;
-* between Windows of the same Workspace.
-
-Movement shall preserve:
-
-* identity;
-* Editor;
-* Navigation;
-* restoration metadata.
-
-Cross-Workspace movement requires explicit cloning.
-
----
-
-# 20. Ordering
-
-Window ordering is explicit.
-
-Ordering categories may include:
-
-* pinned;
-* regular;
-* preview.
-
-Ordering is serialized.
-
----
-
-# 21. Split Regions
-
-A Window may define several split regions.
-
-Each Tab belongs to one region.
-
-Region reassignment shall not recreate the Tab.
-
----
-
-# 22. Closing
-
-Closing a Tab shall:
-
-* validate lifecycle;
-* evaluate pending work;
-* resolve Editor disposal;
-* resolve Navigation cleanup;
-* update ordering;
-* activate fallback Tab;
-* publish `TabClosed`.
-
----
-
-# 23. Closing the Last Tab
-
-Closing the last Tab may:
-
-* display Workspace Home;
-* create default Tab;
-* close Window;
-* keep empty Window.
-
-Policy belongs to the Workspace.
-
----
-
-# 24. Recovery
-
-Recovery may restore:
-
-* Navigation;
-* Editor association;
-* presentation mode;
-* pinned state;
-* split region;
-* restoration metadata.
-
-Recovery never fabricates missing knowledge.
-
----
-
-# 25. Restoration
-
-Restoration sequence:
-
-```text
-Descriptor
-    ↓
-Identity
-    ↓
-Navigation
-    ↓
-Editor
-    ↓
-Presentation
-    ↓
-Activation
-```
-
-Native UI is created afterward.
-
----
-
-# 26. Plugin Tabs
-
-Plugins may contribute Tab types.
-
-Plugin Tabs shall declare:
-
-* plugin identity;
-* capabilities;
-* restoration support;
-* serialization schema;
-* disposal policy.
-
-Plugin Tabs cannot bypass Workspace ownership.
-
----
-
-# 27. Commands
-
-Representative Commands:
-
-* OpenTab;
-* ActivateTab;
-* CloseTab;
-* PinTab;
-* UnpinTab;
-* PromotePreviewTab;
-* MoveTab;
-* SplitTab;
-* MergeTab;
-* RestoreTab;
-* RecoverTab.
-
----
-
-# 28. Events
-
-Representative Events:
-
-* TabOpened;
-* TabActivated;
-* TabDeactivated;
-* TabPinned;
-* TabUnpinned;
-* PreviewPromoted;
-* TabMoved;
-* TabSplitChanged;
-* TabClosing;
-* TabClosed;
-* TabRecovered;
-* TabRestored.
-
----
-
-# 29. Queries
-
-Representative Queries:
-
-* GetTab;
-* GetActiveTab;
-* GetTabs;
-* GetPinnedTabs;
-* GetPreviewTab;
-* GetTabNavigation;
-* GetTabEditor.
-
----
-
-# 30. Concurrency
-
-Serialized operations include:
-
-* opening;
-* activation;
-* movement;
-* closure;
-* restoration.
-
-Read operations may execute concurrently.
-
----
-
-# 31. Security
-
-Tab operations shall validate:
-
-* Workspace ownership;
-* Window ownership;
-* authorization;
-* plugin capabilities.
-
----
-
-# 32. Privacy
-
-Tab descriptors shall minimize exposure of:
-
-* titles;
-* recent locations;
-* temporary searches;
-* AI conversations.
-
-Private Workspace policies override default behavior.
-
----
-
-# 33. Performance
-
-Implementation shall support:
-
-* lazy Editor creation;
-* lazy content loading;
-* lightweight preview Tabs;
-* incremental ordering updates;
-* version-based reconciliation.
-
----
-
-# 34. Memory Management
-
-Closing or suspending Tabs shall release:
-
-* Editor projections;
-* rendering resources;
-* preview caches;
-* subscriptions.
-
-Logical descriptors remain until disposal.
-
----
-
-# 35. Diagnostics
-
-Diagnostics should include:
-
-* Workspace Identity;
-* Window Identity;
-* Tab Identity;
-* Editor Identity;
-* Navigation Identity;
-* lifecycle state;
-* version;
-* failure category.
-
----
-
-# 36. Testing
-
-Tests shall cover:
-
-* creation;
-* activation;
-* preview promotion;
-* pinning;
-* ordering;
-* split assignment;
-* movement;
-* restoration;
-* recovery;
-* closure;
-* plugin Tabs.
-
----
-
-# 37. Architectural Invariants
-
-The following invariants are mandatory:
-
-* every Tab has one stable identity;
-* every Tab belongs to exactly one Workspace;
-* every Tab belongs to exactly one Window;
-* every Tab references one Navigation Context;
-* every Tab references one active Editor;
-* content is referenced, never owned;
-* preview Tabs are temporary;
-* pinned Tabs remain ordered deterministically;
-* Tab movement preserves identity;
-* restoration reconstructs logical state before UI;
-* plugins use approved contracts only.
-
----
-
-# 38. Related Documents
-
-* `README.md`
-* `Windows.md`
-* `Editors.md`
-* `Navigation.md`
-* `WorkspaceLifecycle.md`
-* `Layout.md`
-* `WorkspaceRestoration.md`
-* `StateManagement.md`
-* `WindowManagement.md`
-* `CommandArchitecture.md`
-* `EventArchitecture.md`
-
----
-
-# 39. Status
-
-**Approved**
-
-This document establishes the authoritative implementation model for Workspace Tabs.
-
-Tabs are Workspace-owned logical presentation contexts. They organize navigation, editor association and user interaction while referencing knowledge through stable identities. Window ordering, restoration, preview behavior and plugin integration remain deterministic, serializable and independent from native UI implementations.
+Invalid restoration state SHALL be isolated and repaired without deleting authoritative user data.
+
+## 9. Security and Privacy
+
+- User-selected files SHALL use approved macOS security-scoped access where required.
+- Credentials and tokens SHALL use Keychain or another approved secure store.
+- Personal Knowledge SHALL not be written to NAS.
+- Logs SHALL not contain publication content, private paths, annotations or credentials.
+- Remote AI or OCR SHALL require policy authorization.
+- Window and workspace restoration payloads SHALL avoid sensitive content where identity references suffice.
+
+## 10. Accessibility and Native Experience
+
+The desktop application SHOULD follow native macOS conventions for:
+
+- keyboard navigation;
+- menus and commands;
+- window restoration;
+- focus;
+- accessibility labels and reading order;
+- drag and drop;
+- document opening;
+- toolbar and sidebar behavior;
+- VoiceOver;
+- reduced motion and contrast preferences.
+
+Accessibility transformations SHALL preserve UDM semantic order.
+
+## 11. Verification and Acceptance
+
+- The behavior is covered by automated tests where technically feasible.
+- Offline behavior is verified.
+- Master Catalog and Local Library scopes remain visibly distinct.
+- Personal Knowledge never enters Master Library persistence.
+- Cancellation, timeout and failure behavior are verified.
+- Architecture traceability is documented.
+- Accessibility implications are reviewed.
+- No direct private-repository access exists from UI code.
+
+## 12. Traceability
+
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/04-Platform/README.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Annotation/README.md`
+- `00-Architecture/04-Platform/Render/README.md`
+- `00-Architecture/04-Platform/Search/README.md`
+- `00-Architecture/04-Platform/Sync/README.md`
+- `00-Architecture/03-Kernel/README.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
+- `01-Implementation/02-DesktopApplication/02-Architecture/WorkspaceArchitecture.md`
+- `01-Implementation/02-DesktopApplication/03-Workspace/README.md`
+
+## 13. Compatibility and Evolution
+
+Breaking changes to restoration formats, Local Library identity mapping, public client contracts or acquisition behavior require migration guidance and architecture review.
+
+Persisted workspace and session formats SHALL be versioned.
+
+## 14. Status
+
+This document is part of the KnowledgeOS Desktop Application V4 implementation baseline.

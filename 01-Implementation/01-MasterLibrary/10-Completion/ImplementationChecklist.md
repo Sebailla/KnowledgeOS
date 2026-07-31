@@ -1,417 +1,149 @@
+# Implementation Checklist
 
-# Master Library Implementation Checklist
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Completion
-
-**Document:** Implementation Checklist
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 10-Completion  
+**Document:** ImplementationChecklist  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the implementation checklist for the KnowledgeOS Master Library.
+Define the implementation checklist for the KnowledgeOS Master Library implementation.
 
-Its purpose is to verify that every architectural component has been fully implemented, validated and documented before the implementation is considered complete.
+## 2. Scope
+
+This document covers release completion, traceability and residual risk for the NAS-hosted Master Library and its client-facing integration.
 
-The checklist represents the minimum implementation baseline for Architecture V3.
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
----
+## 3. Architectural Baseline
 
-# 2. Scope
+The implementation is governed by the following fixed model:
 
-This checklist applies to every implementation artifact, including:
+```text
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
 
-* Foundation;
-* Domain;
-* Kernel;
-* Platform;
-* Integration;
-* Master Library;
-* Client Applications;
-* Operations;
-* Security;
-* Testing;
-* Documentation.
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
+```
+
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-# 3. Completion Criteria
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Verification SHALL include failure, retry, migration and recovery behavior, not only successful requests.
+- Tests SHALL prove that Personal Knowledge never enters Master Library persistence.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
 
-An item is considered complete only when:
+## 5. Design Guidance
 
-* implementation is finished;
-* documentation is complete;
-* tests have passed;
-* operational validation has succeeded;
-* architectural compliance has been verified.
+Implementation SHOULD:
 
-Partial implementation shall not be marked as complete.
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
 
----
+## 6. Failure and Recovery
 
-# 4. Foundation
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
 
-The following artifacts shall be complete:
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
 
-| Item                     | Status |
-| ------------------------ | ------ |
-| Product Vision           | □     |
-| Architecture Principles  | □     |
-| Architecture Constraints | □     |
-| Architecture Model       | □     |
-| Quality Attributes       | □     |
-| Glossary                 | □     |
+Recovery SHALL preserve:
 
----
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
 
-# 5. Domain
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
 
-The Domain layer shall include:
+## 7. Security and Privacy
 
-| Item                    | Status |
-| ----------------------- | ------ |
-| UDM                     | □     |
-| DPM                     | □     |
-| Knowledge Objects       | □     |
-| Identity Model          | □     |
-| Knowledge Lifecycle     | □     |
-| Engine Responsibilities | □     |
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
 
----
+## 8. Observability
 
-# 6. Kernel
+Relevant operations SHALL expose:
 
-Kernel implementation shall include:
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
 
-| Item                 | Status |
-| -------------------- | ------ |
-| Kernel Architecture  | □     |
-| Dependency Injection | □     |
-| Command Bus          | □     |
-| Query Bus            | □     |
-| Event Bus            | □     |
-| Scheduler            | □     |
-| Workflow Engine      | □     |
-| Logging              | □     |
-| Observability        | □     |
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
 
----
+## 9. Verification and Acceptance
 
-# 7. Platform
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
 
-Every Platform Engine shall be implemented.
+## 10. Traceability
 
-| Engine     | Status |
-| ---------- | ------ |
-| Import     | □     |
-| Export     | □     |
-| Knowledge  | □     |
-| Library    | □     |
-| Search     | □     |
-| Render     | □     |
-| Annotation | □     |
-| AI         | □     |
-| Plugin     | □     |
-| Sync       | □     |
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
----
+## 11. Compatibility and Migration
 
-# 8. Integration
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-Integration implementation shall include:
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-| Component         | Status |
-| ----------------- | ------ |
-| Public Contracts  | □     |
-| Plugin SDK        | □     |
-| External Services | □     |
-| Data Exchange     | □     |
-| OAuth             | □     |
-| MCP               | □     |
-| Webhooks          | □     |
+## 12. Status
 
----
-
-# 9. Persistence
-
-Persistence implementation shall include:
-
-| Component          | Status |
-| ------------------ | ------ |
-| PostgreSQL Catalog | □     |
-| Source Storage     | □     |
-| Asset Storage      | □     |
-| Cover Storage      | □     |
-| Directory Layout   | □     |
-| Checksums          | □     |
-| Integrity          | □     |
-| Recovery           | □     |
-| Backup             | □     |
-
----
-
-# 10. Server
-
-Server implementation shall include:
-
-| Component       | Status |
-| --------------- | ------ |
-| API Layer       | □     |
-| Services        | □     |
-| Configuration   | □     |
-| Security        | □     |
-| Synchronization | □     |
-| Search          | □     |
-
----
-
-# 11. Client
-
-Client implementation shall include:
-
-| Component           | Status |
-| ------------------- | ------ |
-| Local Library       | □     |
-| Catalog Browser     | □     |
-| Acquisition Manager | □     |
-| Offline Support     | □     |
-| Synchronization     | □     |
-| Cache               | □     |
-
----
-
-# 12. Search
-
-Search implementation shall verify:
-
-| Component          | Status |
-| ------------------ | ------ |
-| Indexing           | □     |
-| Query Processing   | □     |
-| Metadata Search    | □     |
-| Full Text Search   | □     |
-| Rebuild Procedures | □     |
-
----
-
-# 13. Synchronization
-
-Synchronization implementation shall verify:
-
-| Component               | Status |
-| ----------------------- | ------ |
-| Checkpoints             | □     |
-| Conflict Resolution     | □     |
-| Retry Queue             | □     |
-| Synchronization Journal | □     |
-| Recovery                | □     |
-
----
-
-# 14. AI
-
-AI implementation shall verify:
-
-| Component        | Status |
-| ---------------- | ------ |
-| Local Providers  | □     |
-| Remote Providers | □     |
-| Prompt Pipeline  | □     |
-| Model Selection  | □     |
-| Privacy Controls | □     |
-
----
-
-# 15. Plugin System
-
-Plugin implementation shall verify:
-
-| Component               | Status |
-| ----------------------- | ------ |
-| SDK                     | □     |
-| Contracts               | □     |
-| Discovery               | □     |
-| Capability Registration | □     |
-| Sandboxing              | □     |
-| Version Compatibility   | □     |
-
----
-
-# 16. Security
-
-Security implementation shall verify:
-
-| Component         | Status |
-| ----------------- | ------ |
-| Authentication    | □     |
-| Authorization     | □     |
-| Encryption        | □     |
-| Secret Management | □     |
-| Audit Logging     | □     |
-
----
-
-# 17. Operations
-
-Operations implementation shall verify:
-
-| Component            | Status |
-| -------------------- | ------ |
-| Deployment           | □     |
-| Monitoring           | □     |
-| Logging              | □     |
-| Alerting             | □     |
-| Backup               | □     |
-| Disaster Recovery    | □     |
-| Maintenance          | □     |
-| Upgrade              | □     |
-| Health Checks        | □     |
-| Capacity Planning    | □     |
-| Operational Runbooks | □     |
-| Incident Management  | □     |
-
----
-
-# 18. Testing
-
-Testing implementation shall verify:
-
-| Component         | Status |
-| ----------------- | ------ |
-| Unit Tests        | □     |
-| Integration Tests | □     |
-| Contract Tests    | □     |
-| Migration Tests   | □     |
-| Recovery Tests    | □     |
-| Performance Tests | □     |
-| Security Tests    | □     |
-| End-to-End Tests  | □     |
-
----
-
-# 19. Documentation
-
-Documentation shall verify:
-
-| Component    | Status |
-| ------------ | ------ |
-| Architecture | □     |
-| Domain       | □     |
-| Kernel       | □     |
-| Platform     | □     |
-| Integration  | □     |
-| Operations   | □     |
-| ADRs         | □     |
-| Diagrams     | □     |
-
----
-
-# 20. Validation Checklist
-
-Before declaring implementation complete, verify:
-
-* architecture review completed;
-* implementation review completed;
-* documentation review completed;
-* operational validation completed;
-* release readiness approved.
-
-All validation activities shall be documented.
-
----
-
-# 21. Evidence
-
-Each completed checklist item shall reference objective evidence, such as:
-
-* implementation artifact;
-* architectural document;
-* test report;
-* review report;
-* validation report;
-* operational record.
-
-Checklist completion shall always be evidence-based.
-
----
-
-# 22. Completion Rules
-
-Implementation shall not be declared complete when:
-
-* required documentation is missing;
-* mandatory tests fail;
-* architectural deviations remain unresolved;
-* operational validation has not been completed;
-* known critical defects remain open.
-
----
-
-# 23. Periodic Review
-
-The checklist shall be reviewed:
-
-* before every major release;
-* after significant architectural changes;
-* after major operational incidents;
-* during architecture audits.
-
----
-
-# 24. Anti-Patterns
-
-The following are prohibited:
-
-* marking items complete without evidence;
-* accepting undocumented implementations;
-* bypassing mandatory reviews;
-* approving incomplete subsystems;
-* using verbal confirmation instead of documented validation.
-
----
-
-# 25. Implementation Checklist Invariants
-
-The following invariants are mandatory:
-
-* every architectural component is represented in this checklist;
-* every completed item has supporting evidence;
-* implementation status remains traceable;
-* documentation reflects implementation;
-* testing validates implementation;
-* completion requires formal approval.
-
----
-
-# 26. Related Documents
-
-* `README.md`
-* `ArchitectureCompliance.md`
-* `TraceabilityMatrix.md`
-* `AcceptanceCriteria.md`
-* `ReleaseReadiness.md`
-* `FinalReview.md`
-
----
-
-# 27. Status
-
-**Approved**
-
-The Implementation Checklist is frozen as the authoritative implementation verification baseline for the KnowledgeOS Master Library.
-
-No implementation shall be declared complete until every mandatory checklist item has been verified, documented, tested and formally approved.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

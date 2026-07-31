@@ -1,477 +1,151 @@
+# Backup Operations
 
-# Master Library Backup Operations
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Operations
-
-**Document:** Backup Operations
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 09-Operations  
+**Document:** BackupOperations  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the backup architecture and operational procedures for the KnowledgeOS Master Library.
+Define the backup operations for the KnowledgeOS Master Library implementation.
 
-Backup Operations ensure that every critical platform component can be restored following accidental deletion, corruption, hardware failure or catastrophic events while preserving data integrity and architectural consistency.
+## 2. Scope
 
-A backup is considered successful only when it has been restored and verified.
+This document covers deployment, monitoring, backup and operational readiness for the NAS-hosted Master Library and its client-facing integration.
 
----
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
-# 2. Scope
+## 3. Architectural Baseline
 
-Backup Operations apply to:
-
-* PostgreSQL Catalog;
-* NAS Source Storage;
-* Generated Assets;
-* Configuration;
-* Search Indexes;
-* Operational Metadata;
-* Plugin Configuration;
-* AI Metadata (where applicable).
-
-Temporary caches are outside the backup scope.
-
----
-
-# 3. Objectives
-
-Backup Operations pursue the following objectives:
-
-* preserve user knowledge;
-* minimize data loss;
-* support deterministic restoration;
-* enable disaster recovery;
-* validate backup integrity;
-* automate recurring operations.
-
----
-
-# 4. Backup Principles
-
-Every backup shall be:
-
-* complete;
-* versioned;
-* verifiable;
-* encrypted when appropriate;
-* documented;
-* restorable.
-
-Backups shall never replace the operational system.
-
----
-
-# 5. Protected Components
-
-The platform protects the following components:
-
-| Component            | Mandatory |
-| -------------------- | --------- |
-| PostgreSQL Metadata  | Yes       |
-| NAS Source Documents | Yes       |
-| Assets               | Yes       |
-| Configuration        | Yes       |
-| Plugin Configuration | Yes       |
-| Operational Metadata | Yes       |
-| Search Indexes       | Optional  |
-| Cache                | No        |
-
----
-
-# 6. Backup Categories
-
-KnowledgeOS defines the following backup types:
-
-* Full Backup;
-* Incremental Backup;
-* Differential Backup;
-* Configuration Backup;
-* Metadata Backup;
-* Binary Storage Backup.
-
-Each category has an independent operational schedule.
-
----
-
-# 7. PostgreSQL Backup
-
-Database backups shall include:
-
-* schema;
-* metadata;
-* relationships;
-* synchronization state;
-* operational metadata.
-
-Transaction consistency is mandatory.
-
----
-
-# 8. NAS Backup
-
-NAS backups shall include:
-
-* original documents;
-* imported assets;
-* generated assets;
-* covers;
-* exported files where configured.
-
-File integrity shall be preserved.
-
----
-
-# 9. Configuration Backup
-
-Configuration backups include:
-
-* runtime configuration;
-* deployment configuration;
-* environment configuration;
-* operational policies.
-
-Secrets shall follow the organization's security policy.
-
----
-
-# 10. Search Index Backup
-
-Search indexes are rebuildable.
-
-Backups of indexes are optional and may be performed solely to reduce recovery time.
-
-Indexes shall never be considered authoritative.
-
----
-
-# 11. Plugin Backup
-
-Plugin backups include:
-
-* installed plugins;
-* plugin configuration;
-* compatibility metadata.
-
-Plugin runtime state shall not be backed up.
-
----
-
-# 12. AI Metadata Backup
-
-AI-generated metadata may be included in backups.
-
-Examples include:
-
-* embeddings;
-* summaries;
-* classifications;
-* semantic indexes.
-
-AI metadata remains derivable from authoritative content.
-
----
-
-# 13. Backup Schedule
-
-Typical schedules include:
-
-* daily incremental backups;
-* weekly full backups;
-* monthly archival backups.
-
-Deployment-specific schedules may vary.
-
----
-
-# 14. Backup Workflow
+The implementation is governed by the following fixed model:
 
 ```text
-Select Components
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
 
-↓
-
-Validate State
-
-↓
-
-Create Snapshot
-
-↓
-
-Generate Backup
-
-↓
-
-Verify Integrity
-
-↓
-
-Store Backup
-
-↓
-
-Register Metadata
-
-↓
-
-Periodic Restore Validation
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
 ```
 
-Each step shall be auditable.
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Backup and recovery SHALL cover PostgreSQL and authoritative files as one verified recovery set while preserving their independent volumes.
+- Restore tests SHALL verify identity, checksums, catalog/source consistency and server readiness.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
+
+## 5. Design Guidance
+
+Implementation SHOULD:
+
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
+
+## 6. Failure and Recovery
+
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
+
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
+
+Recovery SHALL preserve:
+
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
+
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
+
+## 7. Security and Privacy
+
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
+
+## 8. Observability
+
+Relevant operations SHALL expose:
+
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
+
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
+
+## 9. Verification and Acceptance
+
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
+- A runbook exists for the relevant operational scenario.
+- Health, alerting, backup and recovery paths are verifiable.
+
+## 10. Traceability
+
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
----
+## 11. Compatibility and Migration
 
-# 15. Consistency
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-Backups shall capture a transactionally consistent platform state.
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-No backup shall mix incompatible metadata and storage versions.
+## 12. Status
 
----
-
-# 16. Integrity Verification
-
-Every backup shall verify:
-
-* checksums;
-* file count;
-* metadata consistency;
-* manifest completeness;
-* backup readability.
-
-Corrupted backups shall be rejected.
-
----
-
-# 17. Encryption
-
-Backup encryption shall be supported where operationally required.
-
-Encryption keys shall be managed independently from backup files.
-
-Loss of encryption keys shall be treated as a critical operational risk.
-
----
-
-# 18. Storage Locations
-
-Backup storage may include:
-
-* local storage;
-* secondary NAS;
-* removable media;
-* secure cloud storage.
-
-Multiple storage locations are recommended.
-
----
-
-# 19. Retention Policy
-
-Retention policies define:
-
-* daily retention;
-* weekly retention;
-* monthly retention;
-* yearly archival.
-
-Retention shall comply with operational requirements.
-
----
-
-# 20. Backup Catalog
-
-Every backup shall register:
-
-* backup identifier;
-* creation time;
-* backup type;
-* platform version;
-* checksum;
-* storage location.
-
-The backup catalog supports operational recovery.
-
----
-
-# 21. Restoration Validation
-
-Periodic restoration tests shall verify:
-
-* metadata recovery;
-* document recovery;
-* asset recovery;
-* configuration recovery;
-* synchronization readiness.
-
-Untested backups shall not be considered reliable.
-
----
-
-# 22. Recovery Objectives
-
-Backup procedures shall define:
-
-* Recovery Point Objective (RPO);
-* Recovery Time Objective (RTO).
-
-Target values depend upon deployment topology.
-
----
-
-# 23. Failure Handling
-
-Backup failures shall generate:
-
-* operational logs;
-* alerts;
-* retry procedures;
-* operator notifications.
-
-Partial backups shall never replace valid backups.
-
----
-
-# 24. Automation
-
-Backup automation shall support:
-
-* scheduled execution;
-* integrity verification;
-* retention enforcement;
-* catalog updates;
-* notification.
-
-Automation shall remain observable.
-
----
-
-# 25. Monitoring
-
-Operational monitoring shall verify:
-
-* successful execution;
-* execution duration;
-* storage capacity;
-* verification status;
-* restoration validation status.
-
----
-
-# 26. Security
-
-Backup security includes:
-
-* access control;
-* encryption;
-* integrity verification;
-* audit logging;
-* secure deletion where required.
-
-Backups shall be protected to the same standard as production data.
-
----
-
-# 27. Disaster Recovery Integration
-
-Backup Operations integrate directly with:
-
-* Disaster Recovery;
-* Incident Management;
-* Upgrade Procedures;
-* Maintenance.
-
-Operational consistency shall be preserved.
-
----
-
-# 28. Operational Testing
-
-Periodic testing shall include:
-
-* complete restoration;
-* partial restoration;
-* metadata-only restoration;
-* storage-only restoration;
-* configuration restoration.
-
-Testing shall use representative production-like datasets.
-
----
-
-# 29. Backup Test Matrix
-
-| Scenario              | Required |
-| --------------------- | -------- |
-| Full Backup           | Yes      |
-| Incremental Backup    | Yes      |
-| PostgreSQL Restore    | Yes      |
-| NAS Restore           | Yes      |
-| Configuration Restore | Yes      |
-| Backup Verification   | Yes      |
-| Corrupted Backup      | Yes      |
-| Missing Storage       | Yes      |
-| Encryption Validation | Yes      |
-
----
-
-# 30. Anti-Patterns
-
-The following are prohibited:
-
-* backups without verification;
-* undocumented retention policies;
-* unencrypted backups where encryption is required;
-* overwriting valid backups with incomplete backups;
-* relying upon search indexes as authoritative data;
-* assuming backup success without restoration testing.
-
----
-
-# 31. Backup Invariants
-
-The following invariants are mandatory:
-
-* every authoritative component is backed up;
-* backups are versioned;
-* backups are integrity verified;
-* restoration procedures are periodically tested;
-* metadata and binary storage remain consistent;
-* backup catalogs remain accurate;
-* backups never replace authoritative production systems.
-
----
-
-# 32. Related Documents
-
-* `README.md`
-* `DeploymentArchitecture.md`
-* `DisasterRecovery.md`
-* `Maintenance.md`
-* `UpgradeProcedure.md`
-* `IncidentManagement.md`
-
----
-
-# 33. Status
-
-**Approved**
-
-The Backup Operations architecture is frozen as the authoritative backup strategy for the KnowledgeOS Master Library.
-
-Every operational deployment shall implement deterministic, verifiable and regularly tested backup procedures to ensure long-term preservation and recoverability of user knowledge.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

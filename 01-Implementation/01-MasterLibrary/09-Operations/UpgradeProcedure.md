@@ -1,460 +1,149 @@
-# Master Library Upgrade Procedure
+# Upgrade Procedure
 
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Operations
-
-**Document:** Upgrade Procedure
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 09-Operations  
+**Document:** UpgradeProcedure  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the architecture and operational procedures for upgrading the KnowledgeOS Master Library.
+Define the upgrade procedure for the KnowledgeOS Master Library implementation.
 
-The upgrade process ensures that platform evolution preserves user knowledge, maintains architectural consistency and minimizes operational disruption.
+## 2. Scope
 
-Every upgrade shall be deterministic, reversible and validated.
+This document covers deployment, monitoring, backup and operational readiness for the NAS-hosted Master Library and its client-facing integration.
 
----
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
-# 2. Scope
+## 3. Architectural Baseline
 
-This document applies to upgrades of:
-
-* Master Library Server;
-* Client Applications;
-* PostgreSQL Catalog;
-* NAS Storage Layout;
-* Configuration;
-* Search Engine;
-* Plugin Runtime;
-* AI Providers;
-* Operational Infrastructure.
-
----
-
-# 3. Objectives
-
-Upgrade procedures pursue the following objectives:
-
-* preserve user knowledge;
-* maintain platform availability;
-* ensure compatibility;
-* support controlled evolution;
-* minimize downtime;
-* enable safe rollback.
-
----
-
-# 4. Upgrade Principles
-
-Every upgrade shall be:
-
-* planned;
-* documented;
-* versioned;
-* reversible whenever practical;
-* validated before production use;
-* fully auditable.
-
----
-
-# 5. Upgrade Categories
-
-KnowledgeOS recognizes the following upgrade categories:
-
-* Patch Release;
-* Minor Release;
-* Major Release;
-* Configuration Upgrade;
-* Database Upgrade;
-* Client Upgrade;
-* Plugin Upgrade;
-* Infrastructure Upgrade.
-
-Each category defines independent validation requirements.
-
----
-
-# 6. Version Compatibility
-
-Every release shall define:
-
-* supported upgrade paths;
-* minimum supported version;
-* deprecated versions;
-* migration requirements;
-* rollback limitations.
-
-Unsupported upgrade paths shall be rejected before execution.
-
----
-
-# 7. Pre-Upgrade Validation
-
-Before any upgrade the platform shall verify:
-
-* backup availability;
-* backup integrity;
-* platform health;
-* configuration validity;
-* sufficient storage capacity;
-* database consistency;
-* NAS accessibility.
-
-Upgrades shall not begin if critical validation fails.
-
----
-
-# 8. Upgrade Workflow
+The implementation is governed by the following fixed model:
 
 ```text
-Validate Environment
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
 
-↓
-
-Create Verified Backup
-
-↓
-
-Freeze Critical Operations
-
-↓
-
-Apply Upgrade
-
-↓
-
-Execute Migrations
-
-↓
-
-Validate Components
-
-↓
-
-Resume Services
-
-↓
-
-Post-Upgrade Verification
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
 ```
 
-Each phase shall produce audit records.
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
+
+## 5. Design Guidance
+
+Implementation SHOULD:
+
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
+
+## 6. Failure and Recovery
+
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
+
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
+
+Recovery SHALL preserve:
+
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
+
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
+
+## 7. Security and Privacy
+
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
+
+## 8. Observability
+
+Relevant operations SHALL expose:
+
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
+
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
+
+## 9. Verification and Acceptance
+
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
+- A runbook exists for the relevant operational scenario.
+- Health, alerting, backup and recovery paths are verifiable.
+
+## 10. Traceability
+
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
+
+## 11. Compatibility and Migration
 
----
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-# 9. Backup Requirement
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-A verified backup is mandatory before:
+## 12. Status
 
-* database migration;
-* storage migration;
-* configuration migration;
-* major version upgrade.
-
-Backups shall be restorable before proceeding.
-
----
-
-# 10. Database Upgrade
-
-Database upgrades include:
-
-* schema migration;
-* metadata validation;
-* index verification;
-* transaction validation;
-* compatibility checks.
-
-Schema changes shall be performed exclusively through controlled migrations.
-
----
-
-# 11. Storage Upgrade
-
-Storage upgrades may include:
-
-* directory layout evolution;
-* metadata relocation;
-* asset organization changes;
-* integrity verification.
-
-Original documents shall never be modified unnecessarily.
-
----
-
-# 12. Configuration Upgrade
-
-Configuration upgrades shall verify:
-
-* schema version;
-* deprecated parameters;
-* renamed properties;
-* compatibility;
-* default values.
-
-Configuration migration shall preserve semantic meaning.
-
----
-
-# 13. Search Upgrade
-
-Search upgrades include:
-
-* index compatibility;
-* rebuild requirements;
-* metadata validation;
-* query verification.
-
-Indexes may be rebuilt after major upgrades.
-
----
-
-# 14. Client Upgrade
-
-Client upgrades shall preserve:
-
-* Local Library;
-* pending synchronization;
-* user preferences;
-* cached metadata where applicable.
-
-Clients shall automatically reconcile with the Master Library after upgrading.
-
----
-
-# 15. Plugin Upgrade
-
-Plugin upgrades verify:
-
-* SDK compatibility;
-* capability declarations;
-* dependency compatibility;
-* configuration migration.
-
-Incompatible plugins shall be disabled rather than preventing platform startup.
-
----
-
-# 16. AI Provider Upgrade
-
-AI upgrades verify:
-
-* provider compatibility;
-* model availability;
-* credential validity;
-* inference configuration.
-
-AI remains an optional subsystem.
-
----
-
-# 17. Upgrade Ordering
-
-Recommended upgrade order:
-
-1. Backup Verification
-2. Configuration
-3. PostgreSQL
-4. NAS Validation
-5. Master Library Server
-6. Search
-7. Plugins
-8. Clients
-
-This order preserves architectural dependencies.
-
----
-
-# 18. Operational Freeze
-
-During critical upgrades the platform may temporarily suspend:
-
-* synchronization;
-* background jobs;
-* plugin execution;
-* scheduled maintenance.
-
-The freeze shall be as short as possible.
-
----
-
-# 19. Validation
-
-Post-upgrade validation verifies:
-
-* service availability;
-* metadata integrity;
-* synchronization;
-* search functionality;
-* plugin compatibility;
-* AI availability where enabled.
-
----
-
-# 20. Rollback Strategy
-
-Rollback procedures shall include:
-
-* executable restoration;
-* configuration restoration;
-* database restoration where required;
-* validation;
-* service restart.
-
-Rollback shall preserve verified user knowledge.
-
----
-
-# 21. Interrupted Upgrade
-
-If an upgrade is interrupted:
-
-* completed steps shall remain identifiable;
-* partial migrations shall be detected;
-* recovery procedures shall resume deterministically;
-* inconsistent states shall be rejected.
-
----
-
-# 22. Monitoring
-
-Upgrade monitoring records:
-
-* execution progress;
-* completed stages;
-* failures;
-* validation results;
-* rollback execution.
-
----
-
-# 23. Logging
-
-Every upgrade shall produce:
-
-* operational logs;
-* audit logs;
-* migration logs;
-* validation reports.
-
-Logs shall remain permanently available for operational review.
-
----
-
-# 24. Automation
-
-Upgrade automation may perform:
-
-* compatibility validation;
-* backup verification;
-* migration execution;
-* post-upgrade validation;
-* rollback initiation.
-
-Automation shall never bypass validation gates.
-
----
-
-# 25. Communication
-
-Operational communication shall include:
-
-* planned maintenance window;
-* expected duration;
-* affected services;
-* rollback status if applicable;
-* completion confirmation.
-
----
-
-# 26. Upgrade Testing
-
-Every release shall validate:
-
-* fresh installation;
-* upgrade from supported previous versions;
-* rollback;
-* interrupted upgrade recovery;
-* migration correctness.
-
-Unsupported upgrade paths shall not be tested.
-
----
-
-# 27. Upgrade Test Matrix
-
-| Scenario                | Required |
-| ----------------------- | -------- |
-| Patch Upgrade           | Yes      |
-| Minor Upgrade           | Yes      |
-| Major Upgrade           | Yes      |
-| Database Migration      | Yes      |
-| Configuration Migration | Yes      |
-| Plugin Upgrade          | Yes      |
-| Rollback                | Yes      |
-| Interrupted Upgrade     | Yes      |
-| Post-Upgrade Validation | Yes      |
-
----
-
-# 28. Anti-Patterns
-
-The following are prohibited:
-
-* upgrading without verified backups;
-* manual schema modifications;
-* skipping compatibility validation;
-* upgrading unsupported versions;
-* undocumented rollback procedures;
-* completing upgrades without post-upgrade verification.
-
----
-
-# 29. Upgrade Invariants
-
-The following invariants are mandatory:
-
-* every upgrade is version controlled;
-* verified backups precede critical upgrades;
-* compatibility is validated before execution;
-* migrations are deterministic;
-* rollback procedures remain available;
-* authoritative metadata is preserved;
-* platform integrity is verified before returning to production.
-
----
-
-# 30. Related Documents
-
-* `README.md`
-* `DeploymentArchitecture.md`
-* `ConfigurationManagement.md`
-* `BackupOperations.md`
-* `DisasterRecovery.md`
-* `Maintenance.md`
-* `HealthChecks.md`
-
----
-
-# 31. Status
-
-**Approved**
-
-The Upgrade Procedure is frozen as the authoritative upgrade model for the KnowledgeOS Master Library.
-
-Every platform upgrade shall preserve user knowledge, maintain architectural integrity and provide deterministic, validated and auditable evolution across all supported deployment environments.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

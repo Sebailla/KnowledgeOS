@@ -1,551 +1,171 @@
+# Session Management
 
-# Desktop Application Session Management
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Desktop Application
-
-**Layer:** Architecture
-
-**Document:** Session Management
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Desktop Application / 02-Architecture  
+**Document:** SessionManagement  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Platform:** macOS  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the architecture responsible for creating, maintaining, checkpointing, restoring and terminating user sessions within the KnowledgeOS Desktop Application.
+Define the session management for the KnowledgeOS macOS application, covering macOS application architecture and runtime composition.
 
-A Session represents the execution continuity of one or more Workspaces during an application execution.
+## 2. Scope
 
-It allows users to resume work with minimal interruption while preserving the architectural separation between Runtime state and authoritative knowledge.
+This document applies to the native macOS client and its integration with:
 
----
+- the device Local Library;
+- the NAS-hosted Master Library;
+- Personal Knowledge;
+- UDM and DPM;
+- Platform Engines;
+- Kernel execution services;
+- Apple platform services.
 
-# 2. Scope
+It does not redefine Domain authority, acquisition semantics, synchronization ownership or Platform Engine responsibilities.
 
-This document governs:
+## 3. Product Context
 
-* session identity;
-* session lifecycle;
-* session ownership;
-* checkpointing;
-* persistence descriptors;
-* restoration;
-* recovery;
-* Workspace association;
-* multi-window continuity;
-* versioning;
-* migration;
-* session validation;
-* shutdown coordination.
+The macOS application is the primary KnowledgeOS client.
 
-It does not govern knowledge persistence, synchronization or document versioning.
+It SHALL support:
 
----
+- local device scanning from user-authorized locations;
+- an independent offline-first Local Library;
+- browsing the remote Master Catalog;
+- explicit acquisition of selected publications;
+- reading and rendering;
+- annotations and Personal Knowledge;
+- search;
+- optional AI;
+- workspace and multi-window behavior;
+- future personal synchronization through iCloud/CloudKit.
 
-# 3. Objectives
+The NAS is not mounted as the working Local Library and is not a Personal Knowledge synchronization peer.
 
-Session Management shall:
+## 4. Normative Language
 
-* preserve user continuity;
-* support deterministic restoration;
-* isolate recoverable failures;
-* minimize startup latency;
-* maintain compatibility across versions;
-* avoid data duplication;
-* support multiple Workspaces;
-* provide incremental checkpoints;
-* enable graceful recovery.
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
----
+## 5. Normative Requirements
 
-# 4. Session Definition
+- The macOS application SHALL maintain an independent Local Library.
+- The application SHALL remain usable offline for locally available publications.
+- The application SHALL browse the Master Catalog without treating the Local Library as a replica.
+- Publication acquisition SHALL be explicit and separate from Personal Knowledge synchronization.
+- Personal Knowledge SHALL synchronize only through the approved iCloud/CloudKit profile.
+- The application SHALL NOT write annotations, highlights, reading progress or personal relationships to the NAS Master Library.
+- UI components SHALL invoke public Platform contracts and SHALL NOT access repositories directly.
+- Long-running work SHALL expose durable operation identity, progress, cancellation and failure state.
+- Stable Domain identity SHALL be preserved across windows, workspaces, navigation and restoration.
+- Persistent state, session state and ephemeral view state SHALL remain separate.
+- Session recovery SHALL preserve user work without elevating stale cache data to authority.
 
-A Session is a Runtime-owned object describing the complete restorable execution context of the Desktop Application.
+## 6. Architecture and Design Guidance
 
-A Session references:
+Implementation SHOULD:
 
-* active Workspaces;
-* open windows;
-* open tabs;
-* editor descriptors;
-* layouts;
-* navigation state;
-* preferences affecting restoration;
-* checkpoint metadata.
+- use explicit module composition at application startup;
+- keep SwiftUI/AppKit view code separate from Platform services;
+- expose commands, queries and observable state through stable façades or ViewModels;
+- preserve stable Domain identity in navigation and restoration payloads;
+- treat render, search, graph and AI projections as derived;
+- use structured concurrency with lifecycle-bound tasks;
+- propagate cancellation and correlation;
+- validate all persisted UI and workspace state before restoration;
+- avoid singleton mutable state except for explicitly governed application services;
+- keep framework-specific types out of shared public contracts;
+- support graceful degradation when the Master Library or remote providers are unavailable.
 
-A Session does not own authoritative knowledge.
+## 7. State and Lifecycle
 
-It owns only restoration metadata.
+Desktop state SHALL be classified as:
 
----
+| State Class | Examples | Persistence |
+|---|---|---|
+| Domain-backed | Local Library membership, annotations | Domain repositories |
+| Restorable workspace | windows, tabs, open documents | local restoration store |
+| Session | active navigation, transient filters | scoped session |
+| Ephemeral UI | hover, focus, animation | memory only |
+| Derived | render cache, search results | rebuildable cache |
 
-# 5. Architectural Position
+Lifecycle transitions SHALL release subscriptions, tasks, file handles and security-scoped resources deterministically.
 
-```text
-Application Runtime
-        │
-        ▼
-Session Manager
-        │
-        ▼
-Session
-        │
-        ├── Workspace Descriptors
-        ├── Window Descriptors
-        ├── Navigation
-        ├── Layout
-        └── Restoration Metadata
-```
+## 8. Failure and Recovery
 
-Session Manager coordinates Sessions.
+The application SHALL preserve:
 
-The Runtime owns them.
+- Local Library identity;
+- locally available publications;
+- committed Personal Knowledge;
+- workspace restoration evidence;
+- operation identities;
+- import and acquisition progress;
+- provenance and integrity findings.
 
----
+Unavailable NAS access SHALL degrade Master Catalog browsing and acquisition only. It SHALL NOT prevent reading or annotating locally available publications.
 
-# 6. Session Identity
+Invalid restoration state SHALL be isolated and repaired without deleting authoritative user data.
 
-Each Session shall possess a unique identifier.
+## 9. Security and Privacy
 
-The identifier shall support:
+- User-selected files SHALL use approved macOS security-scoped access where required.
+- Credentials and tokens SHALL use Keychain or another approved secure store.
+- Personal Knowledge SHALL not be written to NAS.
+- Logs SHALL not contain publication content, private paths, annotations or credentials.
+- Remote AI or OCR SHALL require policy authorization.
+- Window and workspace restoration payloads SHALL avoid sensitive content where identity references suffice.
 
-* diagnostics;
-* checkpoint tracking;
-* recovery;
-* migration;
-* version compatibility.
+## 10. Accessibility and Native Experience
 
-Session identity is temporary.
+The desktop application SHOULD follow native macOS conventions for:
 
-It shall never identify user knowledge.
+- keyboard navigation;
+- menus and commands;
+- window restoration;
+- focus;
+- accessibility labels and reading order;
+- drag and drop;
+- document opening;
+- toolbar and sidebar behavior;
+- VoiceOver;
+- reduced motion and contrast preferences.
 
----
+Accessibility transformations SHALL preserve UDM semantic order.
 
-# 7. Session Lifecycle
+## 11. Verification and Acceptance
 
-A Session may occupy the following states:
+- The behavior is covered by automated tests where technically feasible.
+- Offline behavior is verified.
+- Master Catalog and Local Library scopes remain visibly distinct.
+- Personal Knowledge never enters Master Library persistence.
+- Cancellation, timeout and failure behavior are verified.
+- Architecture traceability is documented.
+- Accessibility implications are reviewed.
+- No direct private-repository access exists from UI code.
 
-| State         | Meaning                       |
-| ------------- | ----------------------------- |
-| Created       | Session initialized           |
-| Active        | Runtime is operating normally |
-| Checkpointing | Persisting runtime state      |
-| Suspended     | Waiting for restoration       |
-| Restoring     | Reconstructing Runtime        |
-| Closing       | Preparing shutdown            |
-| Closed        | Graceful completion           |
-| Recovering    | Previous execution failed     |
-| Failed        | Session cannot continue       |
+## 12. Traceability
 
-Transitions shall be validated before execution.
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/04-Platform/README.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Annotation/README.md`
+- `00-Architecture/04-Platform/Render/README.md`
+- `00-Architecture/04-Platform/Search/README.md`
+- `00-Architecture/04-Platform/Sync/README.md`
+- `00-Architecture/03-Kernel/README.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
----
+## 13. Compatibility and Evolution
 
-# 8. Session Composition
+Breaking changes to restoration formats, Local Library identity mapping, public client contracts or acquisition behavior require migration guidance and architecture review.
 
-A Session consists of:
+Persisted workspace and session formats SHALL be versioned.
 
-```text
-Session
-│
-├── SessionIdentity
-├── RuntimeVersion
-├── WorkspaceDescriptors
-├── WindowDescriptors
-├── NavigationDescriptors
-├── PreferenceOverrides
-├── CheckpointHistory
-├── RecoveryMetadata
-├── IntegrityInformation
-└── SchemaVersion
-```
+## 14. Status
 
-Only serializable descriptors may appear in a Session.
-
----
-
-# 9. Session Ownership
-
-The Runtime owns one active Session.
-
-The Session references one or more Workspaces.
-
-Each Workspace maintains independent working state.
-
-The Session coordinates their restoration.
-
----
-
-# 10. Session Creation
-
-Session creation shall:
-
-1. create Session Identity;
-2. initialize metadata;
-3. register Runtime version;
-4. initialize checkpoint history;
-5. associate Runtime;
-6. publish SessionCreated event.
-
----
-
-# 11. Checkpointing
-
-Checkpointing creates a recoverable snapshot.
-
-Checkpoint creation may occur:
-
-* periodically;
-* after meaningful UI changes;
-* before shutdown;
-* before Workspace closure;
-* before system sleep;
-* after restoration stabilization.
-
-Checkpoint creation shall be incremental whenever possible.
-
----
-
-# 12. Checkpoint Contents
-
-A checkpoint may include:
-
-* Workspace descriptors;
-* Window descriptors;
-* Layout;
-* Navigation;
-* Restoration metadata;
-* Runtime schema version;
-* Checksum.
-
-It shall never contain:
-
-* live services;
-* database connections;
-* native handles;
-* active threads;
-* Kernel instances;
-* Platform Engine instances.
-
----
-
-# 13. Session Restoration
-
-Restoration consists of:
-
-1. locate latest valid checkpoint;
-2. validate integrity;
-3. validate schema;
-4. validate compatibility;
-5. create Runtime;
-6. reconstruct Workspaces;
-7. reconstruct Windows;
-8. reconstruct Editors;
-9. rebuild navigation;
-10. activate Session.
-
-The Runtime becomes interactive only after successful validation.
-
----
-
-# 14. Recovery
-
-Recovery shall attempt:
-
-* latest checkpoint;
-* previous checkpoint;
-* minimal Workspace restoration;
-* empty Workspace fallback.
-
-Recovery shall never fabricate knowledge.
-
----
-
-# 15. Version Compatibility
-
-Each Session Descriptor shall declare:
-
-* Runtime version;
-* Session schema version;
-* serialization version.
-
-Unsupported descriptors shall be rejected with a structured recovery path.
-
----
-
-# 16. Migration
-
-Session migrations shall:
-
-* preserve logical state;
-* preserve Workspace identities;
-* preserve navigation;
-* preserve layouts;
-* preserve compatibility metadata.
-
-Migration shall never modify authoritative knowledge.
-
----
-
-# 17. Multiple Workspaces
-
-A Session may reference several Workspaces.
-
-Each Workspace shall retain:
-
-* independent windows;
-* independent navigation;
-* independent layouts;
-* independent history.
-
-The Session coordinates them without merging state.
-
----
-
-# 18. Graceful Shutdown
-
-Before shutdown:
-
-* commands stop accepting new work;
-* active tasks are completed or cancelled;
-* Session checkpoint is written;
-* resources are released;
-* Session becomes Closed.
-
----
-
-# 19. Unexpected Termination
-
-Unexpected termination shall trigger recovery during next startup.
-
-The application shall:
-
-* detect incomplete shutdown;
-* validate checkpoint integrity;
-* discard corrupted descriptors;
-* restore the latest valid Session.
-
----
-
-# 20. Session Commands
-
-Representative commands include:
-
-* CreateSession;
-* ActivateSession;
-* CheckpointSession;
-* RestoreSession;
-* SuspendSession;
-* CloseSession;
-* RecoverSession.
-
-Commands represent user or system intent.
-
----
-
-# 21. Session Events
-
-Representative events include:
-
-* SessionCreated;
-* SessionActivated;
-* SessionCheckpointed;
-* SessionRestored;
-* SessionClosing;
-* SessionClosed;
-* SessionRecoveryStarted;
-* SessionRecovered;
-* SessionFailed.
-
-Events describe completed transitions.
-
----
-
-# 22. Serialization
-
-Session serialization shall be:
-
-* deterministic;
-* versioned;
-* compact;
-* platform-independent;
-* incremental when possible.
-
-Round-trip serialization shall preserve logical state.
-
----
-
-# 23. Integrity Validation
-
-Every Session Descriptor shall validate:
-
-* checksum;
-* schema;
-* ownership consistency;
-* descriptor references;
-* Workspace existence;
-* Window ownership;
-* version compatibility.
-
-Invalid descriptors shall never be restored.
-
----
-
-# 24. Privacy
-
-Session descriptors shall minimize stored information.
-
-Sensitive information shall be represented through references whenever possible.
-
-Secret values shall never be stored inside Session descriptors.
-
----
-
-# 25. Security
-
-Session files shall protect:
-
-* integrity;
-* version consistency;
-* descriptor authenticity;
-* plugin compatibility metadata.
-
-The Session Manager shall reject malformed descriptors.
-
----
-
-# 26. Performance
-
-Checkpointing shall avoid blocking the UI.
-
-The architecture shall support:
-
-* incremental serialization;
-* background persistence;
-* lazy restoration;
-* deferred editor restoration.
-
----
-
-# 27. Testing Strategy
-
-Session Management shall support tests for:
-
-* creation;
-* checkpointing;
-* restoration;
-* recovery;
-* migration;
-* serialization;
-* compatibility;
-* graceful shutdown;
-* crash recovery.
-
----
-
-# 28. Determinism
-
-Given the same valid Session Descriptor and compatible Runtime version, the application shall reconstruct the same logical execution environment.
-
----
-
-# 29. Idempotency
-
-The following operations shall be idempotent where appropriate:
-
-* repeated checkpoint generation;
-* repeated restoration;
-* repeated shutdown requests;
-* repeated migration execution.
-
----
-
-# 30. Session Management Prohibitions
-
-Session Management shall not:
-
-* own Workspace state;
-* own knowledge objects;
-* access PostgreSQL directly;
-* access NAS directly;
-* serialize live services;
-* restore invalid descriptors;
-* bypass Runtime validation.
-
----
-
-# 31. Validation Matrix
-
-| Concern       | Validation        |
-| ------------- | ----------------- |
-| Identity      | Uniqueness        |
-| Lifecycle     | State transitions |
-| Serialization | Round-trip        |
-| Compatibility | Version tests     |
-| Recovery      | Crash recovery    |
-| Checkpoints   | Integrity         |
-| Restoration   | Integration       |
-
----
-
-# 32. Anti-Patterns
-
-The following are prohibited:
-
-* serializing native objects;
-* storing live services;
-* checkpointing every UI event;
-* restoring corrupted Sessions;
-* treating Session as authoritative knowledge;
-* bypassing Runtime lifecycle.
-
----
-
-# 33. Architectural Invariants
-
-The following invariants are mandatory:
-
-* one Runtime owns one active Session;
-* Sessions contain descriptors only;
-* Sessions never own authoritative knowledge;
-* Workspaces remain independent;
-* restoration is deterministic;
-* checkpoints are versioned;
-* corrupted Sessions are never restored;
-* Session recovery never modifies knowledge.
-
----
-
-# 34. Related Documents
-
-* `RuntimeArchitecture.md`
-* `ApplicationArchitecture.md`
-* `WorkspaceArchitecture.md`
-* `WindowManagement.md`
-* `NavigationArchitecture.md`
-* `StateManagement.md`
-* `DependencyGraph.md`
-* Runtime Architecture
-* Master Library Architecture
-* Architecture Decision Records
-
----
-
-# 35. Status
-
-**Approved**
-
-This document establishes the authoritative Session Management Architecture for the KnowledgeOS Desktop Application.
-
-Sessions provide deterministic restoration of the Runtime environment while preserving strict separation between Runtime execution state and authoritative knowledge stored within the Master Library.
+This document is part of the KnowledgeOS Desktop Application V4 implementation baseline.

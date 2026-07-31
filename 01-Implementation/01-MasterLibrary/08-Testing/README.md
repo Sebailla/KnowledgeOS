@@ -1,505 +1,149 @@
+# Readme
 
-# Master Library Testing
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Testing
-
-**Document:** README
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 08-Testing  
+**Document:** README  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the testing architecture for the KnowledgeOS Master Library.
+Provide the rector guide for verification and conformance strategy in the Master Library implementation.
 
-Its purpose is to establish a deterministic, repeatable and exhaustive validation strategy that guarantees the correctness, integrity, recoverability and long-term evolution of the platform.
+## 2. Scope
 
-Testing is considered part of the architecture rather than a post-development activity.
+This document covers verification and conformance strategy for the NAS-hosted Master Library and its client-facing integration.
 
-Every component of the Master Library shall be testable through explicit contracts.
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
----
+## 3. Architectural Baseline
 
-# 2. Scope
-
-This document applies to:
-
-* Domain
-* Kernel
-* Persistence
-* Server
-* Client
-* Synchronization
-* AI
-* Import
-* Export
-* Search
-* Plugin SDK
-* Public Contracts
-* External Providers
-
-It also defines the required quality gates before any release.
-
----
-
-# 3. Objectives
-
-The testing architecture has the following objectives:
-
-* validate functional correctness;
-* verify architectural invariants;
-* detect regressions;
-* validate synchronization safety;
-* verify Offline First behavior;
-* validate recoverability;
-* verify interoperability;
-* validate performance;
-* validate security;
-* verify compatibility between versions.
-
----
-
-# 4. Testing Principles
-
-All testing follows these principles:
-
-* automated whenever practical;
-* deterministic;
-* reproducible;
-* isolated;
-* independent;
-* idempotent;
-* observable;
-* versioned;
-* architecture-aware.
-
-Tests shall never depend on execution order.
-
----
-
-# 5. Testing Pyramid
-
-The recommended distribution is:
+The implementation is governed by the following fixed model:
 
 ```text
-Architecture Tests
-        ▲
-End-to-End Tests
-        ▲
-Integration Tests
-        ▲
-Component Tests
-        ▲
-Unit Tests
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
+
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
 ```
 
-The majority of tests should remain Unit Tests.
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
+
+## 5. Design Guidance
+
+Implementation SHOULD:
+
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
+
+## 6. Failure and Recovery
+
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
+
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
+
+Recovery SHALL preserve:
+
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
+
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
+
+## 7. Security and Privacy
+
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
+
+## 8. Observability
+
+Relevant operations SHALL expose:
+
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
+
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
+
+## 9. Verification and Acceptance
+
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
+- The test suite is automated where technically possible.
+- Test data contains no production secrets or unapproved personal data.
+
+## 10. Traceability
+
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
+
+## 11. Compatibility and Migration
 
----
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
-# 6. Test Categories
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-KnowledgeOS defines the following categories:
+## 12. Status
 
-* Unit
-* Component
-* Integration
-* Contract
-* Synchronization
-* Persistence
-* Recovery
-* Migration
-* Performance
-* Load
-* Stress
-* Security
-* Accessibility
-* Compatibility
-* End-to-End
-
-Each category has independent responsibilities.
-
----
-
-# 7. Architecture Tests
-
-Architecture Tests verify:
-
-* dependency direction;
-* module boundaries;
-* forbidden dependencies;
-* layering;
-* package ownership;
-* plugin isolation;
-* capability isolation;
-* architectural invariants.
-
-These tests prevent architectural erosion.
-
----
-
-# 8. Unit Tests
-
-Unit Tests validate:
-
-* algorithms;
-* validation rules;
-* business logic;
-* parsers;
-* serializers;
-* state transitions;
-* utility classes;
-* deterministic calculations.
-
-External infrastructure shall be mocked or replaced by test doubles.
-
----
-
-# 9. Component Tests
-
-Component Tests validate complete modules such as:
-
-* Local Library;
-* Acquisition Manager;
-* Catalog Browser;
-* Search;
-* Synchronization;
-* AI Coordinator;
-* Import Engine;
-* Export Engine.
-
-Dependencies outside the component are replaced by stable contracts.
-
----
-
-# 10. Integration Tests
-
-Integration Tests validate collaboration between modules.
-
-Examples include:
-
-* Client ↔ Local Library
-* Client ↔ Synchronization
-* Server ↔ Persistence
-* Import ↔ OCR
-* Import ↔ AI
-* Search ↔ Indexes
-* Plugin ↔ SDK
-
----
-
-# 11. Contract Tests
-
-Contract Tests validate:
-
-* Public APIs;
-* Synchronization contracts;
-* Provider contracts;
-* Plugin SDK contracts;
-* serialization formats;
-* compatibility between versions.
-
-Contract changes require explicit version validation.
-
----
-
-# 12. Persistence Tests
-
-Persistence tests validate:
-
-* transactions;
-* recovery;
-* rollback;
-* integrity;
-* migrations;
-* checksums;
-* storage consistency;
-* corruption handling.
-
----
-
-# 13. Synchronization Tests
-
-Synchronization testing verifies:
-
-* upload;
-* download;
-* checkpoint advancement;
-* conflict detection;
-* conflict resolution;
-* duplicate transfers;
-* interrupted sessions;
-* retries;
-* idempotency;
-* protocol compatibility.
-
-Synchronization correctness is considered critical.
-
----
-
-# 14. Offline First Tests
-
-Mandatory scenarios include:
-
-* application startup without server;
-* reading downloaded Publications;
-* local search;
-* local annotation;
-* local acquisition;
-* local metadata editing;
-* reconnect and synchronize;
-* recovery after interruption.
-
----
-
-# 15. Recovery Tests
-
-Recovery tests validate:
-
-* crash recovery;
-* interrupted synchronization;
-* interrupted acquisition;
-* interrupted migration;
-* interrupted downloads;
-* interrupted uploads;
-* Local Library restoration;
-* index rebuild;
-* pending change durability.
-
----
-
-# 16. Migration Tests
-
-Migration tests validate:
-
-* forward compatibility;
-* rollback detection;
-* incompatible versions;
-* interrupted migrations;
-* data preservation;
-* Local Library identity preservation.
-
----
-
-# 17. Performance Tests
-
-Performance tests measure:
-
-* startup time;
-* Catalog query latency;
-* synchronization throughput;
-* indexing speed;
-* rendering speed;
-* acquisition throughput;
-* memory consumption;
-* storage growth.
-
-Performance targets shall be versioned.
-
----
-
-# 18. Security Tests
-
-Security validation includes:
-
-* authentication;
-* authorization;
-* credential storage;
-* path traversal;
-* archive attacks;
-* malformed input;
-* plugin isolation;
-* provider isolation;
-* TLS validation;
-* SSRF protection;
-* injection attacks.
-
----
-
-# 19. Compatibility Tests
-
-Compatibility verifies:
-
-* previous Local Library versions;
-* synchronization protocol versions;
-* Plugin SDK versions;
-* Provider versions;
-* API versions;
-* serialized data formats.
-
-Backward compatibility shall be explicitly tested.
-
----
-
-# 20. End-to-End Tests
-
-End-to-End scenarios validate complete workflows.
-
-Examples:
-
-* import a PDF;
-* review metadata;
-* synchronize;
-* download from another device;
-* annotate;
-* export;
-* recover after restart.
-
-These tests represent real user workflows.
-
----
-
-# 21. Test Environments
-
-Testing environments include:
-
-* local developer environment;
-* CI environment;
-* release validation;
-* long-running stability environment;
-* compatibility environment.
-
-Each environment shall be reproducible.
-
----
-
-# 22. Test Data
-
-Test data shall be:
-
-* deterministic;
-* version controlled;
-* anonymized;
-* reproducible;
-* classified.
-
-Large binary datasets shall be managed separately.
-
----
-
-# 23. Mocking Policy
-
-Mocks are allowed only at architectural boundaries.
-
-Business rules shall never be mocked inside unit tests.
-
----
-
-# 24. Coverage Policy
-
-Coverage is measured by:
-
-* architectural coverage;
-* workflow coverage;
-* risk coverage;
-* code coverage.
-
-Code coverage alone is not considered sufficient.
-
----
-
-# 25. Release Gates
-
-A release requires successful completion of:
-
-* Unit Tests;
-* Integration Tests;
-* Contract Tests;
-* Synchronization Tests;
-* Recovery Tests;
-* Security Tests;
-* Performance validation;
-* Architecture Tests.
-
-No critical failure may remain unresolved.
-
----
-
-# 26. Observability During Testing
-
-Every test execution shall produce:
-
-* structured logs;
-* execution duration;
-* environment information;
-* failure classification;
-* reproducibility information.
-
----
-
-# 27. Continuous Integration
-
-CI shall execute:
-
-* static analysis;
-* architecture validation;
-* automated tests;
-* contract verification;
-* package validation;
-* artifact generation.
-
-Every commit shall be independently verifiable.
-
----
-
-# 28. Testing Documents
-
-The `08-Testing` module contains:
-
-```text
-08-Testing/
-├── README.md
-├── TestStrategy.md
-├── UnitTests.md
-├── IntegrationTests.md
-├── ContractTests.md
-├── SynchronizationTests.md
-├── RecoveryTests.md
-├── MigrationTests.md
-├── PerformanceTests.md
-├── SecurityTests.md
-├── EndToEndTests.md
-└── TestData.md
-```
-
-Each document defines one specialized testing discipline.
-
----
-
-# 29. Testing Invariants
-
-The following invariants are mandatory:
-
-* every architectural module is testable;
-* every public contract has contract tests;
-* every synchronization path is validated;
-* Offline First behavior is continuously verified;
-* recovery scenarios are mandatory;
-* migrations preserve data;
-* tests are deterministic;
-* tests are reproducible;
-* failures are diagnosable;
-* architectural boundaries remain enforceable.
-
----
-
-# 30. Status
-
-**Approved**
-
-The KnowledgeOS Testing Architecture is frozen as the official validation strategy for the Master Library implementation.
-
-Every subsystem, workflow and architectural boundary shall be continuously validated through automated, deterministic and reproducible testing before being considered production ready.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

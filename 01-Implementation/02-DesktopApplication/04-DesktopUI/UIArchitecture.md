@@ -1,455 +1,172 @@
+# Uiarchitecture
 
-# Desktop Application UI Architecture
-
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Desktop Application
-
-**Layer:** Desktop UI
-
-**Document:** UI Architecture
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Desktop Application / 04-DesktopUI  
+**Document:** UIArchitecture  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Platform:** macOS  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
-
-This document defines the authoritative architecture of the Desktop UI layer for the KnowledgeOS Desktop Application.
-
-It establishes the architectural principles, responsibilities, boundaries and interaction rules governing every visual component.
-
-The Desktop UI is the projection layer between the logical Workspace and the native macOS user interface.
-
----
-
-# 2. Scope
+## 1. Purpose
 
-This document defines:
+Define the uiarchitecture for the KnowledgeOS macOS application, covering desktop UI composition, hierarchy and lifecycle.
 
-* UI architecture;
-* presentation boundaries;
-* projection model;
-* view composition;
-* controller responsibilities;
-* rendering responsibilities;
-* interaction flow;
-* state synchronization;
-* UI lifecycle;
-* platform integration;
-* performance rules;
-* accessibility;
-* extensibility.
+## 2. Scope
 
----
+This document applies to the native macOS client and its integration with:
 
-# 3. Objectives
+- the device Local Library;
+- the NAS-hosted Master Library;
+- Personal Knowledge;
+- UDM and DPM;
+- Platform Engines;
+- Kernel execution services;
+- Apple platform services.
 
-The Desktop UI architecture shall:
+It does not redefine Domain authority, acquisition semantics, synchronization ownership or Platform Engine responsibilities.
 
-* remain independent from business logic;
-* project immutable Workspace state;
-* support deterministic rendering;
-* support multiple windows;
-* support incremental updates;
-* isolate native framework details;
-* support plugin UI extensions;
-* remain testable.
+## 3. Product Context
 
----
+The macOS application is the primary KnowledgeOS client.
 
-# 4. Architectural Position
+It SHALL support:
 
-```text
-Knowledge Domain
-        │
-        ▼
-Application Layer
-        │
-        ▼
-Workspace
-        │
-        ▼
-Desktop UI
-        │
-        ▼
-Native macOS Framework
-```
+- local device scanning from user-authorized locations;
+- an independent offline-first Local Library;
+- browsing the remote Master Catalog;
+- explicit acquisition of selected publications;
+- reading and rendering;
+- annotations and Personal Knowledge;
+- search;
+- optional AI;
+- workspace and multi-window behavior;
+- future personal synchronization through iCloud/CloudKit.
 
-Desktop UI never owns authoritative application state.
+The NAS is not mounted as the working Local Library and is not a Personal Knowledge synchronization peer.
 
----
+## 4. Normative Language
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-# 5. Architectural Principles
+## 5. Normative Requirements
 
-The Desktop UI shall follow these principles:
+- The macOS application SHALL maintain an independent Local Library.
+- The application SHALL remain usable offline for locally available publications.
+- The application SHALL browse the Master Catalog without treating the Local Library as a replica.
+- Publication acquisition SHALL be explicit and separate from Personal Knowledge synchronization.
+- Personal Knowledge SHALL synchronize only through the approved iCloud/CloudKit profile.
+- The application SHALL NOT write annotations, highlights, reading progress or personal relationships to the NAS Master Library.
+- UI components SHALL invoke public Platform contracts and SHALL NOT access repositories directly.
+- Long-running work SHALL expose durable operation identity, progress, cancellation and failure state.
+- Stable Domain identity SHALL be preserved across windows, workspaces, navigation and restoration.
+- Views SHALL be declarative projections of state and SHALL not own business rules.
+- Accessibility, keyboard navigation and native macOS conventions SHALL be supported.
+- View lifecycle SHALL not leak tasks, subscriptions or security-sensitive state.
 
-* Presentation only.
-* Stateless whenever possible.
-* Immutable projections.
-* Command-based interaction.
-* Event-driven refresh.
-* Platform abstraction.
-* Deterministic rendering.
-* Accessibility first.
-* Incremental updates.
-* Complete separation from Domain.
+## 6. Architecture and Design Guidance
 
----
+Implementation SHOULD:
 
-# 6. Responsibilities
+- use explicit module composition at application startup;
+- keep SwiftUI/AppKit view code separate from Platform services;
+- expose commands, queries and observable state through stable façades or ViewModels;
+- preserve stable Domain identity in navigation and restoration payloads;
+- treat render, search, graph and AI projections as derived;
+- use structured concurrency with lifecycle-bound tasks;
+- propagate cancellation and correlation;
+- validate all persisted UI and workspace state before restoration;
+- avoid singleton mutable state except for explicitly governed application services;
+- keep framework-specific types out of shared public contracts;
+- support graceful degradation when the Master Library or remote providers are unavailable.
 
-Desktop UI is responsible for:
+## 7. State and Lifecycle
 
-* visual rendering;
-* user interaction;
-* focus management;
-* keyboard handling;
-* pointer interaction;
-* native menus;
-* toolbars;
-* dialogs;
-* accessibility integration;
-* animation orchestration.
+Desktop state SHALL be classified as:
 
-Desktop UI never:
+| State Class | Examples | Persistence |
+|---|---|---|
+| Domain-backed | Local Library membership, annotations | Domain repositories |
+| Restorable workspace | windows, tabs, open documents | local restoration store |
+| Session | active navigation, transient filters | scoped session |
+| Ephemeral UI | hover, focus, animation | memory only |
+| Derived | render cache, search results | rebuildable cache |
 
-* stores Knowledge;
-* executes business rules;
-* accesses persistence;
-* synchronizes libraries;
-* modifies Domain objects.
+Lifecycle transitions SHALL release subscriptions, tasks, file handles and security-scoped resources deterministically.
 
----
+## 8. Failure and Recovery
 
-# 7. UI Layers
+The application SHALL preserve:
 
-The Desktop UI consists of five logical layers.
+- Local Library identity;
+- locally available publications;
+- committed Personal Knowledge;
+- workspace restoration evidence;
+- operation identities;
+- import and acquisition progress;
+- provenance and integrity findings.
 
-```text
-Desktop UI
+Unavailable NAS access SHALL degrade Master Catalog browsing and acquisition only. It SHALL NOT prevent reading or annotating locally available publications.
 
-├── Presentation Layer
-├── Controllers
-├── Projection Layer
-├── Rendering Layer
-└── Native Framework
-```
+Invalid restoration state SHALL be isolated and repaired without deleting authoritative user data.
 
-Each layer has well-defined responsibilities.
+## 9. Security and Privacy
 
----
+- User-selected files SHALL use approved macOS security-scoped access where required.
+- Credentials and tokens SHALL use Keychain or another approved secure store.
+- Personal Knowledge SHALL not be written to NAS.
+- Logs SHALL not contain publication content, private paths, annotations or credentials.
+- Remote AI or OCR SHALL require policy authorization.
+- Window and workspace restoration payloads SHALL avoid sensitive content where identity references suffice.
 
-# 8. Presentation Layer
+## 10. Accessibility and Native Experience
 
-Presentation components:
+The desktop application SHOULD follow native macOS conventions for:
 
-* display projections;
-* receive user interaction;
-* forward Commands;
-* remain passive.
+- keyboard navigation;
+- menus and commands;
+- window restoration;
+- focus;
+- accessibility labels and reading order;
+- drag and drop;
+- document opening;
+- toolbar and sidebar behavior;
+- VoiceOver;
+- reduced motion and contrast preferences.
 
-Presentation components shall never perform application logic.
+Accessibility transformations SHALL preserve UDM semantic order.
 
----
+## 11. Verification and Acceptance
 
-# 9. Controllers
+- The behavior is covered by automated tests where technically feasible.
+- Offline behavior is verified.
+- Master Catalog and Local Library scopes remain visibly distinct.
+- Personal Knowledge never enters Master Library persistence.
+- Cancellation, timeout and failure behavior are verified.
+- Architecture traceability is documented.
+- Accessibility implications are reviewed.
+- No direct private-repository access exists from UI code.
 
-Controllers coordinate:
+## 12. Traceability
 
-* user interaction;
-* projection updates;
-* navigation requests;
-* dialog presentation;
-* platform services.
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/04-Platform/README.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Annotation/README.md`
+- `00-Architecture/04-Platform/Render/README.md`
+- `00-Architecture/04-Platform/Search/README.md`
+- `00-Architecture/04-Platform/Sync/README.md`
+- `00-Architecture/03-Kernel/README.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
 
-Controllers never own Workspace state.
+## 13. Compatibility and Evolution
 
----
+Breaking changes to restoration formats, Local Library identity mapping, public client contracts or acquisition behavior require migration guidance and architecture review.
 
-# 10. Projection Layer
+Persisted workspace and session formats SHALL be versioned.
 
-The Projection Layer converts Workspace state into UI models.
+## 14. Status
 
-Projection models:
-
-* are immutable;
-* are disposable;
-* are deterministic;
-* are inexpensive to recreate.
-
----
-
-# 11. Rendering Layer
-
-The Rendering Layer transforms projections into native views.
-
-Rendering includes:
-
-* view creation;
-* updates;
-* layout;
-* animation triggers;
-* accessibility metadata.
-
----
-
-# 12. Native Framework
-
-Native framework responsibilities include:
-
-* windows;
-* views;
-* menus;
-* toolbars;
-* drag & drop;
-* clipboard;
-* accessibility APIs;
-* event dispatch.
-
-Framework-specific details remain isolated.
-
----
-
-# 13. View Model
-
-Each visual component receives a dedicated immutable View Model.
-
-View Models contain:
-
-* identifiers;
-* presentation properties;
-* visibility;
-* enabled state;
-* commands;
-* localized text;
-* accessibility metadata.
-
-View Models never expose Domain entities directly.
-
----
-
-# 14. UI State
-
-Desktop UI owns only ephemeral presentation state.
-
-Examples:
-
-* hover;
-* focus ring;
-* animation progress;
-* scroll offsets;
-* transient selections inside controls.
-
-Logical state belongs to Workspace.
-
----
-
-# 15. Rendering Model
-
-Rendering is projection-driven.
-
-The rendering pipeline is:
-
-```text
-Workspace
-      ↓
-Projection
-      ↓
-View Model
-      ↓
-Native View
-      ↓
-Screen
-```
-
-No rendering step modifies Workspace state.
-
----
-
-# 16. Event Flow
-
-User interaction follows this sequence:
-
-```text
-User
-      ↓
-Native Event
-      ↓
-Desktop UI
-      ↓
-Command
-      ↓
-Workspace
-      ↓
-Projection Update
-      ↓
-Desktop UI Refresh
-```
-
----
-
-# 17. State Synchronization
-
-Desktop UI synchronizes only through immutable Workspace projections.
-
-Polling is prohibited except where required by operating system APIs.
-
----
-
-# 18. Window Independence
-
-Each Window owns an independent UI hierarchy.
-
-No Window directly manipulates another Window.
-
-Shared state resides exclusively in the Workspace.
-
----
-
-# 19. Threading Model
-
-Rendering occurs on the UI thread.
-
-Expensive operations execute outside the UI thread.
-
-UI updates are marshalled back to the main thread.
-
----
-
-# 20. Error Handling
-
-Presentation failures shall:
-
-* remain localized;
-* preserve Workspace state;
-* generate diagnostics;
-* allow continued interaction whenever possible.
-
----
-
-# 21. Plugin Integration
-
-Plugins contribute UI through approved Plugin SDK contracts.
-
-Plugins may contribute:
-
-* Editors;
-* Panels;
-* Menus;
-* Toolbars;
-* Commands;
-* Dialogs.
-
-Plugins shall never modify core UI architecture.
-
----
-
-# 22. Accessibility
-
-Every visual component shall expose:
-
-* semantic role;
-* accessible name;
-* keyboard navigation;
-* focus behavior;
-* assistive descriptions.
-
-Accessibility is mandatory.
-
----
-
-# 23. Theme Awareness
-
-All visual components shall consume semantic design tokens.
-
-Components shall never hardcode colors, typography or spacing.
-
----
-
-# 24. Performance
-
-The UI architecture shall support:
-
-* incremental rendering;
-* view reuse;
-* lazy initialization;
-* virtualization;
-* asynchronous loading.
-
----
-
-# 25. Diagnostics
-
-The architecture shall expose diagnostics for:
-
-* rendering time;
-* projection updates;
-* layout recalculation;
-* interaction latency;
-* plugin rendering;
-* accessibility validation.
-
----
-
-# 26. Testing
-
-Tests shall verify:
-
-* rendering correctness;
-* projection integrity;
-* command routing;
-* accessibility;
-* multi-window behavior;
-* plugin integration;
-* performance regressions.
-
----
-
-# 27. Architectural Invariants
-
-The following invariants are mandatory:
-
-* Desktop UI never owns Knowledge.
-* Desktop UI never modifies Domain state.
-* Workspace remains authoritative.
-* All rendering is projection-based.
-* Every interaction becomes a Command.
-* Projection models are immutable.
-* Native framework objects never become authoritative.
-* Controllers remain lightweight.
-* Rendering remains deterministic.
-* Accessibility is mandatory.
-
----
-
-# 28. Related Documents
-
-* `README.md`
-* `WindowControllers.md`
-* `ViewHierarchy.md`
-* `ViewComposition.md`
-* `ViewLifecycle.md`
-* `RenderingPipeline.md`
-* `LayoutProjection.md`
-* `InputHandling.md`
-* `Accessibility.md`
-* `ThemeSystem.md`
-
----
-
-# 29. Status
-
-**Approved**
-
-This document establishes the authoritative UI architecture for the KnowledgeOS Desktop Application.
-
-The Desktop UI is a deterministic, projection-driven presentation layer that transforms immutable Workspace state into a native macOS interface while preserving strict architectural separation between presentation, application, platform and domain. All user interactions are translated into Commands, and all visual updates originate from immutable Workspace projections.
+This document is part of the KnowledgeOS Desktop Application V4 implementation baseline.

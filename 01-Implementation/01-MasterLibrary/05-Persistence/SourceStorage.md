@@ -1,585 +1,149 @@
-# Master Library Source Storage
+# Source Storage
 
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Master Library
-
-**Layer:** Persistence
-
-**Document:** Source Storage
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Master Library / 05-Persistence  
+**Document:** SourceStorage  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the authoritative storage model for Publication source binaries.
+Define the source storage for the KnowledgeOS Master Library implementation.
 
-A Source represents the original binary document from which every other representation is derived.
+## 2. Scope
 
-Examples include:
+This document covers PostgreSQL and authoritative file-storage implementation for the NAS-hosted Master Library and its client-facing integration.
 
-* PDF
-* EPUB
-* CBZ
-* CBR
-* MOBI
-* DOCX
-* HTML Archive
-* Markdown Package
-* ZIP Package
-* TIFF Collection
+It does not redefine Domain identity, authority, UDM, DPM, Engine ownership or Personal Knowledge synchronization semantics.
 
-The Source Storage service is responsible for preserving those binaries with deterministic identity, immutable versioning and recoverable storage semantics.
+## 3. Architectural Baseline
 
----
-
-# 2. Responsibilities
-
-Source Storage is responsible for:
-
-* storing authoritative publication binaries;
-* preserving binary integrity;
-* versioning source files;
-* exposing immutable SourceVersions;
-* validating every commit;
-* coordinating with Catalog Storage;
-* participating in backup and restore;
-* supporting reconciliation;
-* exposing binary metadata;
-* guaranteeing long-term recoverability.
-
-Source Storage is **not** responsible for:
-
-* metadata extraction;
-* OCR;
-* search indexing;
-* rendering;
-* AI processing;
-* previews;
-* thumbnails;
-* annotations.
-
-Those are consumers of Source Storage.
-
----
-
-# 3. Authority
-
-For every Publication, Source Storage is the authoritative owner of the original binary content.
-
-Catalog Storage owns only the structured reference.
-
-Search Storage owns only searchable projections.
-
-Render engines own only derived representations.
-
-There is exactly one authoritative binary for every committed SourceVersion.
-
----
-
-# 4. Fundamental Principles
-
-Source Storage follows these principles:
-
-* immutable binaries;
-* append-only version history;
-* explicit commit;
-* deterministic identity;
-* checksum validation;
-* recoverable operations;
-* filesystem independence;
-* storage abstraction;
-* no hidden mutations;
-* reproducible recovery.
-
----
-
-# 5. Source Storage Service
-
-The architectural model is:
+The implementation is governed by the following fixed model:
 
 ```text
-Publication
-        │
-        ▼
-Source Storage Service
-        │
-        ▼
-SourceVersion
-        │
-        ▼
-Immutable Binary Object
+KnowledgeOS Server on NAS
+├── Master Catalog in PostgreSQL
+├── Authoritative publication files
+├── Publication versions and provenance
+├── Versioned client-facing contracts
+└── Operational services
+
+Apple Clients
+├── Browse Master Catalog
+├── Explicitly acquire selected publications
+├── Maintain independent Local Libraries
+└── Synchronize Personal Knowledge through iCloud/CloudKit
 ```
 
-The service exposes binary lifecycle operations.
+The Master Library is independent from Local Libraries.
+
+## 4. Normative Requirements
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+- The NAS Master Library is authoritative for the Master Catalog, source publications, master-source metadata and publication versions.
+- The Master Library SHALL run through KnowledgeOS Server and SHALL NOT be treated as a shared folder or a Personal Knowledge synchronization peer.
+- PostgreSQL SHALL run in a container separate from the application server.
+- PostgreSQL data and authoritative publication files SHALL use independent persistent volumes.
+- Personal annotations, highlights, reading progress, personal tags, collections and equivalent user state SHALL NOT be stored in the Master Library.
+- Clients browse the Master Catalog and explicitly acquire selected publications into independent Local Libraries.
+- Acquisition and Personal Knowledge synchronization are separate workflows.
+- Physical paths SHALL remain replaceable location data, not Domain identity.
+- Authoritative source files SHALL be immutable after successful registration; derived assets remain rebuildable.
+- Implementation SHALL conform to `00-Architecture` and accepted ADRs.
+- Stable Domain identities SHALL be preserved across storage, APIs, migrations and acquisition.
+- All long-running or retryable operations SHALL expose durable state, correlation and explicit failure categories.
+- The implementation SHALL include automated tests and operational diagnostics appropriate to this document's scope.
+- Security and privacy controls SHALL be applied before data crosses process, network or provider boundaries.
+
+## 5. Design Guidance
+
+Implementation SHOULD:
+
+- separate contracts from concrete server and storage classes;
+- keep application, persistence and transport responsibilities explicit;
+- make external and persistent side effects idempotent;
+- use durable workflows for acquisition, import, migration and recovery;
+- preserve source evidence and checksums;
+- provide deterministic ordering and pagination;
+- avoid hidden global state;
+- keep configuration schema-validated;
+- support graceful startup and shutdown;
+- make derived data disposable and rebuildable.
+
+## 6. Failure and Recovery
+
+Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
+
+Unknown commit status SHALL be reconciled by stable operation identity before retry.
+
+Recovery SHALL preserve:
+
+- publication identity;
+- catalog records;
+- authoritative source files;
+- provenance;
+- version history;
+- acquisition state;
+- migration journals;
+- backup evidence.
+
+The implementation SHALL NOT report success before the required commit and integrity boundary is complete.
+
+## 7. Security and Privacy
+
+- Administrative operations require explicit authorization.
+- Client access follows least privilege.
+- TLS or an equivalent protected local-network transport SHALL be used where applicable.
+- Secrets SHALL use approved secure storage.
+- Logs SHALL not contain publication content, credentials or Personal Knowledge.
+- Remote integrations SHALL receive only the minimum authorized data.
+- Backups SHALL be protected against unauthorized access.
+
+## 8. Observability
+
+Relevant operations SHALL expose:
+
+- correlation identity;
+- stable error category;
+- latency;
+- outcome;
+- retry count;
+- resource usage when material;
+- integrity findings;
+- workflow or job state.
+
+Operational telemetry is diagnostic and SHALL NOT become Domain authority.
+
+## 9. Verification and Acceptance
+
+- The described behavior is implemented or explicitly marked as future work.
+- Authority boundaries match Architecture V4.
+- No Personal Knowledge is persisted in the Master Library.
+- Acquisition and synchronization remain operationally separate.
+- Failure and retry behavior is tested.
+- Configuration, logging and operational implications are documented.
+- Traceability to architecture and ADRs is present.
+
+## 10. Traceability
+
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/02-Domain/KnowledgeObject/KnowledgeObject.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Import/README.md`
+- `00-Architecture/05-Integration/Storage/README.md`
+- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
+
+## 11. Compatibility and Migration
 
-It does not expose filesystem implementation details.
+Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
----
+Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
-# 6. Source Identity
+## 12. Status
 
-A SourceVersion is uniquely identified by:
-
-```text
-PublicationId
-+
-SourceVersion
-```
-
-The binary itself additionally possesses:
-
-* LogicalStorageKey
-* StorageSpace
-* ChecksumAlgorithm
-* ChecksumValue
-* ByteLength
-* MediaType
-* CanonicalExtension
-
-These values are immutable after commit.
-
----
-
-# 7. Binary Identity
-
-The following shall **never** be considered identifiers:
-
-* original filename;
-* directory name;
-* NAS path;
-* user-visible title;
-* imported provider identifier.
-
-Those are descriptive metadata only.
-
----
-
-# 8. Source Lifecycle
-
-Every SourceVersion progresses through the following lifecycle:
-
-```text
-Acquired
-        │
-        ▼
-Validated
-        │
-        ▼
-Normalized
-        │
-        ▼
-Prepared
-        │
-        ▼
-Committed
-        │
-        ▼
-Current
-        │
-        ▼
-Superseded
-        │
-        ▼
-Archived
-        │
-        ▼
-Deleted
-```
-
-Not every SourceVersion reaches every state.
-
----
-
-# 9. Acquisition
-
-Acquisition creates an operational binary candidate.
-
-At this stage:
-
-* the binary is not authoritative;
-* the Catalog does not reference it;
-* the file may still be rejected;
-* no current SourceVersion changes.
-
----
-
-# 10. Validation
-
-Validation verifies:
-
-* readable binary;
-* supported media type;
-* byte length;
-* checksum generation;
-* corruption detection;
-* storage policy compliance.
-
-Validation failure prevents commit.
-
----
-
-# 11. Normalization
-
-Normalization prepares the binary for long-term storage.
-
-Examples:
-
-* canonical extension;
-* normalized media type;
-* filename preservation metadata;
-* storage key allocation;
-* manifest generation.
-
-Normalization never modifies document content.
-
----
-
-# 12. Prepared State
-
-Prepared indicates:
-
-* binary persisted to staging;
-* checksum verified;
-* metadata available;
-* commit still pending.
-
-Prepared binaries are not authoritative.
-
----
-
-# 13. Commit
-
-Commit transforms a Prepared binary into an authoritative SourceVersion.
-
-Commit is irreversible.
-
-After successful commit:
-
-* Catalog references the version;
-* binary becomes immutable;
-* audit is written;
-* outbox event is emitted.
-
----
-
-# 14. Current Version
-
-Exactly one committed SourceVersion may be Current.
-
-Changing the Current version never modifies an existing binary.
-
-It only changes the Catalog reference.
-
----
-
-# 15. Superseded Version
-
-A Superseded version remains:
-
-* immutable;
-* addressable;
-* recoverable;
-* available for audit.
-
-It is no longer Current.
-
----
-
-# 16. Archived Version
-
-Archived versions may be moved to slower storage according to policy.
-
-Their identity never changes.
-
-LogicalStorageKey remains stable.
-
----
-
-# 17. Deleted Version
-
-Deletion is a controlled administrative workflow.
-
-Deletion requires:
-
-* authorization;
-* audit;
-* retention evaluation;
-* backup policy evaluation;
-* Catalog coordination.
-
-Immediate physical deletion is prohibited.
-
----
-
-# 18. Immutable Storage
-
-Committed binaries shall never be modified.
-
-The following operations are prohibited:
-
-* overwrite;
-* in-place editing;
-* metadata injection;
-* recompression;
-* filename-based replacement.
-
-Every modification creates a new SourceVersion.
-
----
-
-# 19. Versioning Model
-
-Source history is append-only.
-
-Example:
-
-```text
-Publication
-
-Version 1
-Version 2
-Version 3
-Version 4
-```
-
-Historical versions remain available according to retention policy.
-
----
-
-# 20. Commit Protocol
-
-Every commit executes the following sequence:
-
-```text
-Acquire
-        │
-Validate
-        │
-Normalize
-        │
-Checksum
-        │
-Persist Binary
-        │
-fsync
-        │
-Verify
-        │
-Catalog Commit
-        │
-Audit
-        │
-Outbox
-        │
-Completed
-```
-
-Failure at any stage triggers recovery.
-
----
-
-# 21. Atomicity
-
-Binary persistence and Catalog persistence cannot be made physically atomic.
-
-KnowledgeOS guarantees recoverable consistency through coordinated commit protocols and reconciliation.
-
-No partially committed SourceVersion shall become Current.
-
----
-
-# 22. Checksum Policy
-
-Every committed SourceVersion records:
-
-* checksum algorithm;
-* checksum value;
-* byte length.
-
-Recommended algorithm:
-
-```text
-SHA-256
-```
-
-Checksum values are immutable.
-
----
-
-# 23. Integrity Verification
-
-Integrity compares:
-
-```text
-Catalog
-
-↓
-
-Manifest
-
-↓
-
-Filesystem Object
-
-↓
-
-Checksum
-```
-
-All four authorities shall agree.
-
-Mismatch initiates recovery.
-
----
-
-# 24. Logical Storage Keys
-
-Storage keys are stable logical identifiers.
-
-They are independent from:
-
-* mount points;
-* NAS layout;
-* operating system;
-* filesystem implementation.
-
-Applications never construct filesystem paths manually.
-
----
-
-# 25. Storage Spaces
-
-Committed sources reside in the Source Storage Space.
-
-Examples:
-
-```text
-Sources/
-```
-
-Operational workflows additionally use:
-
-```text
-Staging/
-Recovery/
-Quarantine/
-Temporary/
-```
-
-Only Sources contains authoritative binaries.
-
----
-
-# 26. Replacement Workflow
-
-Replacing a source executes:
-
-```text
-Acquire New Binary
-
-↓
-
-Validate
-
-↓
-
-Commit New SourceVersion
-
-↓
-
-Update Current Reference
-
-↓
-
-Mark Previous Version Superseded
-```
-
-Previous binaries remain intact.
-
----
-
-# 27. Recovery
-
-Recovery addresses:
-
-* interrupted commits;
-* missing binaries;
-* checksum mismatch;
-* orphan binaries;
-* orphan catalog entries;
-* incomplete imports.
-
-Recovery never guesses missing data.
-
----
-
-# 28. Backup
-
-Every SourceVersion participates in coordinated Master Library backup.
-
-Catalog and Source Storage backups share a common consistency point.
-
----
-
-# 29. Restore
-
-Restore validates:
-
-* binary existence;
-* checksum;
-* logical storage key;
-* Catalog references;
-* SourceVersion integrity.
-
-Only after successful validation may the restored SourceVersion become authoritative.
-
----
-
-# 30. Invariants
-
-The following invariants are mandatory:
-
-* committed binaries are immutable;
-* exactly one Current SourceVersion exists per Publication;
-* Source identity is independent of filename;
-* checksums never change;
-* logical storage keys never change;
-* binary content is never stored in PostgreSQL;
-* every committed SourceVersion has a Catalog record;
-* every Catalog SourceVersion references exactly one binary;
-* reconciliation never modifies binaries silently;
-* overwrite operations are prohibited.
-
----
-
-# 31. Related Documents
-
-* `CatalogDatabase.md`
-* `CatalogSchema.md`
-* `StorageArchitecture.md`
-* `DirectoryLayout.md`
-* `CoverStorage.md`
-* `AssetStorage.md`
-* `Checksums.md`
-* `Recovery.md`
-* `BackupRestore.md`
-* `Integrity.md`
-
----
-
-# 32. Status
-
-**Approved**
-
-Source Storage is frozen as an immutable, append-only binary storage service with deterministic identity, coordinated commit semantics, recoverable consistency and long-term preservation suitable for the authoritative Master Library.
+This document is part of the KnowledgeOS Master Library V4 implementation baseline.

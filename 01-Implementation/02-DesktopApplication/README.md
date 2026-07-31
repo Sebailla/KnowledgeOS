@@ -1,385 +1,169 @@
-# Desktop Application
+# Desktop Application Implementation
 
-**Project:** KnowledgeOS
-
-**Section:** Implementation
-
-**Module:** Desktop Application
-
-**Document:** README
-
-**Version:** 1.0
-
-**Status:** Approved
-
-**Architecture Baseline:** KnowledgeOS Architecture V3
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Implementation / Desktop Application / Root  
+**Document:** README  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Platform:** macOS  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the implementation architecture of the KnowledgeOS Desktop Application.
+Define the desktop application implementation for the KnowledgeOS macOS application, covering desktop application implementation governance.
 
-The Desktop Application is the primary user-facing implementation of KnowledgeOS. It provides the environment in which users discover, organize, create, enrich and interact with their knowledge while remaining fully integrated with the Master Library and the Platform Engines.
+## 2. Scope
 
-This document establishes the architectural baseline for every desktop component and serves as the governing specification for all implementation documents contained in this module.
+This document applies to the native macOS client and its integration with:
 
----
+- the device Local Library;
+- the NAS-hosted Master Library;
+- Personal Knowledge;
+- UDM and DPM;
+- Platform Engines;
+- Kernel execution services;
+- Apple platform services.
 
-# 2. Scope
+It does not redefine Domain authority, acquisition semantics, synchronization ownership or Platform Engine responsibilities.
 
-The Desktop Application architecture includes:
+## 3. Product Context
 
-* application lifecycle;
-* workspace management;
-* window management;
-* session management;
-* navigation;
-* document editors;
-* presentation layer;
-* user interaction;
-* integration with Platform Engines;
-* integration with the Master Library;
-* operating system integration;
-* testing and validation.
+The macOS application is the primary KnowledgeOS client.
 
-The module does not define storage, synchronization algorithms or business rules already specified in other architectural modules.
+It SHALL support:
 
----
+- local device scanning from user-authorized locations;
+- an independent offline-first Local Library;
+- browsing the remote Master Catalog;
+- explicit acquisition of selected publications;
+- reading and rendering;
+- annotations and Personal Knowledge;
+- search;
+- optional AI;
+- workspace and multi-window behavior;
+- future personal synchronization through iCloud/CloudKit.
 
-# 3. Objectives
+The NAS is not mounted as the working Local Library and is not a Personal Knowledge synchronization peer.
 
-The Desktop Application shall:
+## 4. Normative Language
 
-* provide the primary user experience of KnowledgeOS;
-* expose all platform capabilities through a coherent interface;
-* operate according to the Offline First principle;
-* remain responsive under large knowledge collections;
-* preserve user workflows across sessions;
-* integrate seamlessly with the Master Library.
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
----
+## 5. Normative Requirements
 
-# 4. Architectural Role
+- The macOS application SHALL maintain an independent Local Library.
+- The application SHALL remain usable offline for locally available publications.
+- The application SHALL browse the Master Catalog without treating the Local Library as a replica.
+- Publication acquisition SHALL be explicit and separate from Personal Knowledge synchronization.
+- Personal Knowledge SHALL synchronize only through the approved iCloud/CloudKit profile.
+- The application SHALL NOT write annotations, highlights, reading progress or personal relationships to the NAS Master Library.
+- UI components SHALL invoke public Platform contracts and SHALL NOT access repositories directly.
+- Long-running work SHALL expose durable operation identity, progress, cancellation and failure state.
+- Stable Domain identity SHALL be preserved across windows, workspaces, navigation and restoration.
 
-The Desktop Application is responsible for presenting knowledge to the user.
+## 6. Architecture and Design Guidance
 
-It does not own knowledge.
+Implementation SHOULD:
 
-Knowledge ownership remains within the Master Library.
+- use explicit module composition at application startup;
+- keep SwiftUI/AppKit view code separate from Platform services;
+- expose commands, queries and observable state through stable façades or ViewModels;
+- preserve stable Domain identity in navigation and restoration payloads;
+- treat render, search, graph and AI projections as derived;
+- use structured concurrency with lifecycle-bound tasks;
+- propagate cancellation and correlation;
+- validate all persisted UI and workspace state before restoration;
+- avoid singleton mutable state except for explicitly governed application services;
+- keep framework-specific types out of shared public contracts;
+- support graceful degradation when the Master Library or remote providers are unavailable.
 
-The Desktop Application consumes services provided by:
+## 7. State and Lifecycle
 
-* Platform Engines;
-* Kernel services;
-* Integration components;
-* Master Library.
+Desktop state SHALL be classified as:
 
-It coordinates these services to build a unified user experience.
+| State Class | Examples | Persistence |
+|---|---|---|
+| Domain-backed | Local Library membership, annotations | Domain repositories |
+| Restorable workspace | windows, tabs, open documents | local restoration store |
+| Session | active navigation, transient filters | scoped session |
+| Ephemeral UI | hover, focus, animation | memory only |
+| Derived | render cache, search results | rebuildable cache |
 
----
+Lifecycle transitions SHALL release subscriptions, tasks, file handles and security-scoped resources deterministically.
 
-# 5. Architectural Principles
+## 8. Failure and Recovery
 
-The Desktop Application shall adhere to the following principles:
+The application SHALL preserve:
 
-* Offline First;
-* User Ownership;
-* Separation of Concerns;
-* Deterministic Behaviour;
-* Explicit State;
-* Predictable Navigation;
-* Recoverable Sessions;
-* Extensible User Interface;
-* Platform Consistency.
+- Local Library identity;
+- locally available publications;
+- committed Personal Knowledge;
+- workspace restoration evidence;
+- operation identities;
+- import and acquisition progress;
+- provenance and integrity findings.
 
-Every subsystem shall comply with these principles.
+Unavailable NAS access SHALL degrade Master Catalog browsing and acquisition only. It SHALL NOT prevent reading or annotating locally available publications.
 
----
+Invalid restoration state SHALL be isolated and repaired without deleting authoritative user data.
 
-# 6. Responsibilities
+## 9. Security and Privacy
 
-The Desktop Application is responsible for:
-
-* launching the application;
-* restoring previous sessions;
-* managing workspaces;
-* managing windows;
-* managing editors;
-* coordinating navigation;
-* displaying documents;
-* collecting user input;
-* orchestrating interactions between the user and Platform Engines.
-
-It shall never perform responsibilities assigned to the Master Library or Kernel.
-
----
-
-# 7. Architectural Boundaries
-
-The Desktop Application shall not:
-
-* directly manipulate NAS storage;
-* directly modify PostgreSQL metadata;
-* implement synchronization logic;
-* implement search indexing;
-* duplicate Platform Engine responsibilities;
-* contain business rules belonging to the Domain.
-
-These responsibilities belong to other architectural layers.
-
----
-
-# 8. Primary Subsystems
-
-The Desktop Application consists of the following major subsystems:
-
-* Workspace;
-* Window Management;
-* Session Management;
-* Navigation;
-* User Interface;
-* Editors;
-* Interaction;
-* Integration;
-* Accessibility;
-* Application Services.
-
-Each subsystem is independently documented.
-
----
-
-# 9. Relationship with the Master Library
-
-The Master Library is the authoritative source of user knowledge.
-
-The Desktop Application:
-
-* requests knowledge;
-* presents knowledge;
-* edits knowledge;
-* submits changes through the defined contracts.
-
-The Desktop Application never bypasses the Master Library.
-
----
-
-# 10. Relationship with Platform Engines
-
-All functional capabilities are provided through Platform Engines.
-
-Examples include:
-
-* Import Engine;
-* Export Engine;
-* Search Engine;
-* Annotation Engine;
-* AI Engine;
-* Plugin Engine;
-* Knowledge Engine;
-* Render Engine;
-* Library Engine;
-* Synchronization Engine.
-
-The Desktop Application orchestrates these engines but does not replace them.
-
----
-
-# 11. Application Lifecycle
-
-The lifecycle consists of the following stages:
-
-1. Launch.
-2. Configuration loading.
-3. Master Library connection.
-4. Workspace restoration.
-5. Session restoration.
-6. Window restoration.
-7. User interaction.
-8. State persistence.
-9. Graceful shutdown.
-
-Each stage shall be deterministic and recoverable.
-
----
-
-# 12. Workspace Model
-
-The Workspace represents the user's current working context.
-
-It organizes:
-
-* open documents;
-* active projects;
-* navigation state;
-* editor state;
-* selections;
-* temporary resources;
-* history.
-
-The Workspace is transient and reconstructable.
-
----
-
-# 13. Window Model
-
-The application supports multiple independent windows.
-
-Each window owns its own:
-
-* navigation state;
-* editor layout;
-* panel configuration;
-* selection context;
-* command routing.
-
-Windows cooperate through shared application services without sharing transient UI state.
-
----
-
-# 14. Session Model
-
-Sessions preserve the user's working environment.
-
-A session includes:
-
-* open windows;
-* open documents;
-* active tabs;
-* panel visibility;
-* layout configuration;
-* navigation history;
-* application preferences.
-
-Session restoration shall be transparent to the user.
-
----
-
-# 15. Navigation Model
-
-Navigation provides consistent access to knowledge.
-
-Navigation shall remain:
-
-* hierarchical when appropriate;
-* graph-aware;
-* search-driven;
-* history-aware;
-* keyboard accessible.
-
-Navigation state shall be recoverable.
-
----
-
-# 16. Editor Model
-
-Editors provide specialized interactions for different knowledge representations.
-
-The architecture supports multiple editor implementations while exposing a consistent interaction model.
-
-Editors remain independent from storage and synchronization mechanisms.
-
----
-
-# 17. User Interface
-
-The Desktop Application shall present a unified visual language.
-
-The interface shall provide:
-
-* consistency;
-* clarity;
-* discoverability;
-* accessibility;
-* responsiveness;
-* predictability.
-
-Visual design shall follow the approved Design System.
-
----
-
-# 18. Integration
-
-The Desktop Application integrates with:
-
-* Master Library;
-* Platform Engines;
-* Plugin SDK;
-* Operating System services;
-* AI providers through the AI Engine.
-
-All integrations shall occur through documented contracts.
-
----
-
-# 19. Quality Attributes
-
-The Desktop Application shall satisfy the following quality objectives:
-
-* responsiveness;
-* reliability;
-* maintainability;
-* accessibility;
-* extensibility;
-* recoverability;
-* scalability;
-* usability.
-
-Quality attributes defined in the Foundation remain authoritative.
-
----
-
-# 20. Documentation Structure
-
-The Desktop Application documentation is organized as follows:
-
-* Requirements;
-* Architecture;
-* Workspace;
-* User Interface;
-* Editors;
-* Interaction;
-* Integration;
-* Testing;
-* Completion.
-
-Each document refines a specific architectural concern without duplicating responsibilities.
-
----
-
-# 21. Architectural Invariants
-
-The following invariants are mandatory:
-
-* the Master Library remains the authoritative source of knowledge;
-* the Desktop Application owns user interaction, not business logic;
-* Platform Engines remain the only providers of platform capabilities;
-* UI state is recoverable;
-* sessions are deterministic;
-* application state is explicitly managed;
-* architectural boundaries shall not be violated.
-
----
-
-# 22. Related Documents
-
-* ProductVision.md
-* ArchitecturePrinciples.md
-* ArchitectureModel.md
-* QualityAttributes.md
-* Master Library README
-* Platform README
-* Kernel Architecture
-* Architecture Decision Records (ADRs)
-
----
-
-# 23. Status
-
-**Approved**
-
-This document establishes the official architectural baseline for the KnowledgeOS Desktop Application.
-
-All implementation documents within this module shall conform to the principles, responsibilities and architectural boundaries defined herein.
+- User-selected files SHALL use approved macOS security-scoped access where required.
+- Credentials and tokens SHALL use Keychain or another approved secure store.
+- Personal Knowledge SHALL not be written to NAS.
+- Logs SHALL not contain publication content, private paths, annotations or credentials.
+- Remote AI or OCR SHALL require policy authorization.
+- Window and workspace restoration payloads SHALL avoid sensitive content where identity references suffice.
+
+## 10. Accessibility and Native Experience
+
+The desktop application SHOULD follow native macOS conventions for:
+
+- keyboard navigation;
+- menus and commands;
+- window restoration;
+- focus;
+- accessibility labels and reading order;
+- drag and drop;
+- document opening;
+- toolbar and sidebar behavior;
+- VoiceOver;
+- reduced motion and contrast preferences.
+
+Accessibility transformations SHALL preserve UDM semantic order.
+
+## 11. Verification and Acceptance
+
+- The behavior is covered by automated tests where technically feasible.
+- Offline behavior is verified.
+- Master Catalog and Local Library scopes remain visibly distinct.
+- Personal Knowledge never enters Master Library persistence.
+- Cancellation, timeout and failure behavior are verified.
+- Architecture traceability is documented.
+- Accessibility implications are reviewed.
+- No direct private-repository access exists from UI code.
+
+## 12. Traceability
+
+- `00-Architecture/02-Domain/DomainModel.md`
+- `00-Architecture/04-Platform/README.md`
+- `00-Architecture/04-Platform/Library/README.md`
+- `00-Architecture/04-Platform/Annotation/README.md`
+- `00-Architecture/04-Platform/Render/README.md`
+- `00-Architecture/04-Platform/Search/README.md`
+- `00-Architecture/04-Platform/Sync/README.md`
+- `00-Architecture/03-Kernel/README.md`
+- `01-Implementation/00-Governance/DefinitionOfDone.md`
+
+## 13. Compatibility and Evolution
+
+Breaking changes to restoration formats, Local Library identity mapping, public client contracts or acquisition behavior require migration guidance and architecture review.
+
+Persisted workspace and session formats SHALL be versioned.
+
+## 14. Status
+
+This document is part of the KnowledgeOS Desktop Application V4 implementation baseline.
