@@ -1,354 +1,134 @@
+# Knowledge Object Assets
 
-# Assets
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Knowledge Object
-
-**Document:** Assets
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Knowledge Object  
+**Document:** Assets  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Asset model used by KnowledgeOS.
+Define binary and external assets, renditions, integrity, storage independence and relationship to sources, UDM and DPM.
 
-Assets represent binary resources associated with a Knowledge Object.
+## 2. Scope
 
-Assets are not part of the canonical knowledge itself.
+Covers images, audio, video, fonts, datasets, attachments, previews, thumbnails and other binary resources.
 
-They provide supporting resources required to preserve, render or enrich knowledge.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Requirements identified by stable identifiers are testable and apply to every conforming implementation unless explicitly scoped otherwise.
 
-# 2. Definition
 
-An Asset is an immutable binary resource referenced by one or more Knowledge Objects.
+## 4. Context and Responsibility
 
-Examples include:
+An asset is a persistent binary or external resource associated with a Knowledge Object.
 
-* original PDF;
-* images;
-* scanned pages;
-* illustrations;
-* audio;
-* video;
-* attachments;
-* thumbnails;
-* supplementary datasets.
+Assets are not embedded directly into canonical domain structures. UDM references semantic asset identity; DPM references placements and renditions; storage providers manage bytes.
 
-Assets are external to the Knowledge Object.
+Assets distinguish:
 
-The Knowledge Object stores only references.
+- source asset;
+- extracted asset;
+- user-created asset;
+- generated rendition;
+- external asset reference.
 
----
-
-# 3. Design Goals
-
-The Asset model shall:
-
-* avoid duplication;
-* preserve original resources;
-* support immutable storage;
-* enable efficient synchronization;
-* allow independent versioning;
-* support future storage technologies.
-
----
-
-# 4. Conceptual Model
+## 5. Conceptual Model
 
 ```text
-Knowledge Object
-        │
-        ▼
-Asset Reference
-        │
-        ▼
-Asset Repository
-        │
-        ▼
-Binary Asset
+Asset
+├── assetId
+├── role
+├── authorityScope
+├── mediaType
+├── integrity
+├── sourceRef?
+├── renditionOf?
+├── dimensions?
+├── duration?
+├── accessibilityMetadata?
+├── provenance
+├── availability
+└── extensionData{}
 ```
 
-The Knowledge Object never owns the binary resource directly.
+A rendition is a separate asset identity linked to its source through derivation provenance.
 
----
+## 6. Normative Requirements
 
-# 5. Asset Categories
+**ASSETS-R001** — Every managed asset MUST have an immutable `AssetId`.
 
-Assets are classified according to their purpose.
+**ASSETS-R002** — Binary storage location MUST NOT be part of asset identity.
 
-```text
-Assets
-│
-├── Original Assets
-├── Embedded Assets
-├── Generated Assets
-├── Imported Assets
-├── External Assets
-└── Temporary Assets
-```
+**ASSETS-R003** — Assets with bytes SHOULD have cryptographic integrity records.
 
-Each category defines storage and lifecycle policies.
+**ASSETS-R004** — Generated renditions MUST reference their source asset and processing provenance.
 
----
+**ASSETS-R005** — UDM and DPM MUST reference assets by identity.
 
-# 6. Original Assets
+**ASSETS-R006** — Original assets MUST NOT be replaced by derived renditions.
 
-Original Assets preserve the imported source.
+**ASSETS-R007** — Remote asset references MUST be validated and policy-controlled.
 
-Examples:
+**ASSETS-R008** — Accessibility metadata SHOULD accompany media assets when available.
 
-* original PDF;
-* EPUB;
-* DOCX;
-* scanned image.
+**ASSETS-R009** — Personal assets MUST remain outside Master Library authority unless explicitly published through an authoring workflow.
 
-Original Assets are immutable.
+**ASSETS-R010** — Missing assets MUST remain explicitly unresolved rather than silently removed.
 
-They represent the historical source.
+## 7. Invariants
 
----
+**ASSETS-I001** — Asset identity survives storage migration.
 
-# 7. Embedded Assets
+**ASSETS-I002** — Source and rendition are distinct.
 
-Embedded Assets are resources contained within another source.
+**ASSETS-I003** — Binary bytes remain external to UDM/DPM serialization unless an exchange package explicitly embeds them.
 
-Examples:
+**ASSETS-I004** — Derived assets are rebuildable when inputs remain available.
 
-* images inside EPUB;
-* figures in PDF;
-* embedded SVG;
-* embedded fonts.
+**ASSETS-I005** — Integrity failures do not silently modify bytes.
 
-Embedded Assets remain independently addressable.
+## 8. Lifecycle and State Transitions
 
----
+Assets move through `Registered`, `Available`, `Generating`, `Unavailable`, `Corrupt`, `Archived`, `Removed` and `Purged`.
 
-# 8. Generated Assets
+Rendition regeneration creates a new version or rendition identity according to compatibility rules. Local cache eviction changes availability only. Source-asset deletion SHALL account for dependent renditions and canonical references.
 
-Generated Assets are produced by the platform.
+## 9. Failure, Recovery and Edge Cases
 
-Examples:
+Implementations SHALL preserve user knowledge, source evidence, identity and provenance before attempting automatic repair. Ambiguity SHALL remain explicit. A component MUST NOT invent missing authority, source facts, relationships or metadata merely to satisfy a schema.
 
-* thumbnails;
-* previews;
-* OCR images;
-* page snapshots;
-* cached renderings.
+Recoverable failures SHOULD create durable findings and resumable workflow state. Irrecoverable inconsistencies SHALL prevent canonical publication while preserving all available evidence for review and recovery.
 
-Generated Assets may be regenerated at any time.
+## 10. Security and Privacy
 
----
+All imported metadata, source references, external identifiers, extension payloads and generated assertions SHALL be treated as untrusted until validated. Personal Knowledge SHALL remain outside the NAS Master Library and SHALL synchronize only through approved personal-state synchronization profiles.
 
-# 9. Imported Assets
+Exports, logs and telemetry MUST NOT expose private paths, credentials, personal annotations or source content without explicit authorization.
 
-Imported Assets are provided explicitly by the user.
+## 11. Examples
 
-Examples:
+A high-resolution TIFF is the source asset. A JPEG preview and thumbnail are renditions with distinct identities and generation provenance. DPM places the JPEG preview; UDM retains the semantic figure reference to the source asset.
 
-* attachments;
-* supplementary material;
-* datasets;
-* supporting images.
+## 12. Compatibility and Evolution
 
-These Assets retain their own provenance.
+Backward-compatible changes MAY add optional fields, types or relationships. A change that modifies identity, authority, lifecycle ownership, canonical meaning, provenance requirements or version interpretation requires a major specification version.
 
----
+Unknown optional extension data SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-# 10. External Assets
+## 13. Related Documents
 
-External Assets remain outside the Knowledge Library.
+- `KnowledgeObject.md`
+- `Sources.md`
+- `Provenance.md`
+- `Versioning.md`
+- `../UDM/Nodes/AssetNodes.md`
+- `../DPM/Mapping/AssetMapping.md`
 
-Examples:
+## 14. Status
 
-* remote media;
-* linked resources;
-* referenced datasets.
-
-The platform records references only.
-
-Availability is not guaranteed.
-
----
-
-# 11. Temporary Assets
-
-Temporary Assets exist only during processing.
-
-Examples:
-
-* OCR intermediates;
-* conversion caches;
-* temporary previews;
-* processing artifacts.
-
-Temporary Assets are never considered part of the Knowledge Object.
-
----
-
-# 12. Asset Identity
-
-Every Asset has exactly one immutable AssetID.
-
-Properties:
-
-* globally unique;
-* storage-independent;
-* synchronization-independent;
-* permanent.
-
-Asset identity is independent of the KnowledgeObjectID.
-
----
-
-# 13. Asset References
-
-A Knowledge Object references Assets using Asset References.
-
-Each reference contains:
-
-* AssetID;
-* Asset Role;
-* Media Type;
-* Relationship to the UDM.
-
-References never embed binary content.
-
----
-
-# 14. Ownership
-
-Assets are owned by the Asset Repository.
-
-Knowledge Objects own only Asset References.
-
-Multiple Knowledge Objects may reference the same Asset.
-
----
-
-# 15. Lifecycle
-
-The conceptual Asset lifecycle is:
-
-```text
-Acquire
-      │
-      ▼
-Store
-      │
-      ▼
-Reference
-      │
-      ▼
-Use
-      │
-      ▼
-Archive
-```
-
-Assets remain immutable throughout their lifetime.
-
----
-
-# 16. Relationship to the UDM
-
-The UDM may reference Assets.
-
-Examples:
-
-* images;
-* equations;
-* diagrams;
-* multimedia.
-
-The UDM never embeds binary resources.
-
-Rendering Engines resolve Asset References during presentation.
-
----
-
-# 17. Relationship to Provenance
-
-Original Assets establish the historical origin of a Knowledge Object.
-
-Generated Assets record their creation in Provenance.
-
-Every Asset shall be traceable.
-
----
-
-# 18. Relationship to Synchronization
-
-Synchronization transfers Asset References independently from binary Assets whenever possible.
-
-Binary Assets may be synchronized:
-
-* lazily;
-* on demand;
-* proactively.
-
-The synchronization strategy is defined by the Sync Engine.
-
----
-
-# 19. Domain Invariants
-
-The following invariants apply.
-
-* Assets are immutable.
-* Asset identity never changes.
-* Binary resources are never embedded in the Knowledge Object.
-* Binary resources are never embedded in the UDM.
-* Asset References always use AssetID.
-* Multiple Knowledge Objects may reference the same Asset.
-* Generated Assets never replace Original Assets.
-
----
-
-# 20. Relationship to Platform Engines
-
-| Engine           | Responsibility                                  |
-| ---------------- | ----------------------------------------------- |
-| Import Engine    | Create Original Assets                          |
-| Library Engine   | Manage Asset References                         |
-| Render Engine    | Resolve Assets for presentation                 |
-| Search Engine    | Ignore binary content unless indexed separately |
-| Knowledge Engine | Analyze Assets when required                    |
-| AI Engine        | Produce derived Assets if necessary             |
-| Sync Engine      | Synchronize Assets                              |
-| Export Engine    | Include Assets when exporting                   |
-
-The Asset Repository is the authoritative owner of all Assets.
-
----
-
-# 21. Related Documents
-
-* KnowledgeObject.md
-* Metadata.md
-* Provenance.md
-* Sources.md
-* Versioning.md
-* ../KnowledgeLifecycle.md
-* ../../04-Platform/Storage/
-* ../../04-Platform/Sync/
-
----
-
-# 22. Status
-
-**Approved**
-
-This document defines the Asset model for KnowledgeOS.
-
-Assets are immutable binary resources owned by the Asset Repository and referenced by Knowledge Objects through stable Asset References.
+This document is part of the KnowledgeOS Knowledge Object V4 release-candidate baseline. It becomes frozen after complete Domain review and cross-document validation.

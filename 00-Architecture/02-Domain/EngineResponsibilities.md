@@ -1,423 +1,270 @@
 # Engine Responsibilities
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Document:** Engine Responsibilities
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain  
+**Document:** EngineResponsibilities  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the ownership boundaries and responsibilities of every Platform Engine.
+This document defines ownership boundaries among KnowledgeOS Platform Engines.
 
-Its objectives are:
+It prevents duplicated responsibility, hidden coupling and architectural drift.
 
-* eliminate overlapping responsibilities;
-* establish clear ownership;
-* reduce coupling;
-* maximize cohesion;
-* simplify long-term evolution.
+## 2. Normative Language
 
-Every business capability shall have exactly one owning Engine.
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
----
 
-# 2. Scope
+## 3. Engine Definition
 
-This document applies to all Platform Engines.
+An Engine is a Platform capability that implements one coherent business responsibility through explicit commands, queries, events, workflows and public contracts.
 
-It defines:
+An Engine SHALL:
 
-* ownership;
-* responsibilities;
-* boundaries;
-* interactions;
-* prohibited responsibilities.
+- own one primary capability;
+- protect its invariants;
+- expose explicit contracts;
+- hide implementation details;
+- depend on Domain contracts;
+- use Kernel execution mechanisms;
+- avoid direct access to another Engine's private state.
 
-Implementation details are intentionally excluded.
+## 4. Library Engine
 
----
+Owns:
 
-# 3. Architectural Principles
+- Master Library semantics;
+- Local Library semantics;
+- catalog membership;
+- local availability;
+- acquisition coordination;
+- repository-facing library contracts;
+- library integrity;
+- library lifecycle.
 
-Every Engine follows the same principles.
+Does not own:
 
-* One primary responsibility.
-* One public interface.
-* One owning team (currently the project owner).
-* No direct access to another Engine's internals.
-* Communication through Commands, Queries, Events or Public APIs.
+- file parsing;
+- OCR;
+- Personal synchronization transport;
+- rendering;
+- search ranking;
+- AI inference.
 
----
+## 5. Import Engine
 
-# 4. Responsibility Matrix
+Owns:
 
-| Engine            | Primary Responsibility                            |
-| ----------------- | ------------------------------------------------- |
-| Library Engine    | Manage the Knowledge Library                      |
-| Import Engine     | Transform external sources into Knowledge Objects |
-| Render Engine     | Present Knowledge Objects to users                |
-| Search Engine     | Discover information                              |
-| Annotation Engine | Manage user annotations                           |
-| Knowledge Engine  | Build semantic knowledge                          |
-| AI Engine         | Execute AI-assisted capabilities                  |
-| Sync Engine       | Synchronize Working Copies                        |
-| Export Engine     | Produce external representations                  |
-| Plugin Engine     | Manage platform extensions                        |
+- user-authorized device scanning;
+- source intake;
+- format detection;
+- initial validation;
+- duplicate evidence;
+- metadata extraction;
+- source registration preparation;
+- import provenance.
 
-Each responsibility is exclusive.
+Does not own:
 
----
+- Master Catalog authority;
+- local membership decisions;
+- Personal synchronization;
+- rendering;
+- canonical graph storage.
 
-# 5. Library Engine
+## 6. Export Engine
 
-## Owns
+Owns:
 
-* Knowledge Library
-* Knowledge Objects
-* Collections
-* Workspaces
-* Library metadata
+- export workflows;
+- format-specific transformation;
+- package assembly;
+- loss reporting;
+- identity and provenance preservation where supported.
 
-## Responsibilities
+Does not own:
 
-* create Knowledge Objects;
-* maintain object identity;
-* organize the Library;
-* preserve consistency;
-* manage ownership.
+- canonical source content;
+- Knowledge Object authority;
+- rendering runtime;
+- Personal synchronization.
 
-## Shall Not
+## 7. Search Engine
 
-* import documents;
-* perform OCR;
-* execute AI;
-* render content;
-* synchronize devices.
+Owns:
 
----
+- indexing;
+- query planning;
+- ranking;
+- local and remote search contracts;
+- index lifecycle;
+- search projections.
 
-# 6. Import Engine
+Search indexes are derived.
 
-## Owns
+The Search Engine SHALL NOT redefine canonical semantics.
 
-The import pipeline.
+## 8. Annotation Engine
 
-## Responsibilities
+Owns:
 
-* detect formats;
-* classify sources;
-* parse content;
-* execute OCR;
-* normalize content;
-* create the UDM.
+- annotation creation;
+- highlights;
+- bookmarks;
+- sticky notes;
+- drawings;
+- anchor attachment;
+- annotation conflict behavior;
+- Personal Knowledge annotation contracts.
 
-## Shall Not
+Annotations are Personal Knowledge.
 
-* organize the Library;
-* render content;
-* execute synchronization;
-* build semantic relationships.
+They SHALL NOT be stored in the Master Library.
 
----
+## 9. Render Engine
 
-# 7. Render Engine
+Owns:
 
-## Owns
+- renderer-independent rendering orchestration;
+- UDM/DPM interpretation;
+- viewport projections;
+- presentation adaptation;
+- accessibility rendering contracts.
 
-Visual presentation.
+It does not own UDM or DPM semantics.
 
-## Responsibilities
+## 10. AI Engine
 
-* Book View;
-* Paper View;
-* Editor View;
-* Magazine View;
-* Web View;
-* Print View.
+Owns:
 
-## Shall Not
+- AI task orchestration;
+- provider selection under policy;
+- prompts and context preparation;
+- derived AI artifacts;
+- provenance;
+- confidence and validation workflow;
+- local/remote execution policy.
 
-* modify canonical content;
-* perform indexing;
-* execute AI;
-* change metadata.
+AI SHALL NOT become canonical authority automatically.
 
-Rendering is always derived from the UDM.
+## 11. Plugin Engine
 
----
+Owns:
 
-# 8. Search Engine
+- plugin lifecycle;
+- capability grants;
+- isolation;
+- extension registration;
+- compatibility;
+- permissions;
+- plugin observability.
 
-## Owns
+Plugins SHALL NOT access private Engine internals.
 
-Knowledge discovery.
+## 12. Sync Engine
 
-## Responsibilities
+Owns:
 
-* full-text search;
-* metadata search;
-* semantic search;
-* index management;
-* ranking.
+- Personal Knowledge synchronization;
+- change tracking;
+- conflict detection;
+- convergence;
+- tombstones;
+- synchronization provider abstraction;
+- synchronization observability.
 
-## Shall Not
+It SHALL NOT:
 
-* import content;
-* modify knowledge;
-* render views.
+- synchronize Master Library publications;
+- acquire publication payloads;
+- write Personal Knowledge to the NAS;
+- redefine Local Library membership.
 
----
+## 13. Knowledge Engine
 
-# 9. Annotation Engine
+Owns:
 
-## Owns
+- Knowledge Object coordination;
+- semantic operations;
+- Knowledge Graph projections;
+- relationship commands;
+- domain-level knowledge queries.
 
-User annotations.
+It does not own search infrastructure or AI inference.
 
-## Responsibilities
+## 14. Platform-Wide Rules
 
-* highlights;
-* notes;
-* ink;
-* bookmarks;
-* annotation layers.
+**ER-R001** — Each responsibility SHALL have one owner.
 
-## Shall Not
+**ER-R002** — Engines SHALL communicate through explicit contracts.
 
-* modify canonical content;
-* alter provenance;
-* change identity.
+**ER-R003** — Engines SHALL NOT access another Engine's private repository.
 
-Annotations remain logically separate from the UDM.
+**ER-R004** — Kernel contains no business ownership.
 
----
+**ER-R005** — Integration providers implement contracts but do not own business policy.
 
-# 10. Knowledge Engine
+**ER-R006** — Derived outputs SHALL remain distinguishable.
 
-## Owns
+**ER-R007** — Long-running operations SHALL use durable workflows.
 
-Semantic enrichment.
+**ER-R008** — Retryable operations SHALL be idempotent.
 
-## Responsibilities
+**ER-R009** — Authority boundaries SHALL follow the Domain Model.
 
-* entity extraction;
-* relationship discovery;
-* ontology application;
-* Knowledge Graph generation.
+**ER-R010** — An architectural responsibility change requires review and, when significant, an ADR.
 
-## Shall Not
+## 15. Collaboration Matrix
 
-* modify canonical content;
-* execute rendering;
-* synchronize devices.
+| Capability | Primary Owner | Collaborators |
+|---|---|---|
+| Local scan | Import | Library, Workflow |
+| Master acquisition | Library | Import, Workflow |
+| Canonical UDM | Processing workflow | Import, Knowledge |
+| Canonical DPM | Processing workflow | Render, Import |
+| Personal annotation | Annotation | Library, Sync |
+| Personal sync | Sync | Annotation, Library |
+| Search index | Search | Knowledge, Library |
+| AI summary | AI | Knowledge, Library |
+| Export | Export | Render, Knowledge |
+| Plugin extension | Plugin | Affected Engine |
 
-The Knowledge Graph is always derived.
+Collaboration SHALL NOT transfer ownership.
 
----
+## 16. Invariants
 
-# 11. AI Engine
+**ER-I001** — No Engine owns two unrelated primary capabilities.
 
-## Owns
+**ER-I002** — No capability has competing owners.
 
-Artificial intelligence orchestration.
+**ER-I003** — Domain authority is not determined by infrastructure.
 
-## Responsibilities
+**ER-I004** — Sync and acquisition remain separate.
 
-* prompt execution;
-* provider selection;
-* context construction;
-* summarization;
-* classification;
-* translation;
-* embeddings.
+**ER-I005** — Personal Knowledge remains user-owned.
 
-## Shall Not
+**ER-I006** — Providers are replaceable.
 
-* become the Source of Truth;
-* own business entities;
-* modify canonical knowledge without explicit approval.
+**ER-I007** — Engine contracts are versioned.
 
----
+**ER-I008** — Hidden cross-Engine mutation is prohibited.
 
-# 12. Sync Engine
+## 17. Related Documents
 
-## Owns
+- `DomainModel.md`
+- `KnowledgeLifecycle.md`
+- `../03-Kernel/KernelArchitecture.md`
+- `../04-Platform/README.md`
+- `../04-Platform/Library/README.md`
+- `../04-Platform/Sync/README.md`
+- `../05-Integration/README.md`
 
-Synchronization.
+## 18. Status
 
-## Responsibilities
-
-* Working Copies;
-* synchronization;
-* conflict detection;
-* replication;
-* recovery.
-
-## Shall Not
-
-* own the Library;
-* modify semantic meaning;
-* execute rendering.
-
----
-
-# 13. Export Engine
-
-## Owns
-
-External representations.
-
-## Responsibilities
-
-* PDF export;
-* EPUB export;
-* Markdown export;
-* HTML export;
-* future exporters.
-
-## Shall Not
-
-* modify Knowledge Objects;
-* alter identity;
-* execute imports.
-
-Exports are always generated from the canonical representation.
-
----
-
-# 14. Plugin Engine
-
-## Owns
-
-Platform extensibility.
-
-## Responsibilities
-
-* plugin lifecycle;
-* permissions;
-* sandboxing;
-* plugin discovery;
-* plugin execution.
-
-## Shall Not
-
-* expose private Engine internals;
-* bypass security;
-* modify Kernel infrastructure.
-
----
-
-# 15. Engine Collaboration
-
-Engines collaborate through public contracts only.
-
-Supported mechanisms:
-
-* Commands
-* Queries
-* Events
-* Public APIs
-
-Direct implementation dependencies are forbidden.
-
----
-
-# 16. Ownership Rules
-
-Each business capability has exactly one owner.
-
-Examples:
-
-| Capability              | Owner             |
-| ----------------------- | ----------------- |
-| Import PDF              | Import Engine     |
-| OCR                     | Import Engine     |
-| Create Knowledge Object | Library Engine    |
-| Search                  | Search Engine     |
-| Highlight               | Annotation Engine |
-| Semantic Graph          | Knowledge Engine  |
-| AI Summary              | AI Engine         |
-| Synchronization         | Sync Engine       |
-| Export EPUB             | Export Engine     |
-| Plugin Installation     | Plugin Engine     |
-
-Shared ownership is prohibited.
-
----
-
-# 17. Cross-Engine Rules
-
-The following responsibilities are shared conceptually but owned explicitly.
-
-| Concern         | Owner                                                 |
-| --------------- | ----------------------------------------------------- |
-| Identity        | Library Engine                                        |
-| Provenance      | Library Engine                                        |
-| Metadata        | Library Engine                                        |
-| UDM             | Import Engine (creation) / Library Engine (ownership) |
-| Search Index    | Search Engine                                         |
-| Knowledge Graph | Knowledge Engine                                      |
-| Embeddings      | AI Engine                                             |
-| Assets          | Library Engine                                        |
-
-Only one Engine owns each artifact.
-
-Other Engines consume it through public contracts.
-
----
-
-# 18. Responsibility Boundaries
-
-An Engine may request work from another Engine.
-
-An Engine shall never execute another Engine's primary responsibility internally.
-
-For example:
-
-* the Search Engine may request semantic information from the Knowledge Engine;
-* the Render Engine may request annotations from the Annotation Engine;
-* the AI Engine may request context from the Search Engine.
-
-Each Engine remains responsible only for its own capability.
-
----
-
-# 19. Relationship to Other Documents
-
-This document complements:
-
-* DomainModel.md
-* ArchitectureModel.md
-* ArchitecturePrinciples.md
-* ArchitectureDecisionMatrix.md
-
-Implementation details are defined in the corresponding Engine specifications.
-
----
-
-# 20. Related Documents
-
-* DomainModel.md
-* KnowledgeLifecycle.md
-* ../01-Foundation/ArchitectureModel.md
-* ../00-Governance/ArchitectureDecisionMatrix.md
-* ../04-Platform/
-
----
-
-# 21. Status
-
-**Approved**
-
-This document defines the official ownership model for all Platform Engines.
-
-Every architectural capability shall have exactly one owning Engine. Responsibility boundaries defined here are mandatory and shall remain stable throughout Architecture Handbook v3.0.
+This document is the normative responsibility map for KnowledgeOS Platform Engines V4.

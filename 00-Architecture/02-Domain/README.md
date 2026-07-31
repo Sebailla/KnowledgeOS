@@ -1,253 +1,100 @@
+# Domain Package
 
-# Domain
-
-**Project:** KnowledgeOS
-
-**Section:** Architecture Handbook
-
-**Document:** Domain
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain  
+**Document:** README  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-The Domain section defines the business model of KnowledgeOS.
+This README is the entry point for the complete KnowledgeOS Domain package.
 
-It describes the concepts that exist independently of implementation, programming languages, storage technologies or user interfaces.
+## 2. Normative Language
 
-The Domain represents the conceptual heart of the platform.
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-Every implementation shall preserve the integrity of the Domain.
 
----
-
-# 2. Scope
-
-The Domain section defines:
-
-* the business entities;
-* their identities;
-* their lifecycle;
-* their relationships;
-* their responsibilities;
-* the canonical knowledge model.
-
-It does not define:
-
-* infrastructure;
-* persistence technologies;
-* frameworks;
-* APIs;
-* rendering;
-* synchronization mechanisms.
-
-Those concerns belong to later architectural layers.
-
----
-
-# 3. Objectives
-
-The Domain has five primary objectives.
-
-## Represent Knowledge
-
-Provide a consistent representation of human knowledge independently of its physical source.
-
----
-
-## Preserve Identity
-
-Ensure that every Knowledge Object remains identifiable throughout its lifetime.
-
----
-
-## Preserve Meaning
-
-Maintain the logical structure and semantic meaning of knowledge regardless of storage or presentation.
-
----
-
-## Enable Relationships
-
-Allow knowledge to be connected, referenced and explored.
-
----
-
-## Support Long-Term Evolution
-
-Provide a stable conceptual model capable of evolving for decades without breaking existing knowledge.
-
----
-
-# 4. Core Concepts
-
-The Domain is organized around the following concepts.
+## 3. Package Structure
 
 ```text
-Knowledge Library
-        │
-        ▼
-Knowledge Object
-        │
-        ▼
-Universal Document Model
-        │
-        ▼
-Knowledge Graph
-        │
-        ▼
-Identity
+02-Domain/
+├── DomainModel.md
+├── KnowledgeLifecycle.md
+├── EngineResponsibilities.md
+├── KnowledgeObject/
+├── UDM/
+├── DPM/
+├── KnowledgeGraph/
+├── Identity/
+└── README.md
 ```
 
-Every other concept derives from these foundations.
+## 4. Reading Order
 
----
+1. `DomainModel.md`
+2. `KnowledgeLifecycle.md`
+3. `EngineResponsibilities.md`
+4. `Identity/README.md`
+5. `KnowledgeObject/README.md`
+6. `UDM/README.md`
+7. `DPM/README.md`
+8. `KnowledgeGraph/README.md`
 
-# 5. Domain Documents
+## 5. Dependency Rules
 
-The Domain section contains the following authoritative documents.
+The Domain MAY depend on Foundation.
 
-## DomainModel.md
+The Domain SHALL NOT depend on:
 
-Defines the conceptual model of the platform.
+- Kernel implementation;
+- Platform Engines;
+- Integration providers;
+- databases;
+- UI frameworks;
+- deployment topology.
 
-Describes:
+Kernel, Platform, Integration and Implementation depend on Domain contracts.
 
-* entities;
-* aggregates;
-* value objects;
-* relationships.
+## 6. Authority Map
 
----
+- `DomainModel.md` owns top-level concepts and authority.
+- `KnowledgeLifecycle.md` owns domain states and transitions.
+- `EngineResponsibilities.md` owns capability boundaries.
+- `Identity/README.md` owns identity semantics.
+- `KnowledgeObject/KnowledgeObject.md` owns the persistent aggregate.
+- `UDM/UDM.md` owns semantic canonical representation.
+- `DPM/DPM.md` owns presentation canonical representation.
+- `KnowledgeGraph/README.md` owns graph integration semantics.
 
-## KnowledgeLifecycle.md
+## 7. Package Invariants
 
-Defines the complete lifecycle of a Knowledge Object.
+**DP-I001** — Domain remains technology-independent.
 
----
+**DP-I002** — Every concept has one authoritative definition.
 
-## EngineResponsibilities.md
+**DP-I003** — Master, Local and Personal authority remain separate.
 
-Defines the ownership boundaries between Platform Engines.
+**DP-I004** — Acquisition and synchronization remain separate.
 
----
+**DP-I005** — UDM and DPM remain separate.
 
-## KnowledgeObject/
+**DP-I006** — Stable identity is mandatory.
 
-Defines:
+**DP-I007** — Derived artifacts remain rebuildable.
 
-* structure;
-* metadata;
-* provenance;
-* versioning;
-* physical sources.
+**DP-I008** — Platform implementation cannot redefine Domain meaning.
 
----
+## 8. Change Governance
 
-## UDM/
+A change affecting identity, authority, aggregate ownership, acquisition, synchronization, UDM, DPM or graph semantics requires architectural review.
 
-Defines the Universal Document Model.
+Breaking changes require a major version and applicable ADR.
 
-This is the canonical representation of every Knowledge Object.
+## 9. Status
 
----
-
-## KnowledgeGraph/
-
-Defines the semantic model derived from Knowledge Objects.
-
----
-
-## Identity/
-
-Defines the global identity model used across the platform.
-
----
-
-# 6. Relationship to Other Sections
-
-The Domain depends only on:
-
-* Governance
-* Foundation
-
-The following sections depend on the Domain:
-
-* Kernel
-* Platform
-* Integration
-* Quality
-* Architecture Views
-
-The Domain never depends on implementation.
-
----
-
-# 7. Reading Order
-
-The recommended reading order is:
-
-1. DomainModel.md
-2. KnowledgeLifecycle.md
-3. EngineResponsibilities.md
-4. KnowledgeObject/
-5. UDM/
-6. KnowledgeGraph/
-7. Identity/
-
-Each document refines the concepts introduced by the previous one.
-
----
-
-# 8. Architectural Authority
-
-The Domain is the authoritative source for business concepts.
-
-No lower-level document may redefine:
-
-* Knowledge Object;
-* Knowledge Library;
-* Universal Document Model;
-* Identity;
-* Provenance;
-* Relationships.
-
-Changes require an approved ADR.
-
----
-
-# 9. Relationship with the Architecture
-
-The Domain is implemented by the Platform Engines.
-
-The Kernel provides infrastructure to execute the Domain.
-
-Integration provides external connectivity.
-
-Neither the Kernel nor the Platform may redefine Domain concepts.
-
----
-
-# 10. Related Documents
-
-* ../01-Foundation/ProductVision.md
-* ../01-Foundation/ArchitectureModel.md
-* ../01-Foundation/ArchitecturePrinciples.md
-* ../01-Foundation/ArchitectureConstraints.md
-* ../00-Governance/ArchitectureVocabulary.md
-
----
-
-# 11. Status
-
-**Approved**
-
-This document defines the scope and responsibilities of the Domain section within the KnowledgeOS Architecture Handbook.
-
-The Domain constitutes the conceptual core of the platform and shall remain independent of implementation technologies.
+This package is the KnowledgeOS Domain V4 release candidate.

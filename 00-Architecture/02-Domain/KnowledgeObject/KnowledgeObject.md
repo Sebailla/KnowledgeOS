@@ -1,433 +1,177 @@
-# Knowledge Object
+# Knowledge Object Specification
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Knowledge Object
-
-**Document:** Knowledge Object
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Knowledge Object  
+**Document:** KnowledgeObject  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the Knowledge Object, the fundamental aggregate of the KnowledgeOS domain.
+Define the persistent domain aggregate through which KnowledgeOS manages documentary sources, canonical models, assets, metadata, provenance, versions and relationships without conflating Master Library authority, Local Library availability or Personal Knowledge.
 
-Every piece of managed knowledge is represented by exactly one Knowledge Object.
+## 2. Scope
 
-The Knowledge Object is the canonical business representation of knowledge within the platform.
+Applies to every Knowledge Object managed by the Master Library or represented in a Local Library. It excludes UI state, synchronization transport, database schemas, renderer objects and provider-specific implementation details.
 
-It is independent of:
+## 3. Normative Language
 
-* physical files;
-* rendering;
-* synchronization;
-* artificial intelligence;
-* storage technologies;
-* operating systems.
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Requirements identified by stable identifiers are testable and apply to every conforming implementation unless explicitly scoped otherwise.
 
----
 
-# 2. Definition
+## 4. Context and Responsibility
 
-A Knowledge Object represents one logical unit of knowledge.
+A Knowledge Object is the stable library-level representation of one managed unit of knowledge.
 
-Its purpose is to preserve:
+It is not a file, page, UDM node, DPM node, database row or annotation. It coordinates those artifacts under one persistent identity and lifecycle.
 
-* identity;
-* content;
-* provenance;
-* metadata;
-* annotations;
-* relationships.
+KnowledgeOS distinguishes:
 
-The Knowledge Object remains stable throughout its lifetime.
+- **Master Knowledge Object:** authoritative catalog representation managed by KnowledgeOS Server on the NAS.
+- **Local Knowledge Object Reference:** local representation created through device discovery, manual import or explicit acquisition.
+- **Personal Knowledge:** annotations, notes, highlights, progress and relationships owned by the user and attached through stable identities and anchors.
+- **Derived Artifacts:** UDM, DPM, indexes, previews, embeddings and other rebuildable processing outputs.
 
-Its internal components may evolve without affecting its identity.
+A Local Library is not a replica of the Master Library. Personal Knowledge never becomes Master Library content.
 
----
-
-# 3. Responsibilities
-
-A Knowledge Object is responsible for:
-
-* representing knowledge;
-* preserving identity;
-* preserving provenance;
-* exposing the Universal Document Model;
-* maintaining metadata;
-* managing annotations;
-* maintaining relationships;
-* coordinating version history.
-
-It is **not** responsible for:
-
-* importing files;
-* rendering content;
-* indexing;
-* synchronization;
-* AI processing;
-* exporting.
-
-Those responsibilities belong to Platform Engines.
-
----
-
-# 4. Aggregate Structure
-
-The Knowledge Object is an Aggregate Root composed of the following components.
+## 5. Conceptual Model
 
 ```text
-Knowledge Object
-│
-├── Identity
-├── Metadata
-├── Provenance
-├── Universal Document Model
-├── Assets
-├── Relationships
-├── Annotations
-└── Version Information
+KnowledgeObject
+├── id
+├── kind
+├── authorityScope
+├── lifecycleState
+├── metadata
+├── sources[]
+├── assets[]
+├── canonicalRepresentations[]
+│   ├── UDM versions
+│   └── DPM versions
+├── provenance
+├── relationships[]
+├── versions[]
+├── externalIdentifiers[]
+├── integrity
+└── extensionData{}
 ```
 
-Each component has one clearly defined responsibility.
+The aggregate owns consistency among its references and lifecycle records. Binary storage, graph projections, search indexes and user-interface projections remain outside the aggregate.
 
----
+## 6. Normative Requirements
 
-# 5. Aggregate Boundary
+**KNOWLEDGEOBJEC-R001** — Every Knowledge Object MUST have one immutable `KnowledgeObjectId`.
 
-The Aggregate Boundary protects the consistency of the Knowledge Object.
+**KNOWLEDGEOBJEC-R002** — A Knowledge Object MUST declare its authority scope.
 
-External components may interact with the aggregate only through its public behavior.
+**KNOWLEDGEOBJEC-R003** — Master Library authority MUST be limited to catalog records, source publications and master-source metadata.
 
-Internal components shall never be modified independently.
+**KNOWLEDGEOBJEC-R004** — Personal Knowledge MUST NOT be embedded as authoritative Master Library state.
 
----
+**KNOWLEDGEOBJEC-R005** — A Local Library representation MUST preserve origin and acquisition provenance.
 
-# 6. Identity
+**KNOWLEDGEOBJEC-R006** — Acquisition from Master to Local MUST be explicit and idempotent.
 
-Every Knowledge Object has one immutable identifier.
+**KNOWLEDGEOBJEC-R007** — A Knowledge Object MUST reference, rather than embed, binary assets.
 
-Properties:
+**KNOWLEDGEOBJEC-R008** — Canonical UDM and DPM representations MUST identify the Knowledge Object version from which they were produced.
 
-* globally unique;
-* stable;
-* never reused;
-* independent of filenames;
-* independent of storage;
-* independent of synchronization.
+**KNOWLEDGEOBJEC-R009** — Derived artifacts MUST remain distinguishable and rebuildable.
 
-Identity survives:
+**KNOWLEDGEOBJEC-R010** — External identifiers MUST be namespaced aliases, not replacements for KnowledgeOS identity.
 
-* import;
-* export;
-* migration;
-* synchronization;
-* backup;
-* restoration.
+**KNOWLEDGEOBJEC-R011** — Lifecycle transitions MUST preserve version and provenance history.
 
----
+**KNOWLEDGEOBJEC-R012** — The aggregate MUST reject ownership conflicts rather than silently selecting an authority.
 
-# 7. Metadata
+## 7. Invariants
 
-Metadata describes the Knowledge Object.
+**KNOWLEDGEOBJEC-I001** — Identity remains stable across storage migration, synchronization and compatible reprocessing.
 
-Examples include:
+**KNOWLEDGEOBJEC-I002** — The original source remains preserved.
 
-* title;
-* author;
-* language;
-* publication date;
-* import date;
-* source format.
+**KNOWLEDGEOBJEC-I003** — Authority is scoped and explicit.
 
-Metadata is descriptive.
+**KNOWLEDGEOBJEC-I004** — Publication acquisition and personal synchronization are separate flows.
 
-It does not define identity.
+**KNOWLEDGEOBJEC-I005** — Personal Knowledge never modifies Master Library publication authority.
 
----
+**KNOWLEDGEOBJEC-I006** — Every canonical representation is traceable to source and processing provenance.
 
-# 8. Provenance
+**KNOWLEDGEOBJEC-I007** — Derived artifacts are never the only surviving representation of authoritative knowledge.
 
-Every Knowledge Object permanently records:
+**KNOWLEDGEOBJEC-I008** — Version lineage is acyclic.
 
-* original source;
-* import method;
-* import timestamp;
-* transformation history;
-* processing history.
+**KNOWLEDGEOBJEC-I009** — Repository implementation does not define domain identity.
 
-Provenance is immutable.
+## 8. Lifecycle and State Transitions
 
-New events may be appended.
+The baseline lifecycle is:
 
-Existing provenance shall never be rewritten.
+```text
+Discovered
+    ↓
+Registered
+    ↓
+Active
+    ├── New Version
+    ├── Acquired Locally
+    ├── Archived
+    └── Removed
+```
 
----
+Master and Local state SHALL remain distinct.
 
-# 9. Universal Document Model
+- A Master Knowledge Object may be `Active`, `Unavailable`, `Archived` or `Removed`.
+- Local availability may be `Absent`, `Acquiring`, `Available`, `Evicted`, `Corrupt` or `Removed`.
+- Personal Knowledge follows its own lifecycle and SHALL NOT change publication state.
+- A new publication version creates a new `VersionId` while retaining `KnowledgeObjectId` when semantic continuity remains.
+- Material replacement creates a new Knowledge Object and records lineage.
 
-The Universal Document Model (UDM) is the canonical structured representation of the Knowledge Object.
+## 9. Failure, Recovery and Edge Cases
 
-The UDM:
+Implementations SHALL preserve user knowledge, source evidence, identity and provenance before attempting automatic repair. Ambiguity SHALL remain explicit. A component MUST NOT invent missing authority, source facts, relationships or metadata merely to satisfy a schema.
 
-* preserves logical structure;
-* is renderer-independent;
-* is storage-independent;
-* is synchronization-independent.
+Recoverable failures SHOULD create durable findings and resumable workflow state. Irrecoverable inconsistencies SHALL prevent canonical publication while preserving all available evidence for review and recovery.
 
-The UDM is authoritative.
+## 10. Security and Privacy
 
-All visual representations are derived from it.
+All imported metadata, source references, external identifiers, extension payloads and generated assertions SHALL be treated as untrusted until validated. Personal Knowledge SHALL remain outside the NAS Master Library and SHALL synchronize only through approved personal-state synchronization profiles.
 
----
+Exports, logs and telemetry MUST NOT expose private paths, credentials, personal annotations or source content without explicit authorization.
 
-# 10. Assets
+## 11. Examples
 
-Binary resources are referenced by the Knowledge Object.
+A book stored on the NAS has one Master `KnowledgeObjectId`. The Mac acquires the EPUB and creates a local acquisition record referencing the same Master object and manifestation. The user highlights a paragraph on the iPad. The highlight has its own Personal Knowledge identity and synchronizes through iCloud; it is never written to the Master Library.
 
-Examples include:
+## 12. Compatibility and Evolution
 
-* images;
-* PDFs;
-* attachments;
-* audio;
-* video.
+Backward-compatible changes MAY add optional fields, types or relationships. A change that modifies identity, authority, lifecycle ownership, canonical meaning, provenance requirements or version interpretation requires a major specification version.
 
-Assets are stored externally in the Asset Repository.
+Unknown optional extension data SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-The Knowledge Object maintains logical references only.
+## 13. Related Documents
 
----
-
-# 11. Relationships
-
-Knowledge Objects participate in logical and semantic relationships.
-
-Examples:
-
-* references;
-* citations;
-* semantic links;
-* parent-child relationships;
-* user-defined links.
-
-Relationships enrich knowledge without changing its canonical content.
-
----
-
-# 12. Annotations
-
-Annotations represent user-generated knowledge associated with a Knowledge Object.
-
-Examples include:
-
-* highlights;
-* notes;
-* drawings;
-* bookmarks;
-* comments.
-
-Annotations are logically separate from the UDM.
-
-They never modify canonical content.
-
----
-
-# 13. Version Information
-
-Version information records the evolution of the Knowledge Object.
-
-Versioning includes:
-
-* structural revisions;
-* metadata revisions;
-* annotation revisions;
-* synchronization revisions.
-
-Identity remains constant across all versions.
-
----
-
-# 14. Lifecycle
-
-A Knowledge Object progresses through the lifecycle defined in:
-
-KnowledgeLifecycle.md
-
-Lifecycle stages include:
-
-* Imported;
-* Normalized;
-* Managed;
-* Active;
-* Archived.
-
-The lifecycle affects state.
-
-It never affects identity.
-
----
-
-# 15. Domain Invariants
-
-The following invariants shall always hold.
-
-## Identity
-
-Every Knowledge Object has exactly one immutable identity.
-
----
-
-## Canonical Representation
-
-Every Knowledge Object contains exactly one UDM.
-
----
-
-## Provenance
-
-Every Knowledge Object preserves complete provenance.
-
----
-
-## Ownership
-
-Every Knowledge Object is published by exactly one Master Library. A Knowledge Object may be acquired by multiple Local Libraries. Personal Knowledge never changes publication ownership.
-
----
-
-## Version Continuity
-
-Identity persists across every version.
-
----
-
-## Annotation Isolation
-
-Annotations shall never modify canonical knowledge.
-
----
-
-## Asset Independence
-
-Assets remain external to the aggregate.
-
----
-
-## Relationship Integrity
-
-Relationships reference identities rather than storage locations.
-
----
-
-# 16. Behavioral Rules
-
-The Knowledge Object may:
-
-* receive annotations;
-* update metadata;
-* establish relationships;
-* evolve through new versions.
-
-The Knowledge Object shall never:
-
-* lose identity;
-* lose provenance;
-* contain duplicate UDMs;
-* embed binary assets;
-* depend on external providers.
-
----
-
-# 17. Collaboration
-
-The Knowledge Object collaborates with Platform Engines.
-
-| Engine            | Interaction                      |
-| ----------------- | -------------------------------- |
-| Library Engine    | Owns and manages the aggregate   |
-| Import Engine     | Creates new aggregates           |
-| Render Engine     | Reads the UDM                    |
-| Search Engine     | Indexes content                  |
-| Annotation Engine | Manages annotations              |
-| Knowledge Engine  | Generates semantic relationships |
-| AI Engine         | Produces derived knowledge       |
-| Sync Engine       | Synchronizes revisions           |
-| Export Engine     | Generates external formats       |
-
-No Engine may violate the aggregate invariants.
-
----
-
-# 18. Aggregate Ownership
-
-The Knowledge Object is owned by exactly one Knowledge Space.
-
-The Library coordinates multiple aggregates.
-
-The Knowledge Object guarantees its own internal consistency.
-
----
-
-# 19. Related Documents
-
-* README.md
-* Metadata.md
-* Provenance.md
-* Assets.md
-* Relationships.md
-* Versioning.md
-* LifecycleMapping.md
-* ../KnowledgeLifecycle.md
-* ../DomainModel.md
-* ../UDM/
-
----
-
-# 20. Status
-
-**Approved**
-
-This document defines the Knowledge Object as the canonical aggregate of the KnowledgeOS domain.
-
-Every Engine, Repository and Specification shall preserve the invariants and responsibilities established by this document.
-
-
----
-
-# Architecture Alignment (V3.1)
-
-## Authority Model
-
-KnowledgeOS separates authority by scope:
-
-| Scope | Authority |
-|---|---|
-| Publications | Master Library |
-| Acquired Copies | Local Libraries |
-| Personal Knowledge | User |
-| Derived Artifacts | Rebuildable |
-
-## Acquisition
-
-Publication acquisition is explicit. Local Libraries never become authoritative sources.
-
-## Personal Knowledge
-
-Annotations, notes, highlights, reading progress and AI conversations are synchronized independently from publication acquisition.
-
-## Lifecycle
-
-This document follows the lifecycle defined in `KnowledgeLifecycle.md`:
-
-- Publication Lifecycle
-- Personal Knowledge Lifecycle
-- Canonical Processing Lifecycle
+- `../DomainModel.md`
+- `../KnowledgeLifecycle.md`
+- `../Identity/README.md`
+- `../UDM/UDM.md`
+- `../DPM/DPM.md`
+- `../KnowledgeGraph/README.md`
+- `Metadata.md`
+- `Provenance.md`
+- `Sources.md`
+- `Assets.md`
+- `Relationships.md`
+- `Versioning.md`
+- `LifecycleMapping.md`
+- `../../04-Platform/Library/README.md`
+- `../../04-Platform/Sync/README.md`
+
+## 14. Status
+
+This document is part of the KnowledgeOS Knowledge Object V4 release-candidate baseline. It becomes frozen after complete Domain review and cross-document validation.

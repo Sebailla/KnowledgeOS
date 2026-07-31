@@ -1,419 +1,141 @@
+# Knowledge Object Sources
 
-# Knowledge Sources
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Knowledge Object
-
-**Document:** Sources
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Knowledge Object  
+**Document:** Sources  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the concept of Knowledge Sources.
+Define source concepts, source-item identity, acquisition, integrity, custody and linkage to works, expressions and manifestations.
 
-A Knowledge Source is the origin from which a Knowledge Object is created.
+## 2. Scope
 
-The source represents where knowledge originates before being normalized into the Universal Document Model (UDM).
+Covers files, streams, scans, web captures, physical references, external records and user-created sources.
 
-Knowledge Sources belong to the Domain.
+## 3. Normative Language
 
-Import formats belong to the Import Engine.
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Requirements identified by stable identifiers are testable and apply to every conforming implementation unless explicitly scoped otherwise.
 
----
 
-# 2. Definition
+## 4. Context and Responsibility
 
-A Knowledge Source is any origin capable of providing information that can be transformed into a Knowledge Object.
+A source is evidence from which a Knowledge Object or representation is derived.
 
-A source may be:
+KnowledgeOS distinguishes:
 
-* physical;
-* digital;
-* structured;
-* semi-structured;
-* unstructured.
+- **Work:** abstract intellectual creation.
+- **Expression:** translation, revision or realization.
+- **Manifestation:** publication embodiment such as a particular edition or format.
+- **Source Item:** one acquired or observed instance.
+- **External Source Reference:** a resource not held by KnowledgeOS.
+- **Generated Source:** user-authored or system-generated material that becomes a source under explicit workflow.
 
-Multiple sources may contribute to a single Knowledge Object.
+Files are source items, not Knowledge Objects.
 
----
-
-# 3. Design Goals
-
-The source model shall:
-
-* remain technology-independent;
-* support future source types;
-* preserve provenance;
-* preserve original information;
-* enable reproducible imports.
-
-The source model shall not depend on specific file formats or storage technologies.
-
----
-
-# 4. Source Categories
-
-Knowledge Sources are organized into conceptual categories.
+## 5. Conceptual Model
 
 ```text
-Knowledge Source
-│
-├── Document Sources
-├── Web Sources
-├── Media Sources
-├── Personal Sources
-├── Structured Sources
-├── External Systems
-└── Future Sources
+SourceDescriptor
+├── sourceItemId
+├── sourceKind
+├── workRef?
+├── expressionRef?
+├── manifestationRef?
+├── origin
+├── acquisitionMethod
+├── mediaType?
+├── integrity
+├── custody
+├── availability
+├── provenance
+└── externalIdentifiers[]
 ```
 
-Categories classify the origin of knowledge, not the import mechanism.
+One Knowledge Object MAY have several sources. One source MAY participate in deduplication or lineage analysis without collapsing distinct acquisitions.
 
----
+## 6. Normative Requirements
 
-# 5. Document Sources
+**SOURCES-R001** — Every managed source item MUST have an immutable identity.
 
-Examples include:
+**SOURCES-R002** — Original source bytes MUST remain immutable after successful ingestion.
 
-* PDF
-* EPUB
-* DOCX
-* Markdown
-* HTML
-* CHM
-* TXT
-* RTF
-* ODT
+**SOURCES-R003** — Integrity information SHOULD include a cryptographic checksum when bytes are available.
 
-Document Sources preserve their original structure whenever possible.
+**SOURCES-R004** — Acquisition MUST preserve origin and custody provenance.
 
----
+**SOURCES-R005** — A checksum MUST NOT be treated as universal Work identity.
 
-# 6. Web Sources
+**SOURCES-R006** — External sources MUST declare namespace, URI or provider identity.
 
-Examples include:
+**SOURCES-R007** — Unavailable external sources MUST remain representable.
 
-* web pages;
-* blogs;
-* online documentation;
-* knowledge bases;
-* wikis;
-* scientific repositories.
+**SOURCES-R008** — Generated sources MUST identify the generating actor and workflow.
 
-The imported Knowledge Object preserves the source reference.
+**SOURCES-R009** — Master-to-Local transfer MUST be modeled as acquisition, not synchronization.
 
----
+**SOURCES-R010** — Local scanning MUST require user-authorized locations.
 
-# 7. Media Sources
+**SOURCES-R011** — Source deletion MUST follow retention and recovery policy.
 
-Examples include:
+## 7. Invariants
 
-* images;
-* scanned pages;
-* audio;
-* video;
-* presentations.
+**SOURCES-I001** — Source identity is independent of path.
 
-Media sources may require preprocessing before normalization.
+**SOURCES-I002** — Original evidence remains preserved.
 
-Examples:
+**SOURCES-I003** — Acquisition is explicit.
 
-* OCR;
-* speech recognition;
-* image analysis.
+**SOURCES-I004** — Master and Local source custody remain distinct.
 
----
+**SOURCES-I005** — A file format does not determine Knowledge Object kind.
 
-# 8. Personal Sources
+**SOURCES-I006** — Unavailable does not mean nonexistent.
 
-Examples include:
+## 8. Lifecycle and State Transitions
 
-* handwritten notes;
-* voice notes;
-* personal journals;
-* annotations;
-* clipboard captures.
+Source state may be `Discovered`, `Validating`, `Available`, `Unavailable`, `Corrupt`, `Archived`, `Removed` or `Purged`.
 
-These sources often originate directly from the user.
+A source becomes `Available` only after integrity and registration succeed. Interrupted acquisition remains resumable. Corrupt sources SHALL be isolated while preserving catalog and provenance records. Local eviction changes availability, not Master publication identity.
 
----
+## 9. Failure, Recovery and Edge Cases
 
-# 9. Structured Sources
+Implementations SHALL preserve user knowledge, source evidence, identity and provenance before attempting automatic repair. Ambiguity SHALL remain explicit. A component MUST NOT invent missing authority, source facts, relationships or metadata merely to satisfy a schema.
 
-Examples include:
+Recoverable failures SHOULD create durable findings and resumable workflow state. Irrecoverable inconsistencies SHALL prevent canonical publication while preserving all available evidence for review and recovery.
 
-* CSV;
-* JSON;
-* XML;
-* databases;
-* spreadsheets;
-* bibliographic databases.
+## 10. Security and Privacy
 
-Structured sources may generate one or multiple Knowledge Objects depending on the import strategy.
+All imported metadata, source references, external identifiers, extension payloads and generated assertions SHALL be treated as untrusted until validated. Personal Knowledge SHALL remain outside the NAS Master Library and SHALL synchronize only through approved personal-state synchronization profiles.
 
----
+Exports, logs and telemetry MUST NOT expose private paths, credentials, personal annotations or source content without explicit authorization.
 
-# 10. External Systems
+## 11. Examples
 
-Examples include:
+A user-authorized scan discovers two identical PDFs in different folders. They have separate local source-item records and custody provenance but may map to the same manifestation after validation. Neither path becomes the domain identity.
 
-* note-taking applications;
-* document management systems;
-* reference managers;
-* cloud services;
-* plugin integrations.
+## 12. Compatibility and Evolution
 
-The integration mechanism is defined outside the Domain.
+Backward-compatible changes MAY add optional fields, types or relationships. A change that modifies identity, authority, lifecycle ownership, canonical meaning, provenance requirements or version interpretation requires a major specification version.
 
----
+Unknown optional extension data SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-# 11. Composite Sources
+## 13. Related Documents
 
-A Knowledge Object may originate from multiple Knowledge Sources.
+- `KnowledgeObject.md`
+- `Assets.md`
+- `Provenance.md`
+- `Metadata.md`
+- `../Identity/README.md`
+- `../UDM/UDM.md`
+- `../../04-Platform/Import/README.md`
+- `../../04-Platform/Library/README.md`
 
-Examples include:
+## 14. Status
 
-* a PDF enriched with handwritten notes;
-* a research paper linked to supplementary datasets;
-* a book combined with personal annotations;
-* a meeting recording synchronized with presentation slides.
-
-Each contributing source shall be preserved independently within Provenance.
-
----
-
-# 12. Source Preservation
-
-The original source shall remain immutable.
-
-KnowledgeOS never modifies the original source.
-
-When technically possible, the original source is preserved as an Asset referenced by the Knowledge Object.
-
----
-
-# 13. Source Identification
-
-Every Knowledge Source receives a stable Source Identifier within the scope of the Knowledge Object.
-
-A source records at minimum:
-
-* source type;
-* origin;
-* acquisition method;
-* acquisition timestamp;
-* integrity information.
-
-Source identifiers do not replace the KnowledgeObjectID.
-
----
-
-# 14. Relationship to Provenance
-
-Knowledge Sources establish the initial Origin recorded in Provenance.
-
-Provenance records:
-
-* how the source was acquired;
-* subsequent transformations;
-* derived artifacts.
-
-The source remains the historical starting point.
-
----
-
-# 15. Relationship to Assets
-
-When an original binary resource exists, it shall be stored in the Asset Repository.
-
-The Knowledge Object references the Asset.
-
-The source is preserved independently of the UDM.
-
----
-
-# 16. Relationship to the UDM
-
-The UDM is generated from one or more Knowledge Sources.
-
-The UDM is the canonical representation.
-
-Knowledge Sources remain historical references.
-
-They are never replaced by the UDM.
-
----
-
-# 17. Domain Invariants
-
-The following invariants apply.
-
-* Every Knowledge Object has at least one Knowledge Source.
-* Knowledge Sources remain immutable.
-* Original sources are never modified.
-* Sources never replace the UDM.
-* Source information is preserved in Provenance.
-* Multiple sources may contribute to one Knowledge Object.
-* Source identity is independent of KnowledgeObjectID.
-
----
-
-# 18. Relationship to Platform Engines
-
-| Engine           | Responsibility                                                       |
-| ---------------- | -------------------------------------------------------------------- |
-| Import Engine    | Acquire and normalize Knowledge Sources                              |
-| Library Engine   | Associate sources with Knowledge Objects                             |
-| Render Engine    | Read only                                                            |
-| Search Engine    | Index derived content                                                |
-| Knowledge Engine | Extract semantic information                                         |
-| AI Engine        | Generate derived knowledge                                           |
-| Sync Engine      | Synchronize source references                                        |
-| Export Engine    | Export canonical knowledge and optionally preserve source references |
-
-The Import Engine is responsible for transforming sources into Knowledge Objects.
-
----
-
-# 19. Related Documents
-
-* KnowledgeObject.md
-* Metadata.md
-* Provenance.md
-* Assets.md
-* Versioning.md
-* ../KnowledgeLifecycle.md
-* ../UDM/UDM.md
-
----
-
-# 20. Status
-
-**Approved**
-
-This document defines the Knowledge Source model used by KnowledgeOS.
-
-Every Knowledge Object originates from one or more Knowledge Sources, which remain permanently identifiable, immutable and traceable throughout the lifetime of the object.
-
-
----
-
-# Architecture Alignment (V3.1)
-
-## Purpose
-
-This document defines every supported source from which Knowledge Objects may
-originate and the rules governing acquisition, validation and traceability.
-
-## Source Categories
-
-KnowledgeOS recognizes five source categories:
-
-1. Primary Sources
-2. Imported Sources
-3. External References
-4. User Sources
-5. Generated Sources
-
-### Primary Sources
-
-Authoritative publications managed by the Master Library.
-
-Examples:
-
-- PDF
-- EPUB
-- Markdown
-- HTML
-- Images
-- Audio
-- Video
-
-### Imported Sources
-
-Objects explicitly acquired into a Local Library.
-
-Acquisition never changes publication authority.
-
-### External References
-
-Resources that remain outside KnowledgeOS.
-
-Examples:
-
-- URLs
-- DOI
-- ISBN
-- Git repositories
-- Cloud documents
-
-### User Sources
-
-Created directly by the user.
-
-Examples:
-
-- Notes
-- Annotations
-- Drawings
-- Apple Pencil content
-- Collections
-
-### Generated Sources
-
-Produced by processing engines.
-
-Examples:
-
-- OCR output
-- UDM
-- DPM
-- Embeddings
-- Search indexes
-- AI summaries
-
-Generated sources are always reproducible.
-
-## Source Authority
-
-| Source | Authority |
-|---|---|
-| Publication | Master Library |
-| Acquired Copy | Local Library |
-| User Content | User |
-| Generated Artifacts | Processing Engine |
-
-## Provenance Rules
-
-Every source shall record:
-
-- stable identifier
-- origin
-- acquisition timestamp
-- checksum (when applicable)
-- producing engine (if derived)
-
-## Invariants
-
-- Original sources are immutable.
-- Generated sources never replace originals.
-- Every Knowledge Object references at least one source.
-- Sources preserve full provenance.
-
-## Related Documents
-
-- KnowledgeObject.md
-- Metadata.md
-- Provenance.md
-- Versioning.md
-- DomainModel.md
+This document is part of the KnowledgeOS Knowledge Object V4 release-candidate baseline. It becomes frozen after complete Domain review and cross-document validation.

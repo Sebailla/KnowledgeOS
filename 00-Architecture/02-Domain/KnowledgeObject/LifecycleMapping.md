@@ -1,418 +1,142 @@
+# Knowledge Object Lifecycle Mapping
 
-# Lifecycle Mapping
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Knowledge Object
-
-**Document:** Lifecycle Mapping
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Knowledge Object  
+**Document:** LifecycleMapping  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document maps the lifecycle stages of a Knowledge Object to its internal domain components.
+Map Knowledge Object lifecycle concepts to Library, Import, Workflow, Sync, Search, AI and Export responsibilities.
 
-The objective is to define:
+## 2. Scope
 
-* which components exist at each lifecycle stage;
-* which components evolve;
-* which components remain immutable;
-* which Platform Engines participate in each transition.
+Covers domain states and ownership of transitions. It does not define runtime orchestration internals.
 
-This document complements KnowledgeLifecycle.md.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Requirements identified by stable identifiers are testable and apply to every conforming implementation unless explicitly scoped otherwise.
 
-# 2. Scope
 
-This mapping applies to every Knowledge Object independently of its origin.
+## 4. Context and Responsibility
 
-It covers:
+The Domain defines states and valid transitions. Platform engines execute transitions through Kernel commands, events and workflows.
 
-* Identity;
-* Metadata;
-* Provenance;
-* Universal Document Model;
-* Assets;
-* Relationships;
-* Annotations;
-* Version Information.
+Three lifecycles remain separate:
 
----
+1. publication and Master Knowledge Object lifecycle;
+2. local availability and acquisition lifecycle;
+3. Personal Knowledge lifecycle.
 
-# 3. Lifecycle Overview
+Canonical processing is an additional derived lifecycle and SHALL NOT collapse these three.
+
+## 5. Conceptual Model
 
 ```text
-Knowledge Source
-        │
-        ▼
-Imported
-        │
-        ▼
-Normalized
-        │
-        ▼
-Managed
-        │
-        ▼
-Enriched
-        │
-        ▼
-Active
-        │
-        ▼
-Archived
+Master Publication:
+Discovered → Registered → Active → Archived → Removed
+
+Local Availability:
+Absent → Acquiring → Available → Evicted
+                     ├→ Corrupt
+                     └→ Removed
+
+Personal Knowledge:
+Created → Modified → PendingSync → Synchronized
+                         ├→ Conflict → Merged
+                         └→ Deleted
 ```
 
-Each stage progressively enriches the Knowledge Object.
+Processing:
 
----
+```text
+Queued → Running → Validating → Published
+              ├→ Paused
+              ├→ Failed
+              └→ Cancelled
+```
 
-# 4. Imported
+## 6. Normative Requirements
 
-The object has just been created.
+**LIFECYCLEMAPPI-R001** — Import Engine MUST own source discovery and initial validation workflows.
 
-Available components:
+**LIFECYCLEMAPPI-R002** — Library Engine MUST own Master registration, Local membership and availability transitions.
 
-| Component     | State           |
-| ------------- | --------------- |
-| Identity      | Created         |
-| Metadata      | Initial         |
-| Provenance    | Origin recorded |
-| UDM           | Not available   |
-| Assets        | Original Assets |
-| Relationships | None            |
-| Annotations   | None            |
-| Version       | Initial         |
+**LIFECYCLEMAPPI-R003** — Sync Engine MUST own Personal Knowledge convergence only.
 
-Primary Engine:
+**LIFECYCLEMAPPI-R004** — Workflow Engine MUST coordinate durable multi-step transitions.
 
-* Import Engine
+**LIFECYCLEMAPPI-R005** — Search and AI Engines MUST treat their outputs as derived.
 
----
+**LIFECYCLEMAPPI-R006** — Acquisition MUST NOT be represented as synchronization.
 
-# 5. Normalized
+**LIFECYCLEMAPPI-R007** — Personal synchronization MUST NOT modify Master publication state.
 
-The imported source has been transformed into the canonical representation.
+**LIFECYCLEMAPPI-R008** — Every persistent transition MUST emit or record an auditable domain event.
 
-Available components:
+**LIFECYCLEMAPPI-R009** — Retryable transitions MUST be idempotent.
 
-| Component     | State      |
-| ------------- | ---------- |
-| Identity      | Stable     |
-| Metadata      | Normalized |
-| Provenance    | Updated    |
-| UDM           | Created    |
-| Assets        | Referenced |
-| Relationships | None       |
-| Annotations   | None       |
-| Version       | Updated    |
+**LIFECYCLEMAPPI-R010** — Failure recovery MUST resume from the latest consistent state.
 
-Primary Engines:
+**LIFECYCLEMAPPI-R011** — Illegal transitions MUST fail explicitly.
 
-* Import Engine
-* Library Engine
+## 7. Invariants
 
----
+**LIFECYCLEMAPPI-I001** — Domain state ownership is unambiguous.
 
-# 6. Managed
+**LIFECYCLEMAPPI-I002** — Master, Local and Personal lifecycles remain separate.
 
-The Knowledge Object becomes part of the Knowledge Library.
+**LIFECYCLEMAPPI-I003** — Derived processing cannot establish publication authority.
 
-Available components:
+**LIFECYCLEMAPPI-I004** — Events follow committed state.
 
-| Component     | State        |
-| ------------- | ------------ |
-| Identity      | Stable       |
-| Metadata      | Stable       |
-| Provenance    | Stable       |
-| UDM           | Stable       |
-| Assets        | Referenced   |
-| Relationships | User-defined |
-| Annotations   | Empty        |
-| Version       | Stable       |
+**LIFECYCLEMAPPI-I005** — Retries do not duplicate identity or side effects.
 
-Primary Engine:
+**LIFECYCLEMAPPI-I006** — Deletion semantics preserve convergence and lineage requirements.
 
-* Library Engine
+## 8. Lifecycle and State Transitions
 
----
+Lifecycle mappings are versioned with the architecture.
 
-# 7. Enriched
+A transition begins from a known state, validates preconditions, performs the domain operation, commits the new state and records events. Long-running transitions use durable workflow checkpoints. Compensation SHALL preserve evidence and user knowledge.
 
-Derived knowledge is added.
+## 9. Failure, Recovery and Edge Cases
 
-Available components:
+Implementations SHALL preserve user knowledge, source evidence, identity and provenance before attempting automatic repair. Ambiguity SHALL remain explicit. A component MUST NOT invent missing authority, source facts, relationships or metadata merely to satisfy a schema.
 
-| Component     | State    |
-| ------------- | -------- |
-| Identity      | Stable   |
-| Metadata      | Enriched |
-| Provenance    | Updated  |
-| UDM           | Stable   |
-| Assets        | Stable   |
-| Relationships | Expanded |
-| Annotations   | Optional |
-| Version       | Updated  |
+Recoverable failures SHOULD create durable findings and resumable workflow state. Irrecoverable inconsistencies SHALL prevent canonical publication while preserving all available evidence for review and recovery.
 
-Primary Engines:
+## 10. Security and Privacy
 
-* Knowledge Engine
-* AI Engine
+All imported metadata, source references, external identifiers, extension payloads and generated assertions SHALL be treated as untrusted until validated. Personal Knowledge SHALL remain outside the NAS Master Library and SHALL synchronize only through approved personal-state synchronization profiles.
 
-Derived artifacts may include:
+Exports, logs and telemetry MUST NOT expose private paths, credentials, personal annotations or source content without explicit authorization.
 
-* semantic entities;
-* classifications;
-* embeddings;
-* summaries;
-* graph relationships.
+## 11. Examples
 
-None of these modify canonical knowledge.
+When a user chooses a Master Catalog book, Library starts local acquisition. Import validates the payload. Processing creates UDM/DPM. Library marks local availability `Available`. No personal synchronization event is involved.
 
----
+## 12. Compatibility and Evolution
 
-# 8. Active
+Backward-compatible changes MAY add optional fields, types or relationships. A change that modifies identity, authority, lifecycle ownership, canonical meaning, provenance requirements or version interpretation requires a major specification version.
 
-The Knowledge Object is actively used.
+Unknown optional extension data SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-Available components:
+## 13. Related Documents
 
-| Component     | State    |
-| ------------- | -------- |
-| Identity      | Stable   |
-| Metadata      | Evolving |
-| Provenance    | Growing  |
-| UDM           | Stable   |
-| Assets        | Stable   |
-| Relationships | Evolving |
-| Annotations   | Evolving |
-| Version       | Growing  |
+- `KnowledgeObject.md`
+- `../KnowledgeLifecycle.md`
+- `Versioning.md`
+- `../../03-Kernel/WorkflowEngine.md`
+- `../../04-Platform/Import/README.md`
+- `../../04-Platform/Library/README.md`
+- `../../04-Platform/Sync/README.md`
 
-Primary Engines:
+## 14. Status
 
-* Render Engine
-* Search Engine
-* Annotation Engine
-* Sync Engine
-
----
-
-# 9. Archived
-
-The Knowledge Object is no longer actively modified.
-
-Available components:
-
-| Component     | State                 |
-| ------------- | --------------------- |
-| Identity      | Stable                |
-| Metadata      | Frozen                |
-| Provenance    | Complete              |
-| UDM           | Stable                |
-| Assets        | Preserved             |
-| Relationships | Preserved             |
-| Annotations   | Preserved             |
-| Version       | Final active revision |
-
-The object remains searchable and recoverable.
-
----
-
-# 10. Component Evolution
-
-Not every component evolves in the same way.
-
-| Component       | Evolution   |
-| --------------- | ----------- |
-| Identity        | Immutable   |
-| Metadata        | Mutable     |
-| Provenance      | Append-only |
-| UDM             | Versioned   |
-| Assets          | Immutable   |
-| Relationships   | Versioned   |
-| Annotations     | Versioned   |
-| Version History | Append-only |
-
-Each component follows its own evolution strategy.
-
----
-
-# 11. Engine Participation
-
-| Lifecycle Stage | Primary Engine    |
-| --------------- | ----------------- |
-| Import          | Import Engine     |
-| Normalize       | Import Engine     |
-| Register        | Library Engine    |
-| Enrich          | Knowledge Engine  |
-| AI Enrichment   | AI Engine         |
-| Search          | Search Engine     |
-| Render          | Render Engine     |
-| Annotate        | Annotation Engine |
-| Synchronize     | Sync Engine       |
-| Export          | Export Engine     |
-| Archive         | Library Engine    |
-
-The Domain defines the lifecycle.
-
-The Platform executes it.
-
----
-
-# 12. Component State Matrix
-
-| Component       | Imported | Normalized | Managed | Enriched | Active | Archived |
-| --------------- | :------: | :--------: | :-----: | :------: | :----: | :------: |
-| Identity        |    ✓    |     ✓     |   ✓   |    ✓    |   ✓   |    ✓    |
-| Metadata        |    ✓    |     ✓     |   ✓   |    ✓    |   ✓   |    ✓    |
-| Provenance      |    ✓    |     ✓     |   ✓   |    ✓    |   ✓   |    ✓    |
-| UDM             |    —    |     ✓     |   ✓   |    ✓    |   ✓   |    ✓    |
-| Assets          |    ✓    |     ✓     |   ✓   |    ✓    |   ✓   |    ✓    |
-| Relationships   |    —    |     —     |   ✓   |    ✓    |   ✓   |    ✓    |
-| Annotations     |    —    |     —     |   —   | Optional |   ✓   |    ✓    |
-| Version History |    ✓    |     ✓     |   ✓   |    ✓    |   ✓   |    ✓    |
-
----
-
-# 13. Lifecycle Invariants
-
-The following rules apply throughout the lifecycle.
-
-* Identity never changes.
-* Provenance is append-only.
-* Assets remain immutable.
-* The UDM is always canonical.
-* Relationships never replace canonical content.
-* Annotations never modify the UDM.
-* Every state transition creates a new Version.
-
----
-
-# 14. Relationship to Other Documents
-
-This document complements:
-
-* KnowledgeLifecycle.md
-* KnowledgeObject.md
-* Metadata.md
-* Provenance.md
-* Assets.md
-* Relationships.md
-* Versioning.md
-
-It does not redefine lifecycle stages.
-
-It maps domain components to those stages.
-
----
-
-# 15. Related Documents
-
-* ../KnowledgeLifecycle.md
-* KnowledgeObject.md
-* Metadata.md
-* Provenance.md
-* Versioning.md
-* ../../01-Foundation/ArchitectureModel.md
-
----
-
-# 16. Status
-
-**Approved**
-
-This document defines how the internal components of a Knowledge Object evolve throughout its lifecycle.
-
-Every Platform Engine shall preserve the lifecycle mapping and component invariants defined herein.
-
----
-
-# Architecture Alignment (V3.1)
-
-## Purpose
-
-This document maps lifecycle transitions defined in `KnowledgeLifecycle.md`
-to Knowledge Objects, publications, personal knowledge and derived artifacts.
-
-## Lifecycle Domains
-
-| Domain | Lifecycle |
-|---|---|
-| Publication | Publication Lifecycle |
-| Personal Knowledge | Personal Knowledge Lifecycle |
-| Canonical Models | Canonical Processing Lifecycle |
-| Derived Artifacts | Canonical Processing Lifecycle |
-
-## Publication Mapping
-
-| State | Responsible Engine |
-|---|---|
-| Discovered | Import Engine |
-| Imported | Import Engine |
-| Validated | Workflow Engine |
-| Registered | Library Engine |
-| Published | Library Engine |
-| Acquired | Library Engine |
-| Archived | Library Engine |
-
-## Personal Knowledge Mapping
-
-| State | Responsible Engine |
-|---|---|
-| Created | Annotation Engine |
-| Modified | Annotation Engine |
-| Stored Locally | Library Engine |
-| Pending Synchronization | Sync Engine |
-| Synchronized | Sync Engine |
-| Merged | Sync Engine |
-| Historical | Library Engine |
-
-## Canonical Processing Mapping
-
-Source Publication
-→ Extraction
-→ Classification
-→ UDM
-→ DPM
-→ Knowledge Graph
-→ Indexes
-→ Embeddings
-
-Responsible engines:
-
-- Import Engine
-- Processing Engine
-- Search Engine
-- AI Engine
-
-## Mapping Rules
-
-- Publication lifecycle never modifies Personal Knowledge.
-- Personal synchronization never changes publication ownership.
-- Derived artifacts may be regenerated at any time.
-- Failed processing resumes from the last consistent stage.
-
-## Invariants
-
-- Lifecycle transitions are deterministic.
-- Processing is idempotent.
-- Stable identifiers are preserved.
-- Authority boundaries are never crossed.
-
-## Related Documents
-
-- KnowledgeLifecycle.md
-- KnowledgeObject.md
-- DomainModel.md
-- Versioning.md
-- Provenance.md
+This document is part of the KnowledgeOS Knowledge Object V4 release-candidate baseline. It becomes frozen after complete Domain review and cross-document validation.

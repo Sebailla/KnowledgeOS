@@ -1,226 +1,254 @@
 # Knowledge Lifecycle
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Document:** Knowledge Lifecycle
-
-**Version:** 3.1
-
-**Status:** Approved
+**Project:** KnowledgeOS  
+**Section:** Domain  
+**Document:** KnowledgeLifecycle  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
+
+This document defines the independent but coordinated lifecycles of publications, local availability, Personal Knowledge, canonical representations and derived artifacts.
+
+## 2. Normative Language
+
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+
+
+## 3. Lifecycle Separation
+
+KnowledgeOS SHALL maintain separate lifecycles for:
+
+1. Master publication;
+2. Local availability and acquisition;
+3. Personal Knowledge;
+4. Canonical processing;
+5. Derived artifacts.
+
+A transition in one lifecycle SHALL NOT implicitly mutate another.
+
+## 4. Master Publication Lifecycle
+
+```text
+Discovered
+    ↓
+Validating
+    ↓
+Registered
+    ↓
+Active
+    ├── NewVersion
+    ├── Unavailable
+    ├── Archived
+    └── Removed
+```
+
+### Rules
+
+- `Registered` requires stable identity and minimum provenance.
+- `Active` requires valid source availability or an explicit external-reference policy.
+- A new publication version creates a new `VersionId`.
+- `Archived` preserves catalog and history.
+- `Removed` does not automatically purge source evidence.
+- Personal state is unaffected by Master state changes.
+
+## 5. Local Availability Lifecycle
+
+```text
+Absent
+    ↓
+Acquiring
+    ├── Paused
+    ├── Failed
+    └── Available
+            ├── Evicted
+            ├── Corrupt
+            └── Removed
+```
+
+### Rules
+
+- `Acquiring` begins only through explicit user or approved workflow intent.
+- Acquisition SHALL be resumable and idempotent.
+- `Available` requires integrity validation and local registration.
+- `Evicted` preserves metadata and Personal Knowledge when policy permits.
+- `Corrupt` isolates the payload and preserves recovery evidence.
+- Local removal SHALL NOT remove the Master publication.
+
+## 6. Personal Knowledge Lifecycle
+
+```text
+Created
+    ↓
+Modified
+    ↓
+PendingSynchronization
+    ↓
+Synchronized
+    ├── Conflict
+    │      ↓
+    │    Merged
+    └── Deleted
+```
+
+### Rules
+
+- Personal Knowledge is committed locally first.
+- Synchronization is independent of NAS availability.
+- Conflicts preserve all competing versions.
+- Merge produces a new version with explicit parents.
+- Deletion uses tombstone semantics when convergence requires it.
+- Master Library publication state is never changed.
+
+## 7. Canonical Processing Lifecycle
+
+```text
+Queued
+    ↓
+Running
+    ↓
+Validating
+    ├── Failed
+    ├── Paused
+    └── Published
+```
 
-This document defines the lifecycle of every Knowledge Object, publication and user-generated knowledge managed by KnowledgeOS.
+Processing may create:
 
-The lifecycle is independent of storage technologies and execution platforms.
+- UDM;
+- DPM;
+- canonical metadata;
+- validation reports;
+- provenance manifests.
 
----
+Published canonical artifacts are immutable.
 
-# 2. Scope
+A failed workflow SHALL NOT publish partial canonical state.
 
-This document applies to:
+## 8. Derived Artifact Lifecycle
 
-- Master Library
-- Local Libraries
-- Knowledge Objects
-- UDM
-- DPM
-- Personal Knowledge
-- Workflow Engine
-- Import Engine
-- Library Engine
-- Sync Engine
+```text
+Missing
+    ↓
+Generating
+    ├── Failed
+    └── Available
+            ├── Stale
+            ├── Evicted
+            └── Regenerating
+```
 
----
+Derived artifacts include:
 
-# 3. Lifecycle Model
+- indexes;
+- embeddings;
+- thumbnails;
+- previews;
+- graph projections;
+- materialized views;
+- caches.
 
-KnowledgeOS defines three independent lifecycles:
+Derived artifacts MAY be deleted and regenerated.
 
-1. Publication Lifecycle
-2. Personal Knowledge Lifecycle
-3. Canonical Processing Lifecycle
+## 9. Transition Ownership
 
-These lifecycles interact but never replace each other.
+| Transition | Owner |
+|---|---|
+| Master registration | Library Engine |
+| Source intake | Import Engine |
+| Acquisition | Library Engine + Import Engine |
+| Canonical processing | Workflow Engine coordinating processing capabilities |
+| Personal synchronization | Sync Engine |
+| Index generation | Search Engine |
+| Embedding generation | AI Engine |
+| Export generation | Export Engine |
 
----
+The Domain owns valid states and transitions.
 
-# 4. Publication Lifecycle
+Engines execute them.
 
-States:
+## 10. Idempotency
 
-1. Discovered
-2. Imported
-3. Validated
-4. Registered
-5. Published (Master Library)
-6. Acquired (Local Library)
-7. Archived
-8. Removed
+Every retryable transition SHALL use stable operation identity.
 
-Rules:
+Repeating the same successful operation SHALL NOT create duplicate:
 
-- Import does not imply acquisition.
-- Acquisition does not modify the Master Library.
-- A publication may exist in the Master Library without existing in any Local Library.
-- Removal from one Local Library does not remove the publication from the Master Library.
+- Knowledge Objects;
+- source items;
+- acquisitions;
+- canonical versions;
+- annotations;
+- graph edges;
+- events.
 
----
+## 11. Recovery
 
-# 5. Personal Knowledge Lifecycle
+Recovery SHALL resume from the latest consistent state.
 
-States:
+The system SHALL preserve:
 
-1. Created
-2. Modified
-3. Stored Locally
-4. Pending Synchronization
-5. Synchronized
-6. Merged
-7. Historical
+- original source;
+- stable identity;
+- committed Personal Knowledge;
+- workflow checkpoints;
+- provenance;
+- validation findings.
 
-Rules:
+Automatic recovery SHALL NOT discard authoritative user knowledge merely to restore availability.
 
-- Personal Knowledge belongs to the user.
-- Personal Knowledge never becomes part of the Master Library.
-- Synchronization distributes only personal state.
-- Conflicts are resolved by Sync Engine policies.
+## 12. Events
 
-Examples:
+Persistent transitions produce domain events after commit.
 
-- annotations
-- highlights
-- bookmarks
-- notes
-- collections
-- reading progress
-- AI conversations
+An event SHALL identify:
 
----
+- event identity;
+- aggregate identity;
+- previous state;
+- new state;
+- operation identity;
+- version;
+- actor;
+- timestamp;
+- provenance.
 
-# 6. Canonical Processing Lifecycle
+## 13. Invariants
 
-Flow:
+**KL-I001** — Lifecycles remain separate.
 
-Source Publication
+**KL-I002** — Acquisition does not synchronize Personal Knowledge.
 
-↓
+**KL-I003** — Personal synchronization does not acquire publications.
 
-Extraction
+**KL-I004** — Master state does not own Personal Knowledge.
 
-↓
+**KL-I005** — Published canonical versions are immutable.
 
-Classification
+**KL-I006** — Derived artifacts are rebuildable.
 
-↓
+**KL-I007** — Illegal transitions fail explicitly.
 
-Canonical UDM
+**KL-I008** — Retries do not duplicate effects.
 
-↓
+**KL-I009** — Recovery preserves identity and provenance.
 
-Canonical DPM
+**KL-I010** — Events follow committed state.
 
-↓
+## 14. Related Documents
 
-Knowledge Graph
+- `DomainModel.md`
+- `EngineResponsibilities.md`
+- `KnowledgeObject/LifecycleMapping.md`
+- `KnowledgeObject/Versioning.md`
+- `../03-Kernel/WorkflowEngine.md`
+- `../04-Platform/Library/README.md`
+- `../04-Platform/Import/README.md`
+- `../04-Platform/Sync/README.md`
 
-↓
+## 15. Status
 
-Indexes
-
-↓
-
-Derived Artifacts
-
-Rules:
-
-- Source publications remain authoritative.
-- UDM and DPM are canonical models.
-- Indexes and embeddings are derived artifacts.
-- Derived artifacts are rebuildable.
-
----
-
-# 7. Lifecycle Events
-
-Publication:
-
-- PublicationImported
-- PublicationValidated
-- PublicationRegistered
-- PublicationAcquired
-- PublicationArchived
-- PublicationRemoved
-
-Personal:
-
-- AnnotationCreated
-- AnnotationUpdated
-- BookmarkCreated
-- ReadingProgressUpdated
-- CollectionModified
-- PersonalStateSynchronized
-
-Processing:
-
-- CanonicalizationStarted
-- CanonicalizationCompleted
-- IndexGenerated
-- EmbeddingGenerated
-
----
-
-# 8. Invariants
-
-- Publication identity is immutable.
-- Knowledge Object identity is immutable.
-- Personal Knowledge never changes publication authority.
-- Acquisition is explicit.
-- Synchronization never transfers publication ownership.
-- Derived artifacts never become canonical.
-
----
-
-# 9. Failure Recovery
-
-The architecture supports recovery through:
-
-- replayable workflows;
-- idempotent operations;
-- publication reacquisition;
-- personal-state synchronization;
-- regeneration of indexes, embeddings and thumbnails.
-
----
-
-# 10. Relationship with Engines
-
-Import Engine:
-imports publications.
-
-Library Engine:
-manages Master and Local Libraries.
-
-Workflow Engine:
-coordinates transitions.
-
-Sync Engine:
-synchronizes personal knowledge.
-
-Search Engine:
-rebuilds indexes.
-
-AI Engine:
-creates optional derived artifacts.
-
----
-
-# 11. Status
-
-Approved.
-
-This document supersedes previous lifecycle models based on a single synchronized library and aligns KnowledgeOS with ADR-013 and the Architecture V3 domain model.
+This document is the normative lifecycle specification for KnowledgeOS Domain V4.

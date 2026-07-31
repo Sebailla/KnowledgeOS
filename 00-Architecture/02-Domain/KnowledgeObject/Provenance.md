@@ -1,438 +1,142 @@
+# Knowledge Object Provenance
 
-# Provenance
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Knowledge Object
-
-**Document:** Provenance
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Knowledge Object  
+**Document:** Provenance  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the provenance model of a Knowledge Object.
+Define origin, custody, transformation, acquisition and decision history for Knowledge Objects and their associated artifacts.
 
-Provenance records the complete chain of custody of knowledge from its original source to its current state.
+## 2. Scope
 
-Its objectives are to:
+Applies to source publications, metadata, assets, UDM, DPM, personal attachments, generated artifacts and migrations.
 
-* preserve trust;
-* ensure traceability;
-* support reproducibility;
-* explain every transformation;
-* maintain historical integrity.
+## 3. Normative Language
 
-Every Knowledge Object shall maintain complete provenance throughout its lifetime.
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Requirements identified by stable identifiers are testable and apply to every conforming implementation unless explicitly scoped otherwise.
 
----
 
-# 2. Definition
+## 4. Context and Responsibility
 
-Provenance is an immutable Value Object associated with a Knowledge Object.
+Provenance answers where information came from, who or what produced it, when it was observed, which inputs were used and under which authority.
 
-It records:
+KnowledgeOS distinguishes:
 
-* where knowledge originated;
-* how it entered the platform;
-* how it evolved;
-* which processes affected it;
-* which derived artifacts were generated.
+- source provenance;
+- custody provenance;
+- acquisition provenance;
+- processing provenance;
+- decision provenance;
+- personal provenance;
+- synchronization provenance;
+- migration provenance.
 
-Provenance describes history.
+Provenance is evidence. It SHALL be append-only except for corrections that themselves create provenance.
 
-It never stores canonical knowledge.
-
----
-
-# 3. Design Goals
-
-The provenance model shall:
-
-* remain immutable;
-* support append-only evolution;
-* preserve historical accuracy;
-* distinguish user actions from automated processes;
-* distinguish deterministic processes from AI-generated processes.
-
----
-
-# 4. Conceptual Model
+## 5. Conceptual Model
 
 ```text
-Provenance
-│
-├── Origin
-├── Acquisition
-├── Transformations
-├── AI Operations
-├── User Operations
-├── Synchronization History
-├── Preservation History
-└── Audit Trail
+ProvenanceRecord
+├── id
+├── subjectRef
+├── activityType
+├── actorRef
+├── authorityScope
+├── inputRefs[]
+├── outputRefs[]
+├── method
+├── componentVersion?
+├── modelVersion?
+├── configurationFingerprint?
+├── startedAt?
+├── completedAt
+├── evidence[]
+└── previousRecordRefs[]
 ```
 
-Each category captures one aspect of the Knowledge Object's history.
+Actors MAY be users, engines, plugins, providers, migration tools or external authorities.
 
----
+## 6. Normative Requirements
 
-# 5. Origin
+**PROVENANCE-R001** — Every source-derived assertion MUST have provenance.
 
-Origin describes where knowledge first existed.
+**PROVENANCE-R002** — Every generated artifact MUST identify its producing activity and version.
 
-Examples:
+**PROVENANCE-R003** — Provenance MUST preserve input and output identities.
 
-* PDF
-* EPUB
-* DOCX
-* HTML
-* CHM
-* Web Page
-* Image
-* Handwritten Note
-* Plain Text
+**PROVENANCE-R004** — Acquisition provenance MUST distinguish Master source from local copy.
 
-Origin is permanent.
+**PROVENANCE-R005** — Personal provenance MUST remain user-owned.
 
-It shall never change.
+**PROVENANCE-R006** — Synchronization provenance MUST NOT make the synchronization provider the owner.
 
----
+**PROVENANCE-R007** — Corrections MUST append decision provenance rather than erase history.
 
-# 6. Acquisition
+**PROVENANCE-R008** — Remote processing MUST identify the provider and privacy policy applied.
 
-Acquisition records how the platform obtained the knowledge.
+**PROVENANCE-R009** — Migration provenance MUST preserve pre-migration identity and schema.
 
-Examples:
+**PROVENANCE-R010** — Provenance records MUST be serializable and auditable.
 
-* imported manually;
-* scanned;
-* synchronized;
-* restored from backup;
-* imported through Plugin;
-* generated from another Knowledge Object.
+## 7. Invariants
 
-Acquisition occurs exactly once.
+**PROVENANCE-I001** — Provenance is append-only.
 
----
+**PROVENANCE-I002** — Original source evidence remains traceable.
 
-# 7. Transformations
+**PROVENANCE-I003** — Authority and actor are distinct concepts.
 
-Transformation records every deterministic modification performed during processing.
+**PROVENANCE-I004** — Processing time does not replace semantic time.
 
-Examples:
+**PROVENANCE-I005** — A derived artifact without producing provenance is invalid.
 
-* OCR;
-* layout analysis;
-* metadata extraction;
-* language detection;
-* structural normalization;
-* UDM generation.
+**PROVENANCE-I006** — Personal provenance never becomes Master Library metadata.
 
-Each transformation records:
+## 8. Lifecycle and State Transitions
 
-* timestamp;
-* responsible Engine;
-* input version;
-* output version;
-* execution result.
+Provenance records move from `Recorded` to `Verified`, `Disputed`, `Superseded` or `Retained`.
 
-Transformations are append-only.
+Superseding a record SHALL preserve the original. Verification MAY add evidence but SHALL NOT change the historical actor or activity. Purging provenance requires explicit privacy or retention policy and MUST preserve minimum lineage when legally and technically permissible.
 
----
+## 9. Failure, Recovery and Edge Cases
 
-# 8. AI Operations
+Implementations SHALL preserve user knowledge, source evidence, identity and provenance before attempting automatic repair. Ambiguity SHALL remain explicit. A component MUST NOT invent missing authority, source facts, relationships or metadata merely to satisfy a schema.
 
-AI-generated operations are recorded separately.
+Recoverable failures SHOULD create durable findings and resumable workflow state. Irrecoverable inconsistencies SHALL prevent canonical publication while preserving all available evidence for review and recovery.
 
-Examples:
+## 10. Security and Privacy
 
-* summary generation;
-* classification;
-* translation;
-* entity extraction;
-* keyword generation;
-* semantic enrichment.
+All imported metadata, source references, external identifiers, extension payloads and generated assertions SHALL be treated as untrusted until validated. Personal Knowledge SHALL remain outside the NAS Master Library and SHALL synchronize only through approved personal-state synchronization profiles.
 
-Each operation records:
+Exports, logs and telemetry MUST NOT expose private paths, credentials, personal annotations or source content without explicit authorization.
 
-* Provider;
-* Model;
-* Prompt version;
-* Context version;
-* Confidence (if available);
-* User approval status.
+## 11. Examples
 
-AI results are never considered authoritative.
+OCR generated text from page 12 records the source item checksum, page selector, OCR engine, language model, configuration and completion time. A later OCR run creates a separate provenance chain and does not overwrite the first result silently.
 
----
+## 12. Compatibility and Evolution
 
-# 9. User Operations
+Backward-compatible changes MAY add optional fields, types or relationships. A change that modifies identity, authority, lifecycle ownership, canonical meaning, provenance requirements or version interpretation requires a major specification version.
 
-User actions affecting a Knowledge Object are recorded.
+Unknown optional extension data SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-Examples:
+## 13. Related Documents
 
-* metadata updates;
-* manual corrections;
-* relationship creation;
-* annotation creation;
-* organization changes.
+- `KnowledgeObject.md`
+- `Metadata.md`
+- `Sources.md`
+- `Assets.md`
+- `Versioning.md`
+- `../Identity/README.md`
+- `../UDM/Processing/ProcessingPipeline.md`
 
-User actions never overwrite historical records.
+## 14. Status
 
----
-
-# 10. Synchronization History
-
-Synchronization records include:
-
-* synchronization identifier;
-* participating devices;
-* synchronization timestamp;
-* synchronization result;
-* detected conflicts;
-* conflict resolution method.
-
-Synchronization history shall remain reproducible.
-
----
-
-# 11. Preservation History
-
-Preservation records long-term maintenance events.
-
-Examples:
-
-* backup creation;
-* restoration;
-* migration;
-* repository repair;
-* integrity verification;
-* format migration.
-
-Preservation history guarantees long-term trust.
-
----
-
-# 12. Audit Trail
-
-The Audit Trail provides a chronological history of significant events.
-
-Each entry contains:
-
-* Event Identifier;
-* Event Type;
-* Responsible Engine;
-* Timestamp;
-* Actor;
-* Result.
-
-Audit entries are immutable.
-
----
-
-# 13. Provenance Invariants
-
-The following invariants shall always hold.
-
-* Origin never changes.
-* Acquisition occurs exactly once.
-* History is append-only.
-* Existing records are never modified.
-* Events are chronologically ordered.
-* Every transformation is attributable.
-* Every AI operation is explicitly identified.
-* Every synchronization is traceable.
-
----
-
-# 14. Ownership
-
-The Knowledge Object owns its Provenance.
-
-The following Engines may append provenance events:
-
-| Engine           | May Append               |
-| ---------------- | ------------------------ |
-| Import Engine    | Yes                      |
-| Library Engine   | Yes                      |
-| Knowledge Engine | Yes                      |
-| AI Engine        | Yes                      |
-| Sync Engine      | Yes                      |
-| Export Engine    | Yes (export events only) |
-| Render Engine    | No                       |
-| Search Engine    | No                       |
-
-No Engine may alter existing provenance records.
-
----
-
-# 15. Relationship to Versioning
-
-Version history and provenance are complementary.
-
-Versioning records **what** changed.
-
-Provenance records:
-
-* why;
-* how;
-* by whom;
-* through which process.
-
----
-
-# 16. Relationship to Metadata
-
-Metadata describes the Knowledge Object.
-
-Provenance explains its history.
-
-Neither replaces the other.
-
----
-
-# 17. Relationship to Identity
-
-Identity remains constant.
-
-Provenance records everything that happened to that identity over time.
-
-Identity is immutable.
-
-History is append-only.
-
----
-
-# 18. Long-Term Preservation
-
-Provenance shall survive:
-
-* synchronization;
-* export;
-* backup;
-* restoration;
-* migration.
-
-Loss of provenance is considered partial loss of knowledge.
-
----
-
-# 19. Related Documents
-
-* KnowledgeObject.md
-* Metadata.md
-* Versioning.md
-* LifecycleMapping.md
-* ../KnowledgeLifecycle.md
-* ../Identity/
-
----
-
-# 20. Status
-
-**Approved**
-
-This document defines the official provenance model of KnowledgeOS.
-
-Every Knowledge Object shall preserve a complete, immutable and append-only chain of custody throughout its lifetime.
-
-
----
-
-# Architecture Alignment (V3.1)
-
-## Purpose
-
-Provenance records the origin, history and transformation chain of every
-Knowledge Object without modifying the original publication.
-
-## Provenance Scopes
-
-KnowledgeOS distinguishes four provenance scopes:
-
-1. Publication Provenance
-2. Acquisition Provenance
-3. Personal Knowledge Provenance
-4. Processing Provenance
-
-## Publication Provenance
-
-Maintained by the Master Library.
-
-Includes:
-
-- original source
-- publisher
-- authors
-- publication date
-- checksums
-- canonical identifier
-- import history
-
-## Acquisition Provenance
-
-Maintained independently by each Local Library.
-
-Includes:
-
-- acquisition date
-- acquisition source
-- local validation
-- local availability
-
-## Personal Provenance
-
-Tracks user-generated information:
-
-- annotations
-- notes
-- highlights
-- reading progress
-- collections
-- AI conversations
-
-Personal provenance never changes publication provenance.
-
-## Processing Provenance
-
-Every derived artifact records:
-
-- producing engine
-- engine version
-- processing parameters
-- timestamp
-- parent object identifier
-
-Examples:
-
-- OCR
-- embeddings
-- thumbnails
-- search indexes
-- UDM
-- DPM
-
-## Invariants
-
-- Provenance is append-only.
-- Original provenance is immutable.
-- Derived provenance is reproducible.
-- Every provenance record references a stable Knowledge Object identifier.
-- Personal provenance is synchronized independently from publication data.
-
-## Related Documents
-
-- DomainModel.md
-- KnowledgeObject.md
-- KnowledgeLifecycle.md
-- Metadata.md
-- Versioning.md
+This document is part of the KnowledgeOS Knowledge Object V4 release-candidate baseline. It becomes frozen after complete Domain review and cross-document validation.

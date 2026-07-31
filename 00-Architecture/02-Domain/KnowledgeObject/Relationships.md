@@ -1,509 +1,135 @@
+# Knowledge Object Relationships
 
-# Relationships
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Knowledge Object
-
-**Document:** Relationships
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Knowledge Object  
+**Document:** Relationships  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the relationship model used by KnowledgeOS.
+Define relationships among Knowledge Objects, versions, sources, personal knowledge and external resources.
 
-Relationships connect Knowledge Objects with other domain concepts.
+## 2. Scope
 
-They preserve logical, semantic and contextual connections without modifying canonical knowledge.
+Covers structural, bibliographic, semantic, provenance, lineage, personal and derived relationship categories.
 
-Relationships are first-class domain objects.
+## 3. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Requirements identified by stable identifiers are testable and apply to every conforming implementation unless explicitly scoped otherwise.
 
-# 2. Definition
 
-A Relationship represents an explicit connection between two or more identifiable domain elements.
+## 4. Context and Responsibility
 
-Relationships may connect:
+Relationships connect independently identified entities.
 
-* Knowledge Objects;
-* Entities;
-* Assets;
-* Collections;
-* Workspaces;
-* Anchors;
-* Future domain concepts.
+KnowledgeOS separates:
 
-Relationships describe meaning.
+- source-backed canonical relationships;
+- library-management relationships;
+- personal relationships;
+- derived relationships;
+- external mappings.
 
-They do not store content.
+Relationship persistence does not determine authority. Knowledge Graph projections MAY materialize these relationships, but the originating domain record remains authoritative.
 
----
-
-# 3. Design Goals
-
-The relationship model shall:
-
-* preserve semantic meaning;
-* remain technology-independent;
-* support graph construction;
-* support bidirectional navigation;
-* support provenance;
-* support versioning;
-* remain extensible.
-
----
-
-# 4. Conceptual Model
+## 5. Conceptual Model
 
 ```text
-Relationship
-│
-├── RelationshipID
-├── Source
-├── Target
-├── Type
-├── Direction
-├── Strength
-├── Provenance
-├── Confidence
-├── Status
-└── Metadata
+KnowledgeRelationship
+├── relationshipId
+├── type
+├── sourceRef
+├── targetRef
+├── direction
+├── authorityScope
+├── evidence[]
+├── provenance
+├── confidence?
+├── validity?
+├── lifecycleState
+└── extensionData{}
 ```
 
-A Relationship is a domain object with its own lifecycle.
+Relationship types declare endpoint kinds, multiplicity, direction, symmetry, inverse semantics and authority constraints.
 
----
+## 6. Normative Requirements
 
-# 5. Relationship Identity
+**RELATIONSHIPS-R001** — Every relationship MUST have an immutable identity.
 
-Every Relationship has exactly one immutable identifier.
+**RELATIONSHIPS-R002** — Every endpoint MUST resolve or be explicitly external.
 
-Properties:
+**RELATIONSHIPS-R003** — Relationship type MUST be registered and compatible with endpoint kinds.
 
-* globally unique;
-* permanent;
-* storage-independent;
-* synchronization-independent.
+**RELATIONSHIPS-R004** — Source-backed relationships MUST preserve evidence.
 
-Relationship identity is independent of the objects it connects.
+**RELATIONSHIPS-R005** — Personal relationships MUST remain user-owned.
 
----
+**RELATIONSHIPS-R006** — Derived relationships MUST identify the producing process and confidence.
 
-# 6. Relationship Endpoints
+**RELATIONSHIPS-R007** — Symmetry and inverse semantics MUST be defined by the relationship type.
 
-Every Relationship defines one or more endpoints.
+**RELATIONSHIPS-R008** — Relationship conflicts MUST preserve alternatives rather than silently overwrite.
 
-Supported endpoint types include:
+**RELATIONSHIPS-R009** — Deletion MUST preserve tombstone or version history when synchronization or lineage requires it.
 
-* Knowledge Object;
-* Entity;
-* Asset;
-* Collection;
-* Workspace;
-* Anchor.
+**RELATIONSHIPS-R010** — Graph projection MUST preserve relationship identity and authority.
 
-Future endpoint types may be added without changing the model.
+## 7. Invariants
 
----
+**RELATIONSHIPS-I001** — Relationship authority is explicit.
 
-# 7. Relationship Types
+**RELATIONSHIPS-I002** — Inference is not fact.
 
-Relationship types define semantic intent.
+**RELATIONSHIPS-I003** — Personal relationships never modify Master Library metadata.
 
-Examples include:
+**RELATIONSHIPS-I004** — Relationship identity is independent of graph database storage.
 
-* references;
-* cites;
-* extends;
-* summarizes;
-* explains;
-* contradicts;
-* derives from;
-* duplicates;
-* translates;
-* annotates;
-* belongs to;
-* contains.
+**RELATIONSHIPS-I005** — Version lineage is acyclic.
 
-Relationship types belong to the domain vocabulary.
+**RELATIONSHIPS-I006** — Evidence remains traceable.
 
----
+## 8. Lifecycle and State Transitions
 
-# 8. Direction
+Relationships may be `Proposed`, `Active`, `Disputed`, `Superseded`, `Retired` or `Deleted`.
 
-Relationships may be:
+Machine-generated relationships normally begin as `Proposed`. User confirmation may create or activate a Personal relationship. Source-backed relationships become `Active` after validation. Superseding a relationship preserves prior versions and evidence.
 
-* directed;
-* bidirectional;
-* hierarchical;
-* associative.
+## 9. Failure, Recovery and Edge Cases
 
-Direction is explicitly defined.
+Implementations SHALL preserve user knowledge, source evidence, identity and provenance before attempting automatic repair. Ambiguity SHALL remain explicit. A component MUST NOT invent missing authority, source facts, relationships or metadata merely to satisfy a schema.
 
-It is never inferred.
+Recoverable failures SHOULD create durable findings and resumable workflow state. Irrecoverable inconsistencies SHALL prevent canonical publication while preserving all available evidence for review and recovery.
 
----
+## 10. Security and Privacy
 
-# 9. Relationship Strength
+All imported metadata, source references, external identifiers, extension payloads and generated assertions SHALL be treated as untrusted until validated. Personal Knowledge SHALL remain outside the NAS Master Library and SHALL synchronize only through approved personal-state synchronization profiles.
 
-Relationships may include an optional strength.
+Exports, logs and telemetry MUST NOT expose private paths, credentials, personal annotations or source content without explicit authorization.
 
-Examples:
+## 11. Examples
 
-* weak;
-* medium;
-* strong;
-* exact.
+A source bibliography establishes `cites`. An embedding model proposes `semanticallyRelatedTo` with confidence 0.83. The user creates `personallyRelatedTo`. These three edges may connect the same objects but remain distinct in type, authority and provenance.
 
-Strength expresses semantic relevance.
+## 12. Compatibility and Evolution
 
-It never determines truth.
+Backward-compatible changes MAY add optional fields, types or relationships. A change that modifies identity, authority, lifecycle ownership, canonical meaning, provenance requirements or version interpretation requires a major specification version.
 
----
+Unknown optional extension data SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-# 10. Confidence
+## 13. Related Documents
 
-Automatically generated relationships may include confidence values.
+- `KnowledgeObject.md`
+- `Provenance.md`
+- `Versioning.md`
+- `../KnowledgeGraph/README.md`
+- `../UDM/Graph/RelationshipModel.md`
+- `../Identity/README.md`
 
-Examples:
+## 14. Status
 
-* AI-generated;
-* heuristic;
-* imported;
-* inferred.
-
-User-created relationships are considered explicit.
-
-Confidence is descriptive only.
-
----
-
-# 11. Provenance
-
-Every Relationship records its origin.
-
-Possible origins include:
-
-* user-created;
-* imported;
-* AI-generated;
-* plugin-generated;
-* synchronization.
-
-Relationship provenance follows the same append-only principles defined for Knowledge Objects.
-
----
-
-# 12. Metadata
-
-Relationships may include descriptive metadata.
-
-Examples:
-
-* label;
-* notes;
-* tags;
-* timestamps;
-* custom properties.
-
-Metadata never modifies the meaning of the connected objects.
-
----
-
-# 13. Lifecycle
-
-Relationships evolve independently.
-
-Conceptual lifecycle:
-
-```text
-Created
-     │
-     ▼
-Validated
-     │
-     ▼
-Active
-     │
-     ▼
-Archived
-```
-
-Deleting a Relationship does not modify the connected Knowledge Objects.
-
----
-
-# 14. Relationship Invariants
-
-The following invariants apply.
-
-* Every Relationship has an immutable RelationshipID.
-* Every Relationship has at least two endpoints.
-* Every endpoint references an immutable identifier.
-* Relationships never contain canonical knowledge.
-* Relationships preserve provenance.
-* Relationships are independently versioned.
-* Relationships remain valid across synchronization.
-
----
-
-# 15. Relationship Ownership
-
-Relationships belong to the Knowledge Library.
-
-Individual Knowledge Objects reference Relationships but do not own them.
-
-This allows:
-
-* many-to-many connections;
-* graph traversal;
-* global semantic navigation;
-* relationship reuse.
-
----
-
-# 16. Relationship Categories
-
-KnowledgeOS distinguishes three categories.
-
-## Structural Relationships
-
-Represent organizational structure.
-
-Examples:
-
-* contains;
-* parent;
-* child;
-* chapter.
-
----
-
-## Semantic Relationships
-
-Represent conceptual meaning.
-
-Examples:
-
-* explains;
-* supports;
-* contradicts;
-* extends.
-
----
-
-## Operational Relationships
-
-Represent execution context.
-
-Examples:
-
-* generated by;
-* synchronized from;
-* imported through;
-* exported to.
-
----
-
-# 17. Relationship Versioning
-
-Relationships evolve independently from Knowledge Objects.
-
-Version history records:
-
-* endpoint changes;
-* metadata updates;
-* confidence revisions;
-* provenance additions.
-
-Relationship identity remains constant.
-
----
-
-# 18. Relationship Queries
-
-Relationships support multiple navigation strategies.
-
-Examples:
-
-* outgoing;
-* incoming;
-* bidirectional;
-* semantic neighborhood;
-* shortest path;
-* dependency traversal.
-
-Traversal algorithms belong to the Knowledge Engine.
-
----
-
-# 19. Relationship to the Knowledge Graph
-
-Relationships are the raw semantic material used to construct the Knowledge Graph.
-
-The Knowledge Graph is a derived representation.
-
-Relationships remain authoritative.
-
-The graph never replaces the domain model.
-
----
-
-# 20. Relationship to Platform Engines
-
-| Engine           | Responsibility                    |
-| ---------------- | --------------------------------- |
-| Library Engine   | Store and manage relationships    |
-| Knowledge Engine | Discover and enrich relationships |
-| AI Engine        | Suggest relationships             |
-| Search Engine    | Traverse relationships            |
-| Render Engine    | Visualize relationships           |
-| Sync Engine      | Synchronize relationships         |
-| Export Engine    | Export relationship data          |
-
-Every Engine respects the invariants defined by this document.
-
----
-
-# 21. Related Documents
-
-* KnowledgeObject.md
-* Metadata.md
-* Provenance.md
-* Versioning.md
-* ../KnowledgeGraph/
-* ../Identity/
-* ../UDM/
-
----
-
-# 22. Status
-
-**Approved**
-
-This document defines the official relationship model of KnowledgeOS.
-
-Relationships are first-class domain objects that preserve the logical and semantic structure of the Knowledge Library independently of implementation technologies.
-
-
----
-
-# Architecture Alignment (V3.1)
-
-## Purpose
-
-This document defines the semantic relationships between Knowledge Objects and
-the rules governing their creation, maintenance and validation.
-
-## Relationship Categories
-
-KnowledgeOS classifies relationships into five groups:
-
-1. Structural
-2. Semantic
-3. Referential
-4. Personal
-5. Derived
-
-### Structural
-
-Defines document composition.
-
-Examples:
-
-- contains
-- partOf
-- chapterOf
-- pageOf
-- sectionOf
-
-### Semantic
-
-Represents conceptual meaning.
-
-Examples:
-
-- cites
-- references
-- extends
-- contradicts
-- explains
-- supports
-- relatedTo
-
-### Referential
-
-Connects internal and external resources.
-
-Examples:
-
-- linksToPublication
-- linksToAsset
-- linksToExternalResource
-
-### Personal
-
-Created by the user.
-
-Examples:
-
-- favorite
-- readingList
-- manuallyRelated
-- personalCollection
-
-Personal relationships never modify publication semantics.
-
-### Derived
-
-Generated automatically.
-
-Examples:
-
-- embeddingSimilarity
-- entityLink
-- aiSuggestion
-- inferredRelationship
-
-Derived relationships are rebuildable.
-
-## Ownership
-
-| Relationship | Authority |
-|---|---|
-| Publication | Master Library |
-| Personal | User |
-| Derived | Processing Engine |
-
-## Invariants
-
-- Relationships are directed unless explicitly symmetric.
-- Stable identifiers are mandatory.
-- Circular references are allowed only when semantically valid.
-- Personal relationships remain isolated from publication data.
-- Derived relationships are reproducible.
-
-## Relationship with the Knowledge Graph
-
-All validated relationships may be projected into the Knowledge Graph.
-
-Projection does not change ownership or authority.
-
-## Related Documents
-
-- DomainModel.md
-- KnowledgeObject.md
-- Metadata.md
-- Provenance.md
-- KnowledgeLifecycle.md
-- GraphModel.md
+This document is part of the KnowledgeOS Knowledge Object V4 release-candidate baseline. It becomes frozen after complete Domain review and cross-document validation.

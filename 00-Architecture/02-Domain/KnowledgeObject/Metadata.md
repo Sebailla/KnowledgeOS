@@ -1,370 +1,141 @@
+# Knowledge Object Metadata
 
-# Metadata
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Knowledge Object
-
-**Document:** Metadata
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Knowledge Object  
+**Document:** Metadata  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the metadata model of a Knowledge Object.
+Define metadata categories, authority, provenance, validation, extensibility and conflict rules for Knowledge Objects.
 
-Metadata describes a Knowledge Object without becoming part of its canonical content.
+## 2. Scope
 
-Metadata supports:
+Covers master-source metadata, local acquisition metadata, personal metadata, processing metadata and derived metadata.
 
-* discovery;
-* organization;
-* classification;
-* filtering;
-* presentation;
-* interoperability.
+## 3. Normative Language
 
-Metadata never defines the identity of a Knowledge Object.
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Requirements identified by stable identifiers are testable and apply to every conforming implementation unless explicitly scoped otherwise.
 
----
 
-# 2. Definition
+## 4. Context and Responsibility
 
-Metadata is an immutable Value Object attached to a Knowledge Object.
+Metadata describes a Knowledge Object but does not replace its source or canonical content.
 
-It describes the knowledge represented by the object but does not modify its semantic meaning.
+KnowledgeOS separates metadata by authority:
 
-Metadata may evolve over time while preserving backward compatibility.
+| Category | Examples | Authority |
+|---|---|---|
+| Master-source | title, contributors, publisher, edition, identifiers | Master Library |
+| Local acquisition | local path reference, acquisition time, device availability | Local Library |
+| Personal | rating, personal tags, private title override, reading status | User |
+| Processing | parser version, OCR language, validation status | Processing workflow |
+| Derived | topics, entities, summaries, confidence scores | Rebuildable processor |
 
----
+These categories MAY be presented together, but MUST remain distinguishable.
 
-# 3. Design Goals
-
-The metadata model shall:
-
-* remain extensible;
-* remain technology-independent;
-* support multiple document formats;
-* preserve original source information;
-* support semantic enrichment;
-* support efficient search.
-
----
-
-# 4. Metadata Categories
-
-Metadata is organized into logical categories.
+## 5. Conceptual Model
 
 ```text
-Metadata
-│
-├── Identity Metadata
-├── Descriptive Metadata
-├── Source Metadata
-├── Technical Metadata
-├── Organizational Metadata
-├── Semantic Metadata
-├── Preservation Metadata
-└── Custom Metadata
+MetadataRecord
+├── recordId
+├── category
+├── property
+├── value
+├── valueType
+├── authorityScope
+├── provenance
+├── confidence?
+├── language?
+├── validity?
+├── version
+└── extensionNamespace?
 ```
 
-Each category has a distinct responsibility.
+Multiple records MAY exist for one property when they differ by authority, language, provenance, time or confidence. Resolution policies choose views; they do not destroy alternatives.
 
----
+## 6. Normative Requirements
 
-# 5. Identity Metadata
+**METADATA-R001** — Every metadata record MUST declare an authority category.
 
-Identity metadata identifies the Knowledge Object without defining its business identity.
+**METADATA-R002** — Source metadata MUST preserve its source and extraction provenance.
 
-Examples:
+**METADATA-R003** — Personal metadata MUST NOT overwrite Master-source metadata physically.
 
-* KnowledgeObjectID
-* External identifiers
-* Legacy identifiers
+**METADATA-R004** — A resolved display value MUST retain the alternatives from which it was selected.
 
-Identity metadata shall remain stable.
+**METADATA-R005** — Machine-generated metadata MUST identify processor, model or rule version and confidence when applicable.
 
----
+**METADATA-R006** — Metadata values MUST conform to declared logical types.
 
-# 6. Descriptive Metadata
+**METADATA-R007** — Language-dependent metadata SHOULD declare a language tag.
 
-Describes the intellectual content.
+**METADATA-R008** — External identifiers MUST declare namespace and verification status.
 
-Examples:
+**METADATA-R009** — Unknown optional metadata extensions SHOULD be preserved.
 
-* title;
-* subtitle;
-* author;
-* contributors;
-* publisher;
-* edition;
-* language;
-* abstract;
-* keywords.
+**METADATA-R010** — Metadata conflicts MUST remain auditable.
 
-This category is intended for human interpretation.
+**METADATA-R011** — Private metadata MUST obey export and synchronization policy.
 
----
+## 7. Invariants
 
-# 7. Source Metadata
+**METADATA-I001** — Metadata authority is explicit.
 
-Describes the origin of the imported knowledge.
+**METADATA-I002** — Personal and master metadata remain separate.
 
-Examples:
+**METADATA-I003** — Derived metadata is rebuildable.
 
-* original filename;
-* source format;
-* import date;
-* import method;
-* MIME type;
-* source URI (when applicable).
+**METADATA-I004** — Source evidence is never discarded by conflict resolution.
 
-Source metadata never replaces Provenance.
+**METADATA-I005** — Metadata version history is traceable.
 
----
+**METADATA-I006** — No metadata value establishes Knowledge Object identity by itself.
 
-# 8. Technical Metadata
+## 8. Lifecycle and State Transitions
 
-Describes technical characteristics.
+Metadata is created, corrected, superseded or retired through versioned records.
 
-Examples:
+A source re-import MAY add a new title assertion without deleting the previous assertion. A user title override creates Personal Metadata. A catalog view MAY display the personal override locally while the Master Library retains the authoritative source title.
 
-* page count;
-* word count;
-* image count;
-* media types;
-* OCR status;
-* detected encoding;
-* detected layout version.
+Derived metadata becomes stale when its input, processor or configuration changes and MAY be regenerated.
 
-Technical metadata may be regenerated.
+## 9. Failure, Recovery and Edge Cases
 
----
+Implementations SHALL preserve user knowledge, source evidence, identity and provenance before attempting automatic repair. Ambiguity SHALL remain explicit. A component MUST NOT invent missing authority, source facts, relationships or metadata merely to satisfy a schema.
 
-# 9. Organizational Metadata
+Recoverable failures SHOULD create durable findings and resumable workflow state. Irrecoverable inconsistencies SHALL prevent canonical publication while preserving all available evidence for review and recovery.
 
-Supports personal organization.
+## 10. Security and Privacy
 
-Examples:
+All imported metadata, source references, external identifiers, extension payloads and generated assertions SHALL be treated as untrusted until validated. Personal Knowledge SHALL remain outside the NAS Master Library and SHALL synchronize only through approved personal-state synchronization profiles.
 
-* Collections;
-* favorite status;
-* archive status;
-* reading status;
-* user labels;
-* custom categories.
+Exports, logs and telemetry MUST NOT expose private paths, credentials, personal annotations or source content without explicit authorization.
 
-Organizational metadata is user-defined.
+## 11. Examples
 
----
+A PDF supplies the title “Clinical Methods”. Crossref supplies a normalized subtitle. The user locally labels the item “Exam Book”. All three values coexist with different authority and provenance. The local UI chooses the personal label without modifying the Master Catalog.
 
-# 10. Semantic Metadata
+## 12. Compatibility and Evolution
 
-Represents machine-generated knowledge.
+Backward-compatible changes MAY add optional fields, types or relationships. A change that modifies identity, authority, lifecycle ownership, canonical meaning, provenance requirements or version interpretation requires a major specification version.
 
-Examples:
+Unknown optional extension data SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-* detected entities;
-* detected topics;
-* confidence scores;
-* semantic categories;
-* embeddings reference.
+## 13. Related Documents
 
-Semantic metadata is always derived.
+- `KnowledgeObject.md`
+- `Provenance.md`
+- `Sources.md`
+- `Versioning.md`
+- `../UDM/Core/NodeAttributes.md`
+- `../Identity/README.md`
 
-It never replaces canonical knowledge.
+## 14. Status
 
----
-
-# 11. Preservation Metadata
-
-Supports long-term preservation.
-
-Examples:
-
-* creation timestamp;
-* modification timestamp;
-* checksum;
-* format version;
-* preservation status.
-
-Preservation metadata shall remain immutable whenever possible.
-
----
-
-# 12. Custom Metadata
-
-Users and Plugins may define additional metadata.
-
-Requirements:
-
-* namespace isolation;
-* version compatibility;
-* conflict avoidance.
-
-Custom metadata shall never override official metadata.
-
----
-
-# 13. Metadata Ownership
-
-The Knowledge Object owns its Metadata.
-
-The following Engines may interact with it:
-
-| Engine            | Access         |
-| ----------------- | -------------- |
-| Library Engine    | Read / Write   |
-| Import Engine     | Initialize     |
-| Search Engine     | Read           |
-| Render Engine     | Read           |
-| Annotation Engine | Read           |
-| Knowledge Engine  | Read / Enrich  |
-| AI Engine         | Read / Suggest |
-| Export Engine     | Read           |
-| Sync Engine       | Synchronize    |
-
-No Engine may redefine the metadata schema.
-
----
-
-# 14. Metadata Lifecycle
-
-Metadata evolves throughout the lifecycle.
-
-```text
-Import
-    │
-    ▼
-Extraction
-    │
-    ▼
-Validation
-    │
-    ▼
-Normalization
-    │
-    ▼
-Enrichment
-    │
-    ▼
-Synchronization
-    │
-    ▼
-Preservation
-```
-
-Each stage appends information without compromising existing metadata.
-
----
-
-# 15. Metadata Invariants
-
-The following invariants apply.
-
-* Metadata never defines identity.
-* Metadata never replaces provenance.
-* Metadata never modifies the UDM.
-* Metadata remains versioned.
-* Metadata is extensible.
-* Metadata is searchable.
-* Metadata preserves backward compatibility.
-
----
-
-# 16. Metadata Versioning
-
-Metadata shall evolve independently from:
-
-* the UDM;
-* annotations;
-* assets;
-* relationships.
-
-Schema evolution shall preserve compatibility whenever feasible.
-
-Breaking changes require a new metadata schema version.
-
----
-
-# 17. Relationship to Other Components
-
-Metadata collaborates with:
-
-* Knowledge Object;
-* Provenance;
-* UDM;
-* Search Index;
-* Knowledge Graph.
-
-Metadata is descriptive.
-
-It is never authoritative over canonical content.
-
----
-
-# 18. Related Documents
-
-* KnowledgeObject.md
-* Provenance.md
-* Versioning.md
-* Sources.md
-* ../KnowledgeLifecycle.md
-* ../UDM/UDM.md
-
----
-
-# 19. Status
-
-**Approved**
-
-This document defines the official metadata model for Knowledge Objects within KnowledgeOS.
-
-Metadata shall remain structured, extensible and independent of both canonical content and implementation technologies.
-
-
----
-
-# Architecture Alignment (V3.1)
-
-## Metadata Categories
-
-KnowledgeOS distinguishes the following metadata categories:
-
-1. Publication Metadata
-2. Acquisition Metadata
-3. Personal Metadata
-4. Processing Metadata
-5. Derived Metadata
-
-## Ownership
-
-| Metadata | Authority |
-|---|---|
-| Publication | Master Library |
-| Acquisition | Local Library |
-| Personal | User |
-| Derived | Rebuildable |
-
-## Invariants
-
-- Publication metadata is immutable except through the Master Library.
-- Personal metadata never modifies publication metadata.
-- Derived metadata may be regenerated at any time.
-- Metadata identifiers are globally unique and stable.
-
-## Synchronization
-
-Publication metadata is distributed from the Master Library.
-
-Personal metadata is synchronized independently between user devices.
-
-Derived metadata is regenerated locally whenever necessary.
+This document is part of the KnowledgeOS Knowledge Object V4 release-candidate baseline. It becomes frozen after complete Domain review and cross-document validation.

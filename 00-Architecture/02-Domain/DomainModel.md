@@ -1,203 +1,380 @@
 # Domain Model
 
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Document:** Domain Model
-
-**Version:** 3.1
-
-**Status:** Approved
+**Project:** KnowledgeOS  
+**Section:** Domain  
+**Document:** DomainModel  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This document defines the conceptual domain model of KnowledgeOS.
+This document defines the complete conceptual domain model of KnowledgeOS.
 
-It identifies the primary business concepts, their relationships, ownership boundaries and lifecycle rules independently of implementation technologies.
+It identifies the stable business concepts, aggregate boundaries, authority scopes, invariants and relationships that every other architectural layer SHALL preserve.
 
-The Domain Model is the semantic foundation of the platform.
+## 2. Normative Language
 
----
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
 
-# 2. Core Principles
 
-The Domain is technology independent.
+## 3. Domain Mission
 
-The Domain shall not depend on:
+KnowledgeOS manages documentary knowledge, personal knowledge and their relationships while preserving user ownership, source fidelity, offline operation and long-term portability.
 
-- databases
-- UI frameworks
-- operating systems
-- AI providers
-- storage engines
-- synchronization technologies
+The Domain expresses meaning and rules.
 
----
+It SHALL NOT depend on:
 
-# 3. Top-Level Domain
+- databases;
+- operating systems;
+- UI frameworks;
+- storage engines;
+- synchronization providers;
+- AI providers;
+- OCR providers;
+- rendering technologies;
+- deployment topology.
 
-```
+## 4. Top-Level Model
+
+```text
 Knowledge Space
-│
 ├── Master Library
-│
+│   ├── Master Catalog
+│   ├── Source Publications
+│   ├── Master Metadata
+│   └── Publication Versions
 ├── Local Libraries
-│
+│   ├── Local Sources
+│   ├── Local Availability
+│   ├── Acquired Publications
+│   └── Derived Artifacts
 ├── Personal Knowledge
-│
-├── Workspaces
-│
-└── Knowledge Graph
+│   ├── Annotations
+│   ├── Highlights
+│   ├── Notes
+│   ├── Collections
+│   ├── Relationships
+│   └── Reading State
+├── Knowledge Objects
+├── UDM
+├── DPM
+├── Knowledge Graph
+└── Workspaces
 ```
 
-Knowledge Space represents the complete logical knowledge owned by the user.
+`Knowledge Space` is a conceptual boundary, not a single storage aggregate.
 
----
+## 5. Master Library
 
-# 4. Master Library
+The Master Library is hosted by KnowledgeOS Server on the NAS.
 
-The Master Library is hosted by the KnowledgeOS Server running on the user's NAS.
+It is authoritative for:
 
-Responsibilities:
+- Master Catalog;
+- source publications;
+- source items;
+- master-source metadata;
+- publication versions;
+- publication availability;
+- publication delivery.
 
-- Master Catalog
-- Source publications
-- Publication metadata
-- Publication versions
-- Publication delivery
+It SHALL NOT store:
 
-The Master Library is authoritative only for publication-related information.
+- personal annotations;
+- highlights;
+- bookmarks;
+- reading progress;
+- favorites;
+- personal tags;
+- personal relationships;
+- personal AI artifacts;
+- equivalent private user state.
 
-It never stores personal knowledge.
+The Master Library is not a personal synchronization peer.
 
----
+## 6. Local Libraries
 
-# 5. Local Library
+Each client device owns one selective Local Library.
 
-Every client owns an independent Local Library.
+A Local Library MAY be populated through:
+
+- user-authorized device scanning;
+- manual import;
+- explicit acquisition from the Master Library;
+- approved external integrations.
 
 A Local Library:
 
-- contains only acquired publications;
-- supports complete offline operation;
-- maintains local indexes;
-- maintains derived artifacts;
-- stores local working state.
+- contains only locally available publications;
+- operates offline;
+- stores local source items;
+- stores local derived artifacts;
+- stores or materializes Personal Knowledge required by that device;
+- is not a replica of the Master Library.
 
-Local Libraries are not replicas of the Master Library.
+Different devices MAY contain different publications.
 
----
+## 7. Personal Knowledge
 
-# 6. Personal Knowledge
+Personal Knowledge is user-created or user-owned information associated with publications and concepts.
 
-Personal Knowledge represents user-created information.
+It includes:
 
-Examples include:
+- annotations;
+- highlights;
+- notes;
+- bookmarks;
+- reading progress;
+- personal tags;
+- collections;
+- favorites;
+- drawings;
+- personal relationships;
+- personal AI conversations and summaries.
 
-- annotations
-- highlights
-- bookmarks
-- reading progress
-- collections
-- notes
-- AI conversations
-- AI summaries
-- Apple Pencil annotations
+Personal Knowledge synchronizes only among approved Local Libraries through the personal synchronization profile.
 
-Personal Knowledge is synchronized independently of publication acquisition.
+It SHALL NOT be written to the NAS Master Library.
 
----
+## 8. Knowledge Object
 
-# 7. Knowledge Object
+A Knowledge Object is the persistent aggregate through which KnowledgeOS manages one unit of knowledge.
 
-A Knowledge Object is the fundamental business entity.
+It coordinates:
 
-It has:
+- stable identity;
+- metadata;
+- sources;
+- assets;
+- provenance;
+- relationships;
+- versions;
+- UDM;
+- DPM;
+- lifecycle.
 
-- immutable identity
-- provenance
-- lifecycle
-- metadata
-- relationships
-- assets
+A Knowledge Object is not a file.
 
-Knowledge Objects exist independently of storage technologies.
+A file is a source item.
 
----
+## 9. Universal Document Model
 
-# 8. Canonical Models
+UDM is the canonical semantic representation of documentary knowledge.
 
-KnowledgeOS defines two canonical models.
+It owns:
 
-## UDM
+- semantic structure;
+- semantic nodes;
+- typed attributes;
+- source anchors;
+- semantic relationships;
+- semantic provenance;
+- temporal meaning.
 
-Canonical semantic representation.
+UDM SHALL remain independent from presentation and rendering.
 
-## DPM
+## 10. Document Presentation Model
 
-Canonical presentation representation.
+DPM is the canonical presentation representation.
 
-Neither replaces the original publication.
+It owns:
 
----
+- pages;
+- regions;
+- coordinate spaces;
+- visual composition;
+- reading flows;
+- typography;
+- styles;
+- spatial relationships;
+- mappings to UDM.
 
-# 9. Authority Model
+DPM SHALL NOT redefine UDM semantics.
 
-Authority is defined by information scope.
+## 11. Knowledge Graph
+
+The Knowledge Graph is a layered, queryable projection connecting:
+
+- canonical documentary semantics;
+- Knowledge Objects;
+- Personal Knowledge;
+- derived semantic relationships;
+- external references.
+
+Graph storage is derived and rebuildable.
+
+Authority layers SHALL remain distinguishable.
+
+## 12. Identity
+
+Every persistent domain entity SHALL have a stable, opaque identity.
+
+Identity SHALL be independent of:
+
+- file paths;
+- filenames;
+- database rows;
+- local device storage;
+- runtime objects;
+- synchronization sessions;
+- provider identifiers.
+
+Entity identity and version identity are distinct.
+
+## 13. Authority Model
+
+Authority is scoped.
 
 | Scope | Authority |
-|-------|-----------|
-| Publications | Master Library |
-| Local availability | Local Library |
-| Personal knowledge | Originating device until synchronized |
-| Derived artifacts | None |
+|---|---|
+| Master Catalog | NAS KnowledgeOS Server |
+| Source Publications | NAS KnowledgeOS Server |
+| Master Metadata | NAS KnowledgeOS Server |
+| Local Availability | Local Library |
+| Unsynchronized Personal Changes | Originating Device |
+| Personal Convergence | Sync Engine |
+| Derived Artifacts | No canonical authority |
+| External References | External namespace |
 
----
+No two components SHALL claim authority over the same scope.
 
-# 10. Domain Invariants
+## 14. Acquisition
 
-The following invariants shall always hold.
+Publication acquisition is explicit.
 
-1. A publication belongs to exactly one Master Library.
-2. Local Libraries never become canonical.
-3. Acquisition is explicit.
-4. Synchronization never transfers publication ownership.
-5. Personal Knowledge never enters the Master Library.
-6. Derived artifacts are rebuildable.
-7. Knowledge Object identity is immutable.
-8. Canonical models remain technology independent.
+```text
+Browse Master Catalog
+    ↓
+Select Publication
+    ↓
+Acquire Payload
+    ↓
+Validate
+    ↓
+Register Locally
+    ↓
+Process
+    ↓
+Available Offline
+```
 
----
+Acquisition is not synchronization.
 
-# 11. Domain Events
+Synchronization SHALL NOT silently acquire publication payloads.
 
-- PublicationAcquired
-- PublicationRemoved
-- AnnotationCreated
-- AnnotationUpdated
-- BookmarkCreated
-- ReadingProgressUpdated
-- CollectionModified
-- PersonalStateSynchronized
+## 15. Synchronization
 
----
+Personal synchronization converges user-owned state among Local Libraries.
 
-# 12. Relationships
+```text
+Personal Change
+    ↓
+Local Commit
+    ↓
+Pending Sync
+    ↓
+iCloud / CloudKit Profile
+    ↓
+Other Local Libraries
+```
 
-- Master Library manages Publications.
-- Local Libraries acquire Publications.
-- Publications generate Knowledge Objects.
-- Knowledge Objects are represented by UDM and DPM.
-- Personal Knowledge references Knowledge Objects.
-- Knowledge Graph connects Knowledge Objects.
+The Master Library SHALL NOT participate.
 
----
+Publication payloads SHALL NOT move through personal synchronization.
 
-# 13. Status
+## 16. Aggregate Boundaries
 
-Approved.
+The principal aggregates are:
 
-This document supersedes previous Domain models based on a single synchronized Knowledge Library and aligns the domain with ADR-013, scoped authority, explicit acquisition and personal-state synchronization.
+- Knowledge Object;
+- Master Catalog Entry;
+- Local Acquisition;
+- Personal Annotation;
+- Personal Collection;
+- Personal Relationship;
+- Workspace;
+- Durable Workflow.
+
+Aggregate boundaries SHALL preserve independent authority and transaction scope.
+
+## 17. Domain Events
+
+Core domain events include:
+
+- `PublicationDiscovered`;
+- `PublicationRegistered`;
+- `PublicationVersionPublished`;
+- `PublicationAcquisitionRequested`;
+- `PublicationAcquired`;
+- `PublicationRemovedLocally`;
+- `PersonalKnowledgeCreated`;
+- `PersonalKnowledgeModified`;
+- `PersonalStateSynchronized`;
+- `PersonalStateConflictDetected`;
+- `PersonalStateMerged`;
+- `CanonicalUDMPublished`;
+- `CanonicalDPMPublished`;
+- `DerivedArtifactInvalidated`.
+
+Events SHALL follow committed domain state.
+
+## 18. Domain Invariants
+
+**DM-I001** — User ownership is preserved.
+
+**DM-I002** — Master and Local Libraries are not replicas.
+
+**DM-I003** — Acquisition and synchronization are separate.
+
+**DM-I004** — Personal Knowledge never enters the Master Library.
+
+**DM-I005** — Knowledge Object identity is immutable.
+
+**DM-I006** — Source items remain traceable.
+
+**DM-I007** — UDM and DPM remain separate.
+
+**DM-I008** — Derived artifacts remain rebuildable.
+
+**DM-I009** — Authority is explicit.
+
+**DM-I010** — Domain concepts remain technology-independent.
+
+**DM-I011** — Published versions are immutable.
+
+**DM-I012** — Retries are idempotent where operations may repeat.
+
+## 19. Non-Goals
+
+The Domain does not define:
+
+- database schemas;
+- network protocols;
+- Swift types;
+- CloudKit record layouts;
+- PostgreSQL tables;
+- file-system directories;
+- rendering frameworks;
+- AI-provider APIs;
+- UI navigation.
+
+## 20. Related Documents
+
+- `KnowledgeLifecycle.md`
+- `EngineResponsibilities.md`
+- `KnowledgeObject/README.md`
+- `UDM/README.md`
+- `DPM/README.md`
+- `KnowledgeGraph/README.md`
+- `Identity/README.md`
+- `../01-Foundation/ArchitectureModel.md`
+- `../07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
+
+## 21. Status
+
+This document is the rector specification for the KnowledgeOS Domain V4.

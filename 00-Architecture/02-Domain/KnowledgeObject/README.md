@@ -1,291 +1,138 @@
+# Knowledge Object Domain Package
 
-# Knowledge Object
-
-**Project:** KnowledgeOS
-
-**Section:** Domain
-
-**Category:** Knowledge Object
-
-**Document:** README
-
-**Version:** 3.0
-
-**Status:** Approved
-
-**Author:** KnowledgeOS Team
+**Project:** KnowledgeOS  
+**Section:** Domain / Knowledge Object  
+**Document:** README  
+**Version:** 4.0  
+**Status:** Release Candidate  
+**Normative Language:** RFC 2119-style keywords  
+**Author:** KnowledgeOS Team  
 
 ---
 
-# 1. Purpose
+## 1. Purpose
 
-This section defines the Knowledge Object, the fundamental domain concept of KnowledgeOS.
+Define package responsibility, navigation, dependency rules and the authority of each Knowledge Object specification.
 
-Every piece of managed knowledge is represented as exactly one Knowledge Object.
+## 2. Scope
 
-The Knowledge Object is the primary business entity of the platform.
+Applies to all documents under `02-Domain/KnowledgeObject`.
 
-It represents knowledge independently of:
+## 3. Normative Language
 
-* physical files;
-* storage technologies;
-* rendering engines;
-* synchronization;
-* artificial intelligence;
-* operating systems.
+The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative. Requirements identified by stable identifiers are testable and apply to every conforming implementation unless explicitly scoped otherwise.
 
----
 
-# 2. Scope
+## 4. Context and Responsibility
 
-This section defines:
+This package defines the persistent aggregate and supporting domain concepts through which KnowledgeOS manages knowledge.
 
-* the structure of a Knowledge Object;
-* metadata;
-* provenance;
-* assets;
-* versioning;
-* relationships;
-* supported physical sources;
-* lifecycle mapping.
+`KnowledgeObject.md` is the rector specification. The remaining documents refine one concern each:
 
-The internal document structure (UDM) is defined separately in the UDM section.
+- metadata;
+- provenance;
+- sources;
+- assets;
+- relationships;
+- versioning;
+- lifecycle mapping.
 
----
+The package depends on Foundation and Domain identity. UDM and DPM are canonical representations associated with Knowledge Object versions. Platform engines consume these contracts but SHALL NOT redefine them.
 
-# 3. Objectives
-
-The Knowledge Object has five objectives.
-
-## Preserve Knowledge
-
-Represent knowledge independently of its original source.
-
----
-
-## Preserve Identity
-
-Maintain a permanent identity throughout its lifetime.
-
----
-
-## Preserve Provenance
-
-Maintain complete traceability from the original source.
-
----
-
-## Preserve Relationships
-
-Allow knowledge to participate in semantic and logical relationships.
-
----
-
-## Enable Evolution
-
-Remain stable while allowing derived information to evolve independently.
-
----
-
-# 4. Conceptual Model
-
-A Knowledge Object is composed of several conceptual components.
+## 5. Conceptual Model
 
 ```text
-Knowledge Object
-        │
-        ├── Identity
-        ├── Metadata
-        ├── Provenance
-        ├── Universal Document Model
-        ├── Assets
-        ├── Relationships
-        ├── Annotations
-        └── Version Information
+KnowledgeObject/
+├── KnowledgeObject.md
+├── Metadata.md
+├── Provenance.md
+├── Sources.md
+├── Assets.md
+├── Relationships.md
+├── Versioning.md
+├── LifecycleMapping.md
+└── README.md
 ```
 
-Each component has a clearly defined responsibility.
+Recommended reading order:
 
----
+1. `KnowledgeObject.md`
+2. `Metadata.md`
+3. `Sources.md`
+4. `Assets.md`
+5. `Provenance.md`
+6. `Relationships.md`
+7. `Versioning.md`
+8. `LifecycleMapping.md`
 
-# 5. Documents
+## 6. Normative Requirements
 
-## KnowledgeObject.md
+**README-R001** — Each concept MUST have one authoritative definition.
 
-Defines the conceptual structure of the Knowledge Object.
+**README-R002** — Subordinate specifications MUST NOT contradict `KnowledgeObject.md`.
 
----
+**README-R003** — Master Library, Local Library and Personal Knowledge authority MUST remain separate.
 
-## Metadata.md
+**README-R004** — The package MUST remain independent of database, filesystem and UI implementation.
 
-Defines descriptive information.
+**README-R005** — Every persistent concept MUST use stable domain identity.
 
----
+**README-R006** — References to UDM and DPM MUST preserve their independent responsibilities.
 
-## Provenance.md
+**README-R007** — Package evolution MUST update references and validation together.
 
-Defines origin and transformation history.
+## 7. Invariants
 
----
+**README-I001** — Knowledge Object is the persistent aggregate.
 
-## Sources.md
+**README-I002** — Files are sources, not Knowledge Objects.
 
-Defines supported physical origins.
+**README-I003** — Annotations are Personal Knowledge, not Master metadata.
 
----
+**README-I004** — UDM owns semantic canonical representation.
 
-## Assets.md
+**README-I005** — DPM owns presentation canonical representation.
 
-Defines binary resources associated with the object.
+**README-I006** — Derived artifacts remain rebuildable.
 
----
+**README-I007** — Authority and provenance are explicit.
 
-## Relationships.md
+## 8. Lifecycle and State Transitions
 
-Defines logical and semantic relationships.
+Package documents move from Draft to Release Candidate to Approved. A frozen package MAY receive backward-compatible clarifications and extensions. Changes to identity, authority or aggregate ownership require an ADR and major version review.
 
----
+## 9. Failure, Recovery and Edge Cases
 
-## Versioning.md
+Implementations SHALL preserve user knowledge, source evidence, identity and provenance before attempting automatic repair. Ambiguity SHALL remain explicit. A component MUST NOT invent missing authority, source facts, relationships or metadata merely to satisfy a schema.
 
-Defines version evolution.
+Recoverable failures SHOULD create durable findings and resumable workflow state. Irrecoverable inconsistencies SHALL prevent canonical publication while preserving all available evidence for review and recovery.
 
----
+## 10. Security and Privacy
 
-## LifecycleMapping.md
+All imported metadata, source references, external identifiers, extension payloads and generated assertions SHALL be treated as untrusted until validated. Personal Knowledge SHALL remain outside the NAS Master Library and SHALL synchronize only through approved personal-state synchronization profiles.
 
-Defines how the lifecycle stages map to the internal components of the Knowledge Object.
+Exports, logs and telemetry MUST NOT expose private paths, credentials, personal annotations or source content without explicit authorization.
 
----
+## 11. Examples
 
-# 6. Relationship to the Domain
+An implementation may store Knowledge Objects in PostgreSQL and source files in object storage, but neither table names nor paths appear in this package. Those are implementation choices behind repository contracts.
 
-The Knowledge Object belongs exclusively to one Knowledge Library.
+## 12. Compatibility and Evolution
 
-It owns:
+Backward-compatible changes MAY add optional fields, types or relationships. A change that modifies identity, authority, lifecycle ownership, canonical meaning, provenance requirements or version interpretation requires a major specification version.
 
-* Metadata
-* Provenance
-* UDM
-* Relationships
-* Annotations
+Unknown optional extension data SHOULD be preserved during round trips. Unknown required semantics MUST produce an explicit incompatibility result.
 
-It references:
+## 13. Related Documents
 
-* Assets
+- `KnowledgeObject.md`
+- `../DomainModel.md`
+- `../Identity/README.md`
+- `../UDM/README.md`
+- `../DPM/README.md`
+- `../KnowledgeGraph/README.md`
+- `../../04-Platform/Library/README.md`
 
-Derived structures such as the Knowledge Graph and Search Indexes are not part of the Knowledge Object.
+## 14. Status
 
----
-
-# 7. Architectural Authority
-
-The Knowledge Object is the authoritative representation of managed knowledge.
-
-Every Platform Engine operates on Knowledge Objects either directly or indirectly.
-
----
-
-# 8. Related Documents
-
-* ../DomainModel.md
-* ../KnowledgeLifecycle.md
-* ../EngineResponsibilities.md
-* ../../01-Foundation/ArchitectureModel.md
-* ../UDM/
-
----
-
-# 9. Status
-
-**Approved**
-
-This section defines the complete conceptual model of the Knowledge Object within KnowledgeOS.
-
-
----
-
-# KnowledgeObject Module
-
-## Purpose
-
-The KnowledgeObject module defines the core business entities managed by
-KnowledgeOS and the rules that govern their identity, provenance,
-relationships, metadata and lifecycle.
-
-This module is technology independent and forms the conceptual foundation for
-the rest of the platform.
-
-## Scope
-
-The module covers:
-
-- Knowledge Objects
-- Metadata
-- Provenance
-- Relationships
-- Sources
-- Versioning
-- Lifecycle Mapping
-
-## Architecture
-
-Knowledge Objects are consumed by:
-
-- UDM (semantic representation)
-- DPM (presentation representation)
-- Knowledge Graph
-- Search Engine
-- AI Engine
-- Import / Export
-- Sync Engine
-
-Knowledge Objects do not depend on those components.
-
-## Authority Model
-
-The module follows the scoped authority model:
-
-| Scope | Authority |
-|---|---|
-| Publications | Master Library |
-| Acquired Copies | Local Libraries |
-| Personal Knowledge | User |
-| Derived Artifacts | Processing Engines |
-
-## Design Principles
-
-- Immutable identity
-- Explicit acquisition
-- Independent personal knowledge
-- Rebuildable derived artifacts
-- Stable provenance
-- Technology independence
-
-## Document Overview
-
-| Document | Purpose |
-|---|---|
-| KnowledgeObject.md | Core entity definition |
-| Metadata.md | Metadata model |
-| Provenance.md | Origin and traceability |
-| Relationships.md | Semantic and structural relationships |
-| Sources.md | Source model |
-| Versioning.md | Version management |
-| LifecycleMapping.md | Lifecycle mappings |
-
-## Related Modules
-
-- DomainModel
-- KnowledgeLifecycle
-- UDM
-- DPM
-- Knowledge Graph
-- Platform
-
-## Status
-
-Approved.
-
-This README is the entry point for the KnowledgeObject domain package and
-defines its role within the KnowledgeOS Architecture V3.1.
+This document is part of the KnowledgeOS Knowledge Object V4 release-candidate baseline. It becomes frozen after complete Domain review and cross-document validation.
