@@ -201,3 +201,91 @@ Every Platform Engine operates on Knowledge Objects either directly or indirectl
 **Approved**
 
 This section defines the complete conceptual model of the Knowledge Object within KnowledgeOS.
+
+
+---
+
+# KnowledgeObject Module
+
+## Purpose
+
+The KnowledgeObject module defines the core business entities managed by
+KnowledgeOS and the rules that govern their identity, provenance,
+relationships, metadata and lifecycle.
+
+This module is technology independent and forms the conceptual foundation for
+the rest of the platform.
+
+## Scope
+
+The module covers:
+
+- Knowledge Objects
+- Metadata
+- Provenance
+- Relationships
+- Sources
+- Versioning
+- Lifecycle Mapping
+
+## Architecture
+
+Knowledge Objects are consumed by:
+
+- UDM (semantic representation)
+- DPM (presentation representation)
+- Knowledge Graph
+- Search Engine
+- AI Engine
+- Import / Export
+- Sync Engine
+
+Knowledge Objects do not depend on those components.
+
+## Authority Model
+
+The module follows the scoped authority model:
+
+| Scope | Authority |
+|---|---|
+| Publications | Master Library |
+| Acquired Copies | Local Libraries |
+| Personal Knowledge | User |
+| Derived Artifacts | Processing Engines |
+
+## Design Principles
+
+- Immutable identity
+- Explicit acquisition
+- Independent personal knowledge
+- Rebuildable derived artifacts
+- Stable provenance
+- Technology independence
+
+## Document Overview
+
+| Document | Purpose |
+|---|---|
+| KnowledgeObject.md | Core entity definition |
+| Metadata.md | Metadata model |
+| Provenance.md | Origin and traceability |
+| Relationships.md | Semantic and structural relationships |
+| Sources.md | Source model |
+| Versioning.md | Version management |
+| LifecycleMapping.md | Lifecycle mappings |
+
+## Related Modules
+
+- DomainModel
+- KnowledgeLifecycle
+- UDM
+- DPM
+- Knowledge Graph
+- Platform
+
+## Status
+
+Approved.
+
+This README is the entry point for the KnowledgeObject domain package and
+defines its role within the KnowledgeOS Architecture V3.1.

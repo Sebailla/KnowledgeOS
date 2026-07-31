@@ -1,4 +1,3 @@
-
 # Quality Attributes
 
 **Project:** KnowledgeOS
@@ -7,7 +6,7 @@
 
 **Document:** Quality Attributes
 
-**Version:** 3.0
+**Version:** 3.1
 
 **Status:** Approved
 
@@ -54,23 +53,25 @@ They also apply to:
 
 KnowledgeOS prioritizes quality attributes in the following order:
 
-| Priority | Attribute       |
-| -------- | --------------- |
-| Critical | User Ownership  |
-| Critical | Availability    |
-| Critical | Maintainability |
-| Critical | Modifiability   |
-| High     | Portability     |
-| High     | Reliability     |
-| High     | Recoverability  |
-| High     | Extensibility   |
-| High     | Traceability    |
-| High     | Performance     |
-| Medium   | Scalability     |
-| Medium   | Security        |
-| Medium   | Privacy         |
-| Medium   | Observability   |
-| Medium   | Testability     |
+| Priority | Attribute         |
+| -------- | ----------------- |
+| Critical | User Ownership    |
+| Critical | Availability      |
+| Critical | Maintainability   |
+| Critical | Modifiability     |
+| High     | Reliability       |
+| High     | Determinism       |
+| High     | Recoverability    |
+| High     | Privacy Isolation |
+| High     | Portability       |
+| High     | Extensibility     |
+| High     | Traceability      |
+| High     | Performance       |
+| Medium   | Scalability       |
+| Medium   | Security          |
+| Medium   | Privacy           |
+| Medium   | Observability     |
+| Medium   | Testability       |
 
 The order reflects architectural priorities rather than implementation complexity.
 
@@ -107,15 +108,20 @@ The platform shall remain usable regardless of Internet connectivity.
 ## Architectural Drivers
 
 * Offline First
-* Working Copy
-* Local search
-* Local rendering
+* Local Library
+* Explicit Acquisition
+* Personal-State Synchronization
+* Local Search
+* Local Rendering
 
 ## Design Implications
 
-* local execution;
-* deferred synchronization;
-* autonomous operation.
+* autonomous Local Libraries;
+* explicit publication acquisition;
+* deferred personal synchronization;
+* uninterrupted offline operation;
+* independent local indexing;
+* local rendering.
 
 ---
 
@@ -201,28 +207,56 @@ Preserve correctness and consistency of user knowledge.
 
 ---
 
-# 10. Recoverability
+# 10. Determinism
 
 ## Objective
 
-Allow complete recovery after failures.
+Ensure that identical inputs processed under identical conditions always produce equivalent canonical results.
 
 ## Architectural Drivers
 
-* Source of Truth;
-* Working Copy;
-* Backups;
-* Journal Repository.
+* UDM
+* DPM
+* Workflow Engine
+* Canonical Processing
+* Immutable Identity
 
 ## Design Implications
 
-* snapshot recovery;
+* reproducible processing;
+* deterministic workflows;
+* stable canonical models;
+* repeatable imports;
+* predictable migrations.
+
+---
+
+# 11. Recoverability
+
+## Objective
+
+Allow complete recovery of both the Master Library and Local Libraries after failures.
+
+## Architectural Drivers
+
+* Master Library
+* Local Library
+* Explicit Acquisition
+* Personal-State Synchronization
+* Journal Repository
+* Backups
+
+## Design Implications
+
+* Master Library recovery;
+* Local Library reconstruction;
 * replayable operations;
+* regeneration of derived artifacts;
 * repository reconstruction.
 
 ---
 
-# 11. Extensibility
+# 12. Extensibility
 
 ## Objective
 
@@ -243,7 +277,7 @@ Enable future growth without redesigning the platform.
 
 ---
 
-# 12. Traceability
+# 13. Traceability
 
 ## Objective
 
@@ -264,7 +298,7 @@ Preserve the origin and evolution of every Knowledge Object.
 
 ---
 
-# 13. Performance
+# 14. Performance
 
 ## Objective
 
@@ -288,7 +322,7 @@ Performance optimizations shall never compromise correctness or maintainability.
 
 ---
 
-# 14. Scalability
+# 15. Scalability
 
 ## Objective
 
@@ -310,7 +344,7 @@ The architecture shall scale from:
 
 ---
 
-# 15. Security
+# 16. Security
 
 ## Objective
 
@@ -327,7 +361,7 @@ Security mechanisms shall preserve Offline First operation.
 
 ---
 
-# 16. Privacy
+# 17. Privacy
 
 ## Objective
 
@@ -343,7 +377,29 @@ Remote processing is always optional.
 
 ---
 
-# 17. Observability
+# 17.1. Privacy Isolation
+
+## Objective
+
+Guarantee architectural separation between publication management and personal knowledge.
+
+## Architectural Drivers
+
+* Master Library
+* Local Library
+* Scoped Authority
+* Personal-State Synchronization
+
+## Design Implications
+
+* personal state never enters the Master Library;
+* publication acquisition is independent from synchronization;
+* Local Libraries are not replicas;
+* privacy boundaries are structural.
+
+---
+
+# 18. Observability
 
 ## Objective
 
@@ -360,7 +416,7 @@ Observability shall not expose confidential user information.
 
 ---
 
-# 18. Testability
+# 19. Testability
 
 ## Objective
 
@@ -376,7 +432,7 @@ Every Engine shall be testable independently.
 
 ---
 
-# 19. Quality Trade-Offs
+# 20. Quality Trade-Offs
 
 Architectural decisions often improve one quality attribute while reducing another.
 
@@ -391,11 +447,15 @@ Typical trade-offs include:
 | Provider Abstraction      | Portability     | Implementation effort      |
 | UDM                       | Maintainability | Import complexity          |
 
+| Explicit Acquisition | Availability | Immediate access on every device |
+| Privacy Isolation | Privacy | Architectural complexity |
+| Deterministic Processing | Reliability | Processing complexity |
+
 Trade-offs shall be documented explicitly in the corresponding ADR.
 
 ---
 
-# 20. Quality Scenarios
+# 21. Quality Scenarios
 
 The following scenarios shall guide architectural evaluation.
 
@@ -409,15 +469,39 @@ No interruption of work.
 
 ---
 
+
 ### Recoverability
 
-A device is lost.
+A client device is replaced.
 
 **Expected Result**
 
-The complete Library can be reconstructed from the Source of Truth.
+The Local Library is reconstructed by:
+
+- acquiring the required publications;
+- synchronizing personal knowledge;
+- rebuilding indexes;
+- regenerating derived artifacts.
+
+The reconstruction does not require the Local Library to be a replica of the Master Library.
 
 ---
+
+
+
+### Privacy Isolation
+
+A user creates annotations on an iPad.
+
+**Expected Result**
+
+Annotations synchronize to the user's other authorized devices without being stored in the Master Library.
+
+Publication files remain managed exclusively by the Master Library.
+
+---
+
+
 
 ### Extensibility
 
@@ -449,7 +533,7 @@ Only the Import Engine requires substantial changes.
 
 ---
 
-# 21. Compliance
+# 22. Compliance
 
 Every ADR shall identify:
 
@@ -461,7 +545,7 @@ Every Engine specification shall describe how it satisfies the applicable qualit
 
 ---
 
-# 22. Related Documents
+# 23. Related Documents
 
 * ProductVision.md
 * ArchitectureModel.md
@@ -472,7 +556,7 @@ Every Engine specification shall describe how it satisfies the applicable qualit
 
 ---
 
-# 23. Status
+# 24. Status
 
 **Approved**
 

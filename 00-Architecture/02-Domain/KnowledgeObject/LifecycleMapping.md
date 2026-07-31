@@ -334,3 +334,85 @@ It maps domain components to those stages.
 This document defines how the internal components of a Knowledge Object evolve throughout its lifecycle.
 
 Every Platform Engine shall preserve the lifecycle mapping and component invariants defined herein.
+
+---
+
+# Architecture Alignment (V3.1)
+
+## Purpose
+
+This document maps lifecycle transitions defined in `KnowledgeLifecycle.md`
+to Knowledge Objects, publications, personal knowledge and derived artifacts.
+
+## Lifecycle Domains
+
+| Domain | Lifecycle |
+|---|---|
+| Publication | Publication Lifecycle |
+| Personal Knowledge | Personal Knowledge Lifecycle |
+| Canonical Models | Canonical Processing Lifecycle |
+| Derived Artifacts | Canonical Processing Lifecycle |
+
+## Publication Mapping
+
+| State | Responsible Engine |
+|---|---|
+| Discovered | Import Engine |
+| Imported | Import Engine |
+| Validated | Workflow Engine |
+| Registered | Library Engine |
+| Published | Library Engine |
+| Acquired | Library Engine |
+| Archived | Library Engine |
+
+## Personal Knowledge Mapping
+
+| State | Responsible Engine |
+|---|---|
+| Created | Annotation Engine |
+| Modified | Annotation Engine |
+| Stored Locally | Library Engine |
+| Pending Synchronization | Sync Engine |
+| Synchronized | Sync Engine |
+| Merged | Sync Engine |
+| Historical | Library Engine |
+
+## Canonical Processing Mapping
+
+Source Publication
+→ Extraction
+→ Classification
+→ UDM
+→ DPM
+→ Knowledge Graph
+→ Indexes
+→ Embeddings
+
+Responsible engines:
+
+- Import Engine
+- Processing Engine
+- Search Engine
+- AI Engine
+
+## Mapping Rules
+
+- Publication lifecycle never modifies Personal Knowledge.
+- Personal synchronization never changes publication ownership.
+- Derived artifacts may be regenerated at any time.
+- Failed processing resumes from the last consistent stage.
+
+## Invariants
+
+- Lifecycle transitions are deterministic.
+- Processing is idempotent.
+- Stable identifiers are preserved.
+- Authority boundaries are never crossed.
+
+## Related Documents
+
+- KnowledgeLifecycle.md
+- KnowledgeObject.md
+- DomainModel.md
+- Versioning.md
+- Provenance.md

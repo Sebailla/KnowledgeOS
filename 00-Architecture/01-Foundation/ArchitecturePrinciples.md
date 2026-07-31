@@ -7,7 +7,7 @@
 
 **Document:** Architecture Principles
 
-**Version:** 3.1
+**Version:** 3.2
 
 **Status:** Approved
 
@@ -17,36 +17,46 @@
 
 # 1. Purpose
 
-This document defines the fundamental architectural principles that govern the design, evolution and implementation of KnowledgeOS.
+This document defines the fundamental architectural principles governing the design, implementation and evolution of KnowledgeOS.
 
-These principles establish the criteria used to evaluate architectural decisions across the entire platform.
+These principles establish the criteria used to:
 
-Every architectural component, specification, subsystem and implementation shall comply with these principles.
+* evaluate architectural decisions;
+* define subsystem boundaries;
+* resolve design conflicts;
+* review implementation proposals;
+* preserve architectural consistency over time.
 
-These principles are permanent unless superseded through an approved Architecture Decision Record (ADR).
+Every architectural artifact and software component shall comply with these principles.
+
+A principle may be amended or superseded only through an approved Architecture Decision Record.
 
 ---
 
 # 2. Scope
 
-These principles apply to every architectural layer, including:
+These principles apply to every KnowledgeOS architectural layer:
 
-* Foundation
-* Domain
-* Kernel
-* Platform
-* Integration
-* Quality
-* Architecture Views
+* Foundation;
+* Domain;
+* Kernel;
+* Platform;
+* Integration;
+* Execution;
+* Architecture Views;
+* Implementation.
 
 They also apply to:
 
-* Architecture Decision Records (ADR)
-* Technical Specifications
-* Public APIs
-* Plugins
-* Providers
-* Future architectural extensions
+* Architecture Decision Records;
+* technical specifications;
+* domain models;
+* public contracts;
+* providers;
+* plugins;
+* application clients;
+* server components;
+* future architectural extensions.
 
 No architectural component is exempt from these principles.
 
@@ -56,148 +66,235 @@ No architectural component is exempt from these principles.
 
 Knowledge belongs to the user.
 
-KnowledgeOS is only the platform responsible for managing that knowledge.
+KnowledgeOS manages user knowledge but never assumes ownership of it.
 
-The platform shall never introduce technical dependencies that prevent users from accessing, exporting or migrating their information.
+The platform shall not introduce technical, contractual or architectural dependencies that prevent users from accessing, exporting, preserving or migrating their information.
 
-### Implications
+## Implications
 
-* User ownership is permanent.
-* Data portability is mandatory.
+* User-owned information shall remain accessible.
+* Export capabilities are mandatory.
 * Vendor lock-in is prohibited.
-* Users retain complete control over their knowledge.
+* Personal knowledge shall remain under user control.
+* User data shall not depend permanently on a specific provider.
+* Personal state shall not be transferred outside its approved storage and synchronization boundaries.
 
 ---
 
 # 4. Principle 2 — Offline First
 
-Offline operation is the default execution model.
+Offline operation is the default execution model for KnowledgeOS clients.
 
-Internet connectivity extends capabilities but shall never become a prerequisite for core functionality.
+Network connectivity extends platform capabilities but shall not be required for core reading, organization, annotation, search or knowledge-management workflows involving locally available content.
 
-The platform must remain fully operational while disconnected.
+## Implications
 
-### Implications
+* Local persistence is mandatory.
+* Local Libraries remain operational without the NAS.
+* Local search and indexing remain available offline.
+* Local rendering remains available offline.
+* Personal changes are recorded locally before synchronization.
+* Network-dependent operations shall degrade predictably.
+* Interrupted operations shall be resumable or safely repeatable.
+* Local AI shall be supported where technically viable.
 
-* Local-first execution.
-* Local persistence.
-* Deferred synchronization.
-* Local indexing.
-* Local search.
-* Local rendering.
-* Local AI whenever possible.
+Offline First does not require every publication to exist on every device.
+
+It requires each device to remain fully functional with the publications and personal state currently available in its Local Library.
 
 ---
 
-# 5. Principle 3 — Single Source of Truth
+# 5. Principle 3 — Scoped Authority
 
-Every architectural concept shall have exactly one authoritative representation.
+Authority in KnowledgeOS is scoped rather than global.
+
+Each category of information shall have exactly one clearly identified authority.
 
 Examples include:
 
-* One Product Vision.
-* One Architecture Model.
-* One Knowledge Object identity.
-* One Source of Truth for every Library.
-* One authoritative version of every canonical artifact.
+* the NAS Master Library is authoritative for the Master Catalog;
+* the NAS Master Library is authoritative for source publications and master-source metadata;
+* the originating device is authoritative for personal changes not yet synchronized;
+* the personal synchronization process governs convergence among Local Libraries;
+* rebuildable caches and derived artifacts have no canonical authority.
 
-Duplicate authoritative representations are forbidden.
+A Local Library shall never be treated as a replica or competing authority of the NAS Master Library.
 
-Derived representations shall never become authoritative.
+## Implications
+
+* Authority shall be defined per information scope.
+* Two components shall not claim authority over the same scope.
+* Derived artifacts shall never become authoritative.
+* Local possession of a publication does not transfer master-source authority.
+* Personal state does not become part of master publication authority.
+* Synchronization convergence does not make the synchronization provider the owner of personal knowledge.
 
 ---
 
-# 6. Principle 4 — Canonical Representation
+# 6. Principle 4 — Master and Personal State Separation
 
-Every physical source shall be transformed into a canonical representation.
+Canonical publication custody and personal knowledge shall remain architecturally separate.
 
-The Universal Document Model (UDM) is the only canonical representation of structured knowledge.
+The NAS Master Library manages publications and master-source information.
 
-The Document Presentation Model (DPM) is the only canonical representation of presentation intent.
+Local Libraries manage selected local publications and user-specific working state.
 
-Everything else is derived.
+Personal knowledge belongs exclusively to the user and shall never be written back to the NAS Master Library.
 
-### Implications
+Personal knowledge includes, among other elements:
+
+* annotations;
+* highlights;
+* bookmarks;
+* reading progress;
+* personal tags;
+* favorites;
+* personal relationships;
+* personal collections;
+* sticky notes;
+* Apple Pencil drawings;
+* AI-generated personal artifacts;
+* personal preferences.
+
+## Implications
+
+* The Master Library shall remain unaware of user reading behavior.
+* Personal state synchronization shall not involve the NAS Master Library.
+* Master publication files shall not be distributed through personal synchronization.
+* Publication acquisition and personal synchronization shall use separate contracts and workflows.
+* Privacy boundaries shall be enforced architecturally rather than by convention.
+
+---
+
+# 7. Principle 5 — Explicit Acquisition
+
+A publication enters a Local Library only through an explicit local discovery, import or acquisition operation.
+
+Acquisition is the controlled installation of a publication into one Local Library.
+
+Acquisition is not synchronization.
+
+## Implications
+
+* Browsing the Master Catalog does not alter Local Library membership.
+* A publication may exist on one device and not on another.
+* Publication payloads shall not be silently propagated through personal synchronization.
+* Acquisition shall preserve source identity, version and provenance.
+* Acquisition shall be independently resumable and verifiable.
+* A Local Library may also be created from user-authorized files already present on the device.
+
+---
+
+# 8. Principle 6 — Canonical Representation
+
+KnowledgeOS shall maintain explicit canonical representations for normalized knowledge and presentation intent.
+
+The Universal Document Model defines the canonical representation of structured document knowledge.
+
+The Document Presentation Model defines the canonical representation of presentation intent when such representation exists.
+
+Source publications remain authoritative source artifacts within the Master Library.
+
+Canonical models are produced from source artifacts through governed processing.
+
+## Implications
 
 * Import normalizes.
 * Processing analyzes.
-* Render interprets.
-* Export transforms.
-* Storage persists canonical models.
+* Validation establishes conformance.
+* Rendering interprets canonical models.
+* Export transforms canonical models.
+* Storage persists source artifacts and canonical models according to their authority.
+* Search indexes, view models and runtime structures remain derived.
+
+Canonical representation does not replace or erase the authoritative source publication.
 
 ---
 
-# 7. Principle 5 — Separation of Concerns
+# 9. Principle 7 — Separation of Concerns
 
-Every architectural component owns one primary responsibility.
+Every architectural component shall own one primary responsibility.
 
-Responsibilities shall never overlap.
+Responsibility boundaries shall be explicit and non-overlapping.
 
 Examples include:
 
 * Import imports.
+* Library governs Library semantics.
 * Search searches.
 * Render renders.
-* Sync synchronizes.
+* Sync synchronizes personal state.
 * AI assists.
 * Validation validates.
+* Integration connects external systems.
+* Storage Providers persist data without choosing authority.
 
-No Engine shall assume another Engine's primary responsibility.
+No Engine, provider or client shall silently assume another component’s primary responsibility.
 
 ---
 
-# 8. Principle 6 — Stable Domain
+# 10. Principle 8 — Stable Domain
 
-The Domain Layer expresses business concepts only.
+The Domain layer expresses business concepts, rules and invariants.
 
 It shall remain independent from implementation technologies.
 
-The Domain must not depend upon:
+The Domain shall not depend on:
 
 * databases;
-* frameworks;
 * operating systems;
-* rendering engines;
+* user-interface frameworks;
+* network protocols;
+* rendering frameworks;
 * AI providers;
+* synchronization providers;
 * storage engines;
-* communication protocols.
+* deployment topology.
 
-The Domain is the most stable part of the architecture.
+Domain terminology shall describe KnowledgeOS concepts rather than concrete technologies.
+
+The Domain is the most stable architectural layer.
 
 ---
 
-# 9. Principle 7 — Explicit Contracts
+# 11. Principle 9 — Explicit Contracts
 
-Communication between architectural components shall occur exclusively through explicit public contracts.
+Communication across architectural boundaries shall occur through explicit contracts.
 
-Examples include:
+Contracts include:
 
-* Commands;
-* Queries;
-* Events;
-* Public APIs;
-* Provider Contracts.
+* commands;
+* queries;
+* events;
+* service contracts;
+* provider contracts;
+* public APIs;
+* serialization contracts;
+* plugin contracts.
 
-Implementation details remain private.
+Implementation details shall remain private.
 
-Components shall never communicate through hidden dependencies.
+Components shall not communicate through hidden dependencies, shared mutable internals or undocumented side effects.
 
 ---
 
-# 10. Principle 8 — Replaceable Infrastructure
+# 12. Principle 10 — Replaceable Infrastructure
 
-Infrastructure shall always be replaceable.
+Infrastructure shall remain replaceable behind stable contracts.
 
-Examples include:
+Replaceable infrastructure includes:
 
 * storage engines;
+* databases;
+* search implementations;
 * AI providers;
 * OCR providers;
-* rendering technologies;
 * synchronization providers;
-* search engines.
+* rendering technologies;
+* networking frameworks;
+* serialization technologies.
 
-The Domain Layer shall never depend upon concrete infrastructure implementations.
+Concrete infrastructure may optimize behavior but shall not redefine Domain concepts or architectural authority.
 
 Infrastructure evolves.
 
@@ -205,317 +302,373 @@ Architecture remains stable.
 
 ---
 
-# 11. Principle 9 — Traceability
+# 13. Principle 11 — Traceability
 
-Every piece of knowledge shall be traceable.
+Every authoritative or canonical artifact shall be traceable to its origin and lifecycle.
 
-KnowledgeOS shall preserve:
+KnowledgeOS shall preserve, where applicable:
 
-* origin;
+* source identity;
 * ownership;
-* transformations;
-* timestamps;
 * provenance;
-* processing history.
+* acquisition history;
+* transformation history;
+* processing versions;
+* timestamps;
+* parent versions;
+* validation results.
 
-Knowledge without provenance is considered incomplete.
+Knowledge lacking required provenance shall be considered incomplete.
 
-Traceability shall be preserved throughout the entire lifecycle of every Knowledge Object.
-
----
-
-# 12. Principle 10 — Extensibility
-
-The platform shall be extensible without modifying its architectural core.
-
-Extensions shall be implemented through:
-
-* Plugins;
-* Providers;
-* Public APIs;
-* Extension Points.
-
-Core architectural components remain stable.
-
-Extensions shall never compromise architectural integrity.
+Traceability shall survive migration, export and reconstruction.
 
 ---
 
-# 13. Principle 11 — Long-Term Evolution
+# 14. Principle 12 — Extensibility
 
-Architectural decisions prioritize long-term maintainability over short-term optimization.
+KnowledgeOS shall support extension without requiring modification of its architectural core.
 
-When evaluating architectural alternatives, preference shall be given to the solution that best preserves:
+Extensions shall be introduced through governed mechanisms such as:
 
-* clarity;
-* stability;
-* maintainability;
+* plugins;
+* providers;
+* public APIs;
+* capabilities;
+* extension points;
+* event subscriptions.
+
+Extensions shall not:
+
+* bypass architectural contracts;
+* redefine canonical models;
+* change authority boundaries;
+* access private component state;
+* compromise user ownership;
+* weaken security or privacy.
+
+---
+
+# 15. Principle 13 — Long-Term Evolution
+
+Architectural decisions shall prioritize long-term clarity, maintainability and preservation over short-term convenience.
+
+When evaluating alternatives, preference shall be given to solutions that best preserve:
+
+* conceptual clarity;
+* modularity;
+* compatibility;
+* portability;
+* recoverability;
 * extensibility;
-* portability.
+* testability;
+* long-term data accessibility.
 
-Architectural debt shall be minimized.
+Architectural debt shall be documented and minimized.
 
 ---
 
-# 14. Principle 12 — Technology Independence
+# 16. Principle 14 — Technology Independence
 
-Architectural concepts shall never be defined in terms of specific technologies.
+Architectural concepts shall not be defined in terms of specific products or frameworks.
 
-Correct examples:
+Correct architectural concepts include:
 
-* Object Repository
-* Workflow Engine
-* Knowledge Provider
-* Search Provider
+* Object Repository;
+* Workflow Engine;
+* Search Provider;
+* Synchronization Provider;
+* Knowledge Provider;
+* Storage Provider.
 
-Incorrect examples:
+Technology-specific implementations include:
 
-* SQLite Repository
-* PostgreSQL Repository
-* OpenAI Engine
-* Elasticsearch Service
+* PostgreSQL repository;
+* SQLite store;
+* CloudKit synchronization provider;
+* Core Data persistence adapter;
+* OpenAI provider;
+* Elasticsearch adapter.
 
 Technologies implement architecture.
 
-They never define it.
+They do not define it.
+
+Approved deployment profiles may select concrete technologies without changing the architectural concepts they implement.
 
 ---
 
-# 15. Principle 13 — Simplicity
+# 17. Principle 15 — Simplicity
 
-Architectural complexity shall exist only when justified by clear architectural value.
+Architectural complexity shall exist only when justified by explicit requirements or quality attributes.
 
-The preferred solution is the simplest one that satisfies all architectural requirements while preserving long-term maintainability.
+The preferred solution is the simplest design that:
 
-Premature optimization is discouraged.
+* satisfies current architectural requirements;
+* preserves declared invariants;
+* supports expected evolution;
+* remains understandable by maintainers;
+* avoids irreversible coupling.
 
-Complexity shall always require explicit justification.
+Premature abstraction and premature optimization are discouraged.
+
+Complexity shall always have a documented reason.
 
 ---
 
-# 16. Principle 14 — Immutability
+# 18. Principle 16 — Immutability
 
-Canonical artifacts are immutable.
+Published canonical artifacts and authoritative source versions are immutable.
 
-Once a canonical artifact has been published, it shall never be modified.
+A modification shall produce a new version rather than overwrite the historical artifact.
 
-Every change produces a new canonical version.
+This principle applies, where appropriate, to:
 
-This principle applies to:
+* source publication versions;
+* Knowledge Object versions;
+* UDM versions;
+* DPM versions;
+* mappings;
+* assets;
+* anchors;
+* provenance records;
+* published contracts.
 
-* Knowledge Objects;
-* Universal Document Model (UDM);
-* Document Presentation Model (DPM);
-* Mapping;
-* Assets;
-* Anchors;
-* Provenance.
+Mutable working state may exist during processing, editing or personal interaction, but it shall not silently mutate published canonical history.
 
-### Implications
+## Implications
 
 * Stable identities.
 * Complete version history.
-* Safe synchronization.
+* Safe acquisition.
 * Reliable auditing.
 * Predictable evolution.
 * Reproducible historical states.
 
-Canonical artifacts evolve through versioning rather than mutation.
-
 ---
 
-# 17. Principle 15 — Reproducibility
+# 19. Principle 17 — Reproducibility
 
-Every canonical artifact shall be reproducible.
+Canonical processing shall be reproducible.
 
 Given:
 
-* identical inputs;
-* identical versions;
-* identical processing rules;
+* equivalent inputs;
+* identical processing-component versions;
 * identical configuration;
+* identical deterministic rules;
 
-KnowledgeOS shall always reconstruct an equivalent canonical model.
+KnowledgeOS shall reconstruct an equivalent canonical result.
 
-### Implications
+## Implications
 
-* Reliable backups.
-* Deterministic recovery.
-* Migration safety.
+* Reliable recovery.
+* Verifiable migrations.
+* Safe reprocessing.
 * Long-term preservation.
-* Scientific reproducibility.
-* Verifiable processing.
+* Comparable processing outcomes.
+* Auditable transformations.
 
-Equivalent reconstructions shall always produce equivalent canonical artifacts.
-
----
-
-# 18. Principle 16 — Idempotency
-
-Every canonical processing stage shall be idempotent.
-
-Executing the same operation multiple times over identical inputs shall produce the same canonical result.
-
-Examples include:
-
-* Import;
-* Normalization;
-* Classification;
-* Validation;
-* Serialization;
-* Synchronization.
-
-### Implications
-
-* Safe retries.
-* Distributed execution.
-* Reliable synchronization.
-* Predictable recovery.
-* Simplified debugging.
-
-Repeated execution shall never introduce additional changes.
+External nondeterministic dependencies shall be recorded when exact reproduction cannot be guaranteed.
 
 ---
 
-# 19. Principle 17 — Canonical First
+# 20. Principle 18 — Idempotency
 
-Canonical models are the only authoritative source of truth.
+Operations that may be retried shall be idempotent or explicitly protected against duplicate effects.
 
-Every runtime representation shall be derived from canonical artifacts.
+This applies especially to:
 
-Examples of derived artifacts include:
+* imports;
+* acquisitions;
+* command handling;
+* event handling;
+* synchronization;
+* indexing;
+* validation;
+* workflow steps;
+* recovery procedures.
 
-* Presentation Trees;
-* Render Trees;
-* View Models;
-* Search Indexes;
-* Embedding Indexes;
-* Runtime Caches;
-* AI Context Windows.
+Repeating an operation with the same identity and inputs shall not create unintended duplicate state.
 
-Derived artifacts are disposable.
+Idempotency does not require all operations to be stateless.
 
-They shall never become authoritative.
-
-Canonical models always take precedence.
+It requires retries to produce predictable and safe outcomes.
 
 ---
 
-# 20. Principle 18 — Deterministic Core
+# 21. Principle 19 — Canonical First
+
+Authoritative and canonical artifacts shall take precedence over derived runtime representations.
+
+Derived artifacts include:
+
+* search indexes;
+* embedding indexes;
+* thumbnails;
+* previews;
+* caches;
+* render trees;
+* presentation trees;
+* view models;
+* temporary OCR output;
+* AI context windows;
+* materialized projections.
+
+Derived artifacts shall be rebuildable whenever technically possible.
+
+They shall not become the only surviving representation of authoritative knowledge.
+
+---
+
+# 22. Principle 20 — Deterministic Core
 
 The architectural core shall behave deterministically.
 
-Given identical canonical inputs, the platform shall always produce identical canonical outputs.
+Given identical canonical inputs and deterministic configuration, core processing shall produce equivalent canonical outputs.
 
-Probabilistic systems, including Artificial Intelligence, shall never become authoritative sources of truth.
+Probabilistic systems, including Artificial Intelligence, shall not establish authority by themselves.
 
-Artificial Intelligence augments knowledge.
+AI may:
 
-It never defines canonical knowledge.
+* suggest;
+* classify;
+* summarize;
+* extract;
+* rank;
+* assist transformation.
 
-### Implications
+AI output becomes canonical only after passing the explicit validation and acceptance process defined for that workflow.
 
-* AI assists processing.
-* Validation determines authority.
-* Canonical artifacts remain deterministic.
+## Implications
+
 * AI providers remain replaceable.
+* AI results preserve provenance.
+* Unvalidated AI output remains provisional.
+* Canonical identities do not depend on nondeterministic output.
+* Core recovery does not depend on reproducing an exact probabilistic response.
 
 ---
 
-# 21. Principle 19 — Evolution Through ADR
+# 23. Principle 21 — Privacy by Architecture
 
-Significant architectural changes shall occur only through approved Architecture Decision Records (ADR).
+Privacy boundaries shall be enforced through system structure, ownership and contracts.
 
-Architectural evolution requires documented rationale.
+They shall not depend solely on user-interface conventions or implementation discipline.
 
-Every significant architectural decision shall record:
+## Implications
+
+* Personal state shall use explicitly approved persistence and synchronization channels.
+* The Master Library shall not collect personal reading activity.
+* Providers shall receive only the minimum required information.
+* Remote AI use shall require explicit policy and user control.
+* Sensitive data shall not cross architectural boundaries implicitly.
+* Logs and telemetry shall avoid unauthorized personal content.
+* Plugins shall operate within declared capabilities and permissions.
+
+---
+
+# 24. Principle 22 — Evolution Through ADR
+
+Significant architectural changes shall occur only through approved Architecture Decision Records.
+
+An ADR shall document:
 
 * context;
-* alternatives;
+* problem;
+* considered alternatives when relevant;
 * decision;
 * consequences;
-* review history.
+* superseded interpretations;
+* compatibility impact.
 
-This guarantees:
+ADRs shall amend existing architectural documents rather than create undocumented parallel rules.
 
-* traceability;
-* reviewability;
-* historical context;
-* architectural consistency.
+Implementation shall not redefine accepted architecture.
 
 ---
 
-# 22. Relationship Between Principles
+# 25. Relationship Between Principles
 
-These principles are complementary.
+These principles are complementary and shall be interpreted together.
 
-They shall be interpreted together rather than independently.
-
-When two principles appear to conflict, architectural decisions shall follow the following priority order:
+When a design creates tension between principles, the following priority order shall guide resolution:
 
 1. User Ownership
-2. Offline First
-3. Single Source of Truth
-4. Canonical Representation
-5. Stable Domain
-6. Immutability
-7. Deterministic Core
-8. Reproducibility
-9. Idempotency
-10. Canonical First
-11. Explicit Contracts
-12. Technology Independence
-13. Separation of Concerns
-14. Traceability
-15. Extensibility
-16. Long-Term Evolution
-17. Simplicity
+2. Privacy by Architecture
+3. Scoped Authority
+4. Master and Personal State Separation
+5. Offline First
+6. Explicit Acquisition
+7. Canonical Representation
+8. Stable Domain
+9. Immutability
+10. Deterministic Core
+11. Reproducibility
+12. Idempotency
+13. Canonical First
+14. Explicit Contracts
+15. Separation of Concerns
+16. Traceability
+17. Technology Independence
 18. Replaceable Infrastructure
-19. Evolution Through ADR
+19. Extensibility
+20. Long-Term Evolution
+21. Simplicity
+22. Evolution Through ADR
 
-Conflicts shall always be resolved through an approved ADR.
+A lower-priority principle shall not be ignored automatically.
+
+Conflicts shall be analyzed explicitly and resolved through an ADR when they materially affect the architecture.
 
 ---
 
-# 23. Compliance
+# 26. Compliance
 
-Every architectural artifact shall explicitly comply with these principles.
+Every architectural artifact shall comply with these principles.
 
-This includes:
+Compliance applies to:
 
-* Architecture Decision Records (ADR);
-* Specifications;
-* Domain Models;
-* Kernel Components;
+* Architecture Decision Records;
+* Foundation documents;
+* Domain models;
+* Kernel components;
 * Platform Engines;
-* Integration Components;
-* Public APIs;
-* Providers;
-* Plugins.
+* Integration contracts;
+* Execution models;
+* Implementation specifications;
+* public APIs;
+* providers;
+* plugins;
+* client and server applications.
 
-Compliance shall be verified during architectural reviews.
+Architecture reviews shall verify compliance.
 
-Architectural exceptions require an approved ADR.
+Any exception requires an approved ADR identifying:
+
+* the affected principle;
+* the justification;
+* the scope;
+* the consequences;
+* the planned duration when temporary.
 
 ---
 
-# 24. Related Documents
+# 27. Related Documents
 
 * ProductVision.md
 * ArchitectureModel.md
 * ArchitectureConstraints.md
 * QualityAttributes.md
-* ../00-Governance/ArchitectureVocabulary.md
+* ../08-Governance/ArchitectureVocabulary.md
+* ../07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md
 * ../07-ArchitectureViews/ADR/
 
 ---
 
-# 25. Status
+# 28. Status
 
 **Approved**
 
-These principles define the permanent architectural philosophy of KnowledgeOS.
+This document defines the permanent architectural philosophy of KnowledgeOS Architecture V3.
 
 Every architectural decision, specification, implementation and future evolution of the platform shall comply with these principles unless an approved Architecture Decision Record explicitly documents an exception.
-
-These principles constitute the foundation upon which the Universal Document Model (UDM), the Document Presentation Model (DPM), the Kernel, the Platform and every future subsystem of KnowledgeOS are designed, implemented and evolved.

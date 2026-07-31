@@ -253,22 +253,42 @@ The Library is:
 
 ---
 
-# 11. Source of Truth
 
-Every Library has exactly one Source of Truth.
+# 11. Library Architecture
 
-Initially, the Source of Truth is the user's NAS.
+KnowledgeOS distinguishes between the Master Library and device-specific Local Libraries.
 
-Each device maintains a synchronized Working Copy.
+The Master Library is hosted by the KnowledgeOS Server on the user's NAS and is authoritative for:
 
-This model guarantees:
+- the Master Catalog;
+- source publications;
+- publication versions;
+- master-source metadata.
 
-* resilience;
-* offline operation;
-* portability;
-* disaster recovery.
+Each client maintains its own selective Local Library.
+
+A Local Library:
+
+- contains only the publications available on that device;
+- supports complete offline operation;
+- stores the user's local working state;
+- is not a replica of the Master Library.
+
+Publications become part of a Local Library only through explicit acquisition.
+
+Personal knowledge—including annotations, highlights, bookmarks, reading progress and equivalent user-created information—is synchronized independently between approved devices.
+
+This separation preserves:
+
+- user privacy;
+- Offline First operation;
+- deterministic authority;
+- selective storage;
+- long-term scalability.
 
 ---
+
+
 
 # 12. Long-Term Objectives
 

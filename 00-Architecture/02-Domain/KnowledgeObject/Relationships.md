@@ -394,3 +394,116 @@ Every Engine respects the invariants defined by this document.
 This document defines the official relationship model of KnowledgeOS.
 
 Relationships are first-class domain objects that preserve the logical and semantic structure of the Knowledge Library independently of implementation technologies.
+
+
+---
+
+# Architecture Alignment (V3.1)
+
+## Purpose
+
+This document defines the semantic relationships between Knowledge Objects and
+the rules governing their creation, maintenance and validation.
+
+## Relationship Categories
+
+KnowledgeOS classifies relationships into five groups:
+
+1. Structural
+2. Semantic
+3. Referential
+4. Personal
+5. Derived
+
+### Structural
+
+Defines document composition.
+
+Examples:
+
+- contains
+- partOf
+- chapterOf
+- pageOf
+- sectionOf
+
+### Semantic
+
+Represents conceptual meaning.
+
+Examples:
+
+- cites
+- references
+- extends
+- contradicts
+- explains
+- supports
+- relatedTo
+
+### Referential
+
+Connects internal and external resources.
+
+Examples:
+
+- linksToPublication
+- linksToAsset
+- linksToExternalResource
+
+### Personal
+
+Created by the user.
+
+Examples:
+
+- favorite
+- readingList
+- manuallyRelated
+- personalCollection
+
+Personal relationships never modify publication semantics.
+
+### Derived
+
+Generated automatically.
+
+Examples:
+
+- embeddingSimilarity
+- entityLink
+- aiSuggestion
+- inferredRelationship
+
+Derived relationships are rebuildable.
+
+## Ownership
+
+| Relationship | Authority |
+|---|---|
+| Publication | Master Library |
+| Personal | User |
+| Derived | Processing Engine |
+
+## Invariants
+
+- Relationships are directed unless explicitly symmetric.
+- Stable identifiers are mandatory.
+- Circular references are allowed only when semantically valid.
+- Personal relationships remain isolated from publication data.
+- Derived relationships are reproducible.
+
+## Relationship with the Knowledge Graph
+
+All validated relationships may be projected into the Knowledge Graph.
+
+Projection does not change ownership or authority.
+
+## Related Documents
+
+- DomainModel.md
+- KnowledgeObject.md
+- Metadata.md
+- Provenance.md
+- KnowledgeLifecycle.md
+- GraphModel.md

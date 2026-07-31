@@ -344,3 +344,95 @@ Loss of provenance is considered partial loss of knowledge.
 This document defines the official provenance model of KnowledgeOS.
 
 Every Knowledge Object shall preserve a complete, immutable and append-only chain of custody throughout its lifetime.
+
+
+---
+
+# Architecture Alignment (V3.1)
+
+## Purpose
+
+Provenance records the origin, history and transformation chain of every
+Knowledge Object without modifying the original publication.
+
+## Provenance Scopes
+
+KnowledgeOS distinguishes four provenance scopes:
+
+1. Publication Provenance
+2. Acquisition Provenance
+3. Personal Knowledge Provenance
+4. Processing Provenance
+
+## Publication Provenance
+
+Maintained by the Master Library.
+
+Includes:
+
+- original source
+- publisher
+- authors
+- publication date
+- checksums
+- canonical identifier
+- import history
+
+## Acquisition Provenance
+
+Maintained independently by each Local Library.
+
+Includes:
+
+- acquisition date
+- acquisition source
+- local validation
+- local availability
+
+## Personal Provenance
+
+Tracks user-generated information:
+
+- annotations
+- notes
+- highlights
+- reading progress
+- collections
+- AI conversations
+
+Personal provenance never changes publication provenance.
+
+## Processing Provenance
+
+Every derived artifact records:
+
+- producing engine
+- engine version
+- processing parameters
+- timestamp
+- parent object identifier
+
+Examples:
+
+- OCR
+- embeddings
+- thumbnails
+- search indexes
+- UDM
+- DPM
+
+## Invariants
+
+- Provenance is append-only.
+- Original provenance is immutable.
+- Derived provenance is reproducible.
+- Every provenance record references a stable Knowledge Object identifier.
+- Personal provenance is synchronized independently from publication data.
+
+## Related Documents
+
+- DomainModel.md
+- KnowledgeObject.md
+- KnowledgeLifecycle.md
+- Metadata.md
+- Versioning.md

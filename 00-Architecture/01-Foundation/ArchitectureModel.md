@@ -7,7 +7,7 @@
 
 **Document:** Architecture Model
 
-**Version:** 3.0
+**Version:** 3.1
 
 **Status:** Approved
 
@@ -17,229 +17,350 @@
 
 # 1. Purpose
 
-This document defines the high-level architectural organization of KnowledgeOS.
+This document defines the architectural model of KnowledgeOS.
 
-It establishes:
+It establishes the major architectural layers, their responsibilities, their relationships and the principles governing the interaction between them.
 
-* the architectural layers;
-* the major system components;
-* the dependency model;
-* the responsibilities of each layer.
+The Architecture Model serves as the highest-level technical description of the platform.
 
-It does not describe implementation details.
-
-Implementation belongs to the Domain, Kernel, Platform and Integration sections.
+Every architectural decision shall conform to this model.
 
 ---
 
-# 2. Architectural Style
+# 2. Goals
 
-KnowledgeOS adopts a modular, layered and domain-driven architecture.
+The architecture has been designed to provide:
 
-The platform combines:
-
-* Domain-Driven Design (DDD);
-* CQRS;
-* Event-Driven Architecture;
-* Engine-Based Architecture;
-* Offline First;
-* Repository Pattern;
-* Plugin Architecture.
-
-These styles complement each other and are applied only where appropriate.
+- Offline-first operation.
+- Complete ownership of user knowledge.
+- Long-term maintainability.
+- High extensibility.
+- Strict modularity.
+- Platform independence.
+- Deterministic behavior.
+- Separation of concerns.
+- AI provider independence.
+- Storage independence.
+- Future scalability.
 
 ---
 
-# 3. Architectural Goals
+# 3. Architectural Style
 
-The architecture is designed to achieve:
+KnowledgeOS follows a layered modular architecture composed of independent engines communicating through explicit contracts.
 
-* long-term maintainability;
-* modularity;
-* scalability;
-* portability;
-* extensibility;
-* resilience;
-* offline operation;
-* user ownership of data.
+The platform is organized around business capabilities rather than technical frameworks.
 
-Every architectural decision shall support one or more of these goals.
+Each module owns a well-defined responsibility and exposes only public contracts.
+
+Dependencies always point toward more stable architectural layers.
 
 ---
 
 # 4. Architectural Layers
 
-KnowledgeOS is organized into seven architectural layers.
+KnowledgeOS is organized into the following architectural layers.
 
-```text
+```
 Foundation
-        │
-        ▼
+
+↓
+
 Domain
-        │
-        ▼
+
+↓
+
 Kernel
-        │
-        ▼
+
+↓
+
 Platform
-        │
-        ▼
+
+↓
+
 Integration
-        │
-        ▼
-Quality
-        │
-        ▼
-Architecture Views
+
+↓
+
+Execution
+
+↓
+
+Implementation
 ```
 
-Dependencies always flow downward.
+Each layer depends only on layers below it.
 
-Reverse dependencies are forbidden.
-
----
-
-# 5. Foundation Layer
-
-The Foundation layer defines:
-
-* product vision;
-* architectural model;
-* principles;
-* constraints;
-* quality attributes.
-
-It contains no implementation.
+No layer may bypass another layer.
 
 ---
 
-# 6. Domain Layer
+# 5. Foundation
 
-The Domain layer defines the business concepts of KnowledgeOS.
-
-Core concepts include:
-
-* Knowledge Object;
-* Knowledge Library;
-* Universal Document Model;
-* Knowledge Graph;
-* Identity;
-* Lifecycle;
-* Provenance.
-
-The Domain is independent of technology.
-
----
-
-# 7. Kernel Layer
-
-The Kernel provides the common infrastructure shared by all Engines.
-
-The Kernel includes:
-
-* Command Bus;
-* Query Bus;
-* Event Bus;
-* Workflow Engine;
-* Scheduler;
-* Dependency Injection;
-* Configuration;
-* Logging;
-* Observability.
-
-The Kernel contains no business logic.
-
----
-
-# 8. Platform Layer
-
-The Platform layer implements the functional capabilities of KnowledgeOS.
-
-Each capability is implemented by exactly one Engine.
-
-Current Engines are:
-
-* Library Engine;
-* Import Engine;
-* Render Engine;
-* Search Engine;
-* Annotation Engine;
-* Knowledge Engine;
-* AI Engine;
-* Sync Engine;
-* Export Engine;
-* Plugin Engine.
-
-Each Engine owns a single primary responsibility.
-
----
-
-# 9. Integration Layer
-
-The Integration layer isolates external dependencies.
+Foundation defines the architectural rules of the platform.
 
 It contains:
 
-* Public APIs;
-* Plugin SDK;
-* Storage adapters;
-* AI providers;
-* OCR providers;
-* synchronization providers;
-* external integrations.
+- Product Vision
+- Architecture Principles
+- Constraints
+- Quality Attributes
+- Architecture Model
 
-External technologies never affect the Domain directly.
+Foundation never contains implementation details.
 
 ---
 
-# 10. Quality Layer
+# 6. Domain
 
-The Quality layer defines the cross-cutting quality strategies.
+Domain defines the KnowledgeOS business model.
+
+It contains:
+
+- Universal Document Model (UDM)
+- Document Presentation Model (DPM)
+- Knowledge Objects
+- Identity Model
+- Knowledge Graph
+- Lifecycle
+- Domain Rules
+
+The Domain layer is completely independent from storage, UI, AI providers and infrastructure.
+
+---
+
+# 7. Kernel
+
+Kernel provides the execution infrastructure.
 
 It includes:
 
-* testing;
-* performance;
-* security;
-* privacy;
-* backup;
-* recovery;
-* observability.
+- Command Bus
+- Query Bus
+- Event Bus
+- Workflow Engine
+- Scheduler
+- Job System
+- Dependency Injection
+- Configuration
+- Logging
+- Observability
 
-These strategies apply to every architectural layer.
-
----
-
-# 11. Architecture Views
-
-The Architecture Views provide different perspectives of the system.
-
-They include:
-
-* ADR;
-* C4;
-* UML.
-
-Views describe the architecture.
-
-They never define it.
+Kernel contains no business logic.
 
 ---
 
-# 12. Core Architectural Components
+# 8. Platform
 
-The platform is organized around five major architectural building blocks.
+Platform implements business capabilities through specialized Engines.
 
-```text
-Knowledge Library
+Examples include:
+
+- Library Engine
+- Import Engine
+- Export Engine
+- Search Engine
+- Annotation Engine
+- AI Engine
+- Plugin Engine
+- Rendering Engine
+- Synchronization Engine
+
+Each Engine owns a single capability.
+
+Engines communicate only through Kernel contracts.
+
+---
+
+# 9. Integration
+
+Integration connects KnowledgeOS with external systems.
+
+Examples include:
+
+- AI Providers
+- OCR Providers
+- Storage Providers
+- Export Providers
+- Public APIs
+- Plugin SDK
+- External Services
+
+Integration never contains business logic.
+
+---
+
+# 10. Execution
+
+Execution defines runtime behavior.
+
+It includes:
+
+- concurrency;
+- transactions;
+- messaging;
+- scheduling;
+- recovery;
+- caching;
+- execution profiles;
+- runtime lifecycle.
+
+Execution guarantees deterministic behavior independently of implementation.
+
+---
+
+# 11. Implementation
+
+Implementation translates architecture into software modules.
+
+Each implementation module must remain fully compliant with every architectural layer above it.
+
+Implementation details shall never redefine architectural concepts.
+
+---
+
+# 12. Knowledge Architecture
+
+KnowledgeOS distinguishes three independent knowledge scopes.
+
+## 12.1 Master Library
+
+The Master Library represents the canonical repository of publications.
+
+Characteristics:
+
+- hosted by KnowledgeOS Server;
+- stored on the NAS;
+- Source of Truth;
+- authoritative publication catalog;
+- authoritative publication files;
+- authoritative publication metadata.
+
+The Master Library never stores personal knowledge.
+
+---
+
+## 12.2 Local Libraries
+
+Each client device owns an independent Local Library.
+
+A Local Library contains:
+
+- selected publications;
+- local indexes;
+- OCR;
+- AI artifacts;
+- thumbnails;
+- previews;
+- local metadata;
+- user knowledge.
+
+A Local Library is intentionally selective.
+
+It is not a replica of the Master Library.
+
+---
+
+## 12.3 Personal Knowledge
+
+Personal Knowledge represents information generated by the user.
+
+Examples include:
+
+- annotations;
+- highlights;
+- bookmarks;
+- notes;
+- reading progress;
+- favorites;
+- collections;
+- AI conversations;
+- generated summaries;
+- flashcards.
+
+Personal Knowledge belongs exclusively to the user.
+
+---
+
+# 13. Acquisition Model
+
+Publication acquisition follows this flow.
+
+```
+Master Library
 
 ↓
 
-Knowledge Objects
+Publication Discovery
 
 ↓
 
-Universal Document Model
+Explicit Acquisition
+
+↓
+
+Local Library
+```
+
+Acquisition is always explicit.
+
+Acquisition is never synchronization.
+
+---
+
+# 14. Synchronization Model
+
+Knowledge synchronization follows a completely different flow.
+
+```
+Local Library
+
+↓
+
+Personal Knowledge
+
+↓
+
+iCloud / CloudKit
+
+↓
+
+Other Local Libraries
+```
+
+Publication files are never synchronized through iCloud.
+
+Only Personal Knowledge is synchronized.
+
+The Master Library never participates in synchronization.
+
+---
+
+# 15. Ownership Model
+
+Ownership is clearly separated.
+
+| Resource             | Owner          |
+| -------------------- | -------------- |
+| Publications         | Master Library |
+| Publication Metadata | Master Library |
+| Local Files          | Local Library  |
+| Personal Knowledge   | User           |
+| Synchronization      | Sync Engine    |
+| Derived Artifacts    | Local Library  |
+
+---
+
+# 16. Dependency Rules
+
+Every dependency shall respect the following order.
+
+```
+Foundation
+
+↓
+
+Domain
 
 ↓
 
@@ -247,229 +368,74 @@ Kernel
 
 ↓
 
-Platform Engines
+Platform
+
+↓
+
+Integration
+
+↓
+
+Execution
+
+↓
+
+Implementation
 ```
 
-These components represent the architectural backbone of KnowledgeOS.
-
----
-
-# 13. Knowledge Flow
-
-The logical lifecycle of knowledge is:
-
-```text
-Physical Source
-
-↓
-
-Import
-
-↓
-
-Knowledge Object
-
-↓
-
-Universal Document Model
-
-↓
-
-Repositories
-
-↓
-
-Knowledge Graph
-
-↓
-
-Search
-
-↓
-
-Rendering
-
-↓
-
-Export
-```
-
-This flow represents the conceptual evolution of information.
-
-It is independent of implementation.
-
----
-
-# 14. Dependency Rules
-
-The following dependency rules are mandatory.
-
-## Foundation
-
-May not depend on any lower layer.
-
----
-
-## Domain
-
-May depend only on Foundation.
-
----
-
-## Kernel
-
-May depend on Foundation and Domain.
-
----
-
-## Platform
-
-May depend on Foundation, Domain and Kernel.
-
-Platform Engines communicate through public contracts.
-
-Direct Engine-to-Engine implementation dependencies are forbidden.
-
----
-
-## Integration
-
-May depend on all previous layers.
-
-No lower layer depends on Integration.
-
----
-
-## Quality
-
-Defines strategies only.
-
-It introduces no business dependencies.
-
----
-
-# 15. Architectural Building Blocks
-
-The architecture is composed of the following building blocks.
-
-## Knowledge Library
-
-The user's complete knowledge repository.
-
----
-
-## Knowledge Object
-
-The fundamental unit of managed knowledge.
-
----
-
-## Universal Document Model
-
-The canonical logical representation.
-
----
-
-## Repositories
-
-Persistent storage abstractions.
-
-Including:
-
-* Object Repository;
-* Asset Repository;
-* Journal Repository;
-* Index Repository;
-* Configuration Repository;
-* Backup Repository.
-
----
-
-## Kernel
-
-Shared infrastructure.
-
----
-
-## Engines
-
-Functional capabilities.
-
----
-
-## Providers
-
-Replaceable integrations.
-
----
-
-## Plugins
-
-External extensions.
-
----
-
-# 16. Cross-Cutting Concerns
-
-The following concerns affect every architectural layer:
-
-* identity;
-* security;
-* provenance;
-* logging;
-* observability;
-* versioning;
-* configuration;
-* error handling.
-
-Their implementation is defined in dedicated specifications.
+No module may introduce cyclic dependencies.
 
 ---
 
 # 17. Architectural Invariants
 
-The following rules shall never be violated.
+The following rules are mandatory.
 
-* Every Knowledge Object has a permanent identity.
-* Every Library has exactly one Source of Truth.
-* Every Engine owns one primary capability.
-* Every public interaction occurs through contracts.
-* Every persistent modification is traceable.
-* Every imported source preserves provenance.
-* Every Platform capability is available offline whenever technically feasible.
-* Every architectural concept has a single authoritative definition.
-
-These invariants define the stability of the platform.
-
----
-
-# 18. Relationship to Other Documents
-
-This document is refined by:
-
-* ArchitecturePrinciples.md
-* ArchitectureConstraints.md
-* QualityAttributes.md
-* DomainModel.md
-* ADR
-
-It is implemented by:
-
-* Kernel
-* Platform
-* Integration
+- Offline First.
+- User Ownership.
+- Source of Truth.
+- Explicit Acquisition.
+- Independent Local Libraries.
+- Personal Knowledge Isolation.
+- Deterministic Execution.
+- Immutable Identities.
+- Rebuildable Derived Artifacts.
+- Engine Isolation.
 
 ---
 
-# 19. Related Documents
+# 18. Architectural Evolution
 
-* ProductVision.md
-* ArchitecturePrinciples.md
-* ArchitectureConstraints.md
-* QualityAttributes.md
-* ../02-Domain/DomainModel.md
-* ../03-Kernel/KernelArchitecture.md
-* ../04-Platform/README.md
+The architecture is expected to evolve through ADRs.
+
+Architectural evolution shall preserve:
+
+- compatibility;
+- modularity;
+- determinism;
+- ownership boundaries;
+- architectural independence.
+
+---
+
+# 19. References
+
+- Product Vision
+- Architecture Principles
+- Architecture Constraints
+- Quality Attributes
+- ADR-001
+- ADR-003
+- ADR-004
+- ADR-005
+- ADR-006
+- ADR-007
+- ADR-008
+- ADR-009
+- ADR-010
+- ADR-011
+- ADR-012
+- ADR-013
 
 ---
 
@@ -477,6 +443,6 @@ It is implemented by:
 
 **Approved**
 
-This document defines the official architectural organization of KnowledgeOS.
+This document defines the official architectural model of KnowledgeOS.
 
-Every architectural component, Engine, Repository and specification shall conform to this model.
+Every document in the Architecture and Implementation sections shall conform to this model.

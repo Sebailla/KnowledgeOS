@@ -6,11 +6,9 @@
 
 **Document:** Domain Model
 
-**Version:** 3.0
+**Version:** 3.1
 
 **Status:** Approved
-
-**Author:** KnowledgeOS Team
 
 ---
 
@@ -18,446 +16,188 @@
 
 This document defines the conceptual domain model of KnowledgeOS.
 
-The Domain Model identifies the fundamental business concepts managed by the platform and the relationships between them.
+It identifies the primary business concepts, their relationships, ownership boundaries and lifecycle rules independently of implementation technologies.
 
-It is independent of:
-
-* programming languages;
-* databases;
-* frameworks;
-* operating systems;
-* storage technologies.
-
-The Domain Model represents the conceptual truth of the platform.
+The Domain Model is the semantic foundation of the platform.
 
 ---
 
-# 2. Scope
+# 2. Core Principles
 
-The Domain Model defines:
+The Domain is technology independent.
 
-* Entities;
-* Aggregates;
-* Value Objects;
-* Domain Relationships;
-* Ownership boundaries;
-* Domain invariants.
+The Domain shall not depend on:
 
-Implementation details are intentionally excluded.
-
----
-
-# 3. Design Philosophy
-
-KnowledgeOS is not a document management system.
-
-It is a knowledge management platform.
-
-The platform does not manage files.
-
-It manages **Knowledge Objects**.
-
-Physical files are merely one possible origin of knowledge.
+- databases
+- UI frameworks
+- operating systems
+- AI providers
+- storage engines
+- synchronization technologies
 
 ---
 
-# 4. Domain Overview
+# 3. Top-Level Domain
 
-The conceptual model is intentionally simple.
-
-```text
-Knowledge Library
-        │
-        ├──────────────┐
-        ▼              ▼
-Knowledge Objects   Collections
-        │
-        ▼
-Universal Document Model
-        │
-        ▼
-Knowledge Graph
-        │
-        ▼
-Semantic Relationships
+```
+Knowledge Space
+│
+├── Master Library
+│
+├── Local Libraries
+│
+├── Personal Knowledge
+│
+├── Workspaces
+│
+└── Knowledge Graph
 ```
 
-Everything originates from the Knowledge Library.
+Knowledge Space represents the complete logical knowledge owned by the user.
 
 ---
 
-# 5. Aggregate Root
+# 4. Master Library
 
-The primary aggregate root of the platform is:
-
-## Knowledge Library
-
-The Knowledge Library represents the complete personal knowledge space of a user.
-
-It owns:
-
-* Knowledge Objects;
-* Collections;
-* Workspaces;
-* Configuration;
-* Repositories.
-
-A Knowledge Object never exists outside a Library.
-
----
-
-# 6. Core Entities
-
-The Domain defines the following primary entities.
-
-## Knowledge Library
-
-Represents the complete managed knowledge space.
+The Master Library is hosted by the KnowledgeOS Server running on the user's NAS.
 
 Responsibilities:
 
-* organize Knowledge Objects;
-* coordinate repositories;
-* preserve integrity;
-* define the Source of Truth.
+- Master Catalog
+- Source publications
+- Publication metadata
+- Publication versions
+- Publication delivery
+
+The Master Library is authoritative only for publication-related information.
+
+It never stores personal knowledge.
 
 ---
 
-## Knowledge Object
+# 5. Local Library
 
-Represents one logical unit of knowledge.
+Every client owns an independent Local Library.
 
-Responsibilities:
+A Local Library:
 
-* preserve content;
-* preserve identity;
-* preserve provenance;
-* preserve metadata;
-* expose the Universal Document Model.
+- contains only acquired publications;
+- supports complete offline operation;
+- maintains local indexes;
+- maintains derived artifacts;
+- stores local working state.
 
-A Knowledge Object is independent of its physical source.
-
----
-
-## Collection
-
-Represents a logical grouping of Knowledge Objects.
-
-Collections do not own Knowledge Objects.
-
-They define organizational views.
+Local Libraries are not replicas of the Master Library.
 
 ---
 
-## Workspace
+# 6. Personal Knowledge
 
-Represents a temporary working context.
+Personal Knowledge represents user-created information.
 
-A Workspace groups:
+Examples include:
 
-* Knowledge Objects;
-* Collections;
-* searches;
-* navigation state;
-* user context.
+- annotations
+- highlights
+- bookmarks
+- reading progress
+- collections
+- notes
+- AI conversations
+- AI summaries
+- Apple Pencil annotations
 
-A Workspace never modifies the underlying Library structure.
-
----
-
-# 7. Derived Domain Objects
-
-The following concepts are derived from Knowledge Objects.
-
-They are not primary entities.
-
-## Universal Document Model
-
-Canonical representation of structured content.
+Personal Knowledge is synchronized independently of publication acquisition.
 
 ---
 
-## Knowledge Graph
+# 7. Knowledge Object
 
-Semantic representation extracted from Knowledge Objects.
+A Knowledge Object is the fundamental business entity.
 
----
+It has:
 
-## Search Index
+- immutable identity
+- provenance
+- lifecycle
+- metadata
+- relationships
+- assets
 
-Derived search structures.
-
----
-
-## Embeddings
-
-Derived semantic representations.
-
----
-
-## Render Views
-
-Visual representations generated from the UDM.
+Knowledge Objects exist independently of storage technologies.
 
 ---
 
-# 8. Value Objects
+# 8. Canonical Models
 
-The Domain defines immutable Value Objects.
+KnowledgeOS defines two canonical models.
 
-## Identity
+## UDM
 
-Represents permanent identity.
+Canonical semantic representation.
 
-Examples:
+## DPM
 
-* KnowledgeObjectID
-* AssetID
-* NodeID
-* WorkflowID
+Canonical presentation representation.
 
----
-
-## Metadata
-
-Describes a Knowledge Object.
-
-Examples:
-
-* title;
-* author;
-* language;
-* publication date;
-* import date.
+Neither replaces the original publication.
 
 ---
 
-## Provenance
+# 9. Authority Model
 
-Represents the origin and transformation history of knowledge.
+Authority is defined by information scope.
 
----
-
-## Version
-
-Represents logical version information.
-
----
-
-## Position
-
-Represents a stable location within a Knowledge Object.
+| Scope | Authority |
+|-------|-----------|
+| Publications | Master Library |
+| Local availability | Local Library |
+| Personal knowledge | Originating device until synchronized |
+| Derived artifacts | None |
 
 ---
 
-## Relationship
+# 10. Domain Invariants
 
-Represents semantic connections.
+The following invariants shall always hold.
 
----
-
-# 9. Ownership
-
-Ownership is explicit.
-
-| Object           | Owner             |
-| ---------------- | ----------------- |
-| Knowledge Object | Knowledge Library |
-| Collection       | Knowledge Library |
-| Workspace        | Knowledge Library |
-| Asset            | Asset Repository  |
-| Annotation       | Knowledge Object  |
-| UDM              | Knowledge Object  |
-| Knowledge Graph  | Knowledge Engine  |
-| Search Index     | Search Engine     |
-
-Ownership shall never be ambiguous.
+1. A publication belongs to exactly one Master Library.
+2. Local Libraries never become canonical.
+3. Acquisition is explicit.
+4. Synchronization never transfers publication ownership.
+5. Personal Knowledge never enters the Master Library.
+6. Derived artifacts are rebuildable.
+7. Knowledge Object identity is immutable.
+8. Canonical models remain technology independent.
 
 ---
 
-# 10. Domain Relationships
+# 11. Domain Events
 
-```text
-Knowledge Library
-
-├── owns → Knowledge Objects
-
-├── owns → Collections
-
-├── owns → Workspaces
-
-│
-
-Knowledge Object
-
-├── contains → UDM
-
-├── references → Assets
-
-├── owns → Metadata
-
-├── owns → Provenance
-
-└── owns → Annotations
-
-│
-
-Knowledge Graph
-
-└── derives from → Knowledge Objects
-```
-
-Derived objects never become owners.
+- PublicationAcquired
+- PublicationRemoved
+- AnnotationCreated
+- AnnotationUpdated
+- BookmarkCreated
+- ReadingProgressUpdated
+- CollectionModified
+- PersonalStateSynchronized
 
 ---
 
-# 11. Domain Invariants
+# 12. Relationships
 
-The following invariants are permanent.
-
-## Knowledge Object Identity
-
-Every Knowledge Object has exactly one immutable identity.
-
----
-
-## Library Ownership
-
-Every Knowledge Object belongs to exactly one Knowledge Library.
+- Master Library manages Publications.
+- Local Libraries acquire Publications.
+- Publications generate Knowledge Objects.
+- Knowledge Objects are represented by UDM and DPM.
+- Personal Knowledge references Knowledge Objects.
+- Knowledge Graph connects Knowledge Objects.
 
 ---
 
-## Canonical Representation
+# 13. Status
 
-Every Knowledge Object contains exactly one UDM.
+Approved.
 
----
-
-## Provenance
-
-Every imported Knowledge Object preserves provenance.
-
----
-
-## Source of Truth
-
-Every Knowledge Library has exactly one Source of Truth.
-
----
-
-## Derived Knowledge
-
-The Knowledge Graph is always derived.
-
-It never replaces the UDM.
-
----
-
-# 12. Aggregate Boundaries
-
-The Domain defines the following aggregates.
-
-```text
-Knowledge Library
-│
-├── Knowledge Objects
-├── Collections
-└── Workspaces
-```
-
-Each Knowledge Object is internally consistent.
-
-Cross-object consistency is managed by the Library.
-
----
-
-# 13. Domain Services
-
-Some responsibilities belong to services rather than entities.
-
-Examples:
-
-* Import;
-* Search;
-* Synchronization;
-* Rendering;
-* Export;
-* AI.
-
-These services belong to Platform Engines and are not part of the Domain Model.
-
----
-
-# 14. Domain Events
-
-Examples of domain events include:
-
-* KnowledgeObjectImported
-* KnowledgeObjectUpdated
-* AnnotationCreated
-* CollectionCreated
-* WorkspaceOpened
-* LibrarySynchronized
-
-Domain events describe facts.
-
-They do not execute behavior.
-
----
-
-# 15. Domain Boundaries
-
-The Domain does not know:
-
-* SQLite;
-* JSON;
-* REST;
-* Swift;
-* macOS;
-* AI Providers;
-* Storage Engines;
-* Network Protocols.
-
-These concerns belong to lower architectural layers.
-
----
-
-# 16. Relationship with Other Documents
-
-The Domain Model is refined by:
-
-* KnowledgeLifecycle.md
-* KnowledgeObject/
-* UDM/
-* KnowledgeGraph/
-* Identity/
-
-It is implemented through:
-
-* Library Engine;
-* Knowledge Engine;
-* Search Engine;
-* Annotation Engine;
-* Sync Engine.
-
----
-
-# 17. Related Documents
-
-* ../01-Foundation/ArchitectureModel.md
-* KnowledgeLifecycle.md
-* EngineResponsibilities.md
-* KnowledgeObject/
-* UDM/
-* KnowledgeGraph/
-* Identity/
-
----
-
-# 18. Status
-
-**Approved**
-
-This document defines the official conceptual domain model of KnowledgeOS.
-
-All lower-level architectural artifacts shall preserve the concepts and relationships established here.
+This document supersedes previous Domain models based on a single synchronized Knowledge Library and aligns the domain with ADR-013, scoped authority, explicit acquisition and personal-state synchronization.

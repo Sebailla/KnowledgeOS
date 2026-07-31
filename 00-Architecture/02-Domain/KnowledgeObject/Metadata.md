@@ -329,3 +329,42 @@ It is never authoritative over canonical content.
 This document defines the official metadata model for Knowledge Objects within KnowledgeOS.
 
 Metadata shall remain structured, extensible and independent of both canonical content and implementation technologies.
+
+
+---
+
+# Architecture Alignment (V3.1)
+
+## Metadata Categories
+
+KnowledgeOS distinguishes the following metadata categories:
+
+1. Publication Metadata
+2. Acquisition Metadata
+3. Personal Metadata
+4. Processing Metadata
+5. Derived Metadata
+
+## Ownership
+
+| Metadata | Authority |
+|---|---|
+| Publication | Master Library |
+| Acquisition | Local Library |
+| Personal | User |
+| Derived | Rebuildable |
+
+## Invariants
+
+- Publication metadata is immutable except through the Master Library.
+- Personal metadata never modifies publication metadata.
+- Derived metadata may be regenerated at any time.
+- Metadata identifiers are globally unique and stable.
+
+## Synchronization
+
+Publication metadata is distributed from the Master Library.
+
+Personal metadata is synchronized independently between user devices.
+
+Derived metadata is regenerated locally whenever necessary.

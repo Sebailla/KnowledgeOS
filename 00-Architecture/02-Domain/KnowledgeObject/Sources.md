@@ -304,3 +304,116 @@ The Import Engine is responsible for transforming sources into Knowledge Objects
 This document defines the Knowledge Source model used by KnowledgeOS.
 
 Every Knowledge Object originates from one or more Knowledge Sources, which remain permanently identifiable, immutable and traceable throughout the lifetime of the object.
+
+
+---
+
+# Architecture Alignment (V3.1)
+
+## Purpose
+
+This document defines every supported source from which Knowledge Objects may
+originate and the rules governing acquisition, validation and traceability.
+
+## Source Categories
+
+KnowledgeOS recognizes five source categories:
+
+1. Primary Sources
+2. Imported Sources
+3. External References
+4. User Sources
+5. Generated Sources
+
+### Primary Sources
+
+Authoritative publications managed by the Master Library.
+
+Examples:
+
+- PDF
+- EPUB
+- Markdown
+- HTML
+- Images
+- Audio
+- Video
+
+### Imported Sources
+
+Objects explicitly acquired into a Local Library.
+
+Acquisition never changes publication authority.
+
+### External References
+
+Resources that remain outside KnowledgeOS.
+
+Examples:
+
+- URLs
+- DOI
+- ISBN
+- Git repositories
+- Cloud documents
+
+### User Sources
+
+Created directly by the user.
+
+Examples:
+
+- Notes
+- Annotations
+- Drawings
+- Apple Pencil content
+- Collections
+
+### Generated Sources
+
+Produced by processing engines.
+
+Examples:
+
+- OCR output
+- UDM
+- DPM
+- Embeddings
+- Search indexes
+- AI summaries
+
+Generated sources are always reproducible.
+
+## Source Authority
+
+| Source | Authority |
+|---|---|
+| Publication | Master Library |
+| Acquired Copy | Local Library |
+| User Content | User |
+| Generated Artifacts | Processing Engine |
+
+## Provenance Rules
+
+Every source shall record:
+
+- stable identifier
+- origin
+- acquisition timestamp
+- checksum (when applicable)
+- producing engine (if derived)
+
+## Invariants
+
+- Original sources are immutable.
+- Generated sources never replace originals.
+- Every Knowledge Object references at least one source.
+- Sources preserve full provenance.
+
+## Related Documents
+
+- KnowledgeObject.md
+- Metadata.md
+- Provenance.md
+- Versioning.md
+- DomainModel.md

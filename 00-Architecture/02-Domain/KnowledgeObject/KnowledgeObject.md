@@ -300,7 +300,7 @@ Every Knowledge Object preserves complete provenance.
 
 ## Ownership
 
-Every Knowledge Object belongs to exactly one Knowledge Library.
+Every Knowledge Object is published by exactly one Master Library. A Knowledge Object may be acquired by multiple Local Libraries. Personal Knowledge never changes publication ownership.
 
 ---
 
@@ -369,7 +369,7 @@ No Engine may violate the aggregate invariants.
 
 # 18. Aggregate Ownership
 
-The Knowledge Object is owned by exactly one Knowledge Library.
+The Knowledge Object is owned by exactly one Knowledge Space.
 
 The Library coordinates multiple aggregates.
 
@@ -399,3 +399,35 @@ The Knowledge Object guarantees its own internal consistency.
 This document defines the Knowledge Object as the canonical aggregate of the KnowledgeOS domain.
 
 Every Engine, Repository and Specification shall preserve the invariants and responsibilities established by this document.
+
+
+---
+
+# Architecture Alignment (V3.1)
+
+## Authority Model
+
+KnowledgeOS separates authority by scope:
+
+| Scope | Authority |
+|---|---|
+| Publications | Master Library |
+| Acquired Copies | Local Libraries |
+| Personal Knowledge | User |
+| Derived Artifacts | Rebuildable |
+
+## Acquisition
+
+Publication acquisition is explicit. Local Libraries never become authoritative sources.
+
+## Personal Knowledge
+
+Annotations, notes, highlights, reading progress and AI conversations are synchronized independently from publication acquisition.
+
+## Lifecycle
+
+This document follows the lifecycle defined in `KnowledgeLifecycle.md`:
+
+- Publication Lifecycle
+- Personal Knowledge Lifecycle
+- Canonical Processing Lifecycle

@@ -1,4 +1,3 @@
-
 # Knowledge Lifecycle
 
 **Project:** KnowledgeOS
@@ -7,407 +6,221 @@
 
 **Document:** Knowledge Lifecycle
 
-**Version:** 3.0
+**Version:** 3.1
 
 **Status:** Approved
-
-**Author:** KnowledgeOS Team
 
 ---
 
 # 1. Purpose
 
-This document defines the complete lifecycle of a Knowledge Object.
+This document defines the lifecycle of every Knowledge Object, publication and user-generated knowledge managed by KnowledgeOS.
 
-The lifecycle describes how knowledge evolves from an external physical source into a permanent element of the user's Knowledge Library.
-
-It establishes:
-
-* lifecycle stages;
-* state transitions;
-* ownership changes;
-* derived artifact generation;
-* domain invariants.
-
-The lifecycle is independent of implementation technologies.
+The lifecycle is independent of storage technologies and execution platforms.
 
 ---
 
 # 2. Scope
 
-This lifecycle applies to every Knowledge Object regardless of its origin.
+This document applies to:
 
-Supported sources include:
-
-* PDF;
-* EPUB;
-* Markdown;
-* DOCX;
-* HTML;
-* CHM;
-* Images;
-* Plain text;
-* Future supported formats.
-
----
-
-# 3. Lifecycle Overview
-
-Every Knowledge Object follows the same conceptual lifecycle.
-
-```text
-Physical Source
-        │
-        ▼
-Import
-        │
-        ▼
-Normalization
-        │
-        ▼
-Knowledge Object
-        │
-        ▼
-Enrichment
-        │
-        ▼
-Organization
-        │
-        ▼
-Usage
-        │
-        ▼
-Synchronization
-        │
-        ▼
-Preservation
-        │
-        ▼
-Archive
-```
-
-The stages represent conceptual evolution rather than implementation steps.
+- Master Library
+- Local Libraries
+- Knowledge Objects
+- UDM
+- DPM
+- Personal Knowledge
+- Workflow Engine
+- Import Engine
+- Library Engine
+- Sync Engine
 
 ---
 
-# 4. Physical Source
+# 3. Lifecycle Model
 
-Knowledge initially exists outside the platform.
+KnowledgeOS defines three independent lifecycles:
+
+1. Publication Lifecycle
+2. Personal Knowledge Lifecycle
+3. Canonical Processing Lifecycle
+
+These lifecycles interact but never replace each other.
+
+---
+
+# 4. Publication Lifecycle
+
+States:
+
+1. Discovered
+2. Imported
+3. Validated
+4. Registered
+5. Published (Master Library)
+6. Acquired (Local Library)
+7. Archived
+8. Removed
+
+Rules:
+
+- Import does not imply acquisition.
+- Acquisition does not modify the Master Library.
+- A publication may exist in the Master Library without existing in any Local Library.
+- Removal from one Local Library does not remove the publication from the Master Library.
+
+---
+
+# 5. Personal Knowledge Lifecycle
+
+States:
+
+1. Created
+2. Modified
+3. Stored Locally
+4. Pending Synchronization
+5. Synchronized
+6. Merged
+7. Historical
+
+Rules:
+
+- Personal Knowledge belongs to the user.
+- Personal Knowledge never becomes part of the Master Library.
+- Synchronization distributes only personal state.
+- Conflicts are resolved by Sync Engine policies.
 
 Examples:
 
-* book;
-* article;
-* scanned document;
-* web page;
-* research paper;
-* note;
-* manual.
-
-The platform never modifies the original source.
-
-The original source remains immutable.
+- annotations
+- highlights
+- bookmarks
+- notes
+- collections
+- reading progress
+- AI conversations
 
 ---
 
-# 5. Import
+# 6. Canonical Processing Lifecycle
 
-Import creates the first internal representation.
+Flow:
 
-Responsibilities:
+Source Publication
 
-* identify source type;
-* validate input;
-* create provenance;
-* assign permanent identity;
-* initiate normalization.
+↓
 
-Output:
+Extraction
 
-A preliminary Knowledge Object.
+↓
 
----
+Classification
 
-# 6. Normalization
+↓
 
-Normalization transforms heterogeneous formats into a common representation.
+Canonical UDM
 
-Responsibilities:
+↓
 
-* structural analysis;
-* metadata extraction;
-* OCR when required;
-* layout interpretation;
-* conversion to UDM.
+Canonical DPM
 
-Normalization completes when a valid Universal Document Model exists.
+↓
 
----
+Knowledge Graph
 
-# 7. Knowledge Object Creation
+↓
 
-Once normalization succeeds:
+Indexes
 
-* permanent identity is assigned;
-* provenance becomes immutable;
-* metadata is established;
-* repositories receive the object;
-* indexing may begin.
+↓
 
-The Knowledge Object becomes part of the Knowledge Library.
+Derived Artifacts
+
+Rules:
+
+- Source publications remain authoritative.
+- UDM and DPM are canonical models.
+- Indexes and embeddings are derived artifacts.
+- Derived artifacts are rebuildable.
 
 ---
 
-# 8. Enrichment
+# 7. Lifecycle Events
 
-Enrichment adds derived information.
+Publication:
 
-Examples:
+- PublicationImported
+- PublicationValidated
+- PublicationRegistered
+- PublicationAcquired
+- PublicationArchived
+- PublicationRemoved
 
-* semantic entities;
-* relationships;
-* summaries;
-* classifications;
-* keywords;
-* embeddings.
+Personal:
 
-Enrichment never modifies canonical content.
+- AnnotationCreated
+- AnnotationUpdated
+- BookmarkCreated
+- ReadingProgressUpdated
+- CollectionModified
+- PersonalStateSynchronized
 
-Derived knowledge remains replaceable.
+Processing:
 
----
-
-# 9. Organization
-
-Knowledge becomes part of the user's conceptual organization.
-
-Examples:
-
-* Collections;
-* Workspaces;
-* Links;
-* References;
-* Tags (if supported);
-* User-defined relationships.
-
-Organization affects navigation, not identity.
+- CanonicalizationStarted
+- CanonicalizationCompleted
+- IndexGenerated
+- EmbeddingGenerated
 
 ---
 
-# 10. Usage
+# 8. Invariants
 
-During its active lifetime a Knowledge Object may be:
-
-* opened;
-* searched;
-* rendered;
-* annotated;
-* linked;
-* exported;
-* referenced.
-
-Usage never changes provenance.
+- Publication identity is immutable.
+- Knowledge Object identity is immutable.
+- Personal Knowledge never changes publication authority.
+- Acquisition is explicit.
+- Synchronization never transfers publication ownership.
+- Derived artifacts never become canonical.
 
 ---
 
-# 11. Annotation
+# 9. Failure Recovery
 
-Annotations represent user knowledge added to the object.
+The architecture supports recovery through:
 
-Examples:
-
-* highlights;
-* notes;
-* ink;
-* bookmarks.
-
-Annotations are logically independent from canonical content.
+- replayable workflows;
+- idempotent operations;
+- publication reacquisition;
+- personal-state synchronization;
+- regeneration of indexes, embeddings and thumbnails.
 
 ---
 
-# 12. Synchronization
+# 10. Relationship with Engines
 
-Working Copies synchronize with the Source of Truth.
+Import Engine:
+imports publications.
 
-Synchronization preserves:
+Library Engine:
+manages Master and Local Libraries.
 
-* identity;
-* provenance;
-* annotations;
-* metadata;
-* versions.
+Workflow Engine:
+coordinates transitions.
 
-Synchronization never changes logical ownership.
+Sync Engine:
+synchronizes personal knowledge.
 
----
+Search Engine:
+rebuilds indexes.
 
-# 13. Preservation
-
-Knowledge Objects are preserved indefinitely.
-
-Preservation includes:
-
-* identity;
-* metadata;
-* provenance;
-* annotations;
-* UDM;
-* relationships.
-
-Preservation is independent of rendering technology.
+AI Engine:
+creates optional derived artifacts.
 
 ---
 
-# 14. Archive
+# 11. Status
 
-A Knowledge Object may become inactive.
+Approved.
 
-Archived objects:
-
-* remain searchable;
-* preserve identity;
-* preserve provenance;
-* preserve references.
-
-Archiving never deletes knowledge.
-
----
-
-# 15. Removal
-
-Removal is exceptional.
-
-Logical deletion is preferred.
-
-Permanent deletion requires explicit user action.
-
-Deletion shall preserve auditability whenever possible.
-
----
-
-# 16. Derived Artifacts
-
-The following artifacts are derived from a Knowledge Object:
-
-* Search Index;
-* Knowledge Graph;
-* Embeddings;
-* Render Views;
-* AI Summaries;
-* OCR corrections.
-
-Derived artifacts may be regenerated.
-
-The Knowledge Object remains authoritative.
-
----
-
-# 17. State Model
-
-Conceptually, a Knowledge Object progresses through these states.
-
-```text
-Imported
-      │
-      ▼
-Normalized
-      │
-      ▼
-Managed
-      │
-      ▼
-Enriched
-      │
-      ▼
-Active
-      │
-      ▼
-Archived
-```
-
-Transitions are monotonic.
-
-The object never returns to a pre-import state.
-
----
-
-# 18. Lifecycle Invariants
-
-The following invariants apply throughout the lifecycle.
-
-## Identity
-
-The KnowledgeObjectID never changes.
-
----
-
-## Provenance
-
-The original source is never lost.
-
----
-
-## Canonical Representation
-
-The UDM remains the authoritative structured representation.
-
----
-
-## Ownership
-
-The Knowledge Library always owns the Knowledge Object.
-
----
-
-## Derived Knowledge
-
-Derived artifacts never replace canonical knowledge.
-
----
-
-## Traceability
-
-Every transformation remains traceable.
-
----
-
-# 19. Relationship to Platform Engines
-
-Lifecycle stages are implemented by different Engines.
-
-| Lifecycle Stage | Primary Engine               |
-| --------------- | ---------------------------- |
-| Import          | Import Engine                |
-| Normalization   | Import Engine                |
-| Creation        | Library Engine               |
-| Enrichment      | Knowledge Engine / AI Engine |
-| Organization    | Library Engine               |
-| Usage           | Render, Search, Annotation   |
-| Synchronization | Sync Engine                  |
-| Preservation    | Library Engine               |
-| Archive         | Library Engine               |
-
-The lifecycle belongs to the Domain.
-
-Execution belongs to the Platform.
-
----
-
-# 20. Related Documents
-
-* DomainModel.md
-* EngineResponsibilities.md
-* KnowledgeObject/
-* UDM/
-* Identity/
-* ../01-Foundation/ArchitectureModel.md
-
----
-
-# 21. Status
-
-**Approved**
-
-This document defines the official lifecycle of Knowledge Objects within KnowledgeOS.
-
-Every Engine participating in the lifecycle shall preserve the stages, transitions and invariants defined here.
+This document supersedes previous lifecycle models based on a single synchronized library and aligns KnowledgeOS with ADR-013 and the Architecture V3 domain model.
