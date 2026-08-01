@@ -1,0 +1,28 @@
+{
+  "name": "knowledgeos",
+  "private": true,
+  "version": "5.0.0",
+  "packageManager": "pnpm@10.15.0",
+  "scripts": {
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "generate": "turbo run generate",
+    "validate": "turbo run validate",
+    "ci": "pnpm generate && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "validate:foundations": "pnpm --filter @knowledgeos/domain-types typecheck && pnpm --filter @knowledgeos/contracts typecheck",
+    "validate:kernel": "pnpm --filter @knowledgeos/kernel typecheck"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0",
+    "typescript": "^5.9.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.6.0",
+    "@changesets/cli": "^2.29.0"
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=10.0.0"
+  }
+}

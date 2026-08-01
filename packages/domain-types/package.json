@@ -1,0 +1,24 @@
+{
+  "name": "@knowledgeos/domain-types",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "node --test dist-test/test/domain-types.test.js",
+    "generate": "node -e \"process.exit(0)\"",
+    "validate": "pnpm typecheck"
+  },
+  "devDependencies": {
+    "typescript": "workspace:^"
+  }
+}
