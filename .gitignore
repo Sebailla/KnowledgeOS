@@ -1,6 +1,13 @@
-# Local Pi runtime state
-.atl/
-
-# Local GGA (Gentleman Guardian Angel) infrastructure
-# Each developer sets up their own provider/model in their environment
-.gga
+node_modules/
+.turbo/
+dist/
+build/
+.next/
+coverage/
+DerivedData/
+.swiftpm/
+.build/
+.env
+.env.*
+!.env.example
+.DS_Store
