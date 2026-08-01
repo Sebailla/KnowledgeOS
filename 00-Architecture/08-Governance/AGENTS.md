@@ -51,12 +51,12 @@ This guide applies to:
 
 ```text
 08-Governance/
-├── ArchitectureAmendment-v3.0-001.md
+├── ArchitectureAmendment-v4.0-001.md
 ├── ArchitectureBacklog.md
 ├── ArchitectureDecisionMatrix.md
-├── ArchitectureFreeze-v3.0.md
-├── ArchitectureReview-v3.0.md
-├── ArchitectureV3MigrationPlan.md
+├── ArchitectureFreeze-v4.0.md
+├── ArchitectureReview-v4.0.md
+├── ArchitectureV4MigrationPlan.md
 ├── ArchitectureVocabulary.md
 ├── DocumentationStandards.md
 ├── README.md
@@ -134,9 +134,9 @@ Before modifying any file in this directory, an agent shall read:
 1. repository root `AGENTS.md`;
 2. `00-Architecture/AGENTS.md`;
 3. this `AGENTS.md`;
-4. `08-Governance/README.md`;
-5. `ArchitectureFreeze-v3.0.md`;
-6. `ArchitectureReview-v3.0.md`;
+4. `README.md`;
+5. `ArchitectureFreeze-v4.0.md`;
+6. `ArchitectureReview-v4.0.md`;
 7. `ArchitectureDecisionMatrix.md`;
 8. `ArchitectureVocabulary.md`;
 9. `DocumentationStandards.md`;
@@ -311,7 +311,7 @@ Supersession shall identify:
 
 # 15. Architecture Freeze
 
-`ArchitectureFreeze-v3.0.md` defines the frozen architectural baseline for version 3.0.
+`ArchitectureFreeze-v4.0.md` defines the frozen architectural baseline for version 3.0.
 
 The freeze shall identify:
 
@@ -394,7 +394,7 @@ An Architecture Amendment records an approved modification to the frozen archite
 The current amendment series begins with:
 
 ```text
-ArchitectureAmendment-v3.0-001.md
+ArchitectureAmendment-v4.0-001.md
 ```
 
 Amendment numbering shall be:
@@ -490,7 +490,7 @@ Partial propagation is prohibited.
 
 # 24. Architecture Review
 
-`ArchitectureReview-v3.0.md` records the formal review of Architecture V3.
+`ArchitectureReview-v4.0.md` records the formal review of Architecture V3.
 
 A review shall evaluate:
 
@@ -1041,7 +1041,7 @@ Agents shall not weaken mandatory requirements through casual wording.
 
 # 55. Architecture Migration Plan
 
-`ArchitectureV3MigrationPlan.md` defines how earlier architecture and implementation artifacts transition to Architecture V3.
+`ArchitectureV4MigrationPlan.md` defines how earlier architecture and implementation artifacts transition to Architecture V3.
 
 It shall identify:
 

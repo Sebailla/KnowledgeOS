@@ -153,7 +153,7 @@ Before modifying any file in this directory, an agent shall read:
 1. repository root `AGENTS.md`;
 2. `01-Implementation/AGENTS.md`;
 3. this `AGENTS.md`;
-4. `00-Governance/README.md`;
+4. `README.md`;
 5. `ImplementationStrategy.md`;
 6. `ModuleDevelopmentLifecycle.md`;
 7. `DefinitionOfDone.md`;

@@ -269,7 +269,7 @@ Agents shall not introduce:
 
 # 8. Integration README
 
-`05-Integration/README.md` is the authoritative rector document for Integration.
+`README.md` is the authoritative rector document for Integration.
 
 It shall define:
 

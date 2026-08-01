@@ -471,4 +471,4 @@ The Master Library always remains the architectural Source of Truth.
 
 ---
 
-# End of `04-Platform/Library/AGENTS.md`
+# End of `AGENTS.md`

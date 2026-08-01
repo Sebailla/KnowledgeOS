@@ -128,7 +128,7 @@ Before making architectural or cross-module changes, read:
 3. `00-Architecture/01-Foundation/ArchitectureConstraints.md`
 4. `00-Architecture/01-Foundation/ArchitectureModel.md`
 5. `00-Architecture/01-Foundation/QualityAttributes.md`
-6. `00-Architecture/08-Governance/ArchitectureFreeze-v3.0.md`
+6. `00-Architecture/08-Governance/ArchitectureFreeze-v4.0.md`
 7. relevant ADRs under `00-Architecture/07-ArchitectureViews/ADR/`
 8. relevant architecture module documentation
 9. relevant diagrams

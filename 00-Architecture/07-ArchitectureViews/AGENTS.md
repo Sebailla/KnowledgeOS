@@ -153,7 +153,7 @@ Before modifying any file in this directory, an agent shall read:
 1. repository root `AGENTS.md`;
 2. `00-Architecture/AGENTS.md`;
 3. this `AGENTS.md`;
-4. `07-ArchitectureViews/README.md`;
+4. `README.md`;
 5. the architectural documents represented by the affected view;
 6. the related ADRs;
 7. the existing diagram source;

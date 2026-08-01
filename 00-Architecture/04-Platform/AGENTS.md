@@ -1120,7 +1120,7 @@ Directory reorganization shall not be mistaken for Engine restructuring.
 
 # 46. Platform README
 
-`04-Platform/README.md` is the authoritative rector document for all Engines.
+`README.md` is the authoritative rector document for all Engines.
 
 It shall define:
 

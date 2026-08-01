@@ -1046,13 +1046,13 @@ The following invariants apply.
 
 ## Architecture
 
-* `../00-Architecture/08-Governance/ArchitectureFreeze-v3.0.md`
-* `../00-Architecture/08-Governance/ArchitectureAmendment-v3.0-001.md`
+* `../00-Architecture/08-Governance/ArchitectureFreeze-v4.0.md`
+* `../00-Architecture/08-Governance/ArchitectureAmendment-v4.0-001.md`
 * `../00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
 
 ## Implementation Governance
 
-* `00-Governance/README.md`
+* `README.md`
 * `00-Governance/ImplementationStrategy.md`
 * `00-Governance/ModuleDevelopmentLifecycle.md`
 * `00-Governance/DefinitionOfDone.md`
