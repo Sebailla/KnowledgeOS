@@ -1,0 +1,18 @@
+@startuml LocalLibraryPart3_Sequence
+title KnowledgeOS — 30-LocalLibraryPart3 — Execution Sequence
+actor Consumer
+participant "Application Service" as App
+participant "Domain Rules" as Domain
+participant "Repository/Port" as Port
+participant "Event/Outbox" as Events
+Consumer -> App: request(context, input)
+App -> App: normalize + validate
+App -> Port: load required state
+Port --> App: state/version
+App -> Domain: plan transition
+Domain --> App: validated plan
+App -> Port: persist/execute(plan)
+Port --> App: durable result
+App -> Events: append event if applicable
+App --> Consumer: stable response
+@enduml

@@ -1,0 +1,15 @@
+@startuml 33-LocalLibraryPart6_Sequence
+title 33-LocalLibraryPart6 — Normative execution sequence
+actor Caller
+participant Runtime
+database LocalState
+participant Dependency
+Caller -> Runtime: request + trusted context
+Runtime -> Runtime: normalize and validate
+Runtime -> LocalState: load preconditions
+Runtime -> Dependency: bounded operation
+Dependency --> Runtime: result / acknowledgement
+Runtime -> LocalState: persist durable state
+Runtime -> Runtime: verify invariants
+Runtime --> Caller: result + diagnostics
+@enduml
