@@ -1,5 +1,5 @@
 {
-  "name": "@knowledgeos/knowledge-graph",
+  "name": "@knowledgeos/knowledge-graph-traversal-sqlite",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -13,11 +13,16 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node test/knowledge-graph.integration.mjs",
+    "test": "node test/knowledge-graph-traversal-sqlite.integration.mjs",
     "lint": "eslint .",
     "validate": "pnpm typecheck"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@knowledgeos/knowledge-graph-sqlite": "workspace:*",
+    "@knowledgeos/knowledge-graph-traversal": "workspace:*",
+    "@knowledgeos/local-library-sqlite": "workspace:*",
+    "@knowledgeos/local-sqlite-node": "workspace:*"
+  },
   "devDependencies": {
     "typescript": "workspace:^"
   }

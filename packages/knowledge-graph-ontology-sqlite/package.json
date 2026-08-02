@@ -1,5 +1,5 @@
 {
-  "name": "@knowledgeos/knowledge-graph",
+  "name": "@knowledgeos/knowledge-graph-ontology-sqlite",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -13,11 +13,15 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node test/knowledge-graph.integration.mjs",
+    "test": "node test/knowledge-graph-ontology-sqlite.integration.mjs",
     "lint": "eslint .",
     "validate": "pnpm typecheck"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@knowledgeos/knowledge-graph-ontology": "workspace:*",
+    "@knowledgeos/local-library-sqlite": "workspace:*",
+    "@knowledgeos/local-sqlite-node": "workspace:*"
+  },
   "devDependencies": {
     "typescript": "workspace:^"
   }

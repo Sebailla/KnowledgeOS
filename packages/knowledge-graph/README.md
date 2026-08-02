@@ -1,3 +1,3 @@
 # @knowledgeos/knowledge-graph
 
-See `02-CodeArchitecture/04-Packages/KnowledgeGraph.md`.
+Canonical Knowledge Graph model, validation and deterministic serialization.

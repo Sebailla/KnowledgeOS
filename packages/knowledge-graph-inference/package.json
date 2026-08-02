@@ -1,5 +1,5 @@
 {
-  "name": "@knowledgeos/knowledge-graph",
+  "name": "@knowledgeos/knowledge-graph-inference",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -13,11 +13,10 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node test/knowledge-graph.integration.mjs",
+    "test": "node test/knowledge-graph-inference.integration.mjs",
     "lint": "eslint .",
     "validate": "pnpm typecheck"
   },
-  "dependencies": {},
   "devDependencies": {
     "typescript": "workspace:^"
   }
