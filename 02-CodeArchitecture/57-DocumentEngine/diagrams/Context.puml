@@ -1,0 +1,13 @@
+@startuml 57-DocumentEngine_Context
+title KnowledgeOS — 57-DocumentEngine Context
+skinparam componentStyle rectangle
+actor User
+component "Document Engine" as Engine
+component "Library Engine" as Library
+component "Kernel / Contracts" as Kernel
+database "Durable State" as Store
+User --> Engine : authorized operation
+Engine --> Kernel : typed commands, queries, events
+Engine --> Library : authoritative objects / projections
+Engine --> Store : repository contracts
+@enduml

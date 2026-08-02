@@ -1,0 +1,22 @@
+@startuml DocumentationTraceability
+title KnowledgeOS Documentation Traceability
+
+rectangle Requirement
+rectangle ADR
+rectangle Architecture
+rectangle "Module Specification" as Spec
+rectangle Package
+rectangle Source
+rectangle Tests
+rectangle Operations
+
+Requirement --> ADR
+ADR --> Architecture
+Architecture --> Spec
+Spec --> Package
+Package --> Source
+Source --> Tests
+Tests --> Operations
+Operations --> Architecture : feedback
+
+@enduml

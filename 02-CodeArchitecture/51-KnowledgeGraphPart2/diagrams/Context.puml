@@ -1,0 +1,13 @@
+@startuml 51-KnowledgeGraphPart2_Context
+title KnowledgeOS — 51-KnowledgeGraphPart2 Context
+skinparam componentStyle rectangle
+actor User
+component "KnowledgeGraph" as Engine
+component "Library Engine" as Library
+component "Kernel / Contracts" as Kernel
+database "Durable State" as Store
+User --> Engine : authorized operation
+Engine --> Kernel : typed commands, queries, events
+Engine --> Library : authoritative objects / projections
+Engine --> Store : repository contracts
+@enduml

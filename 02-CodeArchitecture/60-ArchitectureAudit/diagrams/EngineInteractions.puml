@@ -1,0 +1,29 @@
+@startuml EngineInteractions
+title KnowledgeOS Engine Interactions
+
+rectangle "Import / External Sources" as Import
+rectangle "Document Engine" as Document
+rectangle "Library Engine" as Library
+database "Local Library" as Local
+database "Master Library" as Master
+rectangle "Sync Engine" as Sync
+rectangle "Knowledge Graph" as Graph
+rectangle "Search Engine" as Search
+rectangle "AI Engine" as AI
+rectangle "Reader / Workspace / Plugins" as UX
+
+Import --> Document
+Document --> Library
+Library --> Local
+Library --> Master
+Local <--> Sync
+Master <--> Sync
+Library --> Graph
+Library --> Search
+Graph --> Search
+Search --> AI
+Graph --> AI
+AI --> UX
+Library --> UX
+
+@enduml

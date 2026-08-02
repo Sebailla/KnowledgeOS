@@ -1,0 +1,16 @@
+@startuml 55-AIEngine_Sequence
+title KnowledgeOS — 55-AIEngine Primary Sequence
+actor Caller
+participant Runtime
+participant Validator
+participant Repository
+participant EventBus
+Caller -> Runtime : request + trusted owner context
+Runtime -> Validator : validate contracts and policy
+Validator --> Runtime : normalized plan
+Runtime -> Repository : execute durable operation
+Repository --> Runtime : committed state / result
+Runtime -> EventBus : publish committed event
+EventBus --> Runtime : accepted
+Runtime --> Caller : structured acknowledgement
+@enduml
