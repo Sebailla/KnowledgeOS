@@ -1,0 +1,12 @@
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { ManifestBuilder, SyncPlanner, InMemoryTransferCheckpointRepository, MasterToLocalSyncService, PERSONAL_KNOWLEDGE_SYNC_POLICY } from "../dist/index.js";
+const hash=value=>`sha256:${createHash("sha256").update(value).digest("hex")}`;
+const content=Buffer.from("synchronized publication bytes"); const fingerprint=hash(content);
+const master=new ManifestBuilder({hash}).build("manifest:1",7,"2026-08-01T00:00:00.000Z",[{knowledgeObjectId:"knowledge-object:1",publicationId:"publication:1",versionId:"version:2",fingerprint,byteLength:content.byteLength,mediaType:"application/pdf"}]);
+const local={localLibraryId:"local-library:1",deviceId:"device:mac",revision:3,entries:[]};
+let id=0; const planner=new SyncPlanner({planId:()=>`plan:${++id}`,transferId:()=>`transfer:${++id}`},{nowIso:()=>"2026-08-01T00:00:00.000Z"}); const plan=planner.create(master,local); assert.equal(plan.transfers.length,1);
+const checkpoints=new InMemoryTransferCheckpointRepository(); const received=[];
+const service=new MasterToLocalSyncService(checkpoints,{async *download(_p,_v,offset){yield content.subarray(offset,10);yield content.subarray(Math.max(offset,10));}},{async append(_id,offset,bytes){received.push({offset,bytes});},async verify(_id,expected,length){return expected===fingerprint && length===content.byteLength;},async commit(){return;}},{nowIso:()=>"2026-08-01T00:01:00.000Z"});
+const result=await service.execute(plan,"local-library:1"); assert.equal(result[0].state,"completed"); assert.equal(result[0].receivedBytes,content.byteLength); assert.equal(PERSONAL_KNOWLEDGE_SYNC_POLICY.mergeIntoCanonicalContent,false);
+console.log(JSON.stringify({flow:"manifest-diff-plan-resumable-transfer-verify-commit",status:"passed",transfers:result.length}));

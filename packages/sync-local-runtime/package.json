@@ -1,5 +1,5 @@
 {
-  "name": "@knowledgeos/sync",
+  "name": "@knowledgeos/sync-local-runtime",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -13,12 +13,14 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node test/sync.integration.mjs",
+    "test": "node test/sync-local-runtime.integration.mjs",
     "lint": "eslint .",
     "validate": "pnpm typecheck"
   },
   "dependencies": {
-    "@knowledgeos/domain-types": "workspace:*"
+    "@knowledgeos/domain-types": "workspace:*",
+    "@knowledgeos/local-library": "workspace:*",
+    "@knowledgeos/sync-worker": "workspace:*"
   },
   "devDependencies": {
     "typescript": "workspace:^"

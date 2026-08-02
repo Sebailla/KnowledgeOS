@@ -1,6 +1,6 @@
 {
-  "name": "@knowledgeos/sync",
-  "version": "0.1.0",
+  "name": "@knowledgeos/sync-transport",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "exports": {
@@ -13,12 +13,11 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node test/sync.integration.mjs",
-    "lint": "eslint .",
+    "test": "node test/sync-transport.integration.mjs",
     "validate": "pnpm typecheck"
   },
   "dependencies": {
-    "@knowledgeos/domain-types": "workspace:*"
+    "@knowledgeos/sync-contracts": "workspace:*"
   },
   "devDependencies": {
     "typescript": "workspace:^"

@@ -1,5 +1,5 @@
 {
-  "name": "@knowledgeos/sync",
+  "name": "@knowledgeos/sync-local-sqlite",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -13,12 +13,15 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node test/sync.integration.mjs",
+    "test": "node test/sqlite-sync-runtime.integration.mjs",
     "lint": "eslint .",
     "validate": "pnpm typecheck"
   },
   "dependencies": {
-    "@knowledgeos/domain-types": "workspace:*"
+    "@knowledgeos/domain-types": "workspace:*",
+    "@knowledgeos/local-library-sqlite": "workspace:*",
+    "@knowledgeos/local-sqlite-node": "workspace:*",
+    "@knowledgeos/sync-local-runtime": "workspace:*"
   },
   "devDependencies": {
     "typescript": "workspace:^"

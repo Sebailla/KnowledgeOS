@@ -1,5 +1,5 @@
 {
-  "name": "@knowledgeos/sync",
+  "name": "@knowledgeos/sync-master-http",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -13,12 +13,12 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node test/sync.integration.mjs",
+    "test": "node test/master-http-range.integration.mjs",
     "lint": "eslint .",
     "validate": "pnpm typecheck"
   },
   "dependencies": {
-    "@knowledgeos/domain-types": "workspace:*"
+    "@knowledgeos/sync-local-runtime": "workspace:*"
   },
   "devDependencies": {
     "typescript": "workspace:^"

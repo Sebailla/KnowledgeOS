@@ -1,5 +1,5 @@
 {
-  "name": "@knowledgeos/sync",
+  "name": "@knowledgeos/sync-postgres",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -8,17 +8,17 @@
   },
   "types": "./dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "migrations"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node test/sync.integration.mjs",
-    "lint": "eslint .",
-    "validate": "pnpm typecheck"
+    "test": "node test/sync-postgres.test.mjs"
   },
   "dependencies": {
-    "@knowledgeos/domain-types": "workspace:*"
+    "@knowledgeos/infrastructure-postgres": "workspace:*",
+    "@knowledgeos/sync": "workspace:*"
   },
   "devDependencies": {
     "typescript": "workspace:^"
