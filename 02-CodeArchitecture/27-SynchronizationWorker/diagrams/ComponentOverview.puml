@@ -1,0 +1,17 @@
+@startuml SynchronizationWorker_Components
+title KnowledgeOS — 27-SynchronizationWorker — Component Overview
+package "27-SynchronizationWorker" {
+  [Contracts] as C
+  [Application Service] as A
+  [Domain Rules] as D
+  [Ports] as P
+  [Infrastructure Adapters] as I
+  [Production Composition] as R
+}
+C --> A
+A --> D
+A --> P
+I ..|> P
+R --> A
+R --> I
+@enduml

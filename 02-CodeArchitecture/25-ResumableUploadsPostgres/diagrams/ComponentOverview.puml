@@ -1,0 +1,17 @@
+@startuml ResumableUploadsPostgres_Components
+title KnowledgeOS — 25-ResumableUploadsPostgres — Component Overview
+package "25-ResumableUploadsPostgres" {
+  [Contracts] as C
+  [Application Service] as A
+  [Domain Rules] as D
+  [Ports] as P
+  [Infrastructure Adapters] as I
+  [Production Composition] as R
+}
+C --> A
+A --> D
+A --> P
+I ..|> P
+R --> A
+R --> I
+@enduml
