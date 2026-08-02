@@ -1,0 +1,28 @@
+{
+  "name": "@knowledgeos/master-library-direct-streaming-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node test/direct-streaming-server.integration.mjs",
+    "lint": "eslint .",
+    "validate": "pnpm typecheck"
+  },
+  "dependencies": {
+    "@knowledgeos/domain-types": "workspace:*",
+    "@knowledgeos/master-library-streaming-server": "workspace:*",
+    "@knowledgeos/master-storage-node-stream": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "workspace:^"
+  }
+}

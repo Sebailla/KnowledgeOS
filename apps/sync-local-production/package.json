@@ -1,0 +1,34 @@
+{
+  "name": "@knowledgeos/sync-local-production",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node test/sync-local-production.integration.mjs",
+    "lint": "eslint .",
+    "validate": "pnpm typecheck"
+  },
+  "dependencies": {
+    "@knowledgeos/local-library": "workspace:*",
+    "@knowledgeos/local-library-sqlite": "workspace:*",
+    "@knowledgeos/local-sqlite-node": "workspace:*",
+    "@knowledgeos/local-storage": "workspace:*",
+    "@knowledgeos/sync-local-runtime": "workspace:*",
+    "@knowledgeos/sync-local-sqlite": "workspace:*",
+    "@knowledgeos/sync-master-http": "workspace:*",
+    "@knowledgeos/sync-scheduler": "workspace:*",
+    "@knowledgeos/sync-staging-node": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "workspace:^"
+  }
+}
