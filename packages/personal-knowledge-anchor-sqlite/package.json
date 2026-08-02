@@ -1,0 +1,28 @@
+{
+  "name": "@knowledgeos/personal-knowledge-anchor-sqlite",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node test/sqlite.test.mjs",
+    "lint": "eslint .",
+    "validate": "pnpm typecheck"
+  },
+  "dependencies": {
+    "@knowledgeos/domain-types": "workspace:*",
+    "@knowledgeos/local-library-sqlite": "workspace:*",
+    "@knowledgeos/personal-knowledge-anchor": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "workspace:^"
+  }
+}

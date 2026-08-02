@@ -1,0 +1,2 @@
+import assert from "node:assert/strict";import {PersonalKnowledgeTokenService,authorize} from "../dist/index.js";
+const s=new PersonalKnowledgeTokenService("secret",60);const t=s.issue("user:1","device:1",["pk:sync"],100);const c=s.verify(t,120);authorize(c,"user:1","device:1","pk:sync");assert.throws(()=>authorize(c,"user:2","device:1","pk:sync"));assert.throws(()=>s.verify(t,161));console.log(JSON.stringify({flow:"jwt-owner-device-scope-expiry",status:"passed"}));

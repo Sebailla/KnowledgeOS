@@ -1,0 +1,7 @@
+export type PersonalKnowledgeNodeKind = "profile"|"interest"|"skill"|"experience"|"goal"|"memory"|"preference"|"context";
+export type MemoryKind = "episodic"|"semantic"|"procedural";
+export interface Confidence { readonly value:number; readonly source:"explicit"|"observed"|"inferred"; }
+export interface PersonalKnowledgeItem { readonly itemId:string; readonly ownerId:string; readonly kind:PersonalKnowledgeNodeKind; readonly label:string; readonly description?:string; readonly confidence:Confidence; readonly importance:number; readonly properties:Readonly<Record<string,string|number|boolean|null>>; readonly sourceIds:readonly string[]; readonly createdAt:string; readonly updatedAt:string; readonly deletedAt?:string; }
+export interface PersonalMemory extends PersonalKnowledgeItem { readonly kind:"memory"; readonly memoryKind:MemoryKind; readonly occurredAt?:string; readonly expiresAt?:string; readonly salience:number; }
+export interface PersonalKnowledgeRelation { readonly relationId:string; readonly ownerId:string; readonly fromItemId:string; readonly toItemId:string; readonly type:string; readonly weight:number; readonly source:"explicit"|"observed"|"inferred"; readonly createdAt:string; readonly updatedAt:string; readonly deletedAt?:string; }
+export interface PersonalKnowledgeSnapshot { readonly ownerId:string; readonly items:readonly PersonalKnowledgeItem[]; readonly relations:readonly PersonalKnowledgeRelation[]; readonly sequence:number; readonly createdAt:string; }

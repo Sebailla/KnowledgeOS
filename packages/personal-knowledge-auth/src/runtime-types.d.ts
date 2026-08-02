@@ -1,0 +1,2 @@
+declare class Buffer extends Uint8Array { static from(value:string|Uint8Array,encoding?:string):Buffer; static concat(values:readonly Uint8Array[]):Buffer; toString(encoding?:string):string; }
+declare module "node:crypto" { export function createHmac(algorithm:string,key:string):{update(value:string):any;digest(encoding:"base64url"|"hex"):string}; export function timingSafeEqual(a:Uint8Array,b:Uint8Array):boolean; export function randomUUID():string; }

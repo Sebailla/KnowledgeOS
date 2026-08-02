@@ -1,0 +1,6 @@
+import type {PersonalKnowledgeItem,PersonalKnowledgeRelation} from "./model.js";
+export interface PersonalKnowledgeIssue {readonly code:string;readonly subjectId:string;readonly message:string;}
+export class PersonalKnowledgeValidator {
+ validateItem(v:PersonalKnowledgeItem):readonly PersonalKnowledgeIssue[]{const x:PersonalKnowledgeIssue[]=[];if(!v.itemId.trim())x.push({code:"item-id-empty",subjectId:v.itemId,message:"Item ID is required"});if(!v.ownerId.trim())x.push({code:"owner-id-empty",subjectId:v.itemId,message:"Owner ID is required"});if(!v.label.trim())x.push({code:"label-empty",subjectId:v.itemId,message:"Label is required"});if(v.confidence.value<0||v.confidence.value>1)x.push({code:"confidence-range",subjectId:v.itemId,message:"Confidence must be between 0 and 1"});if(v.importance<0||v.importance>1)x.push({code:"importance-range",subjectId:v.itemId,message:"Importance must be between 0 and 1"});return x;}
+ validateRelation(v:PersonalKnowledgeRelation):readonly PersonalKnowledgeIssue[]{const x:PersonalKnowledgeIssue[]=[];if(v.fromItemId===v.toItemId)x.push({code:"relation-self-loop",subjectId:v.relationId,message:"Personal Knowledge relations cannot be self loops"});if(v.weight<0||v.weight>1)x.push({code:"relation-weight-range",subjectId:v.relationId,message:"Weight must be between 0 and 1"});return x;}
+}
