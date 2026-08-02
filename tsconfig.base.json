@@ -31,6 +31,405 @@
       ],
       "@knowledgeos/kernel": [
         "packages/kernel/dist/index.d.ts"
+      ],
+      "@knowledgeos/domain": [
+        "packages/domain/dist/index.d.ts"
+      ],
+      "@knowledgeos/library": [
+        "packages/library/dist/index.d.ts"
+      ],
+      "@knowledgeos/infrastructure-postgres": [
+        "packages/infrastructure-postgres/dist/index.d.ts"
+      ],
+      "@knowledgeos/server": [
+        "apps/server/dist/index.d.ts"
+      ],
+      "@knowledgeos/server-node": [
+        "apps/server-node/dist/index.d.ts"
+      ],
+      "@knowledgeos/infrastructure-postgres-node": [
+        "packages/infrastructure-postgres-node/dist/index.d.ts"
+      ],
+      "@knowledgeos/server-postgres": [
+        "apps/server-postgres/dist/index.d.ts"
+      ],
+      "@knowledgeos/master-library": [
+        "packages/master-library/dist/index.d.ts"
+      ],
+      "@knowledgeos/master-library-postgres": [
+        "packages/master-library-postgres/dist/index.d.ts"
+      ],
+      "@knowledgeos/master-storage": [
+        "packages/master-storage/dist/index.d.ts"
+      ],
+      "@knowledgeos/master-registration-workflow": [
+        "packages/master-registration-workflow/dist/index.d.ts"
+      ],
+      "@knowledgeos/master-library-server": [
+        "apps/master-library-server/dist/index.d.ts"
+      ],
+      "@knowledgeos/master-library-streaming-server": [
+        "apps/master-library-streaming-server/dist/index.d.ts"
+      ],
+      "@knowledgeos/master-storage-node-stream": [
+        "packages/master-storage-node-stream/dist/index.d.ts"
+      ],
+      "@knowledgeos/master-library-direct-streaming-server": [
+        "apps/master-library-direct-streaming-server/dist/index.d.ts"
+      ],
+      "@knowledgeos/master-resumable-upload": [
+        "packages/master-resumable-upload/dist/index.d.ts"
+      ],
+      "@knowledgeos/master-library-resumable-upload-server": [
+        "apps/master-library-resumable-upload-server/dist/index.d.ts"
+      ],
+      "@knowledgeos/master-resumable-upload-postgres": [
+        "packages/master-resumable-upload-postgres/dist/index.d.ts"
+      ],
+      "@knowledgeos/master-upload-chunk-store": [
+        "packages/master-upload-chunk-store/dist/index.d.ts"
+      ],
+      "@knowledgeos/master-library-production-server": [
+        "apps/master-library-production-server/dist/index.d.ts"
+      ],
+      "@knowledgeos/sync": [
+        "packages/sync/dist/index.d.ts"
+      ],
+      "@knowledgeos/sync-postgres": [
+        "packages/sync-postgres/dist/index.d.ts"
+      ],
+      "@knowledgeos/sync-server": [
+        "apps/sync-server/dist/index.d.ts"
+      ],
+      "@knowledgeos/sync-worker": [
+        "packages/sync-worker/dist/index.d.ts"
+      ],
+      "@knowledgeos/local-library": [
+        "packages/local-library/dist/index.d.ts"
+      ],
+      "@knowledgeos/local-storage": [
+        "packages/local-storage/dist/index.d.ts"
+      ],
+      "@knowledgeos/local-library-sqlite": [
+        "packages/local-library-sqlite/dist/index.d.ts"
+      ],
+      "@knowledgeos/local-repair": [
+        "packages/local-repair/dist/index.d.ts"
+      ],
+      "@knowledgeos/local-sqlite-node": [
+        "packages/local-sqlite-node/dist/index.d.ts"
+      ],
+      "@knowledgeos/local-cache": [
+        "packages/local-cache/dist/index.d.ts"
+      ],
+      "@knowledgeos/local-maintenance": [
+        "packages/local-maintenance/dist/index.d.ts"
+      ],
+      "@knowledgeos/local-library-production": [
+        "apps/local-library-production/dist/index.d.ts"
+      ],
+      "@knowledgeos/sync-local-runtime": [
+        "packages/sync-local-runtime/dist/index.d.ts"
+      ],
+      "@knowledgeos/sync-local-sqlite": [
+        "packages/sync-local-sqlite/dist/index.d.ts"
+      ],
+      "@knowledgeos/sync-staging-node": [
+        "packages/sync-staging-node/dist/index.d.ts"
+      ],
+      "@knowledgeos/sync-scheduler": [
+        "packages/sync-scheduler/dist/index.d.ts"
+      ],
+      "@knowledgeos/sync-master-http": [
+        "packages/sync-master-http/dist/index.d.ts"
+      ],
+      "@knowledgeos/sync-local-production": [
+        "apps/sync-local-production/dist/index.d.ts"
+      ],
+      "@knowledgeos/personal-knowledge": [
+        "packages/personal-knowledge/dist/index.d.ts"
+      ],
+      "@knowledgeos/personal-knowledge-sqlite": [
+        "packages/personal-knowledge-sqlite/dist/index.d.ts"
+      ],
+      "@knowledgeos/personal-knowledge-anchor": [
+        "packages/personal-knowledge-anchor/dist/index.d.ts"
+      ],
+      "@knowledgeos/personal-knowledge-sync-model": [
+        "packages/personal-knowledge-sync-model/dist/index.d.ts"
+      ],
+      "@knowledgeos/personal-knowledge-anchor-sqlite": [
+        "packages/personal-knowledge-anchor-sqlite/dist/index.d.ts"
+      ],
+      "@knowledgeos/personal-knowledge-sync": [
+        "packages/personal-knowledge-sync/dist/index.d.ts"
+      ],
+      "@knowledgeos/personal-knowledge-sync-sqlite": [
+        "packages/personal-knowledge-sync-sqlite/dist/index.d.ts"
+      ],
+      "@knowledgeos/personal-knowledge-conflict-resolution": [
+        "packages/personal-knowledge-conflict-resolution/dist/index.d.ts"
+      ],
+      "@knowledgeos/personal-knowledge-sync-http": [
+        "packages/personal-knowledge-sync-http/dist/index.d.ts"
+      ],
+      "@knowledgeos/personal-knowledge-sync-server": [
+        "apps/personal-knowledge-sync-server/dist/index.d.ts"
+      ],
+      "@knowledgeos/personal-knowledge-sync-postgres": [
+        "packages/personal-knowledge-sync-postgres/dist/index.d.ts"
+      ],
+      "@knowledgeos/personal-knowledge-auth": [
+        "packages/personal-knowledge-auth/dist/index.d.ts"
+      ],
+      "@knowledgeos/personal-knowledge-sync-api": [
+        "apps/personal-knowledge-sync-api/dist/index.d.ts"
+      ],
+      "@knowledgeos/personal-knowledge-sync-runtime": [
+        "packages/personal-knowledge-sync-runtime/dist/index.d.ts"
+      ],
+      "@knowledgeos/personal-knowledge-production-server": [
+        "apps/personal-knowledge-production-server/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-domain": [
+        "packages/search-domain/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-index": [
+        "packages/search-index/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-sqlite": [
+        "packages/search-sqlite/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-query": [
+        "packages/search-query/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-query-sqlite": [
+        "packages/search-query-sqlite/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-fuzzy": [
+        "packages/search-fuzzy/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-ranking": [
+        "packages/search-ranking/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-runtime": [
+        "packages/search-runtime/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-embedding": [
+        "packages/search-embedding/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-vector-sqlite": [
+        "packages/search-vector-sqlite/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-hybrid": [
+        "packages/search-hybrid/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-embedding-jobs": [
+        "packages/search-embedding-jobs/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-embedding-jobs-sqlite": [
+        "packages/search-embedding-jobs-sqlite/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-embedding-worker": [
+        "packages/search-embedding-worker/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-graph": [
+        "packages/search-graph/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-graph-sqlite": [
+        "packages/search-graph-sqlite/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-graph-runtime": [
+        "packages/search-graph-runtime/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-saved": [
+        "packages/search-saved/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-live": [
+        "packages/search-live/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-live-sqlite": [
+        "packages/search-live-sqlite/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-api": [
+        "packages/search-api/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-cli": [
+        "packages/search-cli/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-integration": [
+        "packages/search-integration/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-execution-runtime": [
+        "packages/search-execution-runtime/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-transport": [
+        "packages/search-transport/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-runtime-server": [
+        "apps/search-runtime-server/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-cache": [
+        "packages/search-cache/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-resilience": [
+        "packages/search-resilience/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-production": [
+        "packages/search-production/dist/index.d.ts"
+      ],
+      "@knowledgeos/knowledge-graph": [
+        "packages/knowledge-graph/dist/index.d.ts"
+      ],
+      "@knowledgeos/knowledge-graph-runtime": [
+        "packages/knowledge-graph-runtime/dist/index.d.ts"
+      ],
+      "@knowledgeos/knowledge-graph-sqlite": [
+        "packages/knowledge-graph-sqlite/dist/index.d.ts"
+      ],
+      "@knowledgeos/knowledge-graph-traversal": [
+        "packages/knowledge-graph-traversal/dist/index.d.ts"
+      ],
+      "@knowledgeos/knowledge-graph-traversal-sqlite": [
+        "packages/knowledge-graph-traversal-sqlite/dist/index.d.ts"
+      ],
+      "@knowledgeos/knowledge-graph-traversal-runtime": [
+        "packages/knowledge-graph-traversal-runtime/dist/index.d.ts"
+      ],
+      "@knowledgeos/knowledge-graph-ontology": [
+        "packages/knowledge-graph-ontology/dist/index.d.ts"
+      ],
+      "@knowledgeos/knowledge-graph-ontology-sqlite": [
+        "packages/knowledge-graph-ontology-sqlite/dist/index.d.ts"
+      ],
+      "@knowledgeos/knowledge-graph-ontology-runtime": [
+        "packages/knowledge-graph-ontology-runtime/dist/index.d.ts"
+      ],
+      "@knowledgeos/knowledge-graph-inference": [
+        "packages/knowledge-graph-inference/dist/index.d.ts"
+      ],
+      "@knowledgeos/knowledge-graph-inference-sqlite": [
+        "packages/knowledge-graph-inference-sqlite/dist/index.d.ts"
+      ],
+      "@knowledgeos/knowledge-graph-inference-runtime": [
+        "packages/knowledge-graph-inference-runtime/dist/index.d.ts"
+      ],
+      "@knowledgeos/personal-knowledge-graph": [
+        "packages/personal-knowledge-graph/dist/index.d.ts"
+      ],
+      "@knowledgeos/personal-knowledge-graph-sqlite": [
+        "packages/personal-knowledge-graph-sqlite/dist/index.d.ts"
+      ],
+      "@knowledgeos/personal-knowledge-graph-runtime": [
+        "packages/personal-knowledge-graph-runtime/dist/index.d.ts"
+      ],
+      "@knowledgeos/personal-knowledge-events": [
+        "packages/personal-knowledge-events/dist/index.d.ts"
+      ],
+      "@knowledgeos/personal-knowledge-integration": [
+        "packages/personal-knowledge-integration/dist/index.d.ts"
+      ],
+      "@knowledgeos/ai-contracts": [
+        "packages/ai-contracts/dist/index.d.ts"
+      ],
+      "@knowledgeos/ai-provider": [
+        "packages/ai-provider/dist/index.d.ts"
+      ],
+      "@knowledgeos/ai-context": [
+        "packages/ai-context/dist/index.d.ts"
+      ],
+      "@knowledgeos/ai-memory": [
+        "packages/ai-memory/dist/index.d.ts"
+      ],
+      "@knowledgeos/ai-memory-sqlite": [
+        "packages/ai-memory-sqlite/dist/index.d.ts"
+      ],
+      "@knowledgeos/ai-tools": [
+        "packages/ai-tools/dist/index.d.ts"
+      ],
+      "@knowledgeos/ai-runtime": [
+        "packages/ai-runtime/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-bm25": [
+        "packages/search-bm25/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-snippets": [
+        "packages/search-snippets/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-reranker": [
+        "packages/search-reranker/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-scheduler": [
+        "packages/search-scheduler/dist/index.d.ts"
+      ],
+      "@knowledgeos/search-engine-composition": [
+        "packages/search-engine-composition/dist/index.d.ts"
+      ],
+      "@knowledgeos/document-contracts": [
+        "packages/document-contracts/dist/index.d.ts"
+      ],
+      "@knowledgeos/document-parser": [
+        "packages/document-parser/dist/index.d.ts"
+      ],
+      "@knowledgeos/document-normalizer": [
+        "packages/document-normalizer/dist/index.d.ts"
+      ],
+      "@knowledgeos/document-ocr": [
+        "packages/document-ocr/dist/index.d.ts"
+      ],
+      "@knowledgeos/document-assets": [
+        "packages/document-assets/dist/index.d.ts"
+      ],
+      "@knowledgeos/document-sqlite": [
+        "packages/document-sqlite/dist/index.d.ts"
+      ],
+      "@knowledgeos/document-runtime": [
+        "packages/document-runtime/dist/index.d.ts"
+      ],
+      "@knowledgeos/library-contracts": [
+        "packages/library-contracts/dist/index.d.ts"
+      ],
+      "@knowledgeos/library-model": [
+        "packages/library-model/dist/index.d.ts"
+      ],
+      "@knowledgeos/library-transactions": [
+        "packages/library-transactions/dist/index.d.ts"
+      ],
+      "@knowledgeos/library-journal": [
+        "packages/library-journal/dist/index.d.ts"
+      ],
+      "@knowledgeos/library-integrity": [
+        "packages/library-integrity/dist/index.d.ts"
+      ],
+      "@knowledgeos/library-sqlite": [
+        "packages/library-sqlite/dist/index.d.ts"
+      ],
+      "@knowledgeos/library-recovery": [
+        "packages/library-recovery/dist/index.d.ts"
+      ],
+      "@knowledgeos/library-runtime": [
+        "packages/library-runtime/dist/index.d.ts"
+      ],
+      "@knowledgeos/sync-contracts": [
+        "packages/sync-contracts/dist/index.d.ts"
+      ],
+      "@knowledgeos/sync-planner": [
+        "packages/sync-planner/dist/index.d.ts"
+      ],
+      "@knowledgeos/sync-conflicts": [
+        "packages/sync-conflicts/dist/index.d.ts"
+      ],
+      "@knowledgeos/sync-transport": [
+        "packages/sync-transport/dist/index.d.ts"
+      ],
+      "@knowledgeos/sync-sqlite": [
+        "packages/sync-sqlite/dist/index.d.ts"
+      ],
+      "@knowledgeos/sync-runtime": [
+        "packages/sync-runtime/dist/index.d.ts"
+      ],
+      "@knowledgeos/sync-library-integration": [
+        "packages/sync-library-integration/dist/index.d.ts"
       ]
     }
   }
