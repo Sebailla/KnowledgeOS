@@ -1,0 +1,10 @@
+@startuml 01_Repository_Context
+title KnowledgeOS - Estrategia del repositorio - Context
+actor Consumer
+rectangle "Estrategia del repositorio" as Module
+database "Authoritative State" as State
+cloud "External Adapters" as Adapters
+Consumer --> Module : typed contract
+Module --> State : ports
+Module --> Adapters : bounded effects
+@enduml

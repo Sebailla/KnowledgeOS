@@ -1,0 +1,10 @@
+@startuml 09_KernelFoundation_Context
+title KnowledgeOS - Kernel de ejecución - Context
+actor Consumer
+rectangle "Kernel de ejecución" as Module
+database "Authoritative State" as State
+cloud "External Adapters" as Adapters
+Consumer --> Module : typed contract
+Module --> State : ports
+Module --> Adapters : bounded effects
+@enduml

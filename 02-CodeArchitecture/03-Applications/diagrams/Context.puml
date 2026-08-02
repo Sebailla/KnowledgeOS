@@ -1,0 +1,10 @@
+@startuml 03_Applications_Context
+title KnowledgeOS - Aplicaciones y hosts - Context
+actor Consumer
+rectangle "Aplicaciones y hosts" as Module
+database "Authoritative State" as State
+cloud "External Adapters" as Adapters
+Consumer --> Module : typed contract
+Module --> State : ports
+Module --> Adapters : bounded effects
+@enduml

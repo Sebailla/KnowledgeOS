@@ -1,0 +1,10 @@
+@startuml 04_Packages_Context
+title KnowledgeOS - Catálogo de paquetes - Context
+actor Consumer
+rectangle "Catálogo de paquetes" as Module
+database "Authoritative State" as State
+cloud "External Adapters" as Adapters
+Consumer --> Module : typed contract
+Module --> State : ports
+Module --> Adapters : bounded effects
+@enduml

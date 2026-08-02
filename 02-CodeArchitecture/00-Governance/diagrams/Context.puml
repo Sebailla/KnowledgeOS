@@ -1,0 +1,10 @@
+@startuml 00_Governance_Context
+title KnowledgeOS - Gobernanza de arquitectura de código - Context
+actor Consumer
+rectangle "Gobernanza de arquitectura de código" as Module
+database "Authoritative State" as State
+cloud "External Adapters" as Adapters
+Consumer --> Module : typed contract
+Module --> State : ports
+Module --> Adapters : bounded effects
+@enduml

@@ -1,0 +1,10 @@
+@startuml 08_FoundationalContracts_Context
+title KnowledgeOS - Contratos fundacionales - Context
+actor Consumer
+rectangle "Contratos fundacionales" as Module
+database "Authoritative State" as State
+cloud "External Adapters" as Adapters
+Consumer --> Module : typed contract
+Module --> State : ports
+Module --> Adapters : bounded effects
+@enduml

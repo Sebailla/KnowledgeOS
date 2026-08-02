@@ -1,0 +1,10 @@
+@startuml 06_Testing_Context
+title KnowledgeOS - Arquitectura de pruebas - Context
+actor Consumer
+rectangle "Arquitectura de pruebas" as Module
+database "Authoritative State" as State
+cloud "External Adapters" as Adapters
+Consumer --> Module : typed contract
+Module --> State : ports
+Module --> Adapters : bounded effects
+@enduml

@@ -1,0 +1,10 @@
+@startuml 05_BuildAndTooling_Context
+title KnowledgeOS - Build y herramientas - Context
+actor Consumer
+rectangle "Build y herramientas" as Module
+database "Authoritative State" as State
+cloud "External Adapters" as Adapters
+Consumer --> Module : typed contract
+Module --> State : ports
+Module --> Adapters : bounded effects
+@enduml
