@@ -1,0 +1,5 @@
+import type { ContentFingerprint, ProvenanceRecord, SourceItemId, VersionId } from "@knowledgeos/domain-types";
+import { DomainError, Entity } from "./common.js";
+export type SourceCustody="master-authoritative"|"local-authoritative"|"acquired-copy";
+export interface SourceItemState{readonly id:SourceItemId;readonly versionId:VersionId;readonly contentFingerprint:ContentFingerprint;readonly mediaType:string;readonly byteLength:number;readonly custody:SourceCustody;readonly provenance:readonly ProvenanceRecord[];readonly originalFilename?:string;}
+export class SourceItem extends Entity<SourceItemId>{private constructor(private readonly state:SourceItemState){super(state.id);} static create(state:SourceItemState):SourceItem{if(state.byteLength<0||!Number.isFinite(state.byteLength))throw new DomainError("source.invalid-length","validation","Invalid byte length");if(!state.mediaType.trim())throw new DomainError("source.media-type-required","validation","Media type required");return new SourceItem({...state,provenance:[...state.provenance]});} snapshot():SourceItemState{return {...this.state,provenance:[...this.state.provenance]};}}

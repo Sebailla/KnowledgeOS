@@ -1,0 +1,25 @@
+{
+  "name": "@knowledgeos/document-parser",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node test/document-parser.integration.mjs",
+    "validate": "pnpm typecheck"
+  },
+  "dependencies": {
+    "@knowledgeos/document-contracts": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "workspace:^"
+  }
+}
