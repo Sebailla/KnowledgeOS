@@ -1,0 +1,11 @@
+@startuml 40-SearchEnginePart1_Context
+!include ../../../../00-Architecture/C4/diagrams/_includes/C4_Context.puml
+title 40-SearchEnginePart1 — Context
+Person(user, "Usuario", "Opera KnowledgeOS")
+System_Boundary(kos, "KnowledgeOS") {
+  System(runtime, "Search Engine Runtime", "Build the offline-first lexical, structured, fuzzy, semantic, hybrid, embedding, and graph-aware retrieval pipeline used by library, ai, reader, workspace, plugins, and mcp")
+}
+System_Ext(library, "Library and NAS", "Authoritative and local durable state")
+Rel(user, runtime, "Uses through application APIs")
+Rel(runtime, library, "Reads, writes, synchronizes or indexes through contracts")
+@enduml
