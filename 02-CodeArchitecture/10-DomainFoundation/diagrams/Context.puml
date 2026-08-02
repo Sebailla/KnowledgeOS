@@ -1,0 +1,10 @@
+@startuml 10_DomainFoundation_Context
+title KnowledgeOS - Fundación de dominio - Context
+actor Consumer
+rectangle "Fundación de dominio" as Module
+database "Authoritative State" as State
+cloud "External Adapters" as Adapters
+Consumer --> Module : typed contract
+Module --> State : ports
+Module --> Adapters : bounded effects
+@enduml

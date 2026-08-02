@@ -1,0 +1,10 @@
+@startuml 14_FirstVerticalSlice_Context
+title KnowledgeOS - Primer vertical slice - Context
+actor Consumer
+rectangle "Primer vertical slice" as Module
+database "Authoritative State" as State
+cloud "External Adapters" as Adapters
+Consumer --> Module : typed contract
+Module --> State : ports
+Module --> Adapters : bounded effects
+@enduml

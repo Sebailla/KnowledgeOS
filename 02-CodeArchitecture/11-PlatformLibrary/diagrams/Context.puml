@@ -1,0 +1,10 @@
+@startuml 11_PlatformLibrary_Context
+title KnowledgeOS - Biblioteca de plataforma - Context
+actor Consumer
+rectangle "Biblioteca de plataforma" as Module
+database "Authoritative State" as State
+cloud "External Adapters" as Adapters
+Consumer --> Module : typed contract
+Module --> State : ports
+Module --> Adapters : bounded effects
+@enduml

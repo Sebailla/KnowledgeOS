@@ -1,0 +1,17 @@
+@startuml 15_NodeServerRuntime_Sequence
+title KnowledgeOS - Runtime de servidor Node.js - Request Flow
+actor Consumer
+participant Boundary
+participant Coordinator
+participant Domain
+participant Adapter
+Consumer -> Boundary : request + authenticated context
+Boundary -> Boundary : validate and authorize
+Boundary -> Coordinator : typed input
+Coordinator -> Domain : enforce invariants
+Domain --> Coordinator : decision
+Coordinator -> Adapter : bounded effect
+Adapter --> Coordinator : result
+Coordinator --> Boundary : typed outcome
+Boundary --> Consumer : protocol response
+@enduml

@@ -1,0 +1,17 @@
+@startuml MasterLibrary_Components
+title KnowledgeOS — 17-MasterLibrary — Component Overview
+package "17-MasterLibrary" {
+  [Contracts] as C
+  [Application Service] as A
+  [Domain Rules] as D
+  [Ports] as P
+  [Infrastructure Adapters] as I
+  [Production Composition] as R
+}
+C --> A
+A --> D
+A --> P
+I ..|> P
+R --> A
+R --> I
+@enduml

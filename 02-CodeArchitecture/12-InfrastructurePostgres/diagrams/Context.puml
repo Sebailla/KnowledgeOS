@@ -1,0 +1,10 @@
+@startuml 12_InfrastructurePostgres_Context
+title KnowledgeOS - Infraestructura PostgreSQL - Context
+actor Consumer
+rectangle "Infraestructura PostgreSQL" as Module
+database "Authoritative State" as State
+cloud "External Adapters" as Adapters
+Consumer --> Module : typed contract
+Module --> State : ports
+Module --> Adapters : bounded effects
+@enduml

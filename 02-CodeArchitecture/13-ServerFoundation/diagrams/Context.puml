@@ -1,0 +1,10 @@
+@startuml 13_ServerFoundation_Context
+title KnowledgeOS - Fundación del servidor - Context
+actor Consumer
+rectangle "Fundación del servidor" as Module
+database "Authoritative State" as State
+cloud "External Adapters" as Adapters
+Consumer --> Module : typed contract
+Module --> State : ports
+Module --> Adapters : bounded effects
+@enduml

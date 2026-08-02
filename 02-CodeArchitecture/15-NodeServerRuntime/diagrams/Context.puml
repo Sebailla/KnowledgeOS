@@ -1,0 +1,10 @@
+@startuml 15_NodeServerRuntime_Context
+title KnowledgeOS - Runtime de servidor Node.js - Context
+actor Consumer
+rectangle "Runtime de servidor Node.js" as Module
+database "Authoritative State" as State
+cloud "External Adapters" as Adapters
+Consumer --> Module : typed contract
+Module --> State : ports
+Module --> Adapters : bounded effects
+@enduml
