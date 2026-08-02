@@ -1,0 +1,26 @@
+{
+  "name": "@knowledgeos/local-cache",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node test/cache-policy.test.mjs",
+    "lint": "eslint .",
+    "validate": "pnpm typecheck"
+  },
+  "dependencies": {
+    "@knowledgeos/local-library": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "workspace:^"
+  }
+}

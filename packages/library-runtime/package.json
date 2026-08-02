@@ -1,0 +1,27 @@
+{
+  "name": "@knowledgeos/library-runtime",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node test/library-runtime.integration.mjs",
+    "validate": "pnpm typecheck"
+  },
+  "dependencies": {
+    "@knowledgeos/library-contracts": "workspace:*",
+    "@knowledgeos/library-integrity": "workspace:*",
+    "@knowledgeos/library-transactions": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "workspace:^"
+  }
+}

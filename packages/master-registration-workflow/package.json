@@ -1,0 +1,31 @@
+{
+  "name": "@knowledgeos/master-registration-workflow",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "migrations"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node test/master-registration-workflow.integration.mjs",
+    "lint": "eslint .",
+    "validate": "pnpm typecheck"
+  },
+  "dependencies": {
+    "@knowledgeos/domain-types": "workspace:*",
+    "@knowledgeos/infrastructure-postgres": "workspace:*",
+    "@knowledgeos/kernel": "workspace:*",
+    "@knowledgeos/master-library": "workspace:*",
+    "@knowledgeos/master-storage": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "workspace:^"
+  }
+}

@@ -1,2 +1,14 @@
-/** Public package entry point. Implemented during the V5 delivery sequence. */
-export {};
+export * from "./errors.js";
+export * from "./handlers/browse-master-catalog.js";
+export * from "./handlers/get-local-availability.js";
+export * from "./handlers/list-local-library.js";
+export * from "./handlers/register-local-source.js";
+export * from "./handlers/request-acquisition.js";
+export * from "./in-memory/catalog.js";
+export * from "./in-memory/event-publisher.js";
+export * from "./in-memory/identity.js";
+export * from "./in-memory/repositories.js";
+export * from "./ports/catalog.js";
+export * from "./ports/event-publisher.js";
+export * from "./ports/library-identity.js";
+export * from "./register.js";
