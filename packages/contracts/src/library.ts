@@ -53,9 +53,43 @@ export interface RegisterLocalSourcePayload {
   readonly sourceItemId: SourceItemId;
   readonly contentFingerprint: string;
   readonly originalFilename?: string;
+  readonly title?: string;
+  readonly mediaType?: string;
+  readonly byteLength?: number;
+  readonly sourceVersionId?: VersionId;
 }
 
 export type RegisterLocalSourceCommand = Command<
   "library.register-local-source",
   RegisterLocalSourcePayload
 >;
+
+
+export interface GetLocalAvailabilityParameters {
+  readonly localLibraryId: LocalLibraryId;
+  readonly knowledgeObjectId: KnowledgeObjectId;
+}
+
+export type GetLocalAvailabilityQuery = Query<
+  "library.get-local-availability",
+  GetLocalAvailabilityParameters
+>;
+
+export interface LocalAvailabilityResult {
+  readonly knowledgeObjectId: KnowledgeObjectId;
+  readonly localLibraryId: LocalLibraryId;
+  readonly availability: AvailabilityDescriptor;
+  readonly sourceItemId?: SourceItemId;
+  readonly sourceVersionId?: VersionId;
+}
+
+export interface ListLocalLibraryParameters extends PageRequest {
+  readonly localLibraryId: LocalLibraryId;
+}
+
+export type ListLocalLibraryQuery = Query<
+  "library.list-local-library",
+  ListLocalLibraryParameters
+>;
+
+export type ListLocalLibraryResult = Page<PublicationSummary>;
