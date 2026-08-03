@@ -1,0 +1,12 @@
+import assert from "node:assert/strict"; import test from "node:test";
+import { InMemorySyncProvider, InMemorySyncSession, SyncEngine, SyncPlanner, SyncQueue, SyncScheduler } from "../src/index.js";
+import { CancellationNone } from "@knowledgeos/kernel";
+const older={id:'object:1',version:1,checksum:'a',modifiedAt:'2026-08-01T00:00:00.000Z',deleted:false,payload:{title:'Old'}};
+const newer={...older,version:2,checksum:'b',modifiedAt:'2026-08-02T00:00:00.000Z',payload:{title:'New'}};
+test('planner sends newer remote record to local',()=>{const p=new SyncPlanner().plan({sourceId:'local',capturedAt:'x',records:[older]},{sourceId:'remote',capturedAt:'x',records:[newer]});assert.equal(p.localChanges.updated.length,1);});
+test('planner detects checksum conflict',()=>{const p=new SyncPlanner().plan({sourceId:'local',capturedAt:'x',records:[older]},{sourceId:'remote',capturedAt:'x',records:[{...older,checksum:'z'}]});assert.equal(p.conflicts[0]?.reason,'checksum-mismatch');});
+test('engine applies remote source of truth',async()=>{const s=new InMemorySyncSession(undefined,undefined,()=> '2026-08-03T00:00:00.000Z');s.seedLocal([older]);s.seedRemote([newer]);const e=new SyncEngine(new InMemorySyncProvider(s));const c={cancellation:CancellationNone,metadata:{}};await e.initialize(c);await e.start(c);const r=await e.synchronize();assert.equal(r.appliedLocally,1);assert.equal((await s.captureLocal()).records[0]?.version,2);});
+test('sync queue is FIFO',()=>{const q=new SyncQueue();q.enqueue({id:'1',createdAt:'a',state:'queued',attempts:0});q.enqueue({id:'2',createdAt:'b',state:'queued',attempts:0});assert.equal(q.dequeue()?.id,'1');assert.equal(q.dequeue()?.id,'2');});
+test('scheduler creates queued jobs',()=>{const q=new SyncQueue();const j=new SyncScheduler(q,()=> 'x').schedule();assert.equal(j.state,'queued');assert.equal(q.size,1);});
+test('remote-only record is created locally',async()=>{const s=new InMemorySyncSession();s.seedRemote([newer]);const e=new SyncEngine(new InMemorySyncProvider(s));const c={cancellation:CancellationNone,metadata:{}};await e.initialize(c);await e.start(c);await e.synchronize();assert.equal((await s.captureLocal()).records[0]?.id,'object:1');});
+test('local-only record is created remotely',async()=>{const s=new InMemorySyncSession();s.seedLocal([newer]);const e=new SyncEngine(new InMemorySyncProvider(s));const c={cancellation:CancellationNone,metadata:{}};await e.initialize(c);await e.start(c);await e.synchronize();assert.equal((await s.captureRemote()).records[0]?.id,'object:1');});
