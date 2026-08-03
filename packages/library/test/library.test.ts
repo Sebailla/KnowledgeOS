@@ -1,100 +1,81 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type {
-  CorrelationId,
-  EventId,
-  IsoTimestamp,
-  LocalLibraryId,
-  OperationId,
-  SourceItemId,
-  VersionId,
-} from "@knowledgeos/domain-types";
-import { DomainEventFactory, LocalLibrary } from "@knowledgeos/domain";
+
 import {
-  CancellationSource,
-  FixedClock,
-  InMemoryCommandBus,
-  InMemoryQueryBus,
-  MonotonicIdGenerator,
-  PassthroughUnitOfWork,
-  type ExecutionContext,
-} from "@knowledgeos/kernel";
-import {
-  CollectingEventPublisher,
-  GetLocalAvailabilityHandler,
-  InMemoryKnowledgeObjectRepository,
-  InMemoryLocalLibraryRepository,
-  InMemoryPublicationVersionRepository,
-  InMemorySourceItemRepository,
-  KernelLibraryIdentityService,
-  RegisterLocalSourceHandler,
+  Collection,
+  CollectionId,
+  InMemoryLibraryRepository,
+  Library,
+  LibraryId,
+  LibraryService,
+  Workspace,
+  WorkspaceId,
 } from "../src/index.js";
 
-const clock = new FixedClock(new Date("2026-08-01T00:00:00.000Z"));
-const ids = new MonotonicIdGenerator(clock, "test");
-const context: ExecutionContext = {
-  operationId: "operation:test" as OperationId,
-  correlationId: "correlation:test" as CorrelationId,
-  privacyClass: "publication",
-  clock,
-  cancellation: CancellationSource.none(),
-  metadata: {},
-};
-
-function eventFactory(): DomainEventFactory {
-  return new DomainEventFactory({
-    eventId: () => ids.eventId() as EventId,
-    now: () => clock.nowIso() as IsoTimestamp,
-    contractVersion: "5.0.0" as never,
-  });
+function deps() {
+  let n = 0;
+  return {
+    nextEventId: () => `event:${++n}`,
+    now: () => "2026-08-03T00:00:00.000Z",
+  };
 }
 
-test("register local source creates offline membership", async () => {
-  const libraries = new InMemoryLocalLibraryRepository();
-  const libraryId = "local-library:test" as LocalLibraryId;
-  await libraries.save(LocalLibrary.rehydrate({ id: libraryId, name: "Local", memberships: [] }));
-  const knowledgeObjects = new InMemoryKnowledgeObjectRepository();
-  const sources = new InMemorySourceItemRepository();
-  const publications = new InMemoryPublicationVersionRepository();
-  const publisher = new CollectingEventPublisher();
-  const handler = new RegisterLocalSourceHandler({
-    knowledgeObjects,
-    sources,
-    publications,
-    localLibraries: libraries,
-    identities: new KernelLibraryIdentityService(ids),
-    events: eventFactory(),
-    unitOfWork: new PassthroughUnitOfWork(),
-    publisher,
+test("library creation records event", () => {
+  const library = Library.create(LibraryId.create("library:1"), "Personal", deps());
+  assert.equal(library.version, 1);
+  assert.equal(library.uncommittedEvents[0]?.type, "library.created");
+});
+
+test("library adds collection and workspace", () => {
+  const library = Library.create(LibraryId.create("library:1"), "Personal", deps());
+  library.addCollection(new Collection(CollectionId.create("collection:1"), "Research"));
+  library.addWorkspace(new Workspace(WorkspaceId.create("workspace:1"), "Reading"));
+  assert.equal(library.collections.length, 1);
+  assert.equal(library.workspaces.length, 1);
+  assert.equal(library.version, 3);
+});
+
+test("collection membership is unique", () => {
+  const collection = new Collection(CollectionId.create("collection:1"), "Research");
+  collection.addObject("object:1");
+  collection.addObject("object:1");
+  assert.deepEqual(collection.members, ["object:1"]);
+});
+
+test("workspace persists layout", () => {
+  const workspace = new Workspace(WorkspaceId.create("workspace:1"), "Research");
+  workspace.updateLayout({
+    panels: ["reader", "notes"],
+    activeDocumentId: "object:1",
+    metadata: { mode: "research" },
   });
+  assert.equal(workspace.layout.activeDocumentId, "object:1");
+});
 
-  await handler.handle({
-    type: "library.register-local-source",
-    commandId: context.operationId,
-    contractVersion: "5.0.0" as never,
-    context: {} as never,
-    payload: {
-      localLibraryId: libraryId,
-      sourceItemId: "source-item:test" as SourceItemId,
-      contentFingerprint: "sha256:test",
-      title: "Test Publication",
-      mediaType: "application/pdf",
-      byteLength: 100,
-      sourceVersionId: "version:source" as VersionId,
-    },
-  }, context);
+test("service persists library", async () => {
+  const repository = new InMemoryLibraryRepository();
+  const service = new LibraryService({ repository, ...deps() });
+  const id = LibraryId.create("library:1");
+  await service.createLibrary(id, "Personal");
+  assert.equal((await repository.get(id))?.name, "Personal");
+});
 
-  const saved = await libraries.get(libraryId);
-  const membership = saved?.listMemberships()[0];
-  assert.ok(membership);
-  const availability = await new GetLocalAvailabilityHandler(libraries).handle({
-    type: "library.get-local-availability",
-    queryId: context.operationId,
-    contractVersion: "5.0.0" as never,
-    context: {} as never,
-    parameters: { localLibraryId: libraryId, knowledgeObjectId: membership.knowledgeObjectId },
-  }, context);
-  assert.equal(availability.availability.state, "local-available");
-  assert.equal(availability.availability.readableOffline, true);
-  assert.equal(publisher.events.length, 2);
+test("service adds collection", async () => {
+  const repository = new InMemoryLibraryRepository();
+  const service = new LibraryService({ repository, ...deps() });
+  const libraryId = LibraryId.create("library:1");
+  await service.createLibrary(libraryId, "Personal");
+  await service.addCollection(
+    libraryId,
+    CollectionId.create("collection:1"),
+    "Papers",
+  );
+  assert.equal((await repository.get(libraryId))?.collections.length, 1);
+});
+
+test("duplicate collection is rejected", () => {
+  const library = Library.create(LibraryId.create("library:1"), "Personal", deps());
+  const collection = new Collection(CollectionId.create("collection:1"), "Research");
+  library.addCollection(collection);
+  assert.throws(() => library.addCollection(collection));
 });

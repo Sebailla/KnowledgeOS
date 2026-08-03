@@ -1,73 +1,68 @@
-import type { OperationId } from "@knowledgeos/domain-types";
-
-export interface IdempotencyRecord<T> {
-  readonly operationId: OperationId;
-  readonly key: string;
-  readonly status: "running" | "completed" | "failed";
-  readonly result?: T;
-  readonly failureCode?: string;
-}
-
 export interface IdempotencyStore {
-  get<T>(key: string): Promise<IdempotencyRecord<T> | undefined>;
-  begin(operationId: OperationId, key: string): Promise<boolean>;
-  complete<T>(key: string, result: T): Promise<void>;
-  fail(key: string, failureCode: string): Promise<void>;
+  get<TResult>(key: string): Promise<TResult | undefined>;
+  set<TResult>(
+    key: string,
+    result: TResult,
+  ): Promise<void>;
 }
 
 export class InMemoryIdempotencyStore
 implements IdempotencyStore {
-  private readonly records =
-    new Map<string, IdempotencyRecord<unknown>>();
+  private readonly results = new Map<string, unknown>();
 
-  async get<T>(
+  public async get<TResult>(
     key: string,
-  ): Promise<IdempotencyRecord<T> | undefined> {
-    return this.records.get(key) as
-      | IdempotencyRecord<T>
-      | undefined;
+  ): Promise<TResult | undefined> {
+    return this.results.get(key) as TResult | undefined;
   }
 
-  async begin(
-    operationId: OperationId,
+  public async set<TResult>(
     key: string,
-  ): Promise<boolean> {
-    if (this.records.has(key)) return false;
-    this.records.set(key, {
-      operationId,
-      key,
-      status: "running",
-    });
-    return true;
-  }
-
-  async complete<T>(
-    key: string,
-    result: T,
+    result: TResult,
   ): Promise<void> {
-    const current = this.records.get(key);
-    if (!current) {
-      throw new Error(`Unknown idempotency key: ${key}`);
-    }
-    this.records.set(key, {
-      ...current,
-      status: "completed",
-      result,
-    });
+    this.results.set(key, result);
   }
+}
 
-  async fail(
+export class IdempotencyCoordinator {
+  private readonly inFlight = new Map<string, Promise<unknown>>();
+
+  public async execute<TResult>(
     key: string,
-    failureCode: string,
-  ): Promise<void> {
-    const current = this.records.get(key);
-    if (!current) {
-      throw new Error(`Unknown idempotency key: ${key}`);
+    store: IdempotencyStore,
+    operation: () => Promise<TResult>,
+  ): Promise<TResult> {
+    const existing = await store.get<TResult>(key);
+    if (existing !== undefined) {
+      return existing;
     }
-    this.records.set(key, {
-      ...current,
-      status: "failed",
-      failureCode,
-    });
+
+    const current = this.inFlight.get(key);
+    if (current) {
+      return current as Promise<TResult>;
+    }
+
+    const pending = operation()
+      .then(async (result) => {
+        await store.set(key, result);
+        return result;
+      })
+      .finally(() => {
+        this.inFlight.delete(key);
+      });
+
+    this.inFlight.set(key, pending);
+
+    return pending;
   }
+}
+
+const defaultCoordinator = new IdempotencyCoordinator();
+
+export async function executeIdempotently<TResult>(
+  key: string,
+  store: IdempotencyStore,
+  operation: () => Promise<TResult>,
+): Promise<TResult> {
+  return defaultCoordinator.execute(key, store, operation);
 }

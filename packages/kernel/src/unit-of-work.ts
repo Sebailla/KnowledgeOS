@@ -1,26 +1,21 @@
-export interface Transaction {
-  commit(): Promise<void>;
-  rollback(): Promise<void>;
-}
-
 export interface UnitOfWork {
-  begin(): Promise<Transaction>;
-  run<T>(work: () => Promise<T>): Promise<T>;
+  begin(): Promise<void>;
+  commit(): Promise<void>;
+  rollback(cause?: unknown): Promise<void>;
 }
 
-export class PassthroughUnitOfWork implements UnitOfWork {
-  async begin(): Promise<Transaction> {
-    return {
-      async commit(): Promise<void> {
-        return;
-      },
-      async rollback(): Promise<void> {
-        return;
-      },
-    };
-  }
+export async function withinUnitOfWork<TResult>(
+  unitOfWork: UnitOfWork,
+  operation: () => Promise<TResult>,
+): Promise<TResult> {
+  await unitOfWork.begin();
 
-  async run<T>(work: () => Promise<T>): Promise<T> {
-    return work();
+  try {
+    const result = await operation();
+    await unitOfWork.commit();
+    return result;
+  } catch (error) {
+    await unitOfWork.rollback(error);
+    throw error;
   }
 }

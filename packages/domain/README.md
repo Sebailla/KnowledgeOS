@@ -1,5 +1,7 @@
 # @knowledgeos/domain
 
-Pure Domain implementation for KnowledgeOS.
+Fundación del modelo de dominio de KnowledgeOS.
 
-Owns aggregates, invariants, Domain events, repository interfaces and immutable snapshots. It does not own PostgreSQL, HTTP, CloudKit, UI or providers.
+Incluye entidades, identidades tipadas, agregados versionados, eventos de
+dominio, value objects, resultados, validación, especificaciones y contratos
+de repositorio sin infraestructura.

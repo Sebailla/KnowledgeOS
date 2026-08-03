@@ -18,21 +18,22 @@ export async function composeMiddleware<TInput, TOutput>(
 ): Promise<TOutput> {
   let index = -1;
 
-  const dispatch = async (current: number): Promise<TOutput> => {
-    if (current <= index) {
-      throw new Error("Middleware invoked next() more than once");
+  const dispatch = async (position: number): Promise<TOutput> => {
+    if (position <= index) {
+      throw new Error("Middleware called next() more than once.");
     }
-    index = current;
 
-    const item = middleware[current];
-    if (!item) {
+    index = position;
+    const current = middleware[position];
+
+    if (!current) {
       return terminal();
     }
 
-    return item.invoke(
+    return current.invoke(
       input,
       context,
-      () => dispatch(current + 1),
+      () => dispatch(position + 1),
     );
   };
 

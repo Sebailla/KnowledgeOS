@@ -1,4 +1,0 @@
-import type { KnowledgeObjectId, PublicationId, SourceItemId, VersionId } from "@knowledgeos/domain-types";
-import { DomainError, Entity } from "./common.js";
-export interface PublicationVersionState{readonly publicationId:PublicationId;readonly versionId:VersionId;readonly knowledgeObjectId:KnowledgeObjectId;readonly sourceItemId:SourceItemId;readonly sequence:number;readonly label?:string;}
-export class PublicationVersion extends Entity<PublicationId>{private constructor(private readonly state:PublicationVersionState){super(state.publicationId);} static create(state:PublicationVersionState){if(!Number.isInteger(state.sequence)||state.sequence<1)throw new DomainError("publication.invalid-sequence","validation","Sequence must be positive");return new PublicationVersion(state);} snapshot(){return {...this.state};}}

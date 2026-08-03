@@ -1,67 +1,64 @@
-import type { DurationMilliseconds } from "@knowledgeos/domain-types";
 import type { Cancellation } from "./cancellation.js";
 
-export interface Sleeper {
-  sleep(
-    duration: DurationMilliseconds,
+export interface DelayScheduler {
+  delay(
+    milliseconds: number,
     cancellation: Cancellation,
   ): Promise<void>;
 }
 
-export class ImmediateSleeper implements Sleeper {
-  async sleep(
-    _duration: DurationMilliseconds,
-    cancellation: Cancellation,
-  ): Promise<void> {
-    cancellation.throwIfCancelled();
-  }
-}
-
 export interface RetryPolicy {
-  readonly maximumAttempts: number;
-  delayForAttempt(attempt: number): DurationMilliseconds;
-  shouldRetry(error: unknown, attempt: number): boolean;
+  readonly maxAttempts: number;
+  readonly delayMilliseconds: (
+    attempt: number,
+    error: unknown,
+  ) => number;
+  readonly shouldRetry?: (
+    error: unknown,
+    attempt: number,
+  ) => boolean;
+  readonly scheduler?: DelayScheduler;
 }
 
-export class ExponentialRetryPolicy implements RetryPolicy {
-  public constructor(
-    public readonly maximumAttempts = 3,
-    private readonly initialDelayMs = 100,
-    private readonly maximumDelayMs = 5_000,
-  ) {}
-
-  delayForAttempt(attempt: number): DurationMilliseconds {
-    const value = Math.min(
-      this.initialDelayMs * 2 ** Math.max(0, attempt - 1),
-      this.maximumDelayMs,
-    );
-    return value as DurationMilliseconds;
-  }
-
-  shouldRetry(_error: unknown, attempt: number): boolean {
-    return attempt < this.maximumAttempts;
-  }
-}
-
-export async function executeWithRetry<T>(
-  operation: () => Promise<T>,
+export async function retry<T>(
+  operation: (attempt: number) => Promise<T>,
   policy: RetryPolicy,
   cancellation: Cancellation,
-  sleeper: Sleeper = new ImmediateSleeper(),
 ): Promise<T> {
-  let attempt = 1;
+  if (!Number.isInteger(policy.maxAttempts) || policy.maxAttempts < 1) {
+    throw new RangeError("maxAttempts must be a positive integer.");
+  }
 
-  for (;;) {
-    cancellation.throwIfCancelled();
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= policy.maxAttempts; attempt += 1) {
+    cancellation.throwIfCancellationRequested();
+
     try {
-      return await operation();
+      return await operation(attempt);
     } catch (error) {
-      if (!policy.shouldRetry(error, attempt)) throw error;
-      await sleeper.sleep(
-        policy.delayForAttempt(attempt),
-        cancellation,
-      );
-      attempt += 1;
+      lastError = error;
+
+      if (
+        attempt >= policy.maxAttempts ||
+        policy.shouldRetry?.(error, attempt) === false
+      ) {
+        throw error;
+      }
+
+      const delay = policy.delayMilliseconds(attempt, error);
+      if (delay > 0) {
+        const scheduler = policy.scheduler;
+        if (!scheduler) {
+          throw new Error(
+            "Retry delay requires an explicit DelayScheduler.",
+          );
+        }
+
+        await scheduler.delay(delay, cancellation);
+      }
     }
   }
+
+  throw lastError;
 }

@@ -1,6 +1,29 @@
 {
   "name": "@knowledgeos/kernel",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "private": true,
   "type": "module",
-  "main": "src/index.ts"
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "node --test dist-test/test/kernel.test.js dist-test/test/kernel-runtime.test.js dist-test/test/kernel-final.test.js",
+    "generate": "node -e \"process.exit(0)\"",
+    "validate": "pnpm typecheck"
+  },
+  "devDependencies": {
+    "typescript": "workspace:^"
+  },
+  "dependencies": {
+    "@knowledgeos/contracts": "workspace:*",
+    "@knowledgeos/domain-types": "workspace:*"
+  },
+  "sideEffects": false
 }

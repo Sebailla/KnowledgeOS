@@ -1,44 +1,36 @@
-export class DuplicateHandlerError extends Error {
-  public constructor(type: string) {
-    super(`Handler already registered for ${type}`);
-    this.name = "DuplicateHandlerError";
-  }
-}
+export class HandlerRegistry<THandler> {
+  private readonly handlers = new Map<string, THandler>();
 
-export class MissingHandlerError extends Error {
-  public constructor(type: string) {
-    super(`No handler registered for ${type}`);
-    this.name = "MissingHandlerError";
-  }
-}
-
-export class HandlerRegistry<Handler> {
-  private readonly handlers = new Map<string, Handler>();
-
-  register(type: string, handler: Handler): void {
+  public register(type: string, handler: THandler): void {
     if (this.handlers.has(type)) {
-      throw new DuplicateHandlerError(type);
+      throw new Error(`Handler '${type}' is already registered.`);
     }
+
     this.handlers.set(type, handler);
   }
 
-  replace(type: string, handler: Handler): void {
+  public replace(type: string, handler: THandler): void {
     this.handlers.set(type, handler);
   }
 
-  resolve(type: string): Handler {
-    const handler = this.handlers.get(type);
-    if (!handler) {
-      throw new MissingHandlerError(type);
-    }
-    return handler;
+  public unregister(type: string): boolean {
+    return this.handlers.delete(type);
   }
 
-  has(type: string): boolean {
+  public has(type: string): boolean {
     return this.handlers.has(type);
   }
 
-  listTypes(): readonly string[] {
-    return [...this.handlers.keys()].sort();
+  public get(type: string): THandler {
+    const handler = this.handlers.get(type);
+    if (!handler) {
+      throw new Error(`Handler '${type}' is not registered.`);
+    }
+
+    return handler;
+  }
+
+  public entries(): readonly (readonly [string, THandler])[] {
+    return [...this.handlers.entries()];
   }
 }

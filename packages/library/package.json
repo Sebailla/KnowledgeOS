@@ -1,6 +1,6 @@
 {
   "name": "@knowledgeos/library",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "exports": {
@@ -13,16 +13,12 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "lint": "eslint .",
     "test": "node --test dist-test/test/library.test.js",
     "generate": "node -e \"process.exit(0)\"",
     "validate": "pnpm typecheck"
   },
   "dependencies": {
-    "@knowledgeos/contracts": "workspace:*",
-    "@knowledgeos/domain": "workspace:*",
-    "@knowledgeos/domain-types": "workspace:*",
-    "@knowledgeos/kernel": "workspace:*"
+    "@knowledgeos/domain": "workspace:*"
   },
   "devDependencies": {
     "typescript": "workspace:^"

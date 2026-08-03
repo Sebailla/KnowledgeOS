@@ -1,66 +1,82 @@
-import type {
-  DomainEvent,
-  IntegrationEvent,
-} from "@knowledgeos/contracts";
 import type { ExecutionContext } from "./execution-context.js";
 
-export type Event = DomainEvent | IntegrationEvent;
+export interface DomainEvent {
+  readonly type: string;
+  readonly occurredAt: string;
+}
 
-export interface EventHandler<TEvent extends Event = Event> {
+export interface EventHandler<TEvent extends DomainEvent> {
   handle(
     event: TEvent,
     context: ExecutionContext,
   ): Promise<void>;
 }
 
-export interface EventBus {
-  publish(
-    event: Event,
-    context: ExecutionContext,
-  ): Promise<void>;
-  publishMany(
-    events: readonly Event[],
-    context: ExecutionContext,
-  ): Promise<void>;
+export interface PublishOptions {
+  readonly failFast?: boolean;
 }
 
-export class InMemoryEventBus implements EventBus {
-  private readonly handlers =
-    new Map<string, EventHandler[]>();
+export interface PublishResult {
+  readonly handledBy: number;
+  readonly errors: readonly unknown[];
+}
 
-  subscribe<TEvent extends Event>(
+export class EventBus {
+  private readonly handlers =
+    new Map<string, Set<EventHandler<DomainEvent>>>();
+
+  public subscribe<TEvent extends DomainEvent>(
     type: TEvent["type"],
     handler: EventHandler<TEvent>,
   ): () => void {
-    const current = this.handlers.get(type) ?? [];
-    current.push(handler as EventHandler);
+    const current =
+      this.handlers.get(type) ??
+      new Set<EventHandler<DomainEvent>>();
+
+    current.add(
+      handler as EventHandler<DomainEvent>,
+    );
     this.handlers.set(type, current);
 
     return () => {
-      const handlers = this.handlers.get(type);
-      if (!handlers) return;
-      const index = handlers.indexOf(handler as EventHandler);
-      if (index >= 0) handlers.splice(index, 1);
+      current.delete(
+        handler as EventHandler<DomainEvent>,
+      );
+
+      if (current.size === 0) {
+        this.handlers.delete(type);
+      }
     };
   }
 
-  async publish(
-    event: Event,
+  public async publish<TEvent extends DomainEvent>(
+    event: TEvent,
     context: ExecutionContext,
-  ): Promise<void> {
-    context.cancellation.throwIfCancelled();
-    const handlers = [...(this.handlers.get(event.type) ?? [])];
-    await Promise.all(
-      handlers.map((handler) => handler.handle(event, context)),
-    );
-  }
+    options: PublishOptions = {},
+  ): Promise<PublishResult> {
+    context.cancellation.throwIfCancellationRequested();
 
-  async publishMany(
-    events: readonly Event[],
-    context: ExecutionContext,
-  ): Promise<void> {
-    for (const event of events) {
-      await this.publish(event, context);
+    const matching = [
+      ...(this.handlers.get(event.type) ?? []),
+    ];
+
+    const errors: unknown[] = [];
+
+    for (const handler of matching) {
+      try {
+        await handler.handle(event, context);
+      } catch (error) {
+        if (options.failFast) {
+          throw error;
+        }
+
+        errors.push(error);
+      }
     }
+
+    return {
+      handledBy: matching.length,
+      errors,
+    };
   }
 }

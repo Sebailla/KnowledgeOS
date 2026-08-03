@@ -1,7 +1,3 @@
-import type {
-  Command,
-  CommandReceipt,
-} from "@knowledgeos/contracts";
 import type { ExecutionContext } from "./execution-context.js";
 import { HandlerRegistry } from "./handler-registry.js";
 import {
@@ -9,50 +5,58 @@ import {
   type Middleware,
 } from "./middleware.js";
 
-export interface CommandHandler<TCommand extends Command = Command> {
-  handle(
-    command: TCommand,
-    context: ExecutionContext,
-  ): Promise<CommandReceipt>;
+export interface Command<TResult = void> {
+  readonly type: string;
 }
 
-export interface CommandBus {
-  execute<TCommand extends Command>(
+export interface CommandHandler<
+  TCommand extends Command<TResult>,
+  TResult = void,
+> {
+  execute(
     command: TCommand,
     context: ExecutionContext,
-  ): Promise<CommandReceipt>;
+  ): Promise<TResult>;
 }
 
-export class InMemoryCommandBus implements CommandBus {
+export class CommandBus {
   private readonly handlers =
-    new HandlerRegistry<CommandHandler>();
-  private readonly middleware: Middleware<Command, CommandReceipt>[] = [];
+    new HandlerRegistry<CommandHandler<Command<unknown>, unknown>>();
+  private readonly middleware:
+    Middleware<Command<unknown>, unknown>[] = [];
 
-  register<TCommand extends Command>(
+  public register<TCommand extends Command<TResult>, TResult>(
     type: TCommand["type"],
-    handler: CommandHandler<TCommand>,
+    handler: CommandHandler<TCommand, TResult>,
   ): void {
-    this.handlers.register(type, handler as CommandHandler);
+    this.handlers.register(
+      type,
+      handler as CommandHandler<Command<unknown>, unknown>,
+    );
   }
 
-  use(
-    middleware: Middleware<Command, CommandReceipt>,
+  public use(
+    middleware: Middleware<Command<unknown>, unknown>,
   ): void {
     this.middleware.push(middleware);
   }
 
-  async execute<TCommand extends Command>(
+  public async execute<TCommand extends Command<TResult>, TResult>(
     command: TCommand,
     context: ExecutionContext,
-  ): Promise<CommandReceipt> {
-    context.cancellation.throwIfCancelled();
-    const handler = this.handlers.resolve(command.type);
+  ): Promise<TResult> {
+    context.cancellation.throwIfCancellationRequested();
+
+    const handler = this.handlers.get(command.type);
 
     return composeMiddleware(
       this.middleware,
       command,
       context,
-      () => handler.handle(command, context),
-    );
+      async () => {
+        context.cancellation.throwIfCancellationRequested();
+        return handler.execute(command, context);
+      },
+    ) as Promise<TResult>;
   }
 }

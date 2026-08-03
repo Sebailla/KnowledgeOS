@@ -1,4 +1,3 @@
-import type { Query } from "@knowledgeos/contracts";
 import type { ExecutionContext } from "./execution-context.js";
 import { HandlerRegistry } from "./handler-registry.js";
 import {
@@ -6,51 +5,58 @@ import {
   type Middleware,
 } from "./middleware.js";
 
+export interface Query<TResult> {
+  readonly type: string;
+}
+
 export interface QueryHandler<
-  TQuery extends Query = Query,
-  TResult = unknown,
+  TQuery extends Query<TResult>,
+  TResult,
 > {
-  handle(
+  execute(
     query: TQuery,
     context: ExecutionContext,
   ): Promise<TResult>;
 }
 
-export interface QueryBus {
-  execute<TResult>(
-    query: Query,
-    context: ExecutionContext,
-  ): Promise<TResult>;
-}
-
-export class InMemoryQueryBus implements QueryBus {
+export class QueryBus {
   private readonly handlers =
-    new HandlerRegistry<QueryHandler>();
-  private readonly middleware: Middleware<Query, unknown>[] = [];
+    new HandlerRegistry<QueryHandler<Query<unknown>, unknown>>();
+  private readonly middleware:
+    Middleware<Query<unknown>, unknown>[] = [];
 
-  register<TQuery extends Query, TResult>(
+  public register<TQuery extends Query<TResult>, TResult>(
     type: TQuery["type"],
     handler: QueryHandler<TQuery, TResult>,
   ): void {
-    this.handlers.register(type, handler as QueryHandler);
+    this.handlers.register(
+      type,
+      handler as QueryHandler<Query<unknown>, unknown>,
+    );
   }
 
-  use(middleware: Middleware<Query, unknown>): void {
+  public use(
+    middleware: Middleware<Query<unknown>, unknown>,
+  ): void {
     this.middleware.push(middleware);
   }
 
-  async execute<TResult>(
-    query: Query,
+  public async execute<TQuery extends Query<TResult>, TResult>(
+    query: TQuery,
     context: ExecutionContext,
   ): Promise<TResult> {
-    context.cancellation.throwIfCancelled();
-    const handler = this.handlers.resolve(query.type);
+    context.cancellation.throwIfCancellationRequested();
+
+    const handler = this.handlers.get(query.type);
 
     return composeMiddleware(
       this.middleware,
       query,
       context,
-      () => handler.handle(query, context),
+      async () => {
+        context.cancellation.throwIfCancellationRequested();
+        return handler.execute(query, context);
+      },
     ) as Promise<TResult>;
   }
 }

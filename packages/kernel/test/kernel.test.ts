@@ -1,96 +1,184 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type {
-  Command,
-  CommandReceipt,
-  Query,
-} from "@knowledgeos/contracts";
-import type {
-  CorrelationId,
-  OperationId,
-} from "@knowledgeos/domain-types";
+
 import {
-  CancellationSource,
-  FixedClock,
-  InMemoryCommandBus,
-  InMemoryEventBus,
-  InMemoryIdempotencyStore,
-  InMemoryQueryBus,
-  type ExecutionContext,
+  EngineAlreadyRegisteredError,
+  EngineDependencyError,
+  InvalidKernelStateError,
+  Kernel,
+  KernelBuilder,
+  KernelState,
+  type Engine,
+  type EngineContext,
 } from "../src/index.js";
 
-const context: ExecutionContext = {
-  operationId: "operation:test" as OperationId,
-  correlationId: "correlation:test" as CorrelationId,
-  privacyClass: "personal",
-  clock: new FixedClock(new Date("2026-08-01T00:00:00.000Z")),
-  cancellation: CancellationSource.none(),
-  metadata: {},
-};
+class TestEngine implements Engine {
+  public readonly name: string;
+  public readonly version = "1.0.0";
+  public readonly calls: string[] = [];
 
-test("command bus dispatches registered handlers", async () => {
-  const bus = new InMemoryCommandBus();
-  bus.register("test.command", {
-    async handle(): Promise<CommandReceipt> {
-      return {
-        commandId: context.operationId,
-        accepted: true,
-      };
-    },
-  });
+  public constructor(
+    public readonly id: string,
+    public readonly dependencies: readonly string[] = [],
+    private readonly failOn?: "initialize" | "start" | "stop" | "dispose",
+  ) {
+    this.name = id;
+  }
 
-  const receipt = await bus.execute(
-    {
-      type: "test.command",
-      commandId: context.operationId,
-    } as Command,
-    context,
-  );
+  public async initialize(_context: EngineContext): Promise<void> {
+    this.calls.push("initialize");
+    if (this.failOn === "initialize") throw new Error("initialize failed");
+  }
 
-  assert.equal(receipt.accepted, true);
+  public async start(_context: EngineContext): Promise<void> {
+    this.calls.push("start");
+    if (this.failOn === "start") throw new Error("start failed");
+  }
+
+  public async stop(_context: EngineContext): Promise<void> {
+    this.calls.push("stop");
+    if (this.failOn === "stop") throw new Error("stop failed");
+  }
+
+  public async dispose(_context: EngineContext): Promise<void> {
+    this.calls.push("dispose");
+    if (this.failOn === "dispose") throw new Error("dispose failed");
+  }
+}
+
+test("kernel executes dependencies before dependents", async () => {
+  const storage = new TestEngine("storage");
+  const library = new TestEngine("library", ["storage"]);
+
+  const kernel = new KernelBuilder()
+    .addEngine(library)
+    .addEngine(storage)
+    .build();
+
+  await kernel.initialize();
+  await kernel.start();
+
+  assert.equal(kernel.getState(), KernelState.Running);
+  assert.deepEqual(storage.calls, ["initialize", "start"]);
+  assert.deepEqual(library.calls, ["initialize", "start"]);
 });
 
-test("query bus returns typed results", async () => {
-  const bus = new InMemoryQueryBus();
-  bus.register("test.query", {
-    async handle(): Promise<number> {
-      return 42;
-    },
-  });
+test("kernel stops and disposes in reverse dependency order", async () => {
+  const calls: string[] = [];
 
-  const value = await bus.execute<number>(
-    { type: "test.query" } as Query,
-    context,
-  );
+  class OrderedEngine extends TestEngine {
+    public override async stop(context: EngineContext): Promise<void> {
+      calls.push(`stop:${this.id}`);
+      await super.stop(context);
+    }
 
-  assert.equal(value, 42);
+    public override async dispose(context: EngineContext): Promise<void> {
+      calls.push(`dispose:${this.id}`);
+      await super.dispose(context);
+    }
+  }
+
+  const storage = new OrderedEngine("storage");
+  const library = new OrderedEngine("library", ["storage"]);
+
+  const kernel = new KernelBuilder()
+    .addEngine(library)
+    .addEngine(storage)
+    .build();
+
+  await kernel.initialize();
+  await kernel.start();
+  await kernel.stop();
+  await kernel.dispose();
+
+  assert.deepEqual(calls, [
+    "stop:library",
+    "stop:storage",
+    "dispose:library",
+    "dispose:storage",
+  ]);
+  assert.equal(kernel.getState(), KernelState.Disposed);
 });
 
-test("event bus publishes to subscribers", async () => {
-  const bus = new InMemoryEventBus();
-  let count = 0;
-  bus.subscribe("test.event", {
-    async handle(): Promise<void> {
-      count += 1;
-    },
-  });
+test("duplicate engines are rejected", () => {
+  const engine = new TestEngine("engine");
+  const kernel = new Kernel();
 
-  await bus.publish(
-    { type: "test.event" } as never,
-    context,
+  kernel.register(engine);
+
+  assert.throws(
+    () => kernel.register(engine),
+    EngineAlreadyRegisteredError,
   );
-
-  assert.equal(count, 1);
 });
 
-test("idempotency store rejects duplicate begin", async () => {
-  const store = new InMemoryIdempotencyStore();
-  assert.equal(
-    await store.begin(context.operationId, "same-key"),
-    true,
+test("missing dependencies are rejected before lifecycle execution", async () => {
+  const kernel = new KernelBuilder()
+    .addEngine(new TestEngine("library", ["storage"]))
+    .build();
+
+  await assert.rejects(
+    () => kernel.initialize(),
+    EngineDependencyError,
   );
-  assert.equal(
-    await store.begin(context.operationId, "same-key"),
-    false,
+});
+
+test("invalid lifecycle transitions are rejected", async () => {
+  const kernel = new Kernel();
+
+  await assert.rejects(
+    () => kernel.start(),
+    InvalidKernelStateError,
   );
+});
+
+test("startup failure stops engines that already started", async () => {
+  const first = new TestEngine("first");
+  const second = new TestEngine("second", ["first"], "start");
+
+  const kernel = new KernelBuilder()
+    .addEngine(first)
+    .addEngine(second)
+    .build();
+
+  await kernel.initialize();
+
+  await assert.rejects(() => kernel.start());
+
+  assert.deepEqual(first.calls, ["initialize", "start", "stop"]);
+  assert.equal(kernel.getState(), KernelState.Failed);
+});
+
+test("kernel emits deterministic lifecycle events", async () => {
+  const events: string[] = [];
+  const kernel = new KernelBuilder()
+    .withOptions({
+      eventListeners: [
+        (event) => {
+          events.push(event.type);
+        },
+      ],
+    })
+    .addEngine(new TestEngine("engine"))
+    .build();
+
+  await kernel.initialize();
+  await kernel.start();
+  await kernel.stop();
+  await kernel.dispose();
+
+  assert.deepEqual(events, [
+    "kernel-state-changed",
+    "engine-initialized",
+    "kernel-state-changed",
+    "kernel-state-changed",
+    "engine-started",
+    "kernel-state-changed",
+    "kernel-state-changed",
+    "engine-stopped",
+    "kernel-state-changed",
+    "kernel-state-changed",
+    "engine-disposed",
+    "kernel-state-changed",
+  ]);
 });

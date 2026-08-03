@@ -1,6 +1,6 @@
 {
   "name": "@knowledgeos/domain",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "exports": {
@@ -13,14 +13,13 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "lint": "eslint .",
-    "test": "node --test dist-test/test/domain.test.js",
+    "test": "node --test dist-test/test/domain-foundation.test.js",
     "generate": "node -e \"process.exit(0)\"",
     "validate": "pnpm typecheck"
   },
   "dependencies": {
-    "@knowledgeos/contracts": "workspace:*",
-    "@knowledgeos/domain-types": "workspace:*"
+    "@knowledgeos/domain-types": "workspace:*",
+    "@knowledgeos/contracts": "workspace:*"
   },
   "devDependencies": {
     "typescript": "workspace:^"

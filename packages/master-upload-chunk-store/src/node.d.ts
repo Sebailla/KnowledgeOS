@@ -1,2 +1,0 @@
-declare module "node:fs/promises" { export function mkdir(path:string,o?:{recursive?:boolean}):Promise<void>; export function writeFile(path:string,data:Uint8Array):Promise<void>; export function readFile(path:string):Promise<Uint8Array>; export function rename(a:string,b:string):Promise<void>; export function rm(path:string,o?:{recursive?:boolean;force?:boolean}):Promise<void>; }
-declare module "node:path" { export function join(...parts: readonly string[]): string; }

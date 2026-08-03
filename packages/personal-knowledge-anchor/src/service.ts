@@ -1,7 +1,0 @@
-import type { PersonalKnowledgeItem } from "@knowledgeos/personal-knowledge";
-import type { AnchorVersionMap, VersionTextSnapshot } from "./model.js";
-import { PersonalKnowledgeAnchorResolver } from "./resolver.js";
-export interface AnchorMapRepository{save(value:AnchorVersionMap):Promise<void>;listForItem(itemId:string):Promise<readonly AnchorVersionMap[]>;}
-export class AnchorReattachmentService{constructor(private readonly resolver:PersonalKnowledgeAnchorResolver,private readonly maps:AnchorMapRepository,private readonly nowIso:()=>string){}
- async reattach(item:PersonalKnowledgeItem,from:VersionTextSnapshot,to:VersionTextSnapshot):Promise<AnchorVersionMap>{if(!item.anchor)throw new Error("Item has no anchor");const r=this.resolver.resolve(item.anchor,from,to);const map:AnchorVersionMap={mapId:`${item.itemId}:${String(from.versionId)}:${String(to.versionId)}`,itemId:item.itemId,publicationId:item.anchor.publicationId,fromVersionId:from.versionId,toVersionId:to.versionId,originalAnchor:item.anchor,...(r.resolved?{resolvedAnchor:r.resolved}:{}),confidence:r.confidence,strategy:r.strategy,score:r.score,createdAt:this.nowIso()};await this.maps.save(map);return map;}}
-export class InMemoryAnchorMapRepository implements AnchorMapRepository{private readonly values=new Map<string,AnchorVersionMap>();async save(v:AnchorVersionMap){this.values.set(v.mapId,v);}async listForItem(id:string){return [...this.values.values()].filter(v=>v.itemId===id);}}

@@ -1,1 +1,13 @@
-export * from "./acquisition.js"; export * from "./annotation.js"; export * from "./common.js"; export * from "./events.js"; export * from "./knowledge-object.js"; export * from "./local-library.js"; export * from "./publication-version.js"; export * from "./repositories.js"; export * from "./source-item.js";
+export * from "./entities/AggregateRoot.js";
+export * from "./entities/Entity.js";
+export * from "./errors/DomainError.js";
+export * from "./errors/DomainInvariantError.js";
+export * from "./errors/DomainValidationError.js";
+export * from "./events/DomainEvent.js";
+export * from "./identity/EntityId.js";
+export * from "./identity/TypedId.js";
+export * from "./repositories/Repository.js";
+export * from "./result.js";
+export * from "./specification.js";
+export * from "./validation.js";
+export * from "./value-object.js";

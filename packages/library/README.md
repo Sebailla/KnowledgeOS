@@ -1,17 +1,7 @@
 # @knowledgeos/library
 
-Application and Platform Library use cases for the first KnowledgeOS vertical slice.
+Modelo y servicios de la biblioteca lógica de KnowledgeOS.
 
-## Implements
-
-- local source registration;
-- Master Catalog browsing;
-- explicit acquisition requests;
-- local availability resolution;
-- Local Library listing;
-- committed event publication;
-- in-memory repositories and catalog for tests.
-
-## Boundaries
-
-This package orchestrates Domain objects through public contracts. It does not own PostgreSQL, filesystem transfer, HTTP, CloudKit, rendering or UI.
+Incluye `Library`, `Collection`, `Workspace`, identidades tipadas, eventos de
+dominio, contrato de repositorio, servicio de aplicación y repositorio
+in-memory de referencia.

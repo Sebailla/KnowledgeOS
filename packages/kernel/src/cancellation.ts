@@ -1,55 +1,84 @@
 export interface Cancellation {
-  readonly cancelled: boolean;
-  readonly reason?: unknown;
-  throwIfCancelled(): void;
-  onCancel(listener: (reason?: unknown) => void): () => void;
+  readonly isCancellationRequested: boolean;
+  readonly reason: unknown;
+  throwIfCancellationRequested(): void;
+  onCancellationRequested(listener: (reason: unknown) => void): () => void;
 }
 
-export class CancellationSource {
-  private isCancelled = false;
-  private cancellationReason?: unknown;
-  private readonly listeners = new Set<(reason?: unknown) => void>();
-  readonly token: Cancellation;
+class CancellationToken implements Cancellation {
+  private cancelled = false;
+  private cancellationReason: unknown;
+  private readonly listeners = new Set<(reason: unknown) => void>();
 
-  public constructor() {
-    const source = this;
-    this.token = {
-      get cancelled(): boolean {
-        return source.isCancelled;
-      },
-      get reason(): unknown {
-        return source.cancellationReason;
-      },
-      throwIfCancelled(): void {
-        if (!source.isCancelled) return;
-        throw source.cancellationReason instanceof Error
-          ? source.cancellationReason
-          : new Error("Operation cancelled");
-      },
-      onCancel(listener: (reason?: unknown) => void): () => void {
-        if (source.isCancelled) {
-          listener(source.cancellationReason);
-          return () => undefined;
-        }
-        source.listeners.add(listener);
-        return () => {
-          source.listeners.delete(listener);
-        };
-      },
-    };
+  public get isCancellationRequested(): boolean {
+    return this.cancelled;
   }
 
-  cancel(reason?: unknown): void {
-    if (this.isCancelled) return;
-    this.isCancelled = true;
+  public get reason(): unknown {
+    return this.cancellationReason;
+  }
+
+  public cancel(reason: unknown = new Error("Operation cancelled")): void {
+    if (this.cancelled) {
+      return;
+    }
+
+    this.cancelled = true;
     this.cancellationReason = reason;
+
     for (const listener of [...this.listeners]) {
       listener(reason);
     }
+
     this.listeners.clear();
   }
 
-  static none(): Cancellation {
-    return new CancellationSource().token;
+  public throwIfCancellationRequested(): void {
+    if (!this.cancelled) {
+      return;
+    }
+
+    if (this.cancellationReason instanceof Error) {
+      throw this.cancellationReason;
+    }
+
+    throw new Error("Operation cancelled", {
+      cause: this.cancellationReason,
+    });
+  }
+
+  public onCancellationRequested(
+    listener: (reason: unknown) => void,
+  ): () => void {
+    if (this.cancelled) {
+      listener(this.cancellationReason);
+      return () => undefined;
+    }
+
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
   }
 }
+
+export class CancellationSource {
+  private readonly internalToken = new CancellationToken();
+
+  public get token(): Cancellation {
+    return this.internalToken;
+  }
+
+  public cancel(reason?: unknown): void {
+    this.internalToken.cancel(reason);
+  }
+}
+
+export const CancellationNone: Cancellation = {
+  isCancellationRequested: false,
+  reason: undefined,
+  throwIfCancellationRequested(): void {},
+  onCancellationRequested(): () => void {
+    return () => undefined;
+  },
+};

@@ -1,0 +1,18 @@
+declare module "node:test" {
+  interface TestContext {}
+  type TestFunction = (
+    name: string,
+    fn: (context: TestContext) => void | Promise<void>,
+  ) => void;
+  const test: TestFunction;
+  export default test;
+}
+declare module "node:assert/strict" {
+  interface Assert {
+    equal(actual: unknown, expected: unknown): void;
+    deepEqual(actual: unknown, expected: unknown): void;
+    throws(block: () => unknown, error?: new (...args: never[]) => Error): void;
+  }
+  const assert: Assert;
+  export default assert;
+}
