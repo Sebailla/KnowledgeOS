@@ -1,0 +1,34 @@
+{
+  "name": "@knowledgeos/document",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test dist-test/test/document.test.js",
+    "generate": "node -e \"process.exit(0)\"",
+    "validate": "pnpm typecheck"
+  },
+  "dependencies": {
+    "@knowledgeos/kernel": "workspace:*",
+    "@knowledgeos/library": "workspace:*",
+    "@knowledgeos/storage": "workspace:*",
+    "@knowledgeos/search": "workspace:*",
+    "@knowledgeos/knowledge-graph": "workspace:*",
+    "@knowledgeos/ai": "workspace:*",
+    "@knowledgeos/import": "workspace:*",
+    "@knowledgeos/export": "workspace:*",
+    "@knowledgeos/workspace": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "workspace:^"
+  }
+}

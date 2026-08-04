@@ -1,0 +1,30 @@
+{
+  "name": "@knowledgeos/workspace",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test dist-test/test/workspace.test.js",
+    "generate": "node -e \"process.exit(0)\"",
+    "validate": "pnpm typecheck"
+  },
+  "dependencies": {
+    "@knowledgeos/kernel": "workspace:*",
+    "@knowledgeos/library": "workspace:*",
+    "@knowledgeos/search": "workspace:*",
+    "@knowledgeos/knowledge-graph": "workspace:*",
+    "@knowledgeos/ai": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "workspace:^"
+  }
+}
