@@ -10,7 +10,9 @@
     "validate": "turbo run typecheck && turbo run test && turbo run build",
     "core:build": "pnpm --filter @knowledgeos/core build",
     "core:test": "pnpm --filter @knowledgeos/core test",
-    "core:validate": "pnpm --filter @knowledgeos/core typecheck && pnpm --filter @knowledgeos/core test"
+    "core:validate": "pnpm --filter @knowledgeos/core typecheck && pnpm --filter @knowledgeos/core test",
+    "macos:host:build": "pnpm --filter @knowledgeos/macos-core-host build",
+    "macos:host:test": "pnpm --filter @knowledgeos/macos-core-host test"
   },
   "devDependencies": {
     "turbo": "^2.5.0",

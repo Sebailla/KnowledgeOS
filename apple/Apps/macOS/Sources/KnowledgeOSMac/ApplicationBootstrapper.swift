@@ -8,22 +8,39 @@ actor ApplicationBootstrapper {
         var errorDescription: String? {
             switch self {
             case .alreadyRunning:
-                return "KnowledgeOS is already running."
+                "KnowledgeOS is already running."
             case .coreUnavailable:
-                return "KnowledgeOS Core could not be initialized."
+                "KnowledgeOS Core could not be initialized."
             }
         }
     }
 
+    typealias ServicesFactory =
+        @Sendable () throws -> AppServices
+
+    private let servicesFactory:
+        ServicesFactory
+
     private(set) var isRunning = false
     private var services: AppServices?
+
+    init(
+        servicesFactory:
+            @escaping ServicesFactory = {
+                try AppServices.makeDefault()
+            }
+    ) {
+        self.servicesFactory =
+            servicesFactory
+    }
 
     func start() async throws {
         guard !isRunning else {
             throw BootstrapError.alreadyRunning
         }
 
-        let services = AppServices.makeDefault()
+        let services =
+            try servicesFactory()
 
         try await services.start()
 

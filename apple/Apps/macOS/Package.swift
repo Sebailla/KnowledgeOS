@@ -3,18 +3,24 @@ import PackageDescription
 
 let package = Package(
     name: "KnowledgeOSMac",
-    platforms: [
-        .macOS(.v14)
-    ],
+    platforms: [.macOS(.v14)],
     products: [
         .executable(
             name: "KnowledgeOSMac",
             targets: ["KnowledgeOSMac"]
         )
     ],
+    dependencies: [
+        .package(
+            path: "../../Packages/KnowledgeOSCoreBridge"
+        )
+    ],
     targets: [
         .executableTarget(
             name: "KnowledgeOSMac",
+            dependencies: [
+                "KnowledgeOSCoreBridge"
+            ],
             path: "Sources/KnowledgeOSMac"
         ),
         .testTarget(

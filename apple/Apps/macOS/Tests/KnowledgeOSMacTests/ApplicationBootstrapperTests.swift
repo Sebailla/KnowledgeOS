@@ -1,17 +1,76 @@
 import XCTest
+import KnowledgeOSCoreBridge
 @testable import KnowledgeOSMac
 
-final class ApplicationBootstrapperTests: XCTestCase {
-    func testBootstrapperStartsAndStops() async throws {
-        let bootstrapper = ApplicationBootstrapper()
+actor TestTransport: CoreTransport {
+    func start() async throws {}
+    func stop() async {}
+
+    func send(
+        _ request: CoreRequest
+    ) async throws -> CoreResponse {
+        CoreResponse(
+            version: CoreProtocol.version,
+            id: request.id,
+            result: .object([
+                "status": .string("ok"),
+                "runtimeState":
+                    .string("running"),
+                "engines": .array([])
+            ]),
+            error: nil
+        )
+    }
+}
+
+final class ApplicationBootstrapperTests:
+XCTestCase {
+    func testBootstrapperStartsAndStops()
+    async throws {
+        let bridge = CoreBridge(
+            transport: TestTransport()
+        )
+
+        let services = AppServices(
+            bridge: bridge,
+            library:
+                CoreLibraryAdapter(
+                    bridge: bridge
+                ),
+            search:
+                CoreSearchAdapter(
+                    bridge: bridge
+                ),
+            workspace:
+                CoreWorkspaceAdapter(
+                    bridge: bridge
+                ),
+            ai:
+                CoreAIAdapter(
+                    bridge: bridge
+                ),
+            graph:
+                CoreKnowledgeGraphAdapter(
+                    bridge: bridge
+                )
+        )
+
+        let bootstrapper =
+            ApplicationBootstrapper {
+                services
+            }
 
         try await bootstrapper.start()
-        let running = await bootstrapper.isRunning
+
+        let running =
+            await bootstrapper.isRunning
 
         XCTAssertTrue(running)
 
         await bootstrapper.stop()
-        let stopped = await bootstrapper.isRunning
+
+        let stopped =
+            await bootstrapper.isRunning
 
         XCTAssertFalse(stopped)
     }

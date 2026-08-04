@@ -1,6 +1,6 @@
 {
-  "name": "@knowledgeos/sync-server",
-  "version": "0.1.0",
+  "name": "@knowledgeos/macos-core-host",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "exports": {
@@ -10,11 +10,13 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node test/sync-server.test.mjs"
+    "test": "node --test dist-test/test/router.test.js",
+    "validate": "pnpm typecheck"
   },
   "dependencies": {
-    "@knowledgeos/sync": "workspace:*",
-    "@knowledgeos/sync-postgres": "workspace:*"
+    "@knowledgeos/core": "workspace:*",
+    "@knowledgeos/kernel": "workspace:*",
+    "@knowledgeos/ai": "workspace:*"
   },
   "devDependencies": {
     "typescript": "workspace:^"

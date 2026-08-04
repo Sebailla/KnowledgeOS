@@ -1,4 +1,5 @@
 import Foundation
+import KnowledgeOSCoreBridge
 
 protocol LifecycleService: Sendable {
     func start() async throws
@@ -9,29 +10,16 @@ protocol LibraryService: LifecycleService {}
 protocol SearchService: LifecycleService {}
 protocol WorkspaceService: LifecycleService {}
 protocol AIService: LifecycleService {}
-protocol KnowledgeGraphService: LifecycleService {}
+protocol KnowledgeGraphService:
+LifecycleService {}
 
-actor InMemoryLibraryService: LibraryService {
-    func start() async throws {}
-    func stop() async {}
-}
-
-actor InMemorySearchService: SearchService {
-    func start() async throws {}
-    func stop() async {}
-}
-
-actor InMemoryWorkspaceService: WorkspaceService {
-    func start() async throws {}
-    func stop() async {}
-}
-
-actor InMemoryAIService: AIService {
-    func start() async throws {}
-    func stop() async {}
-}
-
-actor InMemoryKnowledgeGraphService: KnowledgeGraphService {
-    func start() async throws {}
-    func stop() async {}
-}
+extension CoreLibraryAdapter:
+LibraryService {}
+extension CoreSearchAdapter:
+SearchService {}
+extension CoreWorkspaceAdapter:
+WorkspaceService {}
+extension CoreAIAdapter:
+AIService {}
+extension CoreKnowledgeGraphAdapter:
+KnowledgeGraphService {}
