@@ -63,6 +63,145 @@ public actor CoreBridge {
         )
     }
 
+
+    public func listAnnotations(
+        documentId: String
+    ) async throws -> [AnnotationDTO] {
+        let response: AnnotationListDTO = try await call(
+            method: "annotation.list",
+            params: .object([
+                "documentId": .string(documentId)
+            ]),
+            as: AnnotationListDTO.self
+        )
+
+        return response.annotations
+    }
+
+    public func createAnnotation(
+        id: String,
+        kind: AnnotationKind,
+        anchor: AnnotationAnchorDTO,
+        color: AnnotationColor? = nil,
+        body: String? = nil
+    ) async throws -> AnnotationDTO {
+        var params: [String: JSONValue] = [
+            "id": .string(id),
+            "kind": .string(kind.rawValue),
+            "documentId": .string(anchor.documentId),
+            "pageNumber": .number(Double(anchor.pageNumber))
+        ]
+
+        if let startOffset = anchor.startOffset {
+            params["startOffset"] = .number(Double(startOffset))
+        }
+
+        if let endOffset = anchor.endOffset {
+            params["endOffset"] = .number(Double(endOffset))
+        }
+
+        if let selectedText = anchor.selectedText {
+            params["selectedText"] = .string(selectedText)
+        }
+
+        if let color {
+            params["color"] = .string(color.rawValue)
+        }
+
+        if let body {
+            params["body"] = .string(body)
+        }
+
+        return try await call(
+            method: "annotation.create",
+            params: .object(params),
+            as: AnnotationDTO.self
+        )
+    }
+
+    public func deleteAnnotation(
+        id: String
+    ) async throws -> Bool {
+        let response: AnnotationDeleteDTO = try await call(
+            method: "annotation.delete",
+            params: .object([
+                "id": .string(id)
+            ]),
+            as: AnnotationDeleteDTO.self
+        )
+
+        return response.deleted
+    }
+
+    public func openDocument(id:String) async throws -> DocumentDescriptorDTO { try await call(method:"document.open",params:.object(["id":.string(id)]),as:DocumentDescriptorDTO.self) }
+    public func documentPage(id:String,pageNumber:Int) async throws -> DocumentPageDTO { try await call(method:"document.page",params:.object(["id":.string(id),"pageNumber":.number(Double(pageNumber))]),as:DocumentPageDTO.self) }
+    public func documentLocation(id:String) async throws -> DocumentLocationDTO? { let x:DocumentLocationEnvelope=try await call(method:"document.location.get",params:.object(["id":.string(id)]),as:DocumentLocationEnvelope.self); return x.location }
+    public func saveDocumentLocation(id:String,pageNumber:Int,progress:Double) async throws -> DocumentLocationDTO { try await call(method:"document.location.save",params:.object(["id":.string(id),"pageNumber":.number(Double(pageNumber)),"progress":.number(progress)]),as:DocumentLocationDTO.self) }
+
+    public func listLibrary(
+        query: LibraryQuery = .init()
+    ) async throws -> LibraryPageDTO {
+        try await call(
+            method: "library.list",
+            params: query.jsonValue,
+            as: LibraryPageDTO.self
+        )
+    }
+
+    public func searchLibrary(
+        query: LibraryQuery
+    ) async throws -> LibraryPageDTO {
+        try await call(
+            method: "library.search",
+            params: query.jsonValue,
+            as: LibraryPageDTO.self
+        )
+    }
+
+    public func getLibraryItem(
+        id: String
+    ) async throws -> LibraryItemDTO {
+        try await call(
+            method: "library.get",
+            params: .object([
+                "id": .string(id)
+            ]),
+            as: LibraryItemDTO.self
+        )
+    }
+
+    public func recentLibraryItems(
+        limit: Int = 12
+    ) async throws -> [LibraryItemDTO] {
+        let response: LibraryItemsDTO =
+            try await call(
+                method: "library.recent",
+                params: .object([
+                    "limit":
+                        .number(Double(limit))
+                ]),
+                as: LibraryItemsDTO.self
+            )
+
+        return response.items
+    }
+
+    public func favoriteLibraryItems(
+        limit: Int = 100
+    ) async throws -> [LibraryItemDTO] {
+        let response: LibraryItemsDTO =
+            try await call(
+                method: "library.favorites",
+                params: .object([
+                    "limit":
+                        .number(Double(limit))
+                ]),
+                as: LibraryItemsDTO.self
+            )
+
+        return response.items
+    }
+
     public func search(
         _ query: String
     ) async throws -> CoreSearchResult {

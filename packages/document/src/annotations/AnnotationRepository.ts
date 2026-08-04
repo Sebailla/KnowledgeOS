@@ -1,0 +1,2 @@
+import type { Annotation, AnnotationCreateInput, AnnotationUpdateInput } from "./AnnotationTypes.js";
+export interface AnnotationRepository { list(documentId:string):Promise<readonly Annotation[]>; get(id:string):Promise<Annotation|undefined>; create(input:AnnotationCreateInput):Promise<Annotation>; update(id:string,input:AnnotationUpdateInput):Promise<Annotation|undefined>; delete(id:string):Promise<boolean>; }
