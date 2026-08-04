@@ -3,6 +3,7 @@ import type { LibraryQuery } from "@knowledgeos/library";
 import { libraryCatalog } from "./libraryCatalog.js";
 import { documentReaderCatalog } from "./documentReaderCatalog.js";
 import { annotationCatalog } from "./annotationCatalog.js";
+import { syncCoordinator } from "./syncCoordinator.js";
 
 export class HostError extends Error {
   public constructor(
@@ -30,6 +31,7 @@ export class CoreRouter {
           status: "ok",
           runtimeState:
             this.core.runtime.currentState,
+          persistence: { reading: documentReaderCatalog.health(), annotations: annotationCatalog.health() },
           engines:
             this.core.runtime.listEngines()
               .map((engine) => ({
@@ -86,6 +88,18 @@ export class CoreRouter {
       case "annotation.delete": return {deleted:await annotationCatalog.delete(stringParam(record,"id"))};
       case "bookmark.create": return annotationCatalog.create({id:stringParam(record,"id"),kind:"bookmark",anchor:{documentId:stringParam(record,"documentId"),pageNumber:numberParam(record,"pageNumber",1)}});
       case "bookmark.delete": return {deleted:await annotationCatalog.delete(stringParam(record,"id"))};
+      case "persistence.health": return { reading: documentReaderCatalog.health(), annotations: annotationCatalog.health() };
+      case "persistence.backup": { const directory=stringParam(record,"directory"); return { reading:await documentReaderCatalog.backup(`${directory}/reading.json`), annotations:await annotationCatalog.backup(`${directory}/annotations.json`) }; }
+      case "persistence.restore": { const directory=stringParam(record,"directory"); await documentReaderCatalog.restore(`${directory}/reading.json`); await annotationCatalog.restore(`${directory}/annotations.json`); return {restored:true}; }
+      case "sync.status": return syncCoordinator.status();
+      case "sync.health": return {status:"ok",...syncCoordinator.status()};
+      case "sync.start": return syncCoordinator.start();
+      case "sync.pause": return syncCoordinator.pause();
+      case "sync.resume": return syncCoordinator.resume();
+      case "sync.cancel": return syncCoordinator.cancel();
+      case "sync.offline": return syncCoordinator.setOffline();
+      case "sync.conflicts": return {conflicts:syncCoordinator.conflicts()};
+      case "sync.enqueue": { const id=stringParam(record,"id"); await syncCoordinator.enqueue({id,entityType:syncEntityType(record.entityType),entityId:stringParam(record,"entityId"),action:syncAction(record.action),payload:record.payload ?? null,createdAt:new Date().toISOString()}); return syncCoordinator.status(); }
       case "search.query":
         return this.core.search.search(
           stringParam(record, "query"),
@@ -233,3 +247,6 @@ function toLibraryQuery(
 }
 
 function annotationKind(value:unknown): "highlight"|"note"|"bookmark" { if(value==="highlight"||value==="note"||value==="bookmark") return value; throw new HostError("INVALID_PARAMS","Invalid annotation kind."); }
+
+function syncEntityType(value:unknown): "reading-location"|"annotation"|"bookmark"|"workspace" { if(value==="reading-location"||value==="annotation"||value==="bookmark"||value==="workspace") return value; throw new HostError("INVALID_PARAMS","Invalid sync entity type."); }
+function syncAction(value:unknown): "upsert"|"delete" { if(value==="upsert"||value==="delete") return value; throw new HostError("INVALID_PARAMS","Invalid sync action."); }

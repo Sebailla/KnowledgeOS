@@ -16,6 +16,7 @@ final class AppModel: ObservableObject {
     @Published var searchText = ""
     @Published var activeWorkspaceName = "Research"
     @Published var isInspectorVisible = true
+    @Published private(set) var syncViewModel: SyncViewModel?
     @Published private(set)
     var libraryViewModel:
         LibraryViewModel?
@@ -46,6 +47,8 @@ final class AppModel: ObservableObject {
             try await bootstrapper.start()
 
             if let annotations = await bootstrapper.annotationService() { annotationViewModel = AnnotationViewModel(service: annotations) }
+
+            if let bridge = await bootstrapper.coreBridge() { persistenceViewModel = PersistenceViewModel(bridge: bridge); await persistenceViewModel?.refresh(); syncViewModel = SyncViewModel(bridge: bridge); await syncViewModel?.refresh() }
 
             if let document = await bootstrapper.documentService() { documentReaderViewModel = DocumentReaderViewModel(service: document) }
 

@@ -1,3 +1,4 @@
+import KnowledgeOSCoreBridge
 import Foundation
 
 actor ApplicationBootstrapper {
@@ -53,6 +54,8 @@ actor ApplicationBootstrapper {
     }
 
     func annotationService() async -> AnnotationService? { services?.annotations }
+
+    func coreBridge() async -> CoreBridge? { services?.bridge }
 
     func documentService() async -> DocumentService? { services?.document }
 

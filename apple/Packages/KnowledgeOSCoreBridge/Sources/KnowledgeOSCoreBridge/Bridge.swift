@@ -54,6 +54,46 @@ public actor CoreBridge {
         await transport.stop()
     }
 
+
+    public func syncStatus() async throws -> SyncStatusDTO { try await call(method:"sync.status",params:nil,as:SyncStatusDTO.self) }
+    public func startSync() async throws -> SyncStatusDTO { try await call(method:"sync.start",params:nil,as:SyncStatusDTO.self) }
+    public func pauseSync() async throws -> SyncStatusDTO { try await call(method:"sync.pause",params:nil,as:SyncStatusDTO.self) }
+    public func resumeSync() async throws -> SyncStatusDTO { try await call(method:"sync.resume",params:nil,as:SyncStatusDTO.self) }
+    public func cancelSync() async throws -> SyncStatusDTO { try await call(method:"sync.cancel",params:nil,as:SyncStatusDTO.self) }
+    public func syncConflicts() async throws -> [SyncConflictDTO] { let response:SyncConflictsDTO=try await call(method:"sync.conflicts",params:nil,as:SyncConflictsDTO.self); return response.conflicts }
+
+    public func persistenceHealth() async throws -> PersistenceHealthDTO {
+        try await call(
+            method: "persistence.health",
+            params: nil,
+            as: PersistenceHealthDTO.self
+        )
+    }
+
+    public func backupPersistence(
+        directory: String
+    ) async throws -> PersistenceBackupDTO {
+        try await call(
+            method: "persistence.backup",
+            params: .object([
+                "directory": .string(directory)
+            ]),
+            as: PersistenceBackupDTO.self
+        )
+    }
+
+    public func restorePersistence(
+        directory: String
+    ) async throws -> PersistenceRestoreDTO {
+        try await call(
+            method: "persistence.restore",
+            params: .object([
+                "directory": .string(directory)
+            ]),
+            as: PersistenceRestoreDTO.self
+        )
+    }
+
     public func health()
     async throws -> CoreHealth {
         try await call(

@@ -1,5 +1,7 @@
 import { InMemoryDocumentReaderRepository } from "@knowledgeos/document";
-export const documentReaderCatalog=new InMemoryDocumentReaderRepository([
+import { PersistentDocumentReaderRepository } from "./persistentRepositories.js";
+const baseDocumentReaderCatalog=new InMemoryDocumentReaderRepository([
  {descriptor:{id:"publication:knowledge-os",title:"KnowledgeOS Architecture",authors:["KnowledgeOS Team"],pageCount:3,format:"markdown",sections:[{id:"intro",title:"Introduction",pageNumber:1,level:1},{id:"principles",title:"Architecture Principles",pageNumber:2,level:1},{id:"core",title:"Core Engines",pageNumber:3,level:1}],metadata:{language:"en"}},pages:["# KnowledgeOS\n\nOffline-first personal knowledge platform.","# Architecture Principles\n\nUser ownership, determinism and portability.","# Core Engines\n\nStorage, library, search, graph, sync, OCR and AI."]},
  {descriptor:{id:"publication:offline-first",title:"Offline First Systems",authors:["Research Library"],pageCount:2,format:"markdown",sections:[{id:"local",title:"Local First",pageNumber:1,level:1},{id:"sync",title:"Synchronization",pageNumber:2,level:1}],metadata:{}},pages:["# Local First\n\nUseful without a network.","# Synchronization\n\nExplicit conflicts and recovery."]},
 ]);
+export const documentReaderCatalog=new PersistentDocumentReaderRepository(baseDocumentReaderCatalog);

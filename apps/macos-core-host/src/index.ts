@@ -4,3 +4,6 @@ export * from "./router.js";
 export * from "./libraryCatalog.js";
 export * from "./documentReaderCatalog.js";
 export * from "./annotationCatalog.js";
+export * from "./persistence.js";
+export * from "./persistentRepositories.js";
+export * from "./syncCoordinator.js";

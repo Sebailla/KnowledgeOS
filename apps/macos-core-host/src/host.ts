@@ -1,3 +1,5 @@
+import { syncCoordinator } from "./syncCoordinator.js";
+
 import {
   createInterface,
   type Interface,
@@ -35,6 +37,7 @@ export class MacOSCoreHost {
     Interface | undefined;
 
   public async start(): Promise<void> {
+    await syncCoordinator.initialize();
     await this.core.ai.registerProvider(
       new InMemoryAIProvider(),
     );
