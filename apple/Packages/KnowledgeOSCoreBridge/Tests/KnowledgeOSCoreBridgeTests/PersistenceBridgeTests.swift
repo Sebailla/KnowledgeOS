@@ -1,0 +1,4 @@
+import XCTest
+@testable import KnowledgeOSCoreBridge
+actor PersistenceMockTransport: CoreTransport { func start() async throws {} ; func stop() async {} ; func send(_ request:CoreRequest) async throws -> CoreResponse { CoreResponse(version:"1.0",id:request.id,result:.object(["reading":.object(["status":.string("ok"),"directory":.string("/data"),"schemaVersion":.number(1),"recoveredFromBackup":.bool(false)]),"annotations":.object(["status":.string("ok"),"directory":.string("/data"),"schemaVersion":.number(1),"recoveredFromBackup":.bool(false)])]),error:nil) } }
+final class PersistenceBridgeTests:XCTestCase { func testHealthDecodes() async throws { let value=try await CoreBridge(transport:PersistenceMockTransport()).persistenceHealth(); XCTAssertEqual(value.reading.schemaVersion,1); XCTAssertFalse(value.annotations.recoveredFromBackup) } }

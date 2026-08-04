@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:KnowledgeOS}/apple/Apps/macOS",
+            "name": "Debug KnowledgeOSMac (apple/Apps/macOS)",
+            "target": "KnowledgeOSMac",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug KnowledgeOSMac (apple/Apps/macOS)"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:KnowledgeOS}/apple/Apps/macOS",
+            "name": "Release KnowledgeOSMac (apple/Apps/macOS)",
+            "target": "KnowledgeOSMac",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release KnowledgeOSMac (apple/Apps/macOS)"
+        }
+    ]
+}
