@@ -21,6 +21,21 @@ struct MainWorkspaceView: View {
             placement: .toolbar,
             prompt: "Search your knowledge"
         )
+        .onChange(
+            of: appModel.searchText
+        ) {
+            guard
+                appModel.selectedSidebarItem ==
+                    .library,
+                let viewModel =
+                    appModel.libraryViewModel
+            else {
+                return
+            }
+
+            viewModel.queryText =
+                appModel.searchText
+        }
         .toolbar {
             ToolbarItem {
                 Button {

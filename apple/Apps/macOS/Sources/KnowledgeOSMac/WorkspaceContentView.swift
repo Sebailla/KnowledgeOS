@@ -20,9 +20,19 @@ struct WorkspaceContentView: View {
             Divider()
 
             Group {
+                if let id=appModel.openDocumentID, let vm=appModel.documentReaderViewModel { DocumentReaderView(viewModel:vm,documentID:id) } else {
                 switch appModel.selectedSidebarItem {
                 case .library:
-                    LibraryPlaceholderView()
+                    if let viewModel =
+                        appModel.libraryViewModel {
+                        LibraryBrowserView(
+                            viewModel: viewModel
+                        )
+                    } else {
+                        ProgressView(
+                            "Loading Library…"
+                        )
+                    }
                 case .recent:
                     PlaceholderView(
                         title: "Recent",
@@ -49,21 +59,10 @@ struct WorkspaceContentView: View {
                         systemImage: "sparkles"
                     )
                 }
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-    }
-}
-
-private struct LibraryPlaceholderView: View {
-    var body: some View {
-        ContentUnavailableView(
-            "Library",
-            systemImage: "books.vertical",
-            description: Text(
-                "Your local and Master Library content will appear here."
-            )
-        )
     }
 }
 

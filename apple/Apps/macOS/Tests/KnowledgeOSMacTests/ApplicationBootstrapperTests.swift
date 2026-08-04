@@ -41,6 +41,8 @@ XCTestCase {
                 CoreSearchAdapter(
                     bridge: bridge
                 ),
+            document: CoreDocumentAdapter(bridge: bridge),
+            annotations: CoreAnnotationAdapter(bridge: bridge),
             workspace:
                 CoreWorkspaceAdapter(
                     bridge: bridge
@@ -63,14 +65,14 @@ XCTestCase {
         try await bootstrapper.start()
 
         let running =
-            await bootstrapper.isRunning
+            await bootstrapper.runningState()
 
         XCTAssertTrue(running)
 
         await bootstrapper.stop()
 
         let stopped =
-            await bootstrapper.isRunning
+            await bootstrapper.runningState()
 
         XCTAssertFalse(stopped)
     }

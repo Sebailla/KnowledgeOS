@@ -48,6 +48,19 @@ actor ApplicationBootstrapper {
         self.isRunning = true
     }
 
+    func runningState() -> Bool {
+        isRunning
+    }
+
+    func annotationService() async -> AnnotationService? { services?.annotations }
+
+    func documentService() async -> DocumentService? { services?.document }
+
+    func libraryService()
+    async -> LibraryService? {
+        services?.library
+    }
+
     func stop() async {
         guard isRunning else {
             return

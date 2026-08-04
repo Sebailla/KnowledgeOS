@@ -8,3 +8,6 @@ export * from "./model/Workspace.js";
 export * from "./repositories/InMemoryLibraryRepository.js";
 export * from "./repositories/LibraryRepository.js";
 export * from "./services/LibraryService.js";
+export * from "./catalog/LibraryCatalog.js";
+export * from "./catalog/LibraryCatalogTypes.js";
+export * from "./catalog/InMemoryLibraryCatalog.js";

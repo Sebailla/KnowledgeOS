@@ -5,6 +5,8 @@ actor AppServices {
     let bridge: CoreBridge
     let library: LibraryService
     let search: SearchService
+    let document: DocumentService
+    let annotations: AnnotationService
     let workspace: WorkspaceService
     let ai: AIService
     let graph: KnowledgeGraphService
@@ -44,6 +46,8 @@ actor AppServices {
                 CoreSearchAdapter(
                     bridge: bridge
                 ),
+            document: CoreDocumentAdapter(bridge: bridge),
+            annotations: CoreAnnotationAdapter(bridge: bridge),
             workspace:
                 CoreWorkspaceAdapter(
                     bridge: bridge
@@ -63,6 +67,8 @@ actor AppServices {
         bridge: CoreBridge,
         library: LibraryService,
         search: SearchService,
+        document: DocumentService,
+        annotations: AnnotationService,
         workspace: WorkspaceService,
         ai: AIService,
         graph: KnowledgeGraphService
@@ -70,6 +76,8 @@ actor AppServices {
         self.bridge = bridge
         self.library = library
         self.search = search
+        self.document = document
+        self.annotations = annotations
         self.workspace = workspace
         self.ai = ai
         self.graph = graph
@@ -79,6 +87,8 @@ actor AppServices {
         try await bridge.start()
         try await library.start()
         try await search.start()
+        try await document.start()
+        try await annotations.start()
         try await workspace.start()
         try await ai.start()
         try await graph.start()
@@ -88,6 +98,8 @@ actor AppServices {
         await graph.stop()
         await ai.stop()
         await workspace.stop()
+        await annotations.stop()
+        await document.stop()
         await search.stop()
         await library.stop()
         await bridge.stop()
