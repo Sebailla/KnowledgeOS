@@ -430,6 +430,36 @@
       ],
       "@knowledgeos/sync-library-integration": [
         "packages/sync-library-integration/dist/index.d.ts"
+      ],
+      "@knowledgeos/storage": [
+        "packages/storage/dist/index.d.ts"
+      ],
+      "@knowledgeos/ai": [
+        "packages/ai/dist/index.d.ts"
+      ],
+      "@knowledgeos/core": [
+        "packages/core/dist/index.d.ts"
+      ],
+      "@knowledgeos/workspace": [
+        "packages/workspace/dist/index.d.ts"
+      ],
+      "@knowledgeos/ocr": [
+        "packages/ocr/dist/index.d.ts"
+      ],
+      "@knowledgeos/import": [
+        "packages/import/dist/index.d.ts"
+      ],
+      "@knowledgeos/search": [
+        "packages/search/dist/index.d.ts"
+      ],
+      "@knowledgeos/export": [
+        "packages/export/dist/index.d.ts"
+      ],
+      "@knowledgeos/plugin": [
+        "packages/plugin/dist/index.d.ts"
+      ],
+      "@knowledgeos/document": [
+        "packages/document/dist/index.d.ts"
       ]
     }
   }
