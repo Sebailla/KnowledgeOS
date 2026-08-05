@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "correlationId": "fa38c01e-8f3d-4b24-904c-59dd1afb6202",
-  "startedAt": "2026-08-05T20:24:31.595Z",
-  "completedAt": "2026-08-05T20:24:31.629Z",
+  "correlationId": "9be39e30-e46d-4025-bad6-14b93bed2f74",
+  "startedAt": "2026-08-05T22:31:24.929Z",
+  "completedAt": "2026-08-05T22:31:24.977Z",
   "document": {
     "id": "document:e2e",
     "title": "KnowledgeOS E2E",
@@ -33,38 +33,38 @@
     {
       "route": "/push",
       "status": 200,
-      "durationMs": 18,
-      "correlationId": "fa38c01e-8f3d-4b24-904c-59dd1afb6202"
+      "durationMs": 21,
+      "correlationId": "9be39e30-e46d-4025-bad6-14b93bed2f74"
+    },
+    {
+      "route": "/push",
+      "status": 200,
+      "durationMs": 6,
+      "correlationId": "9be39e30-e46d-4025-bad6-14b93bed2f74"
+    },
+    {
+      "route": "/pull",
+      "status": 200,
+      "durationMs": 2,
+      "correlationId": "9be39e30-e46d-4025-bad6-14b93bed2f74"
     },
     {
       "route": "/push",
       "status": 200,
       "durationMs": 2,
-      "correlationId": "fa38c01e-8f3d-4b24-904c-59dd1afb6202"
+      "correlationId": "9be39e30-e46d-4025-bad6-14b93bed2f74"
     },
     {
       "route": "/pull",
       "status": 200,
       "durationMs": 2,
-      "correlationId": "fa38c01e-8f3d-4b24-904c-59dd1afb6202"
-    },
-    {
-      "route": "/push",
-      "status": 200,
-      "durationMs": 2,
-      "correlationId": "fa38c01e-8f3d-4b24-904c-59dd1afb6202"
-    },
-    {
-      "route": "/pull",
-      "status": 200,
-      "durationMs": 1,
-      "correlationId": "fa38c01e-8f3d-4b24-904c-59dd1afb6202"
+      "correlationId": "9be39e30-e46d-4025-bad6-14b93bed2f74"
     },
     {
       "route": "/pull",
       "status": 200,
       "durationMs": 2,
-      "correlationId": "fa38c01e-8f3d-4b24-904c-59dd1afb6202"
+      "correlationId": "9be39e30-e46d-4025-bad6-14b93bed2f74"
     }
   ]
 }
