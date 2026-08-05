@@ -1,0 +1,20 @@
+name: Nightly
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  nightly:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: pnpm/action-setup@v4
+        with: {version: 10.15.0}
+      - run: pnpm install --frozen-lockfile=false
+      - run: scripts/release/build-all.sh
+      - run: scripts/release/run-all-tests.sh
+      - run: scripts/release/create-sbom.sh

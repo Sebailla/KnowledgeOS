@@ -1,0 +1,14 @@
+name: Mobile Release
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - run: scripts/test-mobile.sh
+      - run: scripts/build-ios.sh
+      - run: scripts/build-ipados.sh
+      - run: scripts/validate-mobile-entitlements.sh

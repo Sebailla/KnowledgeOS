@@ -1,0 +1,23 @@
+name: Release Candidate
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*-rc.*']
+permissions:
+  contents: write
+jobs:
+  rc:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: pnpm/action-setup@v4
+        with: {version: 10.15.0}
+      - run: pnpm install --frozen-lockfile=false
+      - run: pnpm release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-candidate
+          path: artifacts

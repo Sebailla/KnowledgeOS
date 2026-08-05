@@ -12,7 +12,13 @@
     "core:test": "pnpm --filter @knowledgeos/core test",
     "core:validate": "pnpm --filter @knowledgeos/core typecheck && pnpm --filter @knowledgeos/core test",
     "macos:host:build": "pnpm --filter @knowledgeos/macos-core-host build",
-    "macos:host:test": "pnpm --filter @knowledgeos/macos-core-host test"
+    "macos:host:test": "pnpm --filter @knowledgeos/macos-core-host test",
+    "bootstrap": "bash scripts/release/bootstrap.sh",
+    "release:build": "bash scripts/release/build-all.sh",
+    "release:test": "bash scripts/release/run-all-tests.sh",
+    "release:sbom": "bash scripts/release/create-sbom.sh",
+    "release:validate": "bash scripts/release/validate-release.sh",
+    "release": "bash scripts/release/release-all.sh"
   },
   "devDependencies": {
     "turbo": "^2.5.0",

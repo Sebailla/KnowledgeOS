@@ -1,0 +1,25 @@
+name: Security
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '23 4 * * 1'
+permissions:
+  contents: read
+  security-events: write
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - run: scripts/rc/scan-secrets.sh
+      - uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: artifacts/SBOM.cdx.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: security-evidence
+          path: artifacts
