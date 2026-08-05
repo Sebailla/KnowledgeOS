@@ -7,6 +7,8 @@ enum SidebarItem: String, CaseIterable, Identifiable {
     case search
     case knowledgeGraph
     case ai
+    case importFiles
+    case exportFiles
 
     var id: String { rawValue }
 
@@ -18,6 +20,8 @@ enum SidebarItem: String, CaseIterable, Identifiable {
         case .search: "Search"
         case .knowledgeGraph: "Knowledge Graph"
         case .ai: "AI"
+        case .importFiles: "Import"
+        case .exportFiles: "Export"
         }
     }
 
@@ -29,6 +33,8 @@ enum SidebarItem: String, CaseIterable, Identifiable {
         case .search: "magnifyingglass"
         case .knowledgeGraph: "point.3.connected.trianglepath.dotted"
         case .ai: "sparkles"
+        case .importFiles: "square.and.arrow.down"
+        case .exportFiles: "square.and.arrow.up"
         }
     }
 }

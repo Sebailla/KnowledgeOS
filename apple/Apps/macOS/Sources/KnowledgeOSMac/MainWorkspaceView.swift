@@ -2,7 +2,8 @@
 import SwiftUI
 
 struct MainWorkspaceView: View {
-    @EnvironmentObject private var appModel: AppModel
+    @EnvironmentObject
+    private var appModel: AppModel
 
     var body: some View {
         NavigationSplitView {
@@ -12,44 +13,106 @@ struct MainWorkspaceView: View {
         } detail: {
             if appModel.isInspectorVisible {
                 InspectorView()
-            } else {
-                EmptyView()
             }
         }
         .searchable(
             text: $appModel.searchText,
             placement: .toolbar,
-            prompt: "Search your knowledge"
+            prompt:
+                "Search your knowledge"
         )
+        .onSubmit(of: .search) {
+            routeSearch()
+        }
         .onChange(
             of: appModel.searchText
         ) {
-            guard
-                appModel.selectedSidebarItem ==
-                    .library,
-                let viewModel =
-                    appModel.libraryViewModel
-            else {
-                return
+            if appModel
+                .selectedSidebarItem ==
+                .library {
+                appModel
+                    .libraryViewModel?
+                    .queryText =
+                    appModel.searchText
             }
-
-            viewModel.queryText =
-                appModel.searchText
         }
         .toolbar {
-            ToolbarItem {
+            ToolbarItemGroup {
+                if let sync =
+                    appModel
+                        .syncViewModel?
+                        .status {
+                    Label(
+                        sync.phase.rawValue,
+                        systemImage:
+                            sync.phase.rawValue ==
+                            "running"
+                                ? "arrow.triangle.2.circlepath"
+                                : "checkmark.circle"
+                    )
+                    .foregroundStyle(
+                        .secondary
+                    )
+                }
+
+                Button {
+                    Task {
+                        await appModel
+                            .applicationStatusViewModel?
+                            .refresh()
+                    }
+                } label: {
+                    Label(
+                        "Refresh Status",
+                        systemImage:
+                            "arrow.clockwise"
+                    )
+                }
+
                 Button {
                     appModel.toggleInspector()
                 } label: {
                     Label(
                         "Toggle Inspector",
-                        systemImage: "sidebar.right"
+                        systemImage:
+                            "sidebar.right"
                     )
                 }
             }
         }
-        .frame(minWidth: 1100, minHeight: 700)
+        .frame(
+            minWidth: 1100,
+            minHeight: 700
+        )
+    }
+
+    private func routeSearch() {
+        guard
+            !appModel.searchText
+                .trimmingCharacters(
+                    in:
+                        .whitespacesAndNewlines
+                )
+                .isEmpty
+        else {
+            return
+        }
+
+        if appModel
+            .selectedSidebarItem !=
+            .library {
+            appModel.select(.search)
+            appModel
+                .localSearchViewModel?
+                .query =
+                appModel.searchText
+
+            Task {
+                await appModel
+                    .localSearchViewModel?
+                    .search()
+            }
+        }
     }
 }
-
 #endif
