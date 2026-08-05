@@ -23,7 +23,12 @@
     "alpha:validate": "bash scripts/alpha/validate-alpha-installation.sh",
     "alpha:test": "bash scripts/alpha/run-device-smoke-tests.sh",
     "alpha:benchmark": "bash scripts/alpha/run-performance-baseline.sh",
-    "alpha:diagnostics": "bash scripts/alpha/collect-alpha-diagnostics.sh"
+    "alpha:diagnostics": "bash scripts/alpha/collect-alpha-diagnostics.sh",
+    "alpha:cycle": "bash scripts/alpha/run-alpha-cycle.sh",
+    "alpha:health": "bash scripts/alpha/verify-alpha-health.sh",
+    "alpha:metrics": "bash scripts/alpha/collect-alpha-metrics.sh",
+    "alpha:dashboard": "bash scripts/alpha/generate-alpha-dashboard.sh",
+    "alpha:evidence": "bash scripts/alpha/export-alpha-evidence.sh"
   },
   "devDependencies": {
     "turbo": "^2.5.0",

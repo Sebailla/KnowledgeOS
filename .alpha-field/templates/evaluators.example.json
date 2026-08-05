@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "evaluators": [
+    {
+      "id": "evaluator-example",
+      "displayName": "Example Evaluator",
+      "channel": "alpha",
+      "consentAccepted": false,
+      "devices": [
+        {
+          "id": "device-example",
+          "platform": "macOS",
+          "model": "unspecified",
+          "installedVersion": "0.45.0-alpha.1"
+        }
+      ]
+    }
+  ]
+}

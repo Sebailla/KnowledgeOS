@@ -1,0 +1,10 @@
+{
+  "name": "KnowledgeOS",
+  "version": "0.46.0-alpha.1",
+  "build": 46,
+  "channel": "alpha",
+  "protocolVersion": "1.0",
+  "purpose": "closed-alpha-field-validation",
+  "diagnosticsDefault": "disabled",
+  "privateContentCollection": false
+}
