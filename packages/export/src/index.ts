@@ -17,3 +17,4 @@ export * from "./transformers/EpubExportTransformer.js";
 export * from "./transformers/HtmlExportTransformer.js";
 export * from "./transformers/MarkdownExportTransformer.js";
 export * from "./transformers/PdfExportTransformer.js";
+export * from "./jobs/ExportJobManager.js";
