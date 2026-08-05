@@ -21,3 +21,4 @@ export * from "./model/ImportSource.js";
 export * from "./transformers/JsonTransformer.js";
 export * from "./transformers/MarkdownTransformer.js";
 export * from "./transformers/TextTransformer.js";
+export * from "./jobs/ImportJobManager.js";
