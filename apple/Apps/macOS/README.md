@@ -1,27 +1,36 @@
 # KnowledgeOS macOS
 
-Native macOS application foundation for KnowledgeOS.
-
-## Requirements
-
-- macOS 14 or newer
-- Xcode 15.3 or newer
-- Swift 5.10 or newer
-
-## Run
+## Development
 
 ```bash
-cd apple/Apps/macOS
-swift run KnowledgeOSMac
+pnpm --filter @knowledgeos/macos-core-host... build
+swift run --package-path apple/Apps/macOS KnowledgeOSMac
 ```
 
-## Test
+## Release bundle
 
 ```bash
-cd apple/Apps/macOS
-swift test
+scripts/build-macos-release.sh
+scripts/package-macos-app.sh
+scripts/validate-macos-bundle.sh
+scripts/create-macos-archive.sh
 ```
 
-This sprint provides the application bootstrap, service lifecycle, window
-composition, sidebar navigation, workspace shell, inspector, settings,
-commands, preference restoration and test foundation.
+The application first looks for the embedded runtime at:
+
+```text
+KnowledgeOS.app/Contents/Resources/Runtime/node
+KnowledgeOS.app/Contents/Resources/CoreHost/apps/macos-core-host/dist/main.js
+```
+
+When running from the repository, it falls back to the locally compiled Core Host.
+
+Persistent data and logs are stored under the user's `Application Support/KnowledgeOS` directory.
+
+## Signing and notarization
+
+```bash
+export KNOWLEDGEOS_SIGN_IDENTITY="Developer ID Application: ..."
+export KNOWLEDGEOS_NOTARY_PROFILE="knowledgeos-notary"
+scripts/sign-and-notarize-macos.sh
+```

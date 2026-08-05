@@ -98,6 +98,48 @@ ObservableObject {
         isLoading = false
     }
 
+
+    func loadRecent() async {
+        await loadSpecial {
+            try await service.recent(
+                limit: 100
+            )
+        }
+    }
+
+    func loadFavorites() async {
+        await loadSpecial {
+            try await service.favorites(
+                limit: 100
+            )
+        }
+    }
+
+    private func loadSpecial(
+        operation:
+            () async throws ->
+                [LibraryItemDTO]
+    ) async {
+        guard !isLoading else {
+            return
+        }
+
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            items = try await operation()
+            total = items.count
+            selectedItemID =
+                items.first?.id
+        } catch {
+            errorMessage =
+                error.localizedDescription
+        }
+
+        isLoading = false
+    }
+
     func reloadForQuery() async {
         await load(reset: true)
     }
