@@ -10,3 +10,4 @@ export * from "./model/GraphEdge.js";
 export * from "./model/GraphNode.js";
 export * from "./model/GraphPath.js";
 export * from "./model/GraphQuery.js";
+export * from "./local/LocalKnowledgeGraph.js";

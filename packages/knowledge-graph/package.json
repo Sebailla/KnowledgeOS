@@ -13,7 +13,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test dist-test/test/knowledge-graph.test.js",
+    "test": "node --test dist-test/test/knowledge-graph.test.js dist-test/test/local-knowledge-graph.test.js",
     "generate": "node -e \"process.exit(0)\"",
     "validate": "pnpm typecheck"
   },
