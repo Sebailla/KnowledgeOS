@@ -10,3 +10,4 @@ export * from "./model/SearchDocument.js";
 export * from "./model/SearchQuery.js";
 export * from "./model/SearchResult.js";
 export * from "./query/QueryParser.js";
+export * from "./local/LocalSearchIndex.js";
