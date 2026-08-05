@@ -1,0 +1,89 @@
+name: knowledgeos
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-knowledgeos}
+      POSTGRES_USER: ${POSTGRES_USER:-knowledgeos}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    volumes:
+      - knowledgeos_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [backend]
+
+  sync-server:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/sync-server/Dockerfile
+    image: ${IMAGE_PREFIX:-knowledgeos}/sync-server:${IMAGE_TAG:-0.44.0-rc.1}
+    restart: unless-stopped
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8080
+      SYNC_TOKEN_FILE: /run/secrets/sync_token
+    secrets: [sync_token]
+    ports:
+      - "${SYNC_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/v1/sync/health').then(r=>{if(!r.ok)process.exit(1)})"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    networks: [backend]
+
+  master-library:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/master-library/Dockerfile
+    image: ${IMAGE_PREFIX:-knowledgeos}/master-library:${IMAGE_TAG:-0.44.0-rc.1}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-knowledgeos}@postgres:5432/${POSTGRES_DB:-knowledgeos}
+      MASTER_LIBRARY_FILES_ROOT: /var/lib/knowledgeos/master-library
+      HOST: 0.0.0.0
+      PORT: 8081
+    secrets: [postgres_password]
+    volumes:
+      - knowledgeos_master_files:/var/lib/knowledgeos/master-library
+    ports:
+      - "${MASTER_LIBRARY_PORT:-8081}:8081"
+    networks: [backend]
+
+  local-library:
+    profiles: [local-library]
+    build:
+      context: ../..
+      dockerfile: deployment/docker/local-library/Dockerfile
+    image: ${IMAGE_PREFIX:-knowledgeos}/local-library:${IMAGE_TAG:-0.44.0-rc.1}
+    restart: unless-stopped
+    environment:
+      LOCAL_LIBRARY_ROOT: /var/lib/knowledgeos/local-library
+      LOCAL_LIBRARY_ID: ${LOCAL_LIBRARY_ID:-nas-local-library}
+    volumes:
+      - knowledgeos_local_library:/var/lib/knowledgeos/local-library
+    networks: [backend]
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  knowledgeos_postgres:
+  knowledgeos_master_files:
+  knowledgeos_local_library:
+
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password.txt
+  sync_token:
+    file: ./secrets/sync_token.txt

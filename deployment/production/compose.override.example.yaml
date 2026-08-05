@@ -1,0 +1,11 @@
+services:
+  postgres:
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+  master-library:
+    deploy:
+      resources:
+        limits:
+          memory: 1G

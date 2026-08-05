@@ -1,0 +1,133 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "components": [
+    {
+      "type": "library",
+      "name": "@knowledgeos/ai",
+      "version": "1.0.0",
+      "path": "packages/ai/package.json"
+    },
+    {
+      "type": "library",
+      "name": "@knowledgeos/contracts",
+      "version": "0.1.0",
+      "path": "packages/contracts/package.json"
+    },
+    {
+      "type": "library",
+      "name": "@knowledgeos/core",
+      "version": "1.0.0",
+      "path": "packages/core/package.json"
+    },
+    {
+      "type": "library",
+      "name": "@knowledgeos/document",
+      "version": "1.0.0",
+      "path": "packages/document/package.json"
+    },
+    {
+      "type": "library",
+      "name": "@knowledgeos/domain",
+      "version": "1.0.0",
+      "path": "packages/domain/package.json"
+    },
+    {
+      "type": "library",
+      "name": "@knowledgeos/domain-types",
+      "version": "0.1.0",
+      "path": "packages/domain-types/package.json"
+    },
+    {
+      "type": "library",
+      "name": "@knowledgeos/export",
+      "version": "1.0.0",
+      "path": "packages/export/package.json"
+    },
+    {
+      "type": "library",
+      "name": "@knowledgeos/import",
+      "version": "1.0.0",
+      "path": "packages/import/package.json"
+    },
+    {
+      "type": "library",
+      "name": "@knowledgeos/kernel",
+      "version": "1.0.0",
+      "path": "packages/kernel/package.json"
+    },
+    {
+      "type": "library",
+      "name": "@knowledgeos/knowledge-graph",
+      "version": "1.0.0",
+      "path": "packages/knowledge-graph/package.json"
+    },
+    {
+      "type": "library",
+      "name": "@knowledgeos/library",
+      "version": "1.0.0",
+      "path": "packages/library/package.json"
+    },
+    {
+      "type": "library",
+      "name": "@knowledgeos/ocr",
+      "version": "1.0.0",
+      "path": "packages/ocr/package.json"
+    },
+    {
+      "type": "library",
+      "name": "@knowledgeos/plugin",
+      "version": "1.0.0",
+      "path": "packages/plugin/package.json"
+    },
+    {
+      "type": "library",
+      "name": "@knowledgeos/search",
+      "version": "1.0.0",
+      "path": "packages/search/package.json"
+    },
+    {
+      "type": "library",
+      "name": "@knowledgeos/storage",
+      "version": "1.0.0",
+      "path": "packages/storage/package.json"
+    },
+    {
+      "type": "library",
+      "name": "@knowledgeos/sync",
+      "version": "1.0.0",
+      "path": "packages/sync/package.json"
+    },
+    {
+      "type": "library",
+      "name": "@knowledgeos/workspace",
+      "version": "1.0.0",
+      "path": "packages/workspace/package.json"
+    },
+    {
+      "type": "application",
+      "name": "@knowledgeos/local-library-production",
+      "version": "0.1.0",
+      "path": "apps/local-library-production/package.json"
+    },
+    {
+      "type": "application",
+      "name": "@knowledgeos/macos-core-host",
+      "version": "1.0.0",
+      "path": "apps/macos-core-host/package.json"
+    },
+    {
+      "type": "application",
+      "name": "@knowledgeos/master-library-direct-streaming-server",
+      "version": "0.1.0",
+      "path": "apps/master-library-direct-streaming-server/package.json"
+    },
+    {
+      "type": "application",
+      "name": "@knowledgeos/sync-server",
+      "version": "1.0.0",
+      "path": "apps/sync-server/package.json"
+    }
+  ]
+}

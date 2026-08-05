@@ -76,3 +76,5 @@ declare function fetch(
     readonly body?: string;
   },
 ): Promise<Response>;
+declare module "node:fs/promises" { export function readFile(path: string, encoding: "utf8"): Promise<string>; }
+declare const process: { env: Record<string, string | undefined>; once(signal: string, listener: () => void): void; exit(code?: number): never; };

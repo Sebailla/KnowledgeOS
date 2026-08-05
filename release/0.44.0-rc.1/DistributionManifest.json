@@ -1,0 +1,8 @@
+{
+  "name": "KnowledgeOS",
+  "version": "0.44.0-rc.1",
+  "build": 44,
+  "channels": ["nightly", "rc", "stable"],
+  "artifacts": ["macOS app", "macOS ZIP", "DMG", "iOS archive", "iPadOS archive", "container images"],
+  "volumes": {"postgres": "knowledgeos_postgres", "authoritativeFiles": "knowledgeos_master_files"}
+}

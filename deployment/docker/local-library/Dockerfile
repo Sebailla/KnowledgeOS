@@ -1,17 +1,7 @@
-FROM node:22-alpine AS build
-WORKDIR /workspace
-RUN corepack enable && corepack prepare pnpm@10.15.0 --activate
-COPY package.json pnpm-workspace.yaml tsconfig.base.json turbo.json ./
-COPY packages ./packages
-COPY apps/local-library-production ./apps/local-library-production
-RUN pnpm install --frozen-lockfile=false
-RUN pnpm --filter @knowledgeos/local-library-production... build
-FROM node:22-alpine AS runtime
-ENV NODE_ENV=production
+FROM node:22-alpine
+ENV NODE_ENV=production LOCAL_LIBRARY_ROOT=/var/lib/knowledgeos/local-library
 WORKDIR /app
-RUN addgroup -S knowledgeos && adduser -S knowledgeos -G knowledgeos
-COPY --from=build /workspace/apps/local-library-production/dist ./apps/local-library-production/dist
-COPY --from=build /workspace/apps/local-library-production/package.json ./apps/local-library-production/package.json
-COPY --from=build /workspace/packages ./packages
-USER knowledgeos
-CMD ["node","apps/local-library-production/dist/index.js"]
+COPY deployment/runtime/local-library-maintenance.mjs /app/maintenance.mjs
+RUN mkdir -p /var/lib/knowledgeos/local-library && chown -R node:node /var/lib/knowledgeos /app
+USER node
+CMD ["node", "/app/maintenance.mjs"]
