@@ -13,26 +13,21 @@ actor AppServices {
 
     static func makeDefault()
     throws -> AppServices {
-        let root = URL(
-            fileURLWithPath:
-                FileManager.default
-                    .currentDirectoryPath
-        )
+        let configuration = try ReleaseEnvironment
+            .hostConfiguration()
 
         let bridge = CoreBridge(
             transport:
                 CoreProcessController(
                     executableURL:
-                        URL(
-                            fileURLWithPath:
-                                "/usr/bin/env"
-                        ),
-                    arguments: [
-                        "node",
-                        root.appendingPathComponent(
-                            "apps/macos-core-host/dist/main.js"
-                        ).path
-                    ]
+                        configuration
+                            .executableURL,
+                    arguments:
+                        configuration.arguments,
+                    environment:
+                        configuration.environment,
+                    standardErrorURL:
+                        configuration.logURL
                 )
         )
 
@@ -46,8 +41,14 @@ actor AppServices {
                 CoreSearchAdapter(
                     bridge: bridge
                 ),
-            document: CoreDocumentAdapter(bridge: bridge),
-            annotations: CoreAnnotationAdapter(bridge: bridge),
+            document:
+                CoreDocumentAdapter(
+                    bridge: bridge
+                ),
+            annotations:
+                CoreAnnotationAdapter(
+                    bridge: bridge
+                ),
             workspace:
                 CoreWorkspaceAdapter(
                     bridge: bridge

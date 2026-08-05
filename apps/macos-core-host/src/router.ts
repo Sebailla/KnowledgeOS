@@ -1,9 +1,18 @@
 import type { InMemoryCore } from "@knowledgeos/core";
+import { PROTOCOL_VERSION } from "./protocol.js";
 import type { LibraryQuery } from "@knowledgeos/library";
 import { libraryCatalog } from "./libraryCatalog.js";
 import { documentReaderCatalog } from "./documentReaderCatalog.js";
 import { annotationCatalog } from "./annotationCatalog.js";
 import { syncCoordinator } from "./syncCoordinator.js";
+import { masterLibraryTransport, saveTransportConfiguration, transportConfiguration } from "./masterLibraryTransport.js";
+import { conflictEngine, operationFrom, resolution } from "./conflictCatalog.js";
+import { localSearchIndex } from "./localSearchIndex.js";
+import { localKnowledgeGraph } from "./localKnowledgeGraph.js";
+import { localAIRuntime, buildAIContext } from "./localAIRuntime.js";
+import { importJobManager } from "./importManager.js";
+import { exportJobManager } from "./exportManager.js";
+import { applicationDiagnostics, applicationStatus, validateConfiguration } from "./applicationIntegration.js";
 
 export class HostError extends Error {
   public constructor(
@@ -26,6 +35,26 @@ export class CoreRouter {
     const record = asRecord(params);
 
     switch (method) {
+
+      case "application.status":
+        return applicationStatus();
+
+      case "application.diagnostics":
+        return applicationDiagnostics();
+
+      case "application.configuration.validate":
+        return validateConfiguration();
+
+      case "application.about":
+        return {
+          name: "KnowledgeOS",
+          applicationVersion: "0.31.0",
+          hostVersion: "1.0.0",
+          protocolVersion: PROTOCOL_VERSION,
+          copyright:
+            "KnowledgeOS Team",
+        };
+
       case "core.health":
         return {
           status: "ok",
@@ -91,6 +120,43 @@ export class CoreRouter {
       case "persistence.health": return { reading: documentReaderCatalog.health(), annotations: annotationCatalog.health() };
       case "persistence.backup": { const directory=stringParam(record,"directory"); return { reading:await documentReaderCatalog.backup(`${directory}/reading.json`), annotations:await annotationCatalog.backup(`${directory}/annotations.json`) }; }
       case "persistence.restore": { const directory=stringParam(record,"directory"); await documentReaderCatalog.restore(`${directory}/reading.json`); await annotationCatalog.restore(`${directory}/annotations.json`); return {restored:true}; }
+      case "transport.configuration.get":
+        return transportConfiguration();
+
+      case "transport.configuration.save":
+        return saveTransportConfiguration({
+          baseURL:
+            stringParam(record, "baseURL"),
+          ...(typeof record.token === "string" &&
+          record.token.length > 0
+            ? { token: record.token }
+            : {}),
+          timeoutMilliseconds:
+            numberParam(
+              record,
+              "timeoutMilliseconds",
+              10_000,
+            ),
+          maxAttempts:
+            numberParam(
+              record,
+              "maxAttempts",
+              3,
+            ),
+        });
+
+      case "transport.health":
+      case "transport.test":
+        return masterLibraryTransport()
+          .health();
+
+      case "conflict.detect": { const conflict=await conflictEngine.detect(operationFrom(record,"local"),operationFrom(record,"remote")); return { conflict: conflict ?? null }; }
+      case "conflict.list": return { conflicts: await conflictEngine.list(typeof record.status === "string" ? record.status as any : undefined) };
+      case "conflict.get": { const conflict=await conflictEngine.get(stringParam(record,"id")); if(!conflict) throw new HostError("CONFLICT_NOT_FOUND","Conflict was not found."); return conflict; }
+      case "conflict.preview": return conflictEngine.preview(stringParam(record,"id"));
+      case "conflict.resolve": return conflictEngine.resolve(stringParam(record,"id"), resolution(record.strategy));
+      case "conflict.ignore": return conflictEngine.ignore(stringParam(record,"id"));
+      case "conflict.statistics": { const conflicts=await conflictEngine.list(); return { total:conflicts.length, pending:conflicts.filter(c=>c.status==="pending").length, resolved:conflicts.filter(c=>c.status!=="pending").length }; }
       case "sync.status": return syncCoordinator.status();
       case "sync.health": return {status:"ok",...syncCoordinator.status()};
       case "sync.start": return syncCoordinator.start();
@@ -100,10 +166,197 @@ export class CoreRouter {
       case "sync.offline": return syncCoordinator.setOffline();
       case "sync.conflicts": return {conflicts:syncCoordinator.conflicts()};
       case "sync.enqueue": { const id=stringParam(record,"id"); await syncCoordinator.enqueue({id,entityType:syncEntityType(record.entityType),entityId:stringParam(record,"entityId"),action:syncAction(record.action),payload:record.payload ?? null,createdAt:new Date().toISOString()}); return syncCoordinator.status(); }
+      case "search.index.status":
+        return localSearchIndex.status();
+
+      case "search.index.rebuild":
+        return localSearchIndex.status();
+
+      case "search.index.clear":
+        localSearchIndex.clear();
+        return localSearchIndex.status();
+
+      case "search.index.enqueue":
+        localSearchIndex.upsert({
+          id: stringParam(record, "id"),
+          title: stringParam(record, "title"),
+          body:
+            typeof record.body === "string"
+              ? record.body
+              : "",
+          kind:
+            searchKind(record.kind),
+          authors:
+            stringArray(record.authors),
+          tags:
+            stringArray(record.tags),
+          ...(typeof record.availability ===
+            "string"
+            ? {
+                availability:
+                  record.availability,
+              }
+            : {}),
+          updatedAt:
+            typeof record.updatedAt === "string"
+              ? record.updatedAt
+              : new Date().toISOString(),
+          metadata:
+            typeof record.metadata === "object" &&
+            record.metadata !== null &&
+            !Array.isArray(record.metadata)
+              ? record.metadata as
+                  Record<string, unknown>
+              : {},
+        });
+        return localSearchIndex.status();
+
       case "search.query":
-        return this.core.search.search(
-          stringParam(record, "query"),
+        return localSearchIndex.search({
+          text:
+            stringParam(record, "query"),
+          page:
+            numberParam(record, "page", 1),
+          pageSize:
+            numberParam(record, "pageSize", 20),
+          ...(Array.isArray(record.kinds)
+            ? {
+                kinds:
+                  record.kinds.map(
+                    searchKind,
+                  ),
+              }
+            : {}),
+          ...(Array.isArray(record.authors)
+            ? {
+                authors:
+                  stringArray(record.authors),
+              }
+            : {}),
+          ...(Array.isArray(record.tags)
+            ? {
+                tags:
+                  stringArray(record.tags),
+              }
+            : {}),
+          ...(Array.isArray(
+            record.availability,
+          )
+            ? {
+                availability:
+                  stringArray(
+                    record.availability,
+                  ),
+              }
+            : {}),
+        });
+
+      case "search.suggest":
+        return {
+          suggestions:
+            localSearchIndex.suggest(
+              stringParam(record, "query"),
+              numberParam(record, "limit", 8),
+            ),
+        };
+
+      case "graph.node.get": { const node=localKnowledgeGraph.getNode(stringParam(record,"id")); if(!node) throw new HostError("GRAPH_NODE_NOT_FOUND","Graph node was not found."); return node; }
+      case "graph.node.upsert": return localKnowledgeGraph.upsertNode({id:stringParam(record,"id"),type:stringParam(record,"type"),label:stringParam(record,"label"),properties:objectParam(record.properties)});
+      case "graph.node.delete": return {deleted:localKnowledgeGraph.deleteNode(stringParam(record,"id"))};
+      case "graph.edge.upsert": return localKnowledgeGraph.upsertEdge({id:stringParam(record,"id"),type:stringParam(record,"type"),sourceId:stringParam(record,"sourceId"),targetId:stringParam(record,"targetId"),directed:typeof record.directed==="boolean"?record.directed:true,properties:objectParam(record.properties)});
+      case "graph.edge.delete": return {deleted:localKnowledgeGraph.deleteEdge(stringParam(record,"id"))};
+      case "graph.neighbors": return localKnowledgeGraph.neighbors(stringParam(record,"nodeId"),graphDirection(record.direction));
+      case "graph.expand": return localKnowledgeGraph.expand(stringParam(record,"nodeId"),numberParam(record,"depth",1));
+      case "graph.path": return {path:localKnowledgeGraph.shortestPath(stringParam(record,"sourceId"),stringParam(record,"targetId")) ?? null};
+      case "graph.search": return {nodes:localKnowledgeGraph.search(typeof record.query==="string"?record.query:"",stringArray(record.types))};
+      case "graph.statistics": return localKnowledgeGraph.statistics();
+      case "graph.rebuild": return localKnowledgeGraph.statistics();
+
+
+
+      case "export.formats": return { formats: exportJobManager.formats() };
+      case "export.preview": return exportJobManager.preview(exportFormat(record.format), exportSources(record.sources), exportOptions(record));
+      case "export.start": return exportJobManager.start(exportFormat(record.format), exportSources(record.sources), exportOptions(record));
+      case "export.history": return { jobs: exportJobManager.history() };
+      case "export.status": { const job=exportJobManager.status(stringParam(record,"id")); if(!job) throw new HostError("EXPORT_JOB_NOT_FOUND","Export job was not found."); return job; }
+      case "export.result": { const result=exportJobManager.result(stringParam(record,"id")); if(!result) throw new HostError("EXPORT_RESULT_NOT_FOUND","Export result was not found."); return result; }
+      case "export.cancel": { const job=exportJobManager.cancel(stringParam(record,"id")); if(!job) throw new HostError("EXPORT_JOB_NOT_FOUND","Export job was not found."); return job; }
+      case "export.retry": { const job=exportJobManager.retry(stringParam(record,"id")); if(!job) throw new HostError("EXPORT_JOB_NOT_FOUND","Export job was not found."); return job; }
+
+      case "import.detect":
+      case "import.preview":
+        return importJobManager.detect(
+          importInput(record),
         );
+
+      case "import.start":
+        return importJobManager.start(
+          importInput(record),
+        );
+
+      case "import.status": {
+        const job =
+          importJobManager.status(
+            stringParam(record, "id"),
+          );
+
+        if (!job) {
+          throw new HostError(
+            "IMPORT_JOB_NOT_FOUND",
+            "Import job was not found.",
+          );
+        }
+
+        return job;
+      }
+
+      case "import.cancel": {
+        const job =
+          importJobManager.cancel(
+            stringParam(record, "id"),
+          );
+
+        if (!job) {
+          throw new HostError(
+            "IMPORT_JOB_NOT_FOUND",
+            "Import job was not found.",
+          );
+        }
+
+        return job;
+      }
+
+      case "import.retry": {
+        const job =
+          importJobManager.retry(
+            stringParam(record, "id"),
+          );
+
+        if (!job) {
+          throw new HostError(
+            "IMPORT_JOB_NOT_FOUND",
+            "Import job was not found.",
+          );
+        }
+
+        return job;
+      }
+
+      case "import.history":
+        return {
+          jobs:
+            importJobManager.history(),
+        };
+
+      case "ai.models.list": return { models: localAIRuntime.listModels() };
+      case "ai.model.select": return localAIRuntime.selectModel(stringParam(record,"modelId"));
+      case "ai.health": return localAIRuntime.health();
+      case "ai.context.build": return { sources: buildAIContext(stringParam(record,"query")) };
+      case "ai.chat": return localAIRuntime.chat({ message:stringParam(record,"message"), ...(typeof record.conversationId==="string"?{conversationId:record.conversationId}:{}), ...(typeof record.modelId==="string"?{modelId:record.modelId}:{}), context:buildAIContext(typeof record.contextQuery==="string"?record.contextQuery:stringParam(record,"message")) });
+      case "ai.conversation.list": return { conversations: localAIRuntime.listConversations() };
+      case "ai.conversation.get": { const conversation=localAIRuntime.getConversation(stringParam(record,"id")); if(!conversation) throw new HostError("AI_CONVERSATION_NOT_FOUND","Conversation was not found."); return conversation; }
+      case "ai.conversation.delete": return { deleted: localAIRuntime.deleteConversation(stringParam(record,"id")) };
+      case "ai.generate": return this.core.ai.generate({messages:[{role:"user",content:stringParam(record,"prompt")}]});
 
       case "workspace.list":
         return {
@@ -250,3 +503,85 @@ function annotationKind(value:unknown): "highlight"|"note"|"bookmark" { if(value
 
 function syncEntityType(value:unknown): "reading-location"|"annotation"|"bookmark"|"workspace" { if(value==="reading-location"||value==="annotation"||value==="bookmark"||value==="workspace") return value; throw new HostError("INVALID_PARAMS","Invalid sync entity type."); }
 function syncAction(value:unknown): "upsert"|"delete" { if(value==="upsert"||value==="delete") return value; throw new HostError("INVALID_PARAMS","Invalid sync action."); }
+
+function stringArray(
+  value: unknown,
+): readonly string[] {
+  return Array.isArray(value)
+    ? value.filter(
+        (item): item is string =>
+          typeof item === "string",
+      )
+    : [];
+}
+
+function searchKind(
+  value: unknown,
+):
+  | "document"
+  | "book"
+  | "paper"
+  | "note"
+  | "annotation"
+  | "bookmark"
+  | "workspace" {
+  switch (value) {
+    case "book":
+    case "paper":
+    case "note":
+    case "annotation":
+    case "bookmark":
+    case "workspace":
+      return value;
+    default:
+      return "document";
+  }
+}
+
+function objectParam(value: unknown): Record<string, unknown> { return typeof value === "object" && value !== null && !Array.isArray(value) ? value as Record<string, unknown> : {}; }
+function graphDirection(value: unknown): "in" | "out" | "both" { return value === "in" || value === "out" ? value : "both"; }
+
+function importInput(
+  record: Record<string, unknown>,
+) {
+  return {
+    name:
+      stringParam(record, "name"),
+    content:
+      typeof record.content === "string"
+        ? record.content
+        : "",
+    ...(typeof record.mediaType ===
+      "string"
+      ? {
+          mediaType:
+            record.mediaType,
+        }
+      : {}),
+    ...(typeof record.extension ===
+      "string"
+      ? {
+          extension:
+            record.extension,
+        }
+      : {}),
+    ...(typeof record.runOCR ===
+      "boolean"
+      ? {
+          runOCR:
+            record.runOCR,
+        }
+      : {}),
+    metadata:
+      objectParam(record.metadata),
+  };
+}
+
+function exportFormat(value: unknown): "markdown"|"html"|"pdf"|"epub"|"text"|"knowledge-package" {
+  switch(value){ case "markdown":case "html":case "pdf":case "epub":case "text":case "knowledge-package":return value; default:throw new HostError("INVALID_EXPORT_FORMAT","Unsupported export format."); }
+}
+function exportSources(value: unknown) {
+  if(!Array.isArray(value)) throw new HostError("INVALID_PARAMS","sources must be an array.");
+  return value.map((item)=>{ const record=asRecord(item); return { id:stringParam(record,"id"), title:stringParam(record,"title"), body:typeof record.body==="string"?record.body:"", metadata:objectParam(record.metadata), annotations:stringArray(record.annotations), bookmarks:stringArray(record.bookmarks), assets:stringArray(record.assets), graphRelations:stringArray(record.graphRelations), provenance:stringArray(record.provenance) }; });
+}
+function exportOptions(record: Record<string, unknown>) { return { includeMetadata:record.includeMetadata===true, includeAnnotations:record.includeAnnotations===true, includeBookmarks:record.includeBookmarks===true, includeAssets:record.includeAssets===true, includeGraph:record.includeGraph===true, includeProvenance:record.includeProvenance===true }; }

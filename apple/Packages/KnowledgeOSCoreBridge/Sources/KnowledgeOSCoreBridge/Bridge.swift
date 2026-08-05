@@ -94,6 +94,47 @@ public actor CoreBridge {
         )
     }
 
+
+    public func applicationStatus()
+    async throws -> ApplicationStatusDTO {
+        try await call(
+            method: "application.status",
+            params: nil,
+            as: ApplicationStatusDTO.self
+        )
+    }
+
+    public func applicationDiagnostics()
+    async throws -> ApplicationDiagnosticsDTO {
+        try await call(
+            method:
+                "application.diagnostics",
+            params: nil,
+            as:
+                ApplicationDiagnosticsDTO.self
+        )
+    }
+
+    public func validateApplicationConfiguration()
+    async throws -> ConfigurationValidationDTO {
+        try await call(
+            method:
+                "application.configuration.validate",
+            params: nil,
+            as:
+                ConfigurationValidationDTO.self
+        )
+    }
+
+    public func applicationAbout()
+    async throws -> ApplicationAboutDTO {
+        try await call(
+            method: "application.about",
+            params: nil,
+            as: ApplicationAboutDTO.self
+        )
+    }
+
     public func health()
     async throws -> CoreHealth {
         try await call(
@@ -242,6 +283,167 @@ public actor CoreBridge {
         return response.items
     }
 
+
+
+    public func graphSearch(query: String) async throws -> [GraphNodeDTO] { let result: GraphNodesEnvelopeDTO = try await call(method:"graph.search",params:.object(["query":.string(query)]),as:GraphNodesEnvelopeDTO.self); return result.nodes }
+    public func graphExpand(nodeID: String, depth: Int = 1) async throws -> GraphSubgraphDTO { try await call(method:"graph.expand",params:.object(["nodeId":.string(nodeID),"depth":.number(Double(depth))]),as:GraphSubgraphDTO.self) }
+    public func graphPath(sourceID: String, targetID: String) async throws -> GraphPathDTO? { let result:GraphPathEnvelopeDTO = try await call(method:"graph.path",params:.object(["sourceId":.string(sourceID),"targetId":.string(targetID)]),as:GraphPathEnvelopeDTO.self); return result.path }
+    public func graphStatistics() async throws -> GraphStatisticsDTO { try await call(method:"graph.statistics",params:nil,as:GraphStatisticsDTO.self) }
+
+
+
+    public func exportFormats() async throws -> [ExportFormatInfoDTO] { let result:ExportFormatsDTO = try await call(method:"export.formats",params:nil,as:ExportFormatsDTO.self); return result.formats }
+    public func exportPreview(format:ExportFormatDTO,id:String,title:String,body:String,includeMetadata:Bool=true,includeAnnotations:Bool=true) async throws -> ExportPreviewDTO { try await call(method:"export.preview",params:exportParameters(format:format,id:id,title:title,body:body,includeMetadata:includeMetadata,includeAnnotations:includeAnnotations),as:ExportPreviewDTO.self) }
+    public func startExport(format:ExportFormatDTO,id:String,title:String,body:String,includeMetadata:Bool=true,includeAnnotations:Bool=true) async throws -> ExportJobDTO { try await call(method:"export.start",params:exportParameters(format:format,id:id,title:title,body:body,includeMetadata:includeMetadata,includeAnnotations:includeAnnotations),as:ExportJobDTO.self) }
+    public func exportHistory() async throws -> [ExportJobDTO] { let result:ExportHistoryDTO = try await call(method:"export.history",params:nil,as:ExportHistoryDTO.self); return result.jobs }
+    private func exportParameters(format:ExportFormatDTO,id:String,title:String,body:String,includeMetadata:Bool,includeAnnotations:Bool)->JSONValue { .object(["format":.string(format.rawValue),"sources":.array([.object(["id":.string(id),"title":.string(title),"body":.string(body)])]),"includeMetadata":.bool(includeMetadata),"includeAnnotations":.bool(includeAnnotations)]) }
+
+    public func importPreview(
+        name: String,
+        content: String,
+        mediaType: String? = nil,
+        extensionName: String? = nil,
+        runOCR: Bool = false
+    ) async throws -> ImportPreviewDTO {
+        try await call(
+            method: "import.preview",
+            params: importParameters(
+                name: name,
+                content: content,
+                mediaType: mediaType,
+                extensionName: extensionName,
+                runOCR: runOCR
+            ),
+            as: ImportPreviewDTO.self
+        )
+    }
+
+    public func startImport(
+        name: String,
+        content: String,
+        mediaType: String? = nil,
+        extensionName: String? = nil,
+        runOCR: Bool = false
+    ) async throws -> ImportJobDTO {
+        try await call(
+            method: "import.start",
+            params: importParameters(
+                name: name,
+                content: content,
+                mediaType: mediaType,
+                extensionName: extensionName,
+                runOCR: runOCR
+            ),
+            as: ImportJobDTO.self
+        )
+    }
+
+    public func importHistory()
+    async throws -> [ImportJobDTO] {
+        let result: ImportHistoryDTO =
+            try await call(
+                method: "import.history",
+                params: nil,
+                as: ImportHistoryDTO.self
+            )
+
+        return result.jobs
+    }
+
+    public func cancelImport(
+        id: String
+    ) async throws -> ImportJobDTO {
+        try await call(
+            method: "import.cancel",
+            params: .object([
+                "id": .string(id)
+            ]),
+            as: ImportJobDTO.self
+        )
+    }
+
+    private func importParameters(
+        name: String,
+        content: String,
+        mediaType: String?,
+        extensionName: String?,
+        runOCR: Bool
+    ) -> JSONValue {
+        var params: [String: JSONValue] = [
+            "name": .string(name),
+            "content": .string(content),
+            "runOCR": .bool(runOCR)
+        ]
+
+        if let mediaType {
+            params["mediaType"] =
+                .string(mediaType)
+        }
+
+        if let extensionName {
+            params["extension"] =
+                .string(extensionName)
+        }
+
+        return .object(params)
+    }
+
+    public func localSearch(
+        query: String,
+        page: Int = 1,
+        pageSize: Int = 20
+    ) async throws -> LocalSearchPageDTO {
+        try await call(
+            method: "search.query",
+            params: .object([
+                "query": .string(query),
+                "page":
+                    .number(Double(page)),
+                "pageSize":
+                    .number(Double(pageSize))
+            ]),
+            as: LocalSearchPageDTO.self
+        )
+    }
+
+    public func searchSuggestions(
+        query: String,
+        limit: Int = 8
+    ) async throws ->
+    [String] {
+        let result:
+            LocalSearchSuggestionsDTO =
+                try await call(
+                    method:
+                        "search.suggest",
+                    params: .object([
+                        "query":
+                            .string(query),
+                        "limit":
+                            .number(
+                                Double(limit)
+                            )
+                    ]),
+                    as:
+                        LocalSearchSuggestionsDTO
+                            .self
+                )
+
+        return result.suggestions
+    }
+
+    public func localSearchIndexStatus()
+    async throws ->
+    LocalSearchIndexStatusDTO {
+        try await call(
+            method:
+                "search.index.status",
+            params: nil,
+            as:
+                LocalSearchIndexStatusDTO.self
+        )
+    }
+
     public func search(
         _ query: String
     ) async throws -> CoreSearchResult {
@@ -262,6 +464,18 @@ public actor CoreBridge {
             as: WorkspaceListResult.self
         )
     }
+
+
+    public func aiModels() async throws -> [AIModelDTO] { let value:AIModelsDTO = try await call(method:"ai.models.list",params:nil,as:AIModelsDTO.self); return value.models }
+    public func aiHealth() async throws -> AIRuntimeHealthDTO { try await call(method:"ai.health",params:nil,as:AIRuntimeHealthDTO.self) }
+    public func aiChat(message:String, conversationId:String? = nil, modelId:String? = nil) async throws -> AIConversationDTO {
+        var params:[String:JSONValue] = ["message":.string(message)]
+        if let conversationId { params["conversationId"] = .string(conversationId) }
+        if let modelId { params["modelId"] = .string(modelId) }
+        return try await call(method:"ai.chat",params:.object(params),as:AIConversationDTO.self)
+    }
+    public func aiConversations() async throws -> [AIConversationDTO] { let value:AIConversationsDTO = try await call(method:"ai.conversation.list",params:nil,as:AIConversationsDTO.self); return value.conversations }
+    public func deleteAIConversation(id:String) async throws -> Bool { struct Result:Codable { let deleted:Bool }; return try await call(method:"ai.conversation.delete",params:.object(["id":.string(id)]),as:Result.self).deleted }
 
     public func generate(
         _ prompt: String
@@ -308,6 +522,47 @@ public actor CoreBridge {
             from: data
         )
     }
+    public func transportConfiguration()
+    async throws -> TransportConfigurationDTO {
+        try await call(
+            method:
+                "transport.configuration.get",
+            params: nil,
+            as:
+                TransportConfigurationDTO.self
+        )
+    }
+
+    public func saveTransportConfiguration(
+        _ configuration:
+            TransportConfigurationDTO
+    ) async throws ->
+    TransportConfigurationDTO {
+        try await call(
+            method:
+                "transport.configuration.save",
+            params:
+                configuration.jsonValue,
+            as:
+                TransportConfigurationDTO.self
+        )
+    }
+
+    public func testTransport()
+    async throws -> TransportHealthDTO {
+        try await call(
+            method: "transport.test",
+            params: nil,
+            as: TransportHealthDTO.self
+        )
+    }
+
+    public func listConflicts() async throws -> [ConflictDTO] { let value: ConflictListDTO = try await call(method: "conflict.list", params: nil, as: ConflictListDTO.self); return value.conflicts }
+    public func previewConflict(id: String) async throws -> ConflictPreviewDTO { try await call(method: "conflict.preview", params: .object(["id": .string(id)]), as: ConflictPreviewDTO.self) }
+    public func resolveConflict(id: String, strategy: ConflictResolutionStrategyDTO) async throws -> ConflictDTO { try await call(method: "conflict.resolve", params: .object(["id": .string(id), "strategy": .string(strategy.rawValue)]), as: ConflictDTO.self) }
+    public func ignoreConflict(id: String) async throws -> ConflictDTO { try await call(method: "conflict.ignore", params: .object(["id": .string(id)]), as: ConflictDTO.self) }
+    public func conflictStatistics() async throws -> ConflictStatisticsDTO { try await call(method: "conflict.statistics", params: nil, as: ConflictStatisticsDTO.self) }
+
 }
 
 public struct CoreHealth:
@@ -345,4 +600,6 @@ Codable, Sendable, Equatable {
     public let modelId: String
     public let providerId: String
     public let content: String
+
+
 }
