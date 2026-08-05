@@ -2,6 +2,7 @@ import Foundation
 import KnowledgeOSCoreBridge
 
 actor AppServices {
+    private let instanceLock: InstanceLock?
     let bridge: CoreBridge
     let library: LibraryService
     let search: SearchService
@@ -15,6 +16,9 @@ actor AppServices {
     throws -> AppServices {
         let configuration = try ReleaseEnvironment
             .hostConfiguration()
+
+        let instanceLock = InstanceLock(url: configuration.lockURL)
+        try instanceLock.acquire()
 
         let bridge = CoreBridge(
             transport:
@@ -33,6 +37,7 @@ actor AppServices {
 
         return AppServices(
             bridge: bridge,
+            instanceLock: instanceLock,
             library:
                 CoreLibraryAdapter(
                     bridge: bridge
@@ -66,6 +71,7 @@ actor AppServices {
 
     init(
         bridge: CoreBridge,
+        instanceLock: InstanceLock? = nil,
         library: LibraryService,
         search: SearchService,
         document: DocumentService,
@@ -75,6 +81,7 @@ actor AppServices {
         graph: KnowledgeGraphService
     ) {
         self.bridge = bridge
+        self.instanceLock = instanceLock
         self.library = library
         self.search = search
         self.document = document
@@ -104,5 +111,6 @@ actor AppServices {
         await search.stop()
         await library.stop()
         await bridge.stop()
+        instanceLock?.release()
     }
 }

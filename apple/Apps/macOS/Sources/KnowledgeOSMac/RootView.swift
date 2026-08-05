@@ -75,6 +75,9 @@ struct RootView: View {
                 )
             }
         }
+        .onOpenURL { url in
+            DeepLinkCoordinator.handle(url, appModel: appModel)
+        }
     }
 }
 #endif
