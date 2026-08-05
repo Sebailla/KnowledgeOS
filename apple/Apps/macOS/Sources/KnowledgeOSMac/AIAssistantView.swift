@@ -1,0 +1,7 @@
+#if canImport(SwiftUI)
+import SwiftUI
+import KnowledgeOSCoreBridge
+struct AIAssistantView:View { @ObservedObject var viewModel:AIAssistantViewModel
+ var body:some View { VStack(spacing:0){ HStack{ Picker("Model",selection:$viewModel.selectedModelId){ ForEach(viewModel.models){ model in Text(model.name).tag(Optional(model.id)) } }.frame(maxWidth:260); if let health=viewModel.health { Label(health.localOnly ? "Local" : "Remote",systemImage:health.localOnly ? "lock.shield" : "network") }; Spacer(); Button("New"){viewModel.newConversation()} }.padding(); Divider(); ScrollView{ LazyVStack(alignment:.leading,spacing:14){ ForEach(viewModel.conversation?.messages ?? []){ message in VStack(alignment:.leading,spacing:4){ Text(message.role.capitalized).font(.caption.bold()).foregroundStyle(.secondary); Text(message.content).textSelection(.enabled); if let sources=message.sources,!sources.isEmpty { Text(sources.map(\.title).joined(separator:" · ")).font(.caption).foregroundStyle(.tint) } }.padding().background(.quaternary,in:RoundedRectangle(cornerRadius:12)) } }.padding().frame(maxWidth:.infinity,alignment:.leading) }; Divider(); HStack(alignment:.bottom){ TextField("Ask KnowledgeOS…",text:$viewModel.prompt,axis:.vertical).lineLimit(1...6).onSubmit{Task{await viewModel.send()}}; Button(viewModel.isGenerating ? "Generating…" : "Send"){Task{await viewModel.send()}}.disabled(viewModel.isGenerating) }.padding(); if let error=viewModel.errorMessage { Text(error).foregroundStyle(.red).padding(.horizontal) } }.task{await viewModel.load()} }
+}
+#endif
