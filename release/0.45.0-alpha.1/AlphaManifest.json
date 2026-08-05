@@ -1,0 +1,10 @@
+{
+  "name": "KnowledgeOS",
+  "version": "0.45.0-alpha.1",
+  "build": 45,
+  "channel": "alpha",
+  "protocolVersion": "1.0",
+  "diagnosticsDefault": "disabled",
+  "supportedPlatforms": ["macOS", "iOS", "iPadOS", "NAS"],
+  "status": "closed-alpha-readiness"
+}

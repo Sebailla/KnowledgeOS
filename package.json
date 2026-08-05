@@ -18,7 +18,12 @@
     "release:test": "bash scripts/release/run-all-tests.sh",
     "release:sbom": "bash scripts/release/create-sbom.sh",
     "release:validate": "bash scripts/release/validate-release.sh",
-    "release": "bash scripts/release/release-all.sh"
+    "release": "bash scripts/release/release-all.sh",
+    "alpha:prepare": "bash scripts/alpha/prepare-alpha-release.sh",
+    "alpha:validate": "bash scripts/alpha/validate-alpha-installation.sh",
+    "alpha:test": "bash scripts/alpha/run-device-smoke-tests.sh",
+    "alpha:benchmark": "bash scripts/alpha/run-performance-baseline.sh",
+    "alpha:diagnostics": "bash scripts/alpha/collect-alpha-diagnostics.sh"
   },
   "devDependencies": {
     "turbo": "^2.5.0",

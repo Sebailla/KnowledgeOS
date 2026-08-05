@@ -1,0 +1,51 @@
+name: Closed Alpha defect
+description: Report a defect found in the private KnowledgeOS Alpha
+title: "[Alpha][P2] "
+labels: ["alpha", "defect"]
+body:
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options: [P0, P1, P2, P3]
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version and build
+      placeholder: 0.45.0-alpha.1 (45)
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options: [macOS, iOS, iPadOS, NAS, Sync Server, Multiple]
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy check
+      options:
+        - label: Attached diagnostics are sanitized and contain no documents, prompts, tokens or credentials.
+          required: true

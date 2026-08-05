@@ -1,0 +1,4 @@
+d0c9513d698dfb0506741c8feee26440bbad475ef37c13ef6e38be23177b0517  release/0.45.0-alpha.1/AlphaManifest.json
+582382b5c9e1492440a8add6ba2e581a6e16b78a6ff31dffa6062997abff2ef3  release/0.45.0-alpha.1/AlphaProgram.md
+541cb30a1b32ac7ad2ab2b3536a5eb3454916220994f9343365b36fad93a0638  release/0.45.0-alpha.1/AlphaValidationReport.md
+4819dbe0186353660ff923612ea4e6993b43cf90837475b6e590a890ff444251  release/0.45.0-alpha.1/SBOM.spdx.json
