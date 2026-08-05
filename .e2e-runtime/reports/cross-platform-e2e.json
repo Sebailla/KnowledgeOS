@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "correlationId": "fa50c1e2-bd72-4411-a1b8-6510fda53fd8",
+  "startedAt": "2026-08-05T20:10:53.122Z",
+  "completedAt": "2026-08-05T20:10:53.162Z",
+  "document": {
+    "id": "document:e2e",
+    "title": "KnowledgeOS E2E",
+    "checksum": "b4ae0b278bd3942e7075b90f10351fc27db4f8ce31409144175c8927753090a6"
+  },
+  "assertions": {
+    "converged": true,
+    "noDuplicates": true,
+    "anchorsPreserved": true,
+    "cursor": "3",
+    "expectedOperations": 3
+  },
+  "clients": {
+    "mac": {
+      "cursor": "3",
+      "operationCount": 3
+    },
+    "iphone": {
+      "cursor": "1",
+      "operationCount": 1
+    },
+    "ipad": {
+      "cursor": "3",
+      "operationCount": 3
+    }
+  },
+  "trace": [
+    {
+      "route": "/push",
+      "status": 200,
+      "durationMs": 18,
+      "correlationId": "fa50c1e2-bd72-4411-a1b8-6510fda53fd8"
+    },
+    {
+      "route": "/push",
+      "status": 200,
+      "durationMs": 2,
+      "correlationId": "fa50c1e2-bd72-4411-a1b8-6510fda53fd8"
+    },
+    {
+      "route": "/pull",
+      "status": 200,
+      "durationMs": 2,
+      "correlationId": "fa50c1e2-bd72-4411-a1b8-6510fda53fd8"
+    },
+    {
+      "route": "/push",
+      "status": 200,
+      "durationMs": 2,
+      "correlationId": "fa50c1e2-bd72-4411-a1b8-6510fda53fd8"
+    },
+    {
+      "route": "/pull",
+      "status": 200,
+      "durationMs": 1,
+      "correlationId": "fa50c1e2-bd72-4411-a1b8-6510fda53fd8"
+    },
+    {
+      "route": "/pull",
+      "status": 200,
+      "durationMs": 2,
+      "correlationId": "fa50c1e2-bd72-4411-a1b8-6510fda53fd8"
+    }
+  ]
+}

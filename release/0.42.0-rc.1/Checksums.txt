@@ -1,0 +1,14 @@
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  release/0.42.0-rc.1/Checksums.txt
+96500ef0c0a9eb2121c2bd4f727c18672168f16e85e3575464fbb19354abc088  release/0.42.0-rc.1/CompatibilityMatrix.md
+fff5e37c31e461c5a65385f9a71eba0744bddc746e9df94e30eb665e10a2f15e  release/0.42.0-rc.1/InstallationGuide.md
+d508f92ec9b6f9c925bc5a87eacbfb6e5ac6813b28cb66b1325ca6c6f0b6ad17  release/0.42.0-rc.1/KnownLimitations.md
+30b276b8e9bf5f089f716562126b150bf57a11664325ab8eb9fc3d999b4dff2b  release/0.42.0-rc.1/MigrationReport.md
+f745737873a6e9d0a4c7ee53ec1a3bd307db4d39096cc058ebf9058912456227  release/0.42.0-rc.1/PerformanceReport.md
+6e6d99445fc859fa972537bcb35a309047b3ef4a1e202b31df782ada3809e462  release/0.42.0-rc.1/RELEASE.md
+9280be17108a835223d4e2dd645293dd6b9d2c13ed94bdebd6673111e4982025  release/0.42.0-rc.1/ReleaseManifest.json
+612833678fb1d78bfb4a66fc93b231012b4ab0758cd6f3cf927919da0f3a860a  release/0.42.0-rc.1/RollbackGuide.md
+a788021647aed3369b78edb2d1bb625f3ffed1efe4710300caa99291e4cef3e6  release/0.42.0-rc.1/SecurityReport.md
+b0f3d18f1cabf08a536cc60448a9d357b22c937d4175e653e8760858c6804d40  release/0.42.0-rc.1/USP-1.0-FROZEN.md
+7b7722dd64d13f8c372ef4c8c047a96261eb6fa2a1c705dccc1901c0a530df12  release/0.42.0-rc.1/UpgradeGuide.md
+184343c1e36d8d2be2b36ccbb8ba66d4d51203571b53610e7aa390fb9ca45b58  release/0.42.0-rc.1/ValidationReport.md
+0614bae5c7a4bf1b2b0eacd3eb6c1f9e170fb4abf4a0b899fe8a6b78df55f02b  release/0.42.0-rc.1/evidence/VALIDATION-042-release-candidate-stabilization.md
