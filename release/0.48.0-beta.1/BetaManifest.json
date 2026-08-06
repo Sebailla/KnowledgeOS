@@ -1,0 +1,9 @@
+{
+  "name": "KnowledgeOS",
+  "version": "0.48.0-beta.1",
+  "build": 48,
+  "channel": "beta",
+  "protocolVersion": "1.0",
+  "status": "private-beta",
+  "featuresFrozen": true
+}

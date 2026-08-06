@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "channels": ["beta", "beta-hotfix", "rc", "stable"],
+  "promotion": {
+    "beta": "beta-hotfix",
+    "beta-hotfix": "rc",
+    "rc": "stable"
+  },
+  "blockers": ["P0", "P1"],
+  "protocolMajor": 1
+}
