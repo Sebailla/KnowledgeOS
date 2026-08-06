@@ -1,8 +1,8 @@
 {
   "applicationName": "KnowledgeOS",
   "bundleIdentifier": "com.knowledgeos.app",
-  "version": "0.32.0",
-  "build": "32",
+  "version": "1.0.0-rc.1",
+  "build": "50",
   "protocolVersion": "1.0",
   "minimumMacOS": "14.0",
   "hostEntry": "Contents/Resources/CoreHost/apps/macos-core-host/dist/main.js",

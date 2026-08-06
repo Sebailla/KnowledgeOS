@@ -1,0 +1,11 @@
+4d0818629d7395b865c3b5503bf6d23479539b1cded1f850004a3ab32f22e24f  /mnt/data/050-rc-work/release/1.0.0-rc.1/Changelog.md
+e509bd5d84368fb0a459041c43b9447465f60c90df6407b95c8658032b7d2849  /mnt/data/050-rc-work/release/1.0.0-rc.1/CompatibilityMatrix.md
+c00277a8365aa559f96c7fc88848730096e3189ae8890f638e7a63f1907927ee  /mnt/data/050-rc-work/release/1.0.0-rc.1/DistributionReport.md
+5edae92b0da03ef20fbac436fec24808db55d020f6306354aacc7bc094e94494  /mnt/data/050-rc-work/release/1.0.0-rc.1/KnownIssues.md
+4e1687af61eb9f2a031018382b61ba7857d3928933a75ba07913bf03d5d4789a  /mnt/data/050-rc-work/release/1.0.0-rc.1/MigrationReport.md
+47233fa5755d609d6227eb62d6f6fe6fd9c2db688c957558e2d37a8a1881ce5f  /mnt/data/050-rc-work/release/1.0.0-rc.1/PerformanceReport.md
+1520356b464ea3b42f28f77a3db00e2df125e2c29dad66f5d382896c3af4c5a7  /mnt/data/050-rc-work/release/1.0.0-rc.1/ReleaseManifest.json
+f33c4ae8420023dec0b04a3415941281b0897e2ff6f380b4c6b36bfa42f45635  /mnt/data/050-rc-work/release/1.0.0-rc.1/ReleaseNotes.md
+4819dbe0186353660ff923612ea4e6993b43cf90837475b6e590a890ff444251  /mnt/data/050-rc-work/release/1.0.0-rc.1/SBOM.spdx.json
+6b5b1ca15a8514e3c23917a2e42bdc7057403dad0de4a74e0d493a84e97ef331  /mnt/data/050-rc-work/release/1.0.0-rc.1/SecurityReport.md
+e8d3d3ec01f0e458219f8166775195aa1b62ebc326c1b00d7bafbb69a5f81c80  /mnt/data/050-rc-work/release/1.0.0-rc.1/ValidationReport.md
