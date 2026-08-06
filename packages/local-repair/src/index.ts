@@ -1,0 +1,1 @@
+export class LocalRepairService { constructor(private readonly publications:any,private readonly content:any,private readonly scanner:any){} async run(localLibraryId:string){const files=await this.scanner.scan(); return {operation:"repair",localLibraryId,scanned:files.length,repaired:0};} }

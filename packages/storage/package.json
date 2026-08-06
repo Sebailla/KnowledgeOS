@@ -21,6 +21,6 @@
     "@knowledgeos/kernel": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "workspace:^"
+    "typescript": "^5.9.0"
   }
 }

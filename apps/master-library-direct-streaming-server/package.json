@@ -23,6 +23,6 @@
     "@knowledgeos/master-storage-node-stream": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "workspace:^"
+    "typescript": "^5.9.0"
   }
 }

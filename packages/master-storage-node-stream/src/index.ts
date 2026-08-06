@@ -1,0 +1,3 @@
+import { createReadStream } from "node:fs"; import { join } from "node:path"; import type { InMemoryMasterStorageCatalog } from "@knowledgeos/master-storage";
+export interface ByteRange {readonly start:number;readonly endInclusive:number;}
+export class DirectMasterStorageReader { constructor(private readonly root:string,private readonly catalog:InMemoryMasterStorageCatalog){} async describe(p:string,v:string){return this.catalog.get(p,v);} async open(p:string,v:string,range?:ByteRange){const d=this.catalog.get(p,v);const opts=range?{start:range.start,end:range.endInclusive}:undefined;return {contentLength:range?range.endInclusive-range.start+1:d.byteLength,stream:createReadStream(join(this.root,d.relativePath),opts)};} }

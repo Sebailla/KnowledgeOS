@@ -3,6 +3,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 bash scripts/release-1.0/validate-feature-freeze.sh
+bash scripts/release-1.0/validate-version-consistency.sh
 bash scripts/release-1.0/validate-security.sh
 bash scripts/release-1.0/validate-migrations.sh
 bash scripts/release-1.0/run-final-regression.sh

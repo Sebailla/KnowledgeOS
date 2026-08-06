@@ -19,7 +19,7 @@
     "validate": "pnpm typecheck"
   },
   "devDependencies": {
-    "typescript": "workspace:^"
+    "typescript": "^5.9.0"
   },
   "dependencies": {
     "@knowledgeos/contracts": "workspace:*",

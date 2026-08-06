@@ -69,7 +69,7 @@
         "apps/master-library-server/dist/index.d.ts"
       ],
       "@knowledgeos/master-library-streaming-server": [
-        "apps/master-library-streaming-server/dist/index.d.ts"
+        "packages/master-library-streaming-server/dist/index.d.ts"
       ],
       "@knowledgeos/master-storage-node-stream": [
         "packages/master-storage-node-stream/dist/index.d.ts"
