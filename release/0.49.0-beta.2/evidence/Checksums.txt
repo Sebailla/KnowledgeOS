@@ -1,0 +1,4 @@
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  /mnt/data/049-public-beta-work/release/0.49.0-beta.2/evidence/Checksums.txt
+34b7869af8b1593bb5f20104b1d4a95b914f5cccbc5b95b3018fba76cb2c1801  /mnt/data/049-public-beta-work/release/0.49.0-beta.2/evidence/PublicBetaDashboard.md
+5a47ce5ccf1fc7930a10a720608f7e2ca1c4a8988b6b2a4f8ee90262b3d14a0c  /mnt/data/049-public-beta-work/release/0.49.0-beta.2/evidence/VALIDATION-049-public-beta-freeze.md
+6fa47c2d5aefb067838f19dba1c0fab7b1b3bd51e05e9955b406a0e879f33d66  /mnt/data/049-public-beta-work/release/0.49.0-beta.2/evidence/governance.json

@@ -1,0 +1,7 @@
+76a33f6a24777dff6102c1f46eccc0dd5ce93a4da21b8465f86f50668a93afed  release/0.49.0-beta.2/PublicBetaManifest.json
+e2b97c7cbd8f2f9dadc7dc93239ed0d56a285a8a982f7ede329bf330368f1519  release/0.49.0-beta.2/PublicBetaReadiness.md
+5258b044707c6d17b920567eb92268a2f95c09867ba8a33a290d5cf7431e9316  release/0.49.0-beta.2/PublicBetaValidationReport.md
+4819dbe0186353660ff923612ea4e6993b43cf90837475b6e590a890ff444251  release/0.49.0-beta.2/SBOM.spdx.json
+34b7869af8b1593bb5f20104b1d4a95b914f5cccbc5b95b3018fba76cb2c1801  release/0.49.0-beta.2/evidence/PublicBetaDashboard.md
+5a47ce5ccf1fc7930a10a720608f7e2ca1c4a8988b6b2a4f8ee90262b3d14a0c  release/0.49.0-beta.2/evidence/VALIDATION-049-public-beta-freeze.md
+6fa47c2d5aefb067838f19dba1c0fab7b1b3bd51e05e9955b406a0e879f33d66  release/0.49.0-beta.2/evidence/governance.json
