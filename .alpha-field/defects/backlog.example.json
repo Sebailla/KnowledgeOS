@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "defects": [
+    {
+      "id": "ALPHA-EXAMPLE-001",
+      "title": "Example defect only",
+      "severity": "P3",
+      "component": "documentation",
+      "status": "deferred",
+      "affectedVersion": "0.46.0-alpha.1",
+      "fixedVersion": null,
+      "duplicateOf": null,
+      "regressionTest": null,
+      "notes": "Template record. Replace with field evidence."
+    }
+  ]
+}
