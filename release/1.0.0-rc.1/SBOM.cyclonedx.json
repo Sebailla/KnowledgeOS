@@ -1,0 +1,496 @@
+{
+  "bomFormat": "CycloneDX",
+  "components": [
+    {
+      "name": "@knowledgeos/local-library-production",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "apps/local-library-production/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "application",
+      "version": "0.1.0"
+    },
+    {
+      "name": "@knowledgeos/macos-core-host",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "apps/macos-core-host/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "application",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/master-library-direct-streaming-server",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "apps/master-library-direct-streaming-server/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "application",
+      "version": "0.1.0"
+    },
+    {
+      "name": "@knowledgeos/sync-server",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "apps/sync-server/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "application",
+      "version": "1.0.0"
+    },
+    {
+      "name": "knowledgeos",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0-rc.1"
+    },
+    {
+      "name": "@knowledgeos/ai",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/ai/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/contracts",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/contracts/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "0.1.0"
+    },
+    {
+      "name": "@knowledgeos/core",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/core/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/document",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/document/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/domain",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/domain/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/domain-types",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/domain-types/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "0.1.0"
+    },
+    {
+      "name": "@knowledgeos/export",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/export/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/import",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/import/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/kernel",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/kernel/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/knowledge-graph",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/knowledge-graph/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/library",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/library/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/local-cache",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/local-cache/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/local-library",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/local-library/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/local-library-sqlite",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/local-library-sqlite/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/local-maintenance",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/local-maintenance/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/local-repair",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/local-repair/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/local-sqlite-node",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/local-sqlite-node/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/local-storage",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/local-storage/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/master-library-streaming-server",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/master-library-streaming-server/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/master-storage",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/master-storage/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/master-storage-node-stream",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/master-storage-node-stream/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/ocr",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/ocr/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/plugin",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/plugin/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/search",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/search/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/storage",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/storage/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/sync",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/sync/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    },
+    {
+      "name": "@knowledgeos/workspace",
+      "properties": [
+        {
+          "name": "knowledgeos:manifestPath",
+          "value": "packages/workspace/package.json"
+        },
+        {
+          "name": "knowledgeos:declaredLicense",
+          "value": "UNDECLARED"
+        }
+      ],
+      "type": "library",
+      "version": "1.0.0"
+    }
+  ],
+  "metadata": {
+    "component": {
+      "name": "KnowledgeOS",
+      "type": "application",
+      "version": "1.0.0-rc.1"
+    },
+    "timestamp": "2026-08-06T16:55:52+00:00"
+  },
+  "serialNumber": "urn:uuid:7b4af5ccc6b1b05fd050941ce0411dcd",
+  "specVersion": "1.5",
+  "version": 1
+}

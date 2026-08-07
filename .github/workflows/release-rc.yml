@@ -1,0 +1,26 @@
+name: KnowledgeOS 1.0 RC
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v1.0.0-rc.*']
+permissions:
+  contents: read
+jobs:
+  reproducible-rc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: corepack enable
+      - run: corepack prepare pnpm@10.15.0 --activate
+      - run: bash scripts/reproducibility/verify-lockfile-integrity.sh
+      - run: pnpm install --frozen-lockfile
+      - run: bash scripts/release-1.0/run-reproducible-rc-pipeline.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: knowledgeos-1.0.0-rc.1-evidence
+          path: release/1.0.0-rc.1
+          if-no-files-found: error

@@ -12,3 +12,4 @@ bash scripts/release-1.0/validate-distribution.sh
 bash scripts/release/create-sbom.sh release/1.0.0-rc.1/SBOM.spdx.json
 bash scripts/release-1.0/generate-release-manifest.sh
 bash scripts/release-1.0/collect-release-evidence.sh
+bash scripts/release-1.0/run-reproducible-rc-pipeline.sh

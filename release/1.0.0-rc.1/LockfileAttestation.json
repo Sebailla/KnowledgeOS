@@ -1,0 +1,172 @@
+{
+  "lockfile": {
+    "path": "pnpm-lock.yaml",
+    "sha256": "53061a2b51dacbd4888541c6c67061aa70f7b60c2ff46e0252b27975ba6c9f07",
+    "size": 59746
+  },
+  "packageManager": "pnpm@10.15.0",
+  "schemaVersion": 1,
+  "workspaceManifestCount": 32,
+  "workspaceManifests": [
+    {
+      "path": "apps/local-library-production/package.json",
+      "sha256": "df4a638577568d50cb7d617d62344b417c881b3860e77e57eb7aaa8ab2182ce5",
+      "size": 879
+    },
+    {
+      "path": "apps/macos-core-host/package.json",
+      "sha256": "ff576feeacfef330d8a3d2e1f6b6b82c2016c5b744b0b8bab8b2c381f8db6bc6",
+      "size": 880
+    },
+    {
+      "path": "apps/master-library-direct-streaming-server/package.json",
+      "sha256": "e155c6c29795f9a6147caa41af8ce461d44b41524e77adbcf713c746eba9102e",
+      "size": 722
+    },
+    {
+      "path": "apps/sync-server/package.json",
+      "sha256": "56c3ae1c6a0e617713d97234bbb7274a69d1c4319c1cf7d6ebd4df18d12318a7",
+      "size": 536
+    },
+    {
+      "path": "package.json",
+      "sha256": "d7e60e5f40099381a6846dbebb5a7247ec244b0b5dde74915a3471594c5efe1b",
+      "size": 3464
+    },
+    {
+      "path": "packages/ai/package.json",
+      "sha256": "bf8e9d938fb28d9b0de7057adfe671cb2e80011ecce78e386f73413d3a59c63d",
+      "size": 602
+    },
+    {
+      "path": "packages/contracts/package.json",
+      "sha256": "72138749adc5044e125078afdbce337b10c9b0ed8f05ef3dabdd6a9b9b13e9b0",
+      "size": 606
+    },
+    {
+      "path": "packages/core/package.json",
+      "sha256": "50cf818a8748b148202f6bb218e82aae79e9dfbc8783e267002f11b99066d012",
+      "size": 1046
+    },
+    {
+      "path": "packages/document/package.json",
+      "sha256": "e2bb6d6ba99a04c616d686b6b17860aecf3d0706bafe700154ecd6f7f145312e",
+      "size": 920
+    },
+    {
+      "path": "packages/domain-types/package.json",
+      "sha256": "790248d55a74957e2533c072f931357e75e4ace3444c7df074de75bd93e17a14",
+      "size": 540
+    },
+    {
+      "path": "packages/domain/package.json",
+      "sha256": "0e054091f4c67bc4b57e1d8c31f86876e665ba7bce7693f610bb11ecf06757b5",
+      "size": 632
+    },
+    {
+      "path": "packages/export/package.json",
+      "sha256": "7f5d2ac9e484d29ae3d82b76cbc9e4625bf3b46f5fe366b2a6e3b6f18f90daca",
+      "size": 784
+    },
+    {
+      "path": "packages/import/package.json",
+      "sha256": "0d88c7bb037e030ceb9d8415e2bc22f3c9934570c7b32c4d8c97cae566be0fdd",
+      "size": 784
+    },
+    {
+      "path": "packages/kernel/package.json",
+      "sha256": "c645bbb2835e39f745df1d982804221aa5989c2ecbc8f81d4cdc26fd55f7c24e",
+      "size": 743
+    },
+    {
+      "path": "packages/knowledge-graph/package.json",
+      "sha256": "522b18e67a32d1d2420b6c1a957ad1cb0fc4a8e41f4c7085642cb3407ae5274c",
+      "size": 718
+    },
+    {
+      "path": "packages/library/package.json",
+      "sha256": "5f4e1c2d20cb43d047d01a85b42769cc61a18f79d5907c4934062bd3604cc908",
+      "size": 572
+    },
+    {
+      "path": "packages/local-cache/package.json",
+      "sha256": "db363fe3f0049e951693b01b9fef10483d6e03873c9c37db4ac82cc79095496d",
+      "size": 470
+    },
+    {
+      "path": "packages/local-library-sqlite/package.json",
+      "sha256": "7036b25963b63aea3134f4d8364876bc3c87ec34aea97c38167a08f4adc90f5f",
+      "size": 583
+    },
+    {
+      "path": "packages/local-library/package.json",
+      "sha256": "7a4983adce745b5d2754ecf4fc828efa7ccfa2d735945577d8fd79bb19038473",
+      "size": 472
+    },
+    {
+      "path": "packages/local-maintenance/package.json",
+      "sha256": "194603e67b7726a4190f1a8f86391ea11a5db6f5cd4c6a523811175377a2d270",
+      "size": 622
+    },
+    {
+      "path": "packages/local-repair/package.json",
+      "sha256": "aeaceaa544f6791ebf9487edf1435cac2a0e1ae9c5f5602e8b0b382ff5a29f00",
+      "size": 571
+    },
+    {
+      "path": "packages/local-sqlite-node/package.json",
+      "sha256": "857ae01d672a7ed2e8809346ef54e1453a3f9b69d4dd41d8bfbef3082e776de3",
+      "size": 476
+    },
+    {
+      "path": "packages/local-storage/package.json",
+      "sha256": "c2f8c395f6b92783b55cafeb4cdfde4e6ba7746ee89a848875b343d3ff1f5618",
+      "size": 472
+    },
+    {
+      "path": "packages/master-library-streaming-server/package.json",
+      "sha256": "b9d341d75e3c5f4dbfecd6fa7f914b3813a38ac260497d4c7b94ee4216568e19",
+      "size": 490
+    },
+    {
+      "path": "packages/master-storage-node-stream/package.json",
+      "sha256": "01767fb71a9c4529b74dce868d2a18ee3252abc2ab1ab622586a398a99295220",
+      "size": 537
+    },
+    {
+      "path": "packages/master-storage/package.json",
+      "sha256": "ca3c1bc86205bad350a0ffb25d189f68c6365674ffd89e3f60683e47456cec81",
+      "size": 473
+    },
+    {
+      "path": "packages/ocr/package.json",
+      "sha256": "3d383643199dadd38a9e4d5e106d4cebc4dcadd403a7b457ab81ac2d0ca1c24c",
+      "size": 734
+    },
+    {
+      "path": "packages/plugin/package.json",
+      "sha256": "84ca88032d23ee17a1600ae41e4146f03eab9345b5601d6c944ed6b4b517e19d",
+      "size": 779
+    },
+    {
+      "path": "packages/search/package.json",
+      "sha256": "d227abb78fdd82a5ccbd7bd9638c916caee77e203f18b14f18b7487d65326b82",
+      "size": 698
+    },
+    {
+      "path": "packages/storage/package.json",
+      "sha256": "293fef2963460f4ecba1cd890af8f7689a0f47c572228d42b1f9554d494564b9",
+      "size": 572
+    },
+    {
+      "path": "packages/sync/package.json",
+      "sha256": "b38a628c4d6fe7c37ea5947f4bfd3224ce591e60af94ee326550a5828db7efc6",
+      "size": 761
+    },
+    {
+      "path": "packages/workspace/package.json",
+      "sha256": "c971254f6bb93c4fd4225a5f8bb4aefab3c5b0e6e5ff639a01f13fe80bdb9eb7",
+      "size": 750
+    }
+  ]
+}

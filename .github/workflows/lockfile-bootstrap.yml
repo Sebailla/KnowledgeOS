@@ -1,0 +1,46 @@
+name: Lockfile Bootstrap
+
+on:
+  workflow_dispatch:
+    inputs:
+      create_pull_request:
+        description: Create a pull request containing pnpm-lock.yaml and its attestation
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: corepack enable
+      - run: corepack prepare pnpm@10.15.0 --activate
+      - run: bash scripts/reproducibility/bootstrap-lockfile-ci.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: knowledgeos-lockfile-bootstrap
+          path: |
+            pnpm-lock.yaml
+            release/1.0.0-rc.1/LockfileAttestation.json
+            release/1.0.0-rc.1/LockfilePolicy.json
+      - name: Create lockfile pull request
+        if: ${{ inputs.create_pull_request }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          branch="automation/pnpm-lockfile-${GITHUB_RUN_ID}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add pnpm-lock.yaml release/1.0.0-rc.1/LockfileAttestation.json
+          git commit -m "chore(release): bootstrap reproducible pnpm lockfile"
+          git push origin "$branch"
+          gh pr create --base "${GITHUB_REF_NAME:-main}" --head "$branch" --title "chore(release): bootstrap pnpm lockfile" --body "Generated with pnpm 10.15.0 and verified by frozen clean install."

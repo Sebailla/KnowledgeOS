@@ -32,7 +32,22 @@
     "rc1:freeze": "bash scripts/release-1.0/validate-feature-freeze.sh",
     "rc1:test": "bash scripts/release-1.0/run-final-regression.sh",
     "rc1:security": "bash scripts/release-1.0/validate-security.sh",
-    "rc1:prepare": "bash scripts/release-1.0/prepare-1.0-rc.sh"
+    "rc1:prepare": "bash scripts/release-1.0/prepare-1.0-rc.sh",
+    "rc1:sbom": "bash scripts/release-1.0/generate-sbom.sh",
+    "rc1:licenses": "bash scripts/release-1.0/validate-licenses.sh",
+    "rc1:pipeline": "bash scripts/release-1.0/run-reproducible-rc-pipeline.sh",
+    "rc1:artifacts": "bash scripts/release-1.0/validate-release-artifacts.sh",
+    "repro:source": "bash scripts/reproducibility/create-source-archive.sh",
+    "repro:source:verify": "bash scripts/reproducibility/verify-source-archive-reproducibility.sh",
+    "rc1:provenance": "bash scripts/release-1.0/verify-release-provenance.sh",
+    "rc1:attest": "python3 scripts/release-1.0/generate-release-attestation.py",
+    "rc1:sign": "bash scripts/release-1.0/sign-release-attestation.sh",
+    "rc1:attest:verify": "bash scripts/release-1.0/verify-release-attestation.sh",
+    "rc1:promote": "bash scripts/release-1.0/validate-promotion-policy.sh",
+    "repro:lockfile:bootstrap": "bash scripts/reproducibility/bootstrap-lockfile-ci.sh",
+    "repro:lockfile:policy": "bash scripts/reproducibility/validate-lockfile-policy.sh",
+    "repro:lockfile:attest": "python3 scripts/reproducibility/generate-lockfile-attestation.py",
+    "repro:lockfile:attest:verify": "python3 scripts/reproducibility/verify-lockfile-attestation.py"
   },
   "devDependencies": {
     "turbo": "^2.5.0",

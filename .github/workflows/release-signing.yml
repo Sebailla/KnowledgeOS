@@ -1,0 +1,25 @@
+name: Release signing and promotion
+on:
+  workflow_dispatch:
+    inputs:
+      target_channel:
+        description: Target channel
+        type: choice
+        options: [rc, stable]
+        default: rc
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  attest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: python3 scripts/release-1.0/generate-release-attestation.py
+      - run: KNOWLEDGEOS_TARGET_CHANNEL=${{ inputs.target_channel }} bash scripts/release-1.0/validate-promotion-policy.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-attestation
+          path: release/1.0.0-rc.1/attestations/

@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "packageManager": "pnpm@10.15.0",
+  "lockfile": "pnpm-lock.yaml",
+  "attestation": "release/1.0.0-rc.1/LockfileAttestation.json",
+  "requirements": {
+    "workspaceManifestValidation": true,
+    "frozenInstall": true,
+    "ignoreScriptsDuringBootstrap": true,
+    "cleanInstallValidation": true,
+    "manifestDigestBinding": true
+  }
+}

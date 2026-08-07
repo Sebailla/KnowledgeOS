@@ -1,133 +1,559 @@
 {
-  "bomFormat": "CycloneDX",
-  "specVersion": "1.5",
-  "version": 1,
-  "components": [
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "creationInfo": {
+    "created": "2026-08-06T16:55:52+00:00",
+    "creators": [
+      "Tool: KnowledgeOS generate-sbom.sh"
+    ]
+  },
+  "dataLicense": "CC0-1.0",
+  "documentNamespace": "https://knowledgeos.local/spdx/1.0.0-rc.1",
+  "name": "KnowledgeOS-1.0.0-rc.1",
+  "packages": [
     {
-      "type": "library",
-      "name": "@knowledgeos/ai",
-      "version": "1.0.0",
-      "path": "packages/ai/package.json"
-    },
-    {
-      "type": "library",
-      "name": "@knowledgeos/contracts",
-      "version": "0.1.0",
-      "path": "packages/contracts/package.json"
-    },
-    {
-      "type": "library",
-      "name": "@knowledgeos/core",
-      "version": "1.0.0",
-      "path": "packages/core/package.json"
-    },
-    {
-      "type": "library",
-      "name": "@knowledgeos/document",
-      "version": "1.0.0",
-      "path": "packages/document/package.json"
-    },
-    {
-      "type": "library",
-      "name": "@knowledgeos/domain",
-      "version": "1.0.0",
-      "path": "packages/domain/package.json"
-    },
-    {
-      "type": "library",
-      "name": "@knowledgeos/domain-types",
-      "version": "0.1.0",
-      "path": "packages/domain-types/package.json"
-    },
-    {
-      "type": "library",
-      "name": "@knowledgeos/export",
-      "version": "1.0.0",
-      "path": "packages/export/package.json"
-    },
-    {
-      "type": "library",
-      "name": "@knowledgeos/import",
-      "version": "1.0.0",
-      "path": "packages/import/package.json"
-    },
-    {
-      "type": "library",
-      "name": "@knowledgeos/kernel",
-      "version": "1.0.0",
-      "path": "packages/kernel/package.json"
-    },
-    {
-      "type": "library",
-      "name": "@knowledgeos/knowledge-graph",
-      "version": "1.0.0",
-      "path": "packages/knowledge-graph/package.json"
-    },
-    {
-      "type": "library",
-      "name": "@knowledgeos/library",
-      "version": "1.0.0",
-      "path": "packages/library/package.json"
-    },
-    {
-      "type": "library",
-      "name": "@knowledgeos/ocr",
-      "version": "1.0.0",
-      "path": "packages/ocr/package.json"
-    },
-    {
-      "type": "library",
-      "name": "@knowledgeos/plugin",
-      "version": "1.0.0",
-      "path": "packages/plugin/package.json"
-    },
-    {
-      "type": "library",
-      "name": "@knowledgeos/search",
-      "version": "1.0.0",
-      "path": "packages/search/package.json"
-    },
-    {
-      "type": "library",
-      "name": "@knowledgeos/storage",
-      "version": "1.0.0",
-      "path": "packages/storage/package.json"
-    },
-    {
-      "type": "library",
-      "name": "@knowledgeos/sync",
-      "version": "1.0.0",
-      "path": "packages/sync/package.json"
-    },
-    {
-      "type": "library",
-      "name": "@knowledgeos/workspace",
-      "version": "1.0.0",
-      "path": "packages/workspace/package.json"
-    },
-    {
-      "type": "application",
+      "SPDXID": "SPDXRef-Package-1",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "apps/local-library-production/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
       "name": "@knowledgeos/local-library-production",
-      "version": "0.1.0",
-      "path": "apps/local-library-production/package.json"
+      "versionInfo": "0.1.0"
     },
     {
-      "type": "application",
+      "SPDXID": "SPDXRef-Package-2",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "apps/macos-core-host/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
       "name": "@knowledgeos/macos-core-host",
-      "version": "1.0.0",
-      "path": "apps/macos-core-host/package.json"
+      "versionInfo": "1.0.0"
     },
     {
-      "type": "application",
+      "SPDXID": "SPDXRef-Package-3",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "apps/master-library-direct-streaming-server/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
       "name": "@knowledgeos/master-library-direct-streaming-server",
-      "version": "0.1.0",
-      "path": "apps/master-library-direct-streaming-server/package.json"
+      "versionInfo": "0.1.0"
     },
     {
-      "type": "application",
+      "SPDXID": "SPDXRef-Package-4",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "apps/sync-server/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
       "name": "@knowledgeos/sync-server",
-      "version": "1.0.0",
-      "path": "apps/sync-server/package.json"
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-5",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "knowledgeos",
+      "versionInfo": "1.0.0-rc.1"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-6",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/ai/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/ai",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-7",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/contracts/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/contracts",
+      "versionInfo": "0.1.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-8",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/core/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/core",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-9",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/document/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/document",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-10",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/domain/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/domain",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-11",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/domain-types/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/domain-types",
+      "versionInfo": "0.1.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-12",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/export/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/export",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-13",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/import/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/import",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-14",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/kernel/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/kernel",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-15",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/knowledge-graph/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/knowledge-graph",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-16",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/library/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/library",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-17",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/local-cache/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/local-cache",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-18",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/local-library/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/local-library",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-19",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/local-library-sqlite/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/local-library-sqlite",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-20",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/local-maintenance/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/local-maintenance",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-21",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/local-repair/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/local-repair",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-22",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/local-sqlite-node/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/local-sqlite-node",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-23",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/local-storage/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/local-storage",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-24",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/master-library-streaming-server/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/master-library-streaming-server",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-25",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/master-storage/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/master-storage",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-26",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/master-storage-node-stream/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/master-storage-node-stream",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-27",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/ocr/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/ocr",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-28",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/plugin/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/plugin",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-29",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/search/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/search",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-30",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/storage/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/storage",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-31",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/sync/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/sync",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-32",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "packages/workspace/package.json",
+          "referenceType": "knowledgeos:manifest-path"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "UNDECLARED",
+      "licenseDeclared": "UNDECLARED",
+      "name": "@knowledgeos/workspace",
+      "versionInfo": "1.0.0"
     }
-  ]
+  ],
+  "spdxVersion": "SPDX-2.3"
 }

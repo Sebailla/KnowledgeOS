@@ -1,0 +1,59 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "predicate": {
+    "build": 50,
+    "featureFreeze": true,
+    "generatedBy": "scripts/release-1.0/generate-release-attestation.py",
+    "protocolVersion": "1.0",
+    "release": "1.0.0-rc.1",
+    "sourceCommit": "c6d62610315a719df7404f468f2d256e1cbc6928"
+  },
+  "predicateType": "https://knowledgeos.dev/attestation/release/v1",
+  "subject": [
+    {
+      "name": "release/1.0.0-rc.1/ReleaseManifest.json",
+      "sha256": "dbf307781c1ef0aa20a21bfa49dad4b33eda8f3bdd336fda01dc0191f654737a",
+      "size": 175
+    },
+    {
+      "name": "release/1.0.0-rc.1/SBOM.spdx.json",
+      "sha256": "2e609ec53da8e74404102de286fa63f9df90a0f15ce622faceaae90578e3f186",
+      "size": 17172
+    },
+    {
+      "name": "release/1.0.0-rc.1/SBOM.cyclonedx.json",
+      "sha256": "302b8f550b2416e9f36201238a5d264b9ea40c00ff16aabdd5ae262fb8bb948e",
+      "size": 11869
+    },
+    {
+      "name": "release/1.0.0-rc.1/SourceManifest.json",
+      "sha256": "9af75a4272e11d38e13298c7f72a3afcf866e9bd7bf5692bc9498a402ee387b1",
+      "size": 904405
+    },
+    {
+      "name": "release/1.0.0-rc.1/Checksums.txt",
+      "sha256": "1886d73e29bc9ddfa26cb9d581b0a3128233236746fd609a94951b60c0724e59",
+      "size": 1138
+    },
+    {
+      "name": "release/1.0.0-rc.1/ValidationReport.md",
+      "sha256": "321fa04d44273693f1fb66b2ea87f44349e682ad04c9d155622b433d6f93f5a5",
+      "size": 1195
+    },
+    {
+      "name": "release/1.0.0-rc.1/SecurityReport.md",
+      "sha256": "6b5b1ca15a8514e3c23917a2e42bdc7057403dad0de4a74e0d493a84e97ef331",
+      "size": 346
+    },
+    {
+      "name": "release/1.0.0-rc.1/MigrationReport.md",
+      "sha256": "f127657b2d8421b0b067e29c358c4b913498a7c0e75354f677c4f863bf02ec83",
+      "size": 463
+    },
+    {
+      "name": "release/1.0.0-rc.1/DistributionReport.md",
+      "sha256": "c00277a8365aa559f96c7fc88848730096e3189ae8890f638e7a63f1907927ee",
+      "size": 360
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "release": "1.0.0-rc.1",
+  "sourceChannel": "rc",
+  "targetChannel": "stable",
+  "requiredGates": [
+    "feature-freeze",
+    "version-consistency",
+    "workspace-manifests",
+    "frozen-lockfile",
+    "tests",
+    "security",
+    "licenses",
+    "sbom",
+    "source-provenance",
+    "artifact-checksums",
+    "signed-attestation",
+    "release-approval"
+  ],
+  "minimumApprovals": 1,
+  "signatureAlgorithms": ["ed25519", "cosign"],
+  "allowUnsignedRC": true,
+  "allowUnsignedStable": false
+}

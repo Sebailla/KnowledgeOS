@@ -50,6 +50,10 @@ enum ReleaseEnvironment {
         )
     }
 
+    static func importStagingRoot(fileManager: FileManager = .default) throws -> URL {
+        try applicationSupportDirectory(fileManager: fileManager).appendingPathComponent("Imports", isDirectory: true)
+    }
+
     static func applicationSupportDirectory(fileManager: FileManager = .default) throws -> URL {
         guard let base = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
             throw ReleaseEnvironmentError.applicationSupportUnavailable
@@ -102,7 +106,8 @@ enum ReleaseEnvironment {
         value["KNOWLEDGEOS_DATABASE_DIR"] = directories.database.path
         value["KNOWLEDGEOS_CACHE_DIR"] = directories.cache.path
         value["KNOWLEDGEOS_LOG_DIR"] = directories.logs.path
-        value["KNOWLEDGEOS_IMPORT_DIR"] = directories.imports.path
+        value["KNOWLEDGEOS_IMPORT_DIR"] = directories.imports
+            .appendingPathComponent("Staging", isDirectory: true).path
         value["KNOWLEDGEOS_EXPORT_DIR"] = directories.exports.path
         value["KNOWLEDGEOS_MODEL_DIR"] = directories.models.path
         value["KNOWLEDGEOS_DIAGNOSTICS_DIR"] = directories.diagnostics.path

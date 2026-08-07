@@ -1,0 +1,29 @@
+name: Release Provenance
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/reproducibility/**'
+      - 'scripts/release-1.0/**'
+      - 'release/1.0.0-rc.1/**'
+  push:
+    tags: ['v1.0.0-rc.*']
+permissions:
+  contents: read
+jobs:
+  provenance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install archive tooling
+        run: sudo apt-get update && sudo apt-get install -y rsync zip unzip
+      - name: Create deterministic source archive
+        run: scripts/reproducibility/create-source-archive.sh artifacts/KnowledgeOS-1.0.0-rc.1-source.zip
+      - name: Verify embedded source manifest
+        run: scripts/release-1.0/verify-release-provenance.sh artifacts/KnowledgeOS-1.0.0-rc.1-source.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-provenance
+          path: |
+            artifacts/KnowledgeOS-1.0.0-rc.1-source.zip
+            artifacts/KnowledgeOS-1.0.0-rc.1-source.zip.sha256
