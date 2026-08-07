@@ -1,0 +1,27 @@
+{
+  "added": [
+    ".github/workflows/lockfile-bootstrap.yml",
+    "RELEASE_NOTES-complete-cumulative-v7.md",
+    "VALIDATION-cumulative-v6-to-v7-inventory.json",
+    "VALIDATION-cumulative-v6-to-v7-inventory.md",
+    "VALIDATION-lockfile-bootstrap-v7.md",
+    "docs/release/LockfileBootstrap.md",
+    "release/1.0.0-rc.1/LockfilePolicy.json",
+    "scripts/reproducibility/bootstrap-lockfile-ci.sh",
+    "scripts/reproducibility/generate-lockfile-attestation.py",
+    "scripts/reproducibility/validate-lockfile-policy.sh",
+    "scripts/reproducibility/verify-lockfile-attestation.py"
+  ],
+  "addedCount": 11,
+  "base": "KnowledgeOS-complete-cumulative-v6.zip",
+  "baseFileCount": 5188,
+  "modified": [
+    "package.json",
+    "scripts/release-1.0/run-reproducible-rc-pipeline.sh"
+  ],
+  "modifiedCount": 2,
+  "removed": [],
+  "removedCount": 0,
+  "target": "KnowledgeOS-complete-cumulative-v7.zip",
+  "targetFileCount": 5199
+}

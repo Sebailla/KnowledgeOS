@@ -1,0 +1,28 @@
+{
+  "base": "KnowledgeOS-complete-cumulative-v4.zip",
+  "target": "KnowledgeOS-complete-cumulative-v5.zip",
+  "baseFileCount": 5166,
+  "targetFileCount": 5176,
+  "addedCount": 10,
+  "modifiedCount": 4,
+  "deletedCount": 0,
+  "added": [
+    ".github/workflows/release-provenance.yml",
+    "RELEASE_NOTES-complete-cumulative-v5.md",
+    "VALIDATION-cumulative-v4-to-v5-inventory.json",
+    "VALIDATION-cumulative-v4-to-v5-inventory.md",
+    "VALIDATION-release-provenance-v5.md",
+    "docs/release/ReleaseProvenance.md",
+    "release/1.0.0-rc.1/SourceManifest.json",
+    "scripts/release-1.0/verify-release-provenance.sh",
+    "scripts/reproducibility/generate-source-manifest.py",
+    "scripts/reproducibility/verify-source-manifest.py"
+  ],
+  "modified": [
+    "package.json",
+    "scripts/release-1.0/run-reproducible-rc-pipeline.sh",
+    "scripts/release-1.0/validate-release-artifacts.sh",
+    "scripts/reproducibility/create-source-archive.sh"
+  ],
+  "deleted": []
+}

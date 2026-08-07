@@ -1,0 +1,28 @@
+{
+  "base": "KnowledgeOS-complete-cumulative-v5.zip",
+  "target": "KnowledgeOS-complete-cumulative-v6.zip",
+  "oldFileCount": 5176,
+  "newFileCount": 5188,
+  "addedCount": 12,
+  "modifiedCount": 2,
+  "deletedCount": 0,
+  "added": [
+    ".github/workflows/release-signing.yml",
+    "RELEASE_NOTES-complete-cumulative-v6.md",
+    "VALIDATION-cumulative-v5-to-v6-inventory.json",
+    "VALIDATION-cumulative-v5-to-v6-inventory.md",
+    "VALIDATION-release-signing-promotion-v6.md",
+    "docs/release/ArtifactSigningAndPromotion.md",
+    "release/1.0.0-rc.1/PromotionPolicy.json",
+    "release/1.0.0-rc.1/attestations/ReleaseAttestation.json",
+    "scripts/release-1.0/generate-release-attestation.py",
+    "scripts/release-1.0/sign-release-attestation.sh",
+    "scripts/release-1.0/validate-promotion-policy.sh",
+    "scripts/release-1.0/verify-release-attestation.sh"
+  ],
+  "modified": [
+    "package.json",
+    "scripts/release-1.0/run-reproducible-rc-pipeline.sh"
+  ],
+  "deleted": []
+}

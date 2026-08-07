@@ -1,0 +1,27 @@
+{
+  "previousFiles": 5145,
+  "newFiles": 5157,
+  "addedCount": 12,
+  "modifiedCount": 3,
+  "deletedCount": 0,
+  "added": [
+    ".github/workflows/release-rc.yml",
+    "RELEASE_NOTES-complete-cumulative-v3.md",
+    "VALIDATION-cumulative-v2-to-v3-inventory.json",
+    "VALIDATION-cumulative-v2-to-v3-inventory.md",
+    "VALIDATION-release-engineering-v3.md",
+    "docs/release/ReleaseEngineeringPipeline.md",
+    "release/1.0.0-rc.1/SBOM.cyclonedx.json",
+    "scripts/release-1.0/generate-artifact-checksums.sh",
+    "scripts/release-1.0/generate-sbom.sh",
+    "scripts/release-1.0/run-reproducible-rc-pipeline.sh",
+    "scripts/release-1.0/validate-licenses.sh",
+    "scripts/release-1.0/validate-release-artifacts.sh"
+  ],
+  "modified": [
+    "package.json",
+    "release/1.0.0-rc.1/SBOM.spdx.json",
+    "scripts/release-1.0/prepare-1.0-rc.sh"
+  ],
+  "deleted": []
+}
