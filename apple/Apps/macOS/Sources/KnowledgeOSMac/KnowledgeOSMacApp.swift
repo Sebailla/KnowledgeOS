@@ -9,15 +9,21 @@ struct KnowledgeOSMacApp: App {
     private var appDelegate
 
     @StateObject
-    private var appModel = AppModel(
-        bootstrapper:
-            ApplicationBootstrapper()
-    )
+    private var appModel: AppModel
 
     init() {
+        let model = AppModel(
+            bootstrapper:
+                ApplicationBootstrapper()
+        )
+
+        _appModel = StateObject(
+            wrappedValue: model
+        )
+
         appDelegate.onTerminate = {
             Task {
-                await appModel.stop()
+                await model.stop()
             }
         }
     }

@@ -1,4 +1,5 @@
 #if canImport(SwiftUI)
+import Foundation
 import XCTest
 import KnowledgeOSCoreBridge
 @testable import KnowledgeOSMac
@@ -11,27 +12,8 @@ LibraryService {
     func list(
         query: LibraryQuery
     ) async throws -> LibraryPageDTO {
-        LibraryPageDTO(
-            items: [
-                LibraryItemDTO(
-                    id: "item:1",
-                    title: "KnowledgeOS",
-                    subtitle: nil,
-                    authors: ["Team"],
-                    kind: .document,
-                    availability: .both,
-                    favorite: true,
-                    tags: ["knowledge"],
-                    createdAt: "2026-08-01",
-                    updatedAt: "2026-08-03",
-                    coverURL: nil,
-                    metadata: [:]
-                )
-            ],
-            page: 1,
-            pageSize: 24,
-            total: 1,
-            hasNextPage: false
+        decode(
+            #"{"items":[{"id":"item:1","title":"KnowledgeOS","subtitle":null,"authors":["Team"],"kind":"document","availability":"both","favorite":true,"tags":["knowledge"],"createdAt":"2026-08-01","updatedAt":"2026-08-03","coverURL":null,"metadata":{}}],"page":1,"pageSize":24,"total":1,"hasNextPage":false}"#
         )
     }
 
@@ -81,4 +63,6 @@ XCTestCase {
         )
     }
 }
+
+private func decode<T:Decodable>(_ json:String)->T { try! JSONDecoder().decode(T.self,from:Data(json.utf8)) }
 #endif

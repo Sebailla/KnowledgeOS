@@ -5,6 +5,7 @@ LocalizedError, Equatable {
     case unavailable
     case terminated
     case timeout
+    case cancelled
     case invalidResponse
     case remote(
         code: String,
@@ -19,6 +20,8 @@ LocalizedError, Equatable {
             "Core host terminated."
         case .timeout:
             "Core request timed out."
+        case .cancelled:
+            "Core request was cancelled."
         case .invalidResponse:
             "Core response is invalid."
         case .remote(_, let message):
@@ -336,6 +339,17 @@ public actor CoreBridge {
             ),
             as: ImportJobDTO.self
         )
+    }
+
+    public func queueStagedImport(_ request: StagedImportRequestV2DTO) async throws -> QueuedStagedImportDTO {
+        try await call(method: "import.start", params: .object([
+            "contractVersion": .number(Double(request.contractVersion)),
+            "operationId": .string(request.operationId),
+            "idempotencyKey": .string(request.idempotencyKey),
+            "source": .object(["kind": .string(request.source.kind), "capability": .string(request.source.capability)]),
+            "name": .string(request.name), "byteLength": .number(Double(request.byteLength)),
+            "sha256": .string(request.sha256), "runOCR": .bool(request.runOCR ?? false)
+        ]), as: QueuedStagedImportDTO.self)
     }
 
     public func importHistory()

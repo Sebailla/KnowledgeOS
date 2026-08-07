@@ -13,6 +13,8 @@ import { localAIRuntime, buildAIContext } from "./localAIRuntime.js";
 import { importJobManager } from "./importManager.js";
 import { exportJobManager } from "./exportManager.js";
 import { applicationDiagnostics, applicationStatus, validateConfiguration } from "./applicationIntegration.js";
+import { StagedSourceResolver } from "./stagedSourceResolver.js";
+import type { StagedImportRequestV2 } from "@knowledgeos/contracts";
 
 export class HostError extends Error {
   public constructor(
@@ -26,6 +28,7 @@ export class HostError extends Error {
 export class CoreRouter {
   public constructor(
     private readonly core: InMemoryCore,
+    private readonly stagedSources = new StagedSourceResolver(process.env.KNOWLEDGEOS_IMPORT_DIR ?? ".knowledgeos-import/Staging"),
   ) {}
 
   public async dispatch(
@@ -285,14 +288,15 @@ export class CoreRouter {
 
       case "import.detect":
       case "import.preview":
-        return importJobManager.detect(
-          importInput(record),
-        );
+      case "import.start": {
+        const request = stagedImportRequest(record);
+        const lease = await this.stagedSources.accept(request);
+        return importJobManager.queueStaged(request.operationId, lease);
+      }
 
-      case "import.start":
-        return importJobManager.start(
-          importInput(record),
-        );
+      case "import.release":
+        await this.stagedSources.release(stringParam(record, "leaseId"));
+        return { released: true };
 
       case "import.status": {
         const job =
@@ -541,40 +545,12 @@ function searchKind(
 function objectParam(value: unknown): Record<string, unknown> { return typeof value === "object" && value !== null && !Array.isArray(value) ? value as Record<string, unknown> : {}; }
 function graphDirection(value: unknown): "in" | "out" | "both" { return value === "in" || value === "out" ? value : "both"; }
 
-function importInput(
-  record: Record<string, unknown>,
-) {
-  return {
-    name:
-      stringParam(record, "name"),
-    content:
-      typeof record.content === "string"
-        ? record.content
-        : "",
-    ...(typeof record.mediaType ===
-      "string"
-      ? {
-          mediaType:
-            record.mediaType,
-        }
-      : {}),
-    ...(typeof record.extension ===
-      "string"
-      ? {
-          extension:
-            record.extension,
-        }
-      : {}),
-    ...(typeof record.runOCR ===
-      "boolean"
-      ? {
-          runOCR:
-            record.runOCR,
-        }
-      : {}),
-    metadata:
-      objectParam(record.metadata),
-  };
+function stagedImportRequest(record: Record<string, unknown>): StagedImportRequestV2 {
+  if (record.contractVersion !== 2) throw new HostError("IMPORT_CONTRACT_VERSION_UNSUPPORTED", "Only import contract version 2 is supported.");
+  if ("content" in record || "bytes" in record || "path" in record) throw new HostError("INVALID_IMPORT_REQUEST", "Import payload must not include bytes or paths.");
+  const source = objectParam(record.source);
+  if (source.kind !== "staged-file" || typeof source.capability !== "string" || typeof record.operationId !== "string" || typeof record.idempotencyKey !== "string" || typeof record.name !== "string" || typeof record.byteLength !== "number" || !Number.isSafeInteger(record.byteLength) || record.byteLength < 0 || typeof record.sha256 !== "string" || !/^[a-f0-9]{64}$/i.test(record.sha256)) throw new HostError("INVALID_IMPORT_REQUEST", "Invalid staged import request.");
+  return { contractVersion: 2, operationId: record.operationId, idempotencyKey: record.idempotencyKey, source: { kind: "staged-file", capability: source.capability }, name: record.name, byteLength: record.byteLength, sha256: record.sha256, ...(typeof record.mediaType === "string" ? { mediaType: record.mediaType } : {}), ...(typeof record.extension === "string" ? { extension: record.extension } : {}), ...(typeof record.runOCR === "boolean" ? { runOCR: record.runOCR } : {}) };
 }
 
 function exportFormat(value: unknown): "markdown"|"html"|"pdf"|"epub"|"text"|"knowledge-package" {

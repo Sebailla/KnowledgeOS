@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@knowledgeos/core": "workspace:*",
+    "@knowledgeos/contracts": "workspace:*",
     "@knowledgeos/kernel": "workspace:*",
     "@knowledgeos/ai": "workspace:*",
     "@knowledgeos/library": "workspace:*",

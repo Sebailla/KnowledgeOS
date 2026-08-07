@@ -133,31 +133,7 @@ struct ImportView: View {
                         url.stopAccessingSecurityScopedResource()
                     }
 
-                    let data =
-                        try Data(
-                            contentsOf: url
-                        )
-
-                    let content =
-                        String(
-                            data: data,
-                            encoding: .utf8
-                        ) ??
-                        data.base64EncodedString()
-
-                    await viewModel
-                        .previewFile(
-                            name:
-                                url.lastPathComponent,
-                            content: content
-                        )
-
-                    await viewModel
-                        .importFile(
-                            name:
-                                url.lastPathComponent,
-                            content: content
-                        )
+                    await viewModel.importFile(url: url)
                 }
             }
         }

@@ -5,6 +5,7 @@ export * from "./context.js";
 export * from "./envelope.js";
 export * from "./event.js";
 export * from "./export.js";
+export * from "./import.js";
 export * from "./library.js";
 export * from "./plugin.js";
 export * from "./processing.js";

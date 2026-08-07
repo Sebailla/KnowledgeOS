@@ -43,7 +43,12 @@ actor ApplicationBootstrapper {
         let services =
             try servicesFactory()
 
-        try await services.start()
+        do {
+            try await services.start()
+        } catch {
+            await services.stop()
+            throw error
+        }
 
         self.services = services
         self.isRunning = true

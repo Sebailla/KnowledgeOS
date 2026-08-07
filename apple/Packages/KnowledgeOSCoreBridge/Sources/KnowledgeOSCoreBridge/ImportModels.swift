@@ -18,6 +18,56 @@ String, Codable, Sendable {
     case cancelled
 }
 
+public enum ImportStateDTO: String, Codable, Sendable {
+    case staged = "Staged"
+    case validating = "Validating"
+    case rejected = "Rejected"
+    case failed = "Failed"
+    case recoveryRequired = "RecoveryRequired"
+    case processingQueued = "ProcessingQueued"
+}
+
+public struct StagedImportRequestV2DTO: Codable, Sendable, Equatable {
+    public struct Source: Codable, Sendable, Equatable {
+        public let kind: String
+        public let capability: String
+        public init(kind: String, capability: String) { self.kind = kind; self.capability = capability }
+    }
+
+    public let contractVersion: Int
+    public let operationId: String
+    public let idempotencyKey: String
+    public let source: Source
+    public let name: String
+    public let byteLength: Int
+    public let sha256: String
+    public let mediaType: String?
+    public let extensionName: String?
+    public let runOCR: Bool?
+
+    public init(contractVersion: Int, operationId: String, idempotencyKey: String, source: Source, name: String, byteLength: Int, sha256: String, mediaType: String?, extensionName: String?, runOCR: Bool?) {
+        self.contractVersion = contractVersion; self.operationId = operationId; self.idempotencyKey = idempotencyKey; self.source = source; self.name = name; self.byteLength = byteLength; self.sha256 = sha256; self.mediaType = mediaType; self.extensionName = extensionName; self.runOCR = runOCR
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case contractVersion, operationId, idempotencyKey, source, name, byteLength, sha256, mediaType, runOCR
+        case extensionName = "extension"
+    }
+}
+
+public struct QueuedStagedImportDTO: Codable, Sendable, Equatable {
+    public let operationId: String
+    public let leaseId: String
+    public let state: ImportStateDTO
+}
+
+public struct ProcessingLeaseDTO: Codable, Sendable, Equatable {
+    public let leaseId: String
+    public let capability: String
+    public let descriptor: Int
+    public let owner: String
+}
+
 public struct ImportPreviewDTO:
 Codable, Sendable, Equatable {
     public let name: String

@@ -57,9 +57,8 @@ XCTestCase {
             .search
         )
 
-        XCTAssertEqual(
-            model.openDocumentID,
-            "document:1"
+        XCTAssertNil(
+            model.openDocumentID
         )
     }
 }

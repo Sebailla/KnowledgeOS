@@ -57,12 +57,34 @@ export interface ImportJob {
   readonly error?: string;
 }
 
+export interface StagedImportLease {
+  readonly leaseId: string;
+  readonly capability: string;
+}
+
+export interface QueuedStagedImport {
+  readonly operationId: string;
+  readonly leaseId: string;
+  readonly state: "ProcessingQueued";
+}
+
 export class ImportJobManager {
   private readonly jobs =
     new Map<string, ImportJob>();
 
   private readonly checksums =
     new Set<string>();
+
+  public queueStaged(
+    operationId: string,
+    lease: StagedImportLease,
+  ): QueuedStagedImport {
+    return {
+      operationId,
+      leaseId: lease.leaseId,
+      state: "ProcessingQueued",
+    };
+  }
 
   public detect(
     input: ImportInput,
