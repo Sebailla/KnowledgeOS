@@ -5,225 +5,60 @@
 **Document:** StagingArea  
 **Version:** 4.0  
 **Status:** Release Candidate  
-**Platforms:** KnowledgeOS Server, macOS, iPhone, iPad  
+**Platforms:** macOS Core Host  
 **Author:** KnowledgeOS Team  
 
 ---
 
 ## 1. Purpose
 
-Define the staging area for the Import and Acquisition module, covering journals, staging, local source storage and recovery.
+Define the transient, app-controlled staging area used to hand a user-selected source from macOS to the Core Host. The staging area is not durable Local Library storage and does not register a source.
 
-## 2. Module Boundary
+## 2. Entry Layout
 
-This module implements the controlled entry of publications into a Local Library through:
-
-- user-authorized local scanning;
-- manual import;
-- document picker or share sheet intake;
-- explicit acquisition from the NAS Master Library;
-- integrity verification;
-- local registration;
-- canonical-processing handoff.
-
-It does not own:
-
-- Personal Knowledge synchronization;
-- annotation creation;
-- rendering;
-- search;
-- AI;
-- export;
-- plugin execution;
-- Master Catalog authority.
-
-The Master Library remains authoritative for its catalog and publication sources. Each Local Library remains independently selective.
-
-## 3. Architectural Context
+Each staged source has an opaque capability and an isolated entry below the staging root:
 
 ```text
-Local Source or Master Catalog
-             │
-             ▼
-Import / Acquisition Request
-             │
-             ▼
-Discovery or Transfer
-             │
-             ▼
-Staging and Integrity Validation
-             │
-             ▼
-Local Source Registration
-             │
-             ▼
-Local Library Membership
-             │
-             ▼
-Canonical Processing Handoff
+Staging/
+  <capability>/
+    source
+    metadata.json
+    .core-owned           # present only after ownership transfer
 ```
 
-Personal Knowledge synchronization does not participate in this flow.
+The entry is published atomically after macOS has copied the source and written metadata. `metadata.json` contains only byte length, SHA-256 checksum, and expiry. It MUST NOT contain source content, an external path, or a user-authorizing bookmark.
 
-## 4. Normative Language
+## 3. Staging and Validation
 
-The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+macOS reads the user-authorized source in bounded chunks, writes `source` into a temporary entry, computes SHA-256 during the same copy, writes metadata atomically, and renames the completed entry into the staging root. The opaque capability is the only source locator sent in the v2 Import Source Command.
 
-## 5. Normative Requirements
+The Core Host revalidates the entry rather than trusting macOS staging: capability format and root containment, metadata parse and expiry, regular-file and non-symlink status, no-follow open, byte length, and checksum. Any failure rejects the command without queueing or taking ownership.
 
-- Local scanning SHALL be restricted to locations explicitly authorized by the user.
-- Original source bytes SHALL remain immutable after successful intake.
-- File paths and filenames SHALL NOT become Domain identities.
-- Format detection SHALL use content evidence and SHALL NOT rely only on extensions.
-- Duplicate detection SHALL produce evidence and SHALL NOT silently merge unrelated sources.
-- Manual import and Master Library acquisition SHALL produce explicit provenance.
-- Master-to-Local transfer SHALL be modeled as acquisition, not synchronization.
-- Acquisition SHALL be explicit, resumable, cancellable and idempotent.
-- A Local Library SHALL contain only publications registered for that device.
-- Personal Knowledge SHALL NOT be transferred through acquisition.
-- Successful completion SHALL require integrity validation and local registration.
-- Canonical processing SHALL begin only after a consistent local source state exists.
-- Failures SHALL preserve source evidence, operation identity and resumable state.
-- Staging SHALL remain isolated from committed Local Library state.
-- Journal writes SHALL be durable before retryable external effects.
-- Migrations SHALL be versioned, resumable and data-preserving.
+## 4. Ownership, Release, and Cleanup
 
-## 6. State Model
+After the Core Host returns `ProcessingQueued`, macOS transfers cleanup ownership by marking the accepted entry Core-owned. macOS cleanup skips Core-owned entries, including after an application restart. The Core Host holds an open descriptor through a processing lease; `import.release` is the explicit terminal action. Release closes that descriptor and deletes the staging entry. Releasing an unknown or already released lease is safe and has no further effect.
 
-The import lifecycle is:
+| Entry state | Owner | Cleanup behavior |
+|---|---|---|
+| Temporary copy | macOS | Removed if staging cannot complete |
+| Staged, non-retained | macOS | Eligible for cleanup at expiry (immediately) |
+| Recoverable failure | macOS | Retained only until configured bounded expiry |
+| Accepted / `ProcessingQueued` | Core Host | Preserved while the lease is held |
+| Released | None | Entry deleted by Core Host |
 
-```text
-Requested
-→ Discovering or Receiving
-→ Staged
-→ Validating
-→ ReadyToRegister
-→ Registered
-→ ProcessingQueued
-```
+Restart cleanup removes only expired macOS-owned entries. A Core-owned entry is preserved until explicit release; this prevents cleanup from deleting the validated source while downstream processing holds its lease.
 
-Failure states include:
+## 5. Retention and Privacy
 
-- Paused;
-- Cancelled;
-- Unsupported;
-- Rejected;
-- Corrupt;
-- Failed;
-- RecoveryRequired.
+Recoverable failures MAY be retained for the configured retention interval, currently 24 hours by default. Retention expiry deletes the entry and ends retry eligibility. Successful entries that are not Core-owned use immediate expiry. The staging root SHALL use appropriate platform filesystem protection.
 
-The acquisition lifecycle additionally preserves:
+Source bytes, absolute paths, and capability tokens MUST NOT appear in logs, telemetry, or durable import journals. The staging area stores source bytes transiently only; no durable source persistence, Local Library registration, parsing, or processing output occurs before or at `ProcessingQueued`.
 
-- Master publication reference;
-- requested version;
-- transfer cursor;
-- transferred-byte count;
-- checksum;
-- local source identity;
-- idempotency key.
+## 6. Traceability
 
-## 7. Persistence and Transactions
-
-The module SHOULD use:
-
-- durable import and acquisition journals;
-- isolated staging storage;
-- cryptographic checksum records;
-- explicit local registration transactions;
-- outbox or equivalent event publication;
-- versioned migrations;
-- cleanup policies for abandoned staging data.
-
-The Local Library SHALL not expose a publication as available until registration and required integrity checks commit successfully.
-
-## 8. Failure and Recovery
-
-The module SHALL handle:
-
-- interrupted scanning;
-- revoked file access;
-- unsupported formats;
-- duplicate evidence;
-- insufficient local storage;
-- lost NAS connectivity;
-- server restart;
-- partial payload transfer;
-- checksum mismatch;
-- local registration conflict;
-- unknown commit state;
-- processing handoff failure.
-
-Recovery SHALL resume from the latest consistent checkpoint and SHALL not duplicate sources, acquisitions, memberships or events.
-
-A processing handoff failure MAY leave the publication locally registered but marked as processing-incomplete when policy permits. The state SHALL remain explicit.
-
-## 9. Security and Privacy
-
-- Local scans require user authorization.
-- Security-scoped bookmarks or equivalent platform mechanisms SHALL be handled safely.
-- Server payload delivery requires authentication and authorization.
-- Source bytes and private paths SHALL not appear in telemetry.
-- Staging data SHALL use appropriate filesystem protection.
-- Temporary files SHALL be removed according to retention and recovery policy.
-- Imported Personal Knowledge packages, if ever supported by another module, SHALL not be interpreted as publication acquisition.
-- Remote OCR or AI SHALL not be invoked by this module without explicit downstream policy.
-
-## 10. Observability and Performance
-
-The module SHALL expose:
-
-- operation identity;
-- source or publication reference;
-- lifecycle state;
-- byte progress;
-- throughput;
-- checksum status;
-- retry count;
-- failure category;
-- checkpoint;
-- processing-handoff state.
-
-Large scans and acquisitions SHOULD use streaming, bounded memory and backpressure.
-
-## 11. Verification and Acceptance
-
-- A user-authorized local scan discovers supported publications.
-- Repeating the same scan does not create duplicate source records.
-- Manual import preserves original bytes and provenance.
-- Unsupported formats fail explicitly.
-- Master Catalog browsing does not download payloads implicitly.
-- Explicit acquisition resumes after interruption.
-- Checksum mismatch prevents registration.
-- Successful acquisition creates device-local membership.
-- Personal Knowledge is not included in acquisition.
-- NAS unavailability does not affect already available local publications.
-- Retry does not duplicate side effects.
-- Processing handoff preserves source identity and provenance.
-- Security and recovery tests pass.
-- Architecture traceability is complete.
-
-## 12. Traceability
-
-- `00-Architecture/02-Domain/DomainModel.md`
-- `00-Architecture/02-Domain/KnowledgeObject/Sources.md`
-- `00-Architecture/02-Domain/KnowledgeLifecycle.md`
-- `00-Architecture/04-Platform/Import/README.md`
-- `00-Architecture/04-Platform/Library/README.md`
-- `00-Architecture/03-Kernel/WorkflowEngine.md`
-- `00-Architecture/05-Integration/Storage/README.md`
-- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
-- `01-Implementation/01-MasterLibrary/README.md`
-- `01-Implementation/02-DesktopApplication/README.md`
-- `01-Implementation/03-MobileApplication/README.md`
-- `01-Implementation/05-Shared/README.md`
-- `01-Implementation/00-Governance/DefinitionOfDone.md`
-
-## 13. Compatibility and Migration
-
-Persistent journals, staging metadata, source mappings, acquisition identities and public contracts SHALL be versioned.
-
-Breaking changes require migration guidance and compatibility tests. Staging data MAY be discarded only when committed sources and memberships remain safe.
-
-## 14. Status
-
-This document is part of the KnowledgeOS Import and Acquisition V4 implementation baseline.
+- [Durable Import Pipeline](../02-TechnicalDesign/ImportPipeline.md)
+- [Import Source Command v2](../04-Contracts/ImportSourceCommand.md)
+- `apple/Apps/macOS/Sources/KnowledgeOSMac/ImportStagingService.swift`
+- `apps/macos-core-host/src/stagedSourceResolver.ts`
+- `apple/Apps/macOS/Tests/KnowledgeOSMacTests/ImportStagingServiceTests.swift`
+- `openspec/changes/durable-import/specs/staged-source-import-contract/spec.md`

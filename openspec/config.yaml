@@ -1,0 +1,58 @@
+schema: spec-driven
+
+context: |
+  Project: KnowledgeOS, a pnpm 10.15.0 / Turborepo TypeScript monorepo.
+  Node.js 22+ is required; Apple targets are Swift Package Manager projects.
+  Repository architecture and approved documentation are authoritative.
+  Domain and Kernel MUST remain technology- and provider-independent.
+  Shared knowledge is NAS-authoritative; core workflows are offline-first.
+  Public contracts are explicit, versioned, and preserve stable identity.
+
+testing:
+  strict_tdd: true
+  test_command: "pnpm test"
+  typecheck_command: "pnpm typecheck"
+  build_command: "pnpm build"
+  validate_command: "pnpm validate"
+  apple_test_commands:
+    - "swift test --package-path apple/Packages/KnowledgeOSCoreBridge"
+    - "swift test --package-path apple/Packages/KnowledgeOSMobile"
+    - "swift test --package-path apple/Apps/macOS"
+    - "swift test --package-path apple/Apps/iOS"
+    - "swift test --package-path apple/Apps/iPadOS"
+  layers:
+    unit: true
+    integration: true
+    e2e: true
+    contract: true
+  coverage: false
+  lint_command: ""
+  formatter_command: ""
+  architecture_compliance_command: ""
+
+rules:
+  proposal:
+    - Preserve approved architecture and identify affected contracts, documentation, and diagrams.
+    - Include rollback and compatibility implications for risky or breaking changes.
+  specs:
+    - Use Given/When/Then scenarios and RFC 2119 keywords.
+    - Do not invent architecture; return architectural gaps to their authoritative owner.
+  design:
+    - Document rationale, dependency direction, failure behavior, and traceability.
+    - Include sequence diagrams for complex flows.
+  tasks:
+    - Group work by phase and keep each task completable in one session.
+  apply:
+    guidelines:
+      - Follow local AGENTS.md instructions and existing patterns.
+      - Make the smallest coherent change; do not mix unrelated refactors.
+    tdd: true
+    test_command: "pnpm test"
+  verify:
+    test_command: "pnpm test"
+    build_command: "pnpm build"
+    typecheck_command: "pnpm typecheck"
+    coverage_threshold: 0
+  archive:
+    - Preserve archived changes as an audit trail.
+    - Warn before merging destructive deltas into main specs.

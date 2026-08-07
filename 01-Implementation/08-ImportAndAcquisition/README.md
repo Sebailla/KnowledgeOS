@@ -41,6 +41,8 @@ The module SHALL NOT redefine Domain identity, authority, UDM, DPM, acquisition,
 - [`10-Testing`](10-Testing/README.md)
 - [`11-Operations`](11-Operations/README.md)
 - [`12-Completion`](12-Completion/README.md)
+- [`Implementation status and roadmap`](12-Completion/ImplementationStatusAndRoadmap.md)
+- [`Implementation task backlog`](12-Completion/ImplementationTaskBacklog.md)
 
 ## 4. Common Invariants
 

@@ -1,229 +1,77 @@
-# Import Pipeline
+# Durable Import Pipeline
 
 **Project:** KnowledgeOS  
 **Section:** Implementation / Import and Acquisition / 02-TechnicalDesign  
 **Document:** ImportPipeline  
 **Version:** 4.0  
 **Status:** Release Candidate  
-**Platforms:** KnowledgeOS Server, macOS, iPhone, iPad  
+**Platforms:** macOS Core Host  
 **Author:** KnowledgeOS Team  
 
 ---
 
 ## 1. Purpose
 
-Define the import pipeline for the Import and Acquisition module, covering pipeline, workflow, state and technical architecture.
+Define the durable-import boundary implemented by the macOS client and Core Host. The boundary accepts a transient, staged source and ends when downstream processing is queued; it does not implement durable import processing.
 
-## 2. Module Boundary
+## 2. Quick Path
 
-This module implements the controlled entry of publications into a Local Library through:
+1. macOS copies a user-selected source into an app-controlled staging root, computes SHA-256 while copying, and atomically publishes the staged entry.
+2. macOS sends an Import Source Command v2 containing only metadata and an opaque capability.
+3. The Core Host revalidates the staged entry, holds a processing lease, and returns `ProcessingQueued`; macOS then marks the accepted entry as Core-owned for cleanup.
+4. The lease owner explicitly releases the lease; release closes the descriptor and deletes the staged entry.
 
-- user-authorized local scanning;
-- manual import;
-- document picker or share sheet intake;
-- explicit acquisition from the NAS Master Library;
-- integrity verification;
-- local registration;
-- canonical-processing handoff.
-
-It does not own:
-
-- Personal Knowledge synchronization;
-- annotation creation;
-- rendering;
-- search;
-- AI;
-- export;
-- plugin execution;
-- Master Catalog authority.
-
-The Master Library remains authoritative for its catalog and publication sources. Each Local Library remains independently selective.
-
-## 3. Architectural Context
+## 3. Boundary and State
 
 ```text
-Local Source or Master Catalog
-             │
-             ▼
-Import / Acquisition Request
-             │
-             ▼
-Discovery or Transfer
-             │
-             ▼
-Staging and Integrity Validation
-             │
-             ▼
-Local Source Registration
-             │
-             ▼
-Local Library Membership
-             │
-             ▼
-Canonical Processing Handoff
+User-authorized source
+        ↓
+macOS staging (temporary entry)
+        ↓
+v2 capability handoff
+        ↓
+Core Host validation and processing lease
+        ↓
+ProcessingQueued  ← boundary
 ```
 
-Personal Knowledge synchronization does not participate in this flow.
+The implemented lifecycle is `Staged → Validating → ProcessingQueued`, with `Rejected`, `Failed`, and `RecoveryRequired` available for failures. `ProcessingQueued` means only that the staged source was validated and queued for a later processor. It MUST NOT imply durable source persistence, Local Library registration or membership, parsing, Reader/Search creation, `Ready`, PDF/EPUB processing, or streaming IPC.
 
-## 4. Normative Language
+## 4. Versioned Handoff and Rejection
 
-The keywords **MUST**, **MUST NOT**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **MAY** and **OPTIONAL** are normative.
+The Core Host SHALL accept only contract version 2. The request SHALL contain a stable operation ID, idempotency key, opaque staged-file capability, source name, byte length, and SHA-256 checksum; media type, extension, and OCR intent are optional metadata.
 
-## 5. Normative Requirements
+The JSON request MUST NOT contain source bytes, textual content, or a filesystem path. The Core Host SHALL reject without queueing or ownership transfer when it receives:
 
-- Local scanning SHALL be restricted to locations explicitly authorized by the user.
-- Original source bytes SHALL remain immutable after successful intake.
-- File paths and filenames SHALL NOT become Domain identities.
-- Format detection SHALL use content evidence and SHALL NOT rely only on extensions.
-- Duplicate detection SHALL produce evidence and SHALL NOT silently merge unrelated sources.
-- Manual import and Master Library acquisition SHALL produce explicit provenance.
-- Master-to-Local transfer SHALL be modeled as acquisition, not synchronization.
-- Acquisition SHALL be explicit, resumable, cancellable and idempotent.
-- A Local Library SHALL contain only publications registered for that device.
-- Personal Knowledge SHALL NOT be transferred through acquisition.
-- Successful completion SHALL require integrity validation and local registration.
-- Canonical processing SHALL begin only after a consistent local source state exists.
-- Failures SHALL preserve source evidence, operation identity and resumable state.
-- Import SHALL create a stable operation identity before persistent side effects.
-- Unsupported formats SHALL remain explicitly unsupported.
-- Partial extraction SHALL NOT be published as canonical content.
+- an absent or unsupported contract version, including v1 (`IMPORT_CONTRACT_VERSION_UNSUPPORTED`);
+- source bytes, content, or path fields, or malformed required metadata (`INVALID_IMPORT_REQUEST`);
+- an invalid capability, root escape, symlink, non-regular file, malformed or expired metadata, failed no-follow open, byte-length mismatch, or checksum mismatch (`STAGED_SOURCE_REJECTED`).
 
-## 6. State Model
+Validation is performed again immediately before opening the source. The Core Host opens a regular file with no-follow semantics and verifies the descriptor-backed bytes, so validation cannot be bypassed by replacing the file between path inspection and read.
 
-The import lifecycle is:
+## 5. Lease Ownership and Retention
 
-```text
-Requested
-→ Discovering or Receiving
-→ Staged
-→ Validating
-→ ReadyToRegister
-→ Registered
-→ ProcessingQueued
-```
+After a successful v2 handoff, the Core Host holds the open descriptor in an atomic processing lease. macOS then transfers cleanup ownership for that accepted capability by marking the entry Core-owned; the staging entry remains readable while the lease exists. Release is idempotent: an unknown or already released lease has no additional effect. A successful release closes the descriptor and deletes the entire staged entry.
 
-Failure states include:
+macOS cleanup MUST NOT delete a Core-owned entry. On restart, it removes only macOS-owned staging entries. A recoverable failure MAY retain an entry until its configured expiry; cleanup removes expired retained entries and successful non-retained entries are eligible for cleanup immediately. Metadata is content-free and contains only byte length, checksum, and expiry.
 
-- Paused;
-- Cancelled;
-- Unsupported;
-- Rejected;
-- Corrupt;
-- Failed;
-- RecoveryRequired.
+## 6. Security and Privacy
 
-The acquisition lifecycle additionally preserves:
+- Source access begins only from a user-authorized location.
+- The staging root is app-controlled; JSON exposes an opaque capability rather than an absolute path.
+- Source bytes, capabilities, and private paths MUST NOT be emitted in logs or telemetry.
+- The Core Host treats the staged filesystem entry as untrusted until validation completes.
+- The boundary preserves original source bytes transiently only; it does not establish a durable source record.
 
-- Master publication reference;
-- requested version;
-- transfer cursor;
-- transferred-byte count;
-- checksum;
-- local source identity;
-- idempotency key.
+## 7. Verification
 
-## 7. Persistence and Transactions
+The durable-import tests cover atomic chunked staging and hashing, restart cleanup, bounded recoverable retention, valid v2 acceptance, legacy-version rejection, path/content rejection, root containment, symlink-swap resistance, non-regular files, malformed or expired metadata, checksum mismatch, lease readability, and deletion on explicit release.
 
-The module SHOULD use:
+## 8. Traceability
 
-- durable import and acquisition journals;
-- isolated staging storage;
-- cryptographic checksum records;
-- explicit local registration transactions;
-- outbox or equivalent event publication;
-- versioned migrations;
-- cleanup policies for abandoned staging data.
-
-The Local Library SHALL not expose a publication as available until registration and required integrity checks commit successfully.
-
-## 8. Failure and Recovery
-
-The module SHALL handle:
-
-- interrupted scanning;
-- revoked file access;
-- unsupported formats;
-- duplicate evidence;
-- insufficient local storage;
-- lost NAS connectivity;
-- server restart;
-- partial payload transfer;
-- checksum mismatch;
-- local registration conflict;
-- unknown commit state;
-- processing handoff failure.
-
-Recovery SHALL resume from the latest consistent checkpoint and SHALL not duplicate sources, acquisitions, memberships or events.
-
-A processing handoff failure MAY leave the publication locally registered but marked as processing-incomplete when policy permits. The state SHALL remain explicit.
-
-## 9. Security and Privacy
-
-- Local scans require user authorization.
-- Security-scoped bookmarks or equivalent platform mechanisms SHALL be handled safely.
-- Server payload delivery requires authentication and authorization.
-- Source bytes and private paths SHALL not appear in telemetry.
-- Staging data SHALL use appropriate filesystem protection.
-- Temporary files SHALL be removed according to retention and recovery policy.
-- Imported Personal Knowledge packages, if ever supported by another module, SHALL not be interpreted as publication acquisition.
-- Remote OCR or AI SHALL not be invoked by this module without explicit downstream policy.
-
-## 10. Observability and Performance
-
-The module SHALL expose:
-
-- operation identity;
-- source or publication reference;
-- lifecycle state;
-- byte progress;
-- throughput;
-- checksum status;
-- retry count;
-- failure category;
-- checkpoint;
-- processing-handoff state.
-
-Large scans and acquisitions SHOULD use streaming, bounded memory and backpressure.
-
-## 11. Verification and Acceptance
-
-- A user-authorized local scan discovers supported publications.
-- Repeating the same scan does not create duplicate source records.
-- Manual import preserves original bytes and provenance.
-- Unsupported formats fail explicitly.
-- Master Catalog browsing does not download payloads implicitly.
-- Explicit acquisition resumes after interruption.
-- Checksum mismatch prevents registration.
-- Successful acquisition creates device-local membership.
-- Personal Knowledge is not included in acquisition.
-- NAS unavailability does not affect already available local publications.
-- Retry does not duplicate side effects.
-- Processing handoff preserves source identity and provenance.
-- Security and recovery tests pass.
-- Architecture traceability is complete.
-
-## 12. Traceability
-
-- `00-Architecture/02-Domain/DomainModel.md`
-- `00-Architecture/02-Domain/KnowledgeObject/Sources.md`
-- `00-Architecture/02-Domain/KnowledgeLifecycle.md`
-- `00-Architecture/04-Platform/Import/README.md`
-- `00-Architecture/04-Platform/Library/README.md`
-- `00-Architecture/03-Kernel/WorkflowEngine.md`
-- `00-Architecture/05-Integration/Storage/README.md`
-- `00-Architecture/07-ArchitectureViews/ADR/ADR-013-Master-Library-Local-Libraries-and-Personal-Sync.md`
-- `01-Implementation/01-MasterLibrary/README.md`
-- `01-Implementation/02-DesktopApplication/README.md`
-- `01-Implementation/03-MobileApplication/README.md`
-- `01-Implementation/05-Shared/README.md`
-- `01-Implementation/00-Governance/DefinitionOfDone.md`
-
-## 13. Compatibility and Migration
-
-Persistent journals, staging metadata, source mappings, acquisition identities and public contracts SHALL be versioned.
-
-Breaking changes require migration guidance and compatibility tests. Staging data MAY be discarded only when committed sources and memberships remain safe.
-
-## 14. Status
-
-This document is part of the KnowledgeOS Import and Acquisition V4 implementation baseline.
+- [Import Source Command](../04-Contracts/ImportSourceCommand.md)
+- [Staging Area](../05-Persistence/StagingArea.md)
+- `packages/contracts/src/import.ts`
+- `apps/macos-core-host/src/stagedSourceResolver.ts`
+- `apple/Apps/macOS/Sources/KnowledgeOSMac/ImportStagingService.swift`
+- `openspec/changes/durable-import/specs/staged-source-import-contract/spec.md`
