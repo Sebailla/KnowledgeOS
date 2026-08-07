@@ -17,3 +17,8 @@ DerivedData/
 # state that differs between developer machines.
 .knowledgeos-data/
 .knowledgeos/
+# Local AI runtime state
+.atl/
+
+# Generated TypeScript test output
+dist-test/
