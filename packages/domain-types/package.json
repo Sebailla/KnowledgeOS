@@ -14,7 +14,7 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
-    "test": "node --test dist-test/test/domain-types.test.js",
+    "test": "tsc -p tsconfig.test.json && node --test dist-test/test/domain-types.test.js",
     "generate": "node -e \"process.exit(0)\"",
     "validate": "pnpm typecheck"
   },
