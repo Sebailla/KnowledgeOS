@@ -20,6 +20,7 @@
   "dependencies": {
     "@knowledgeos/domain-types": "workspace:*",
     "@knowledgeos/master-library-streaming-server": "workspace:*",
+    "@knowledgeos/master-storage": "workspace:*",
     "@knowledgeos/master-storage-node-stream": "workspace:*"
   },
   "devDependencies": {
