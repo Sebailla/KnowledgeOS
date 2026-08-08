@@ -286,29 +286,40 @@ public final class MobileAppModel {
     public func saveReadingSettings() async {
         try? await store?.saveSettings(readingSettings)
     }
-    public func importFile(at url: URL) async {
-        guard let importer else { return }
-        do {
-            #if canImport(UIKit)
-            let result = try SecurityScopedAccessManager.withAccess(to: url) { try Data(contentsOf: url) }
-            _ = try await importer.importData(name: url.lastPathComponent, data: result)
-            #else
-            _ = try await importer.importFile(at: url)
-            #endif
-            importJobs = await importer.history()
-            if let store { library = await store.current().library }
-        } catch { }
-    }
-
-    public func processSharedImports() async {
-        guard let importer else { return }
-        _ = await importer.processSharedRequests()
-        importJobs = await importer.history()
-        if let store { library = await store.current().library }
-    }
-
     public func exportDocument(id:String,format:MobileExportFormat) async -> MobileExportJob? { guard let exporter, let document=library.first(where:{$0.id==id}) else{return nil}; return try? await exporter.export(document:document,format:format) }
     public func handleDeepLink(_ url:URL) async -> MobileDeepLink? { MobileDeepLinkRouter.parse(url) }
 
 }
 #endif
+
+public extension MobileAppModel {
+    func importFile(at url: URL) async {
+        guard let importer else { return }
+        do {
+            #if canImport(UIKit)
+            let data = try SecurityScopedAccessManager.withAccess(to: url) {
+                try Data(contentsOf: url)
+            }
+            _ = try await importer.importData(
+                name: url.lastPathComponent,
+                data: data
+            )
+            #else
+            _ = try await importer.importFile(at: url)
+            #endif
+            importJobs = await importer.history()
+            if let store {
+                library = await store.current().library
+            }
+        } catch { }
+    }
+
+    func processSharedImports() async {
+        guard let importer else { return }
+        _ = await importer.processSharedRequests()
+        importJobs = await importer.history()
+        if let store {
+            library = await store.current().library
+        }
+    }
+}

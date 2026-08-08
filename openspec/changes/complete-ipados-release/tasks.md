@@ -32,10 +32,10 @@ Chain strategy: feature-branch-chain
 - [ ] 0.3 Record security/privacy/release approvers and metadata owner in `01-Implementation/17-SystemIntegrationAndRelease/`.
 
 ## Phase 1: Foundation
-- [ ] 1.1 RED: tests prove SwiftUI recovery/relaunch without duplicate ingestion.
-- [ ] 1.2 GREEN: move shared APIs into `Sources/KnowledgeOSMobile/MobileAppModel.swift`; add `SecureConfiguration.swift` (Keychain secret, HTTPS endpoint).
-- [ ] 1.3 REFACTOR: add onboarding/recovery to `apple/Apps/iPadOS/Sources/KnowledgeOSiPadOS/KnowledgeOSiPadOSApp.swift`; update `03-MobileApplication/08-Operations/Configuration.md`.
-- [ ] 1.4 Verify Mobile and iPad Swift package tests.
+- [x] 1.1 RED: tests prove SwiftUI recovery/relaunch without duplicate ingestion.
+- [x] 1.2 GREEN: move shared APIs into `Sources/KnowledgeOSMobile/MobileAppModel.swift`; add `SecureConfiguration.swift` (Keychain secret, HTTPS endpoint).
+- [x] 1.3 REFACTOR: add onboarding/recovery to `apple/Apps/iPadOS/Sources/KnowledgeOSiPadOS/KnowledgeOSiPadOSApp.swift`; update `03-MobileApplication/08-Operations/Configuration.md`.
+- [x] 1.4 Verify Mobile and iPad Swift package tests.
 
 ## Phase 2: NAS (PR2; 0.1)
 - [ ] 2.1 RED: `MobileAcquisitionTests` cover selection, resume, ID, checksum/auth/cancel and offline reading.
