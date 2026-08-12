@@ -72,6 +72,21 @@ Implementation SHOULD:
 - support graceful startup and shutdown;
 - make derived data disposable and rebuildable.
 
+## 5.1 PostgreSQL Implementation Profile
+
+- `@knowledgeos/master-storage` SHALL use `pg` as its sole PostgreSQL driver; no ORM owns the schema.
+- Versioned SQL migrations SHALL be repository-owned, checksum-validated and executed by the one-shot `master-library-migrate` container from the same immutable application image as API/workers.
+- The runner SHALL hold a PostgreSQL advisory lock and record a migration only in the transaction that successfully applies its SQL.
+- A migration-only database role SHALL perform DDL. API/workers SHALL use a separate DML-only role and SHALL start only after migration success and PostgreSQL health.
+- The initial production schema migration SHALL provide and test its down migration. Any later irreversible migration SHALL require verified backup, isolated restore, reconciliation, and an explicit rollback procedure.
+
+## 5.2 Durable Processing Recovery
+
+- Every retryable processing operation SHALL persist one stable `operationId` and one correlation ID before a worker claims it.
+- `master_processing_jobs` SHALL retain queued, leased and completed state, the most recent checkpoint, lease owner and lease expiry. A duplicate enqueue for an existing operation ID SHALL return the existing operation rather than create another promotion path.
+- A worker SHALL claim work atomically. An expired lease MAY be claimed by a recreated worker, which SHALL resume from the retained checkpoint; an active or stale lease SHALL NOT checkpoint or complete the job.
+- Completion SHALL clear the lease and make the operation ineligible for later claims. Interrupted work remains recoverable evidence until that transition completes.
+
 ## 6. Failure and Recovery
 
 Failures SHALL be classified as validation, authorization, conflict, compatibility, transient infrastructure, permanent infrastructure, integrity, capacity or policy failures.
@@ -141,6 +156,12 @@ Operational telemetry is diagnostic and SHALL NOT become Domain authority.
 Breaking changes to contracts, identity mapping, persistence authority or acquisition behavior require architectural review and migration guidance.
 
 Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
+
+## 11.1 Local Ingest Recovery
+
+Local PDF/EPUB intake stages and validates bytes inside the Master publication fixture root, then records durable journal state before exposing a catalog row. PostgreSQL and the filesystem remain separate resources: a promotion interrupted after rename is hidden until the one-shot migrator reconciles its checksum-valid final bytes and records `registered`.
+
+Reconciliation preserves the operation, source evidence, provenance, and classified incomplete state; it SHALL NOT delete source evidence to make a failed case disappear. The Docker Desktop fixture root is disposable test data and is not a NAS persistence declaration.
 
 ## 12. Status
 
