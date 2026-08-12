@@ -142,6 +142,26 @@ Breaking changes to contracts, identity mapping, persistence authority or acquis
 
 Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
+### v1 Catalog and Content Path Migration
+
+Clients SHALL browse the versioned catalog at `GET /v1/master-library/catalog` and obtain immutable acquisition metadata at `GET /v1/master-library/publications/{publicationId}/versions/{versionId}/manifest`. Content remains at `GET|HEAD /v1/master-library/publications/{publicationId}/versions/{versionId}/content`.
+
+The pre-v1 content path without the `/v1` prefix remains a temporary compatibility alias. It returns `308 Permanent Redirect` to the equivalent v1 content path and does not create a second content contract. Clients SHALL follow the redirect and persist only the canonical v1 route. The alias MAY be removed after all supported clients have migrated; its removal requires a separately approved compatibility window and release note.
+
+Personal Knowledge paths and payloads are outside this boundary. The Master Library rejects them with `master-library.personal-knowledge-forbidden`; clients MUST continue using the Personal Knowledge synchronization boundary.
+
+### Protected Delivery Boundary
+
+Catalog, manifest and content routes require a trusted proxy assertion for the configured HTTPS public origin plus a caller credential authorized for `catalog.read` or `publication.acquire`. Direct backend requests, missing/invalid credentials and invalid ranges are denied with a stable error code and correlation ID. Content responses expose the immutable fingerprint as both ETag and `X-Content-Fingerprint`; HEAD and conditional requests preserve those integrity headers.
+
+The server records only correlation ID, classified outcome and category in delivery audit data. It SHALL NOT record authorization material, publication content, request payloads or Personal Knowledge. Local PR4 tests use generated TLS and fixture tokens only; concrete NAS delivery identity and ownership remain the release gate.
+
+### Local Authoritative Ingest Boundary
+
+The local Docker Desktop profile additionally exposes `POST /v1/master-library/publications:ingest` through the authenticated browser BFF. It accepts one PDF or EPUB source, bounded metadata, and an idempotency key; identifiers and authoritative paths remain server-assigned. `GET /v1/master-library/ingest-operations/{operationId}` exposes only an opaque operation ID, state, outcome, and classified redacted error.
+
+Equivalent idempotency replay returns the original accepted result. A different key for identical bytes returns `duplicate` and never adds a second catalog row. Invalid input returns `ingest.validation-failed`; a configured byte limit returns `ingest.capacity-exceeded` with HTTP 413. These local routes SHALL NOT create Local Library content, Personal Knowledge, or acquisition execution.
+
 ## 12. Status
 
 This document is part of the KnowledgeOS Master Library V4 implementation baseline.
