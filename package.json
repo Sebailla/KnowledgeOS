@@ -50,7 +50,7 @@
     "repro:lockfile:attest:verify": "python3 scripts/reproducibility/verify-lockfile-attestation.py"
   },
   "devDependencies": {
-    "turbo": "^2.5.0",
+    "turbo": "^2.10.9",
     "typescript": "^5.9.0",
     "eslint": "^10.8.1",
     "prettier": "^3.6.0",

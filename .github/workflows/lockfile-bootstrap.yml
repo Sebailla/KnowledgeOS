@@ -24,7 +24,7 @@ jobs:
       - run: corepack enable
       - run: corepack prepare pnpm@10.15.0 --activate
       - run: bash scripts/reproducibility/bootstrap-lockfile-ci.sh
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: knowledgeos-lockfile-bootstrap
           path: |
