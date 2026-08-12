@@ -23,19 +23,26 @@ struct IPadRootView: View {
     @EnvironmentObject var model: MobileAppModel
     @State private var showingImporter = false
     var body: some View {
-        NavigationSplitView {
-            List(model.filteredLibrary, selection: $model.selectedDocumentID) { item in
+        // Capture the EnvironmentObject as a local constant so SwiftUI does
+        // not infer `Binding<Subject>` for `model` after the
+        // `$model.selectedDocumentID` / `$model.query` projections below.
+        // Calling `model.importFile(at:)` and `model.processSharedImports()`
+        // inside the `.fileImporter` and `.task` modifiers requires the
+        // concrete `MobileAppModel` type.
+        let viewModel = model
+        return NavigationSplitView {
+            List(viewModel.filteredLibrary, selection: $model.selectedDocumentID) { item in
                 Label(item.title, systemImage: item.favorite ? "star.fill" : "doc.text").tag(item.id)
             }
             .navigationTitle("KnowledgeOS")
             .searchable(text: $model.query)
             .toolbar { Button { showingImporter = true } label: { Label("Import",systemImage:"square.and.arrow.down") } }
-            .fileImporter(isPresented:$showingImporter,allowedContentTypes:[.pdf,.epub,.html,.plainText,.image],allowsMultipleSelection:true){ result in if case .success(let urls)=result { Task { for url in urls { await model.importFile(at:url) } } } }
-            .task { await model.processSharedImports() }
+            .fileImporter(isPresented:$showingImporter,allowedContentTypes:[.pdf,.epub,.html,.plainText,.image],allowsMultipleSelection:true){ result in if case .success(let urls)=result { Task { for url in urls { await viewModel.importFile(at:url) } } } }
+            .task { await viewModel.processSharedImports() }
         } content: {
-            if let id = model.selectedDocumentID { IPadReaderView(documentID: id) } else { ContentUnavailableView("Select a Document", systemImage: "book") }
+            if let id = viewModel.selectedDocumentID { IPadReaderView(documentID: id) } else { ContentUnavailableView("Select a Document", systemImage: "book") }
         } detail: {
-            ReaderInspector(documentID: model.selectedDocumentID)
+            ReaderInspector(documentID: viewModel.selectedDocumentID)
         }
     }
 }
