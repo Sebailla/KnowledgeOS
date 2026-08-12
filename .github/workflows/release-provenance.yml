@@ -21,7 +21,7 @@ jobs:
         run: scripts/reproducibility/create-source-archive.sh artifacts/KnowledgeOS-1.0.0-rc.1-source.zip
       - name: Verify embedded source manifest
         run: scripts/release-1.0/verify-release-provenance.sh artifacts/KnowledgeOS-1.0.0-rc.1-source.zip
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: release-provenance
           path: |

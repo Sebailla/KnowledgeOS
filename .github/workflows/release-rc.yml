@@ -19,7 +19,7 @@ jobs:
       - run: bash scripts/reproducibility/verify-lockfile-integrity.sh
       - run: pnpm install --frozen-lockfile
       - run: bash scripts/release-1.0/run-reproducible-rc-pipeline.sh
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: knowledgeos-1.0.0-rc.1-evidence
           path: release/1.0.0-rc.1

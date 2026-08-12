@@ -44,7 +44,7 @@ jobs:
       - run: scripts/build-macos-release.sh
       - run: scripts/package-macos-app.sh
       - run: scripts/validate-macos-bundle.sh
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: KnowledgeOS-macOS-unsigned
           path: build/macos-release/KnowledgeOS.app
