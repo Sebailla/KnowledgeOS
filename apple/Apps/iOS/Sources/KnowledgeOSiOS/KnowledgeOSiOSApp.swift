@@ -25,8 +25,14 @@ struct IPhoneRootView: View {
     @EnvironmentObject var model: MobileAppModel
     @State private var showingImporter = false
     var body: some View {
-        NavigationStack {
-            List(model.filteredLibrary) { item in
+        // Capture the EnvironmentObject as a local constant so SwiftUI does
+        // not infer `Binding<Subject>` for `model` after a `$model.query`
+        // projection in `.searchable` below. Calling `model.importFile(at:)`
+        // and `model.processSharedImports()` inside the `.fileImporter` and
+        // `.task` modifiers requires the concrete `MobileAppModel` type.
+        let viewModel = model
+        return NavigationStack {
+            List(viewModel.filteredLibrary) { item in
                 NavigationLink(value: item.id) {
                     VStack(alignment: .leading) {
                         Text(item.title)
@@ -37,9 +43,9 @@ struct IPhoneRootView: View {
             .navigationTitle("Library")
             .searchable(text: $model.query)
             .navigationDestination(for: String.self) { id in IPhoneReaderView(documentID: id) }
-            .toolbar { ToolbarItemGroup { Button { showingImporter = true } label: { Image(systemName: "square.and.arrow.down") }; Button { Task { await model.synchronize() } } label: { Image(systemName: "arrow.triangle.2.circlepath") } } }
-            .fileImporter(isPresented:$showingImporter,allowedContentTypes:[.pdf,.epub,.html,.plainText,.image],allowsMultipleSelection:true){ result in if case .success(let urls)=result { Task { for url in urls { await model.importFile(at:url) } } } }
-            .task { await model.processSharedImports() }
+            .toolbar { ToolbarItemGroup { Button { showingImporter = true } label: { Image(systemName: "square.and.arrow.down") }; Button { Task { await viewModel.synchronize() } } label: { Image(systemName: "arrow.triangle.2.circlepath") } } }
+            .fileImporter(isPresented:$showingImporter,allowedContentTypes:[.pdf,.epub,.html,.plainText,.image],allowsMultipleSelection:true){ result in if case .success(let urls)=result { Task { for url in urls { await viewModel.importFile(at:url) } } } }
+            .task { await viewModel.processSharedImports() }
         }
     }
 }
