@@ -144,6 +144,12 @@ Breaking changes to contracts, identity mapping, persistence authority or acquis
 
 Schema and storage migrations SHALL be versioned, restartable and tested against supported prior versions.
 
+## 11.1 Local Browser Ingest Evidence
+
+`node scripts/deployment/test-local-master-library-browser.mjs` creates a random Compose project, random HTTPS port, and disposable fixture root. It proves over local TLS: anonymous rejection, invalid and oversized upload rejection, authenticated PDF and EPUB ingest through the browser BFF, idempotency replay, checksum duplicate handling, protected catalog/download, interrupted promotion, migrator reconciliation, restart, redacted logs, and teardown.
+
+The harness asserts that the browser container has no PostgreSQL, Master publication, operations, Local Library, or Personal Knowledge mount. It also verifies that the user's separately running `knowledgeos` panel remains healthy. This is Docker Desktop evidence only; it SHALL NOT be represented as NAS or production-release evidence.
+
 ## 12. Status
 
 This document is part of the KnowledgeOS Master Library V4 implementation baseline.
