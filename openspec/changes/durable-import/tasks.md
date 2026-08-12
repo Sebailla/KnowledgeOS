@@ -45,4 +45,4 @@ Chain strategy: feature-branch-chain
 ## Phase 4: Traceability and Final Verification
 
 - [x] 4.1 Update `01-Implementation/08-ImportAndAcquisition/{02-TechnicalDesign/ImportPipeline.md,04-Contracts/ImportSourceCommand.md,05-Persistence/StagingArea.md}` with v2 rejection, lease ownership, retention, and the `ProcessingQueued` boundary.
-- [ ] 4.2 Run `pnpm typecheck`, `pnpm test`, both Swift package commands, and verify no durable persistence, registration, parsing, streaming IPC, or state after `ProcessingQueued` was introduced.
+- [x] 4.2 Run `pnpm typecheck`, `pnpm test`, both Swift package commands, and verify no durable persistence, registration, parsing, streaming IPC, or state after `ProcessingQueued` was introduced.

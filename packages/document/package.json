@@ -13,7 +13,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test dist-test/test/document.test.js",
+    "test": "tsc -p tsconfig.test.json && node --test dist-test/test/document.test.js",
     "generate": "node -e \"process.exit(0)\"",
     "validate": "pnpm typecheck"
   },

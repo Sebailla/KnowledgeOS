@@ -6,15 +6,116 @@ import KnowledgeOSMobile
 @main
 struct KnowledgeOSiPadOSApp: App {
     @StateObject private var model = MobileAppModel()
+    private let secureConfiguration = SecureConfiguration()
+
     var body: some Scene {
         WindowGroup {
-            TabView {
-                IPadRootView().tabItem { Label("Library", systemImage: "books.vertical") }
-                IPadIntelligenceView().tabItem { Label("Intelligence", systemImage: "sparkles") }
-            }.environmentObject(model).task {
+            IPadApplicationContainer(secureConfiguration: secureConfiguration)
+                .environmentObject(model)
+                .task {
                 let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!.appending(path: "KnowledgeOS")
-                await model.bootstrap(configuration: nil, directory: dir)
+                await model.bootstrap(
+                    configuration: try? secureConfiguration.load(),
+                    directory: dir
+                )
             }
+        }
+    }
+}
+
+struct IPadApplicationContainer: View {
+    @EnvironmentObject var model: MobileAppModel
+    let secureConfiguration: SecureConfiguration
+    @State private var showingOnboarding = false
+
+    var body: some View {
+        TabView {
+            IPadRootView().tabItem { Label("Library", systemImage: "books.vertical") }
+            IPadIntelligenceView().tabItem { Label("Intelligence", systemImage: "sparkles") }
+        }
+        .sheet(isPresented: $showingOnboarding) {
+            IPadConfigurationOnboarding(
+                secureConfiguration: secureConfiguration,
+                onSaved: bootstrapWithSavedConfiguration
+            )
+            .interactiveDismissDisabled()
+        }
+        .task(id: model.phase) {
+            showingOnboarding = model.phase == .needsConfiguration
+        }
+    }
+
+    private func bootstrapWithSavedConfiguration() {
+        Task {
+            let directory = FileManager.default.urls(
+                for: .applicationSupportDirectory,
+                in: .userDomainMask
+            ).first!.appending(path: "KnowledgeOS")
+            await model.bootstrap(
+                configuration: try? secureConfiguration.load(),
+                directory: directory
+            )
+        }
+    }
+}
+
+struct IPadConfigurationOnboarding: View {
+    let secureConfiguration: SecureConfiguration
+    let onSaved: () -> Void
+    @Environment(\.dismiss) private var dismiss
+    @State private var endpoint = ""
+    @State private var token = ""
+    @State private var error: String?
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Server Configuration") {
+                    TextField("HTTPS endpoint", text: $endpoint)
+                        #if os(iOS)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .keyboardType(.URL)
+                        #endif
+                    SecureField("Access token (optional)", text: $token)
+                }
+                Section {
+                    Text("The endpoint is stored locally. The access token is stored only in Keychain.")
+                        .font(.footnote)
+                }
+                if let error {
+                    Section {
+                        Text(error).foregroundStyle(.red)
+                    }
+                }
+            }
+            .navigationTitle("Connect KnowledgeOS")
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Continue", action: save)
+                        .disabled(endpoint.isEmpty)
+                }
+            }
+        }
+    }
+
+    private func save() {
+        guard let baseURL = URL(string: endpoint) else {
+            error = "Enter a valid HTTPS endpoint."
+            return
+        }
+
+        do {
+            try secureConfiguration.save(
+                MobileServerConfiguration(
+                    baseURL: baseURL,
+                    token: token.isEmpty ? nil : token
+                )
+            )
+            dismiss()
+            onSaved()
+        } catch {
+            self.error = "Enter a valid HTTPS endpoint."
         }
     }
 }
@@ -23,19 +124,26 @@ struct IPadRootView: View {
     @EnvironmentObject var model: MobileAppModel
     @State private var showingImporter = false
     var body: some View {
-        NavigationSplitView {
-            List(model.filteredLibrary, selection: $model.selectedDocumentID) { item in
+        // Capture the EnvironmentObject as a local constant so SwiftUI does
+        // not infer `Binding<Subject>` for `model` after the
+        // `$model.selectedDocumentID` / `$model.query` projections below.
+        // Calling `model.importFile(at:)` and `model.processSharedImports()`
+        // inside the `.fileImporter` and `.task` modifiers requires the
+        // concrete `MobileAppModel` type.
+        let viewModel = model
+        return NavigationSplitView {
+            List(viewModel.filteredLibrary, selection: $model.selectedDocumentID) { item in
                 Label(item.title, systemImage: item.favorite ? "star.fill" : "doc.text").tag(item.id)
             }
             .navigationTitle("KnowledgeOS")
             .searchable(text: $model.query)
             .toolbar { Button { showingImporter = true } label: { Label("Import",systemImage:"square.and.arrow.down") } }
-            .fileImporter(isPresented:$showingImporter,allowedContentTypes:[.pdf,.epub,.html,.plainText,.image],allowsMultipleSelection:true){ result in if case .success(let urls)=result { Task { for url in urls { await model.importFile(at:url) } } } }
-            .task { await model.processSharedImports() }
+            .fileImporter(isPresented:$showingImporter,allowedContentTypes:[.pdf,.epub,.html,.plainText,.image],allowsMultipleSelection:true){ result in if case .success(let urls)=result { Task { for url in urls { await viewModel.importFile(at:url) } } } }
+            .task { await viewModel.processSharedImports() }
         } content: {
-            if let id = model.selectedDocumentID { IPadReaderView(documentID: id) } else { ContentUnavailableView("Select a Document", systemImage: "book") }
+            if let id = viewModel.selectedDocumentID { IPadReaderView(documentID: id) } else { ContentUnavailableView("Select a Document", systemImage: "book") }
         } detail: {
-            ReaderInspector(documentID: model.selectedDocumentID)
+            ReaderInspector(documentID: viewModel.selectedDocumentID)
         }
     }
 }
