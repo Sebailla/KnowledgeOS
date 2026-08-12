@@ -31,7 +31,7 @@ None; `openspec/specs/` contains no existing capability specifications.
 
 ## Approach
 
-Use gated vertical slices on an auto-chain feature-branch-chain: contracts and boundary guards; durable authority and processing; protected delivery; operations and release proof. Dependent slices stay blocked until NAS prerequisites are evidenced.
+Use gated vertical slices on an auto-chain feature-branch-chain: contracts and boundary guards; durable authority and processing; locally verifiable protected delivery; Docker Desktop container operations; PR6 real protected-server composition; and NAS release proof. PR6 corrects the discovered gap where the image starts a lightweight file server rather than the approved protected boundary. Concrete NAS deployment values and operational ownership remain release gates; they are not prerequisites for local implementation and tests.
 
 ## Affected Areas
 
@@ -39,7 +39,7 @@ Use gated vertical slices on an auto-chain feature-branch-chain: contracts and b
 |---|---|---|
 | `packages/contracts/src/library.ts` | Modified | Public catalog/acquisition contracts |
 | `packages/master-storage/` | Modified | Durable authority and reconciliation |
-| `apps/master-library-direct-streaming-server/` | Modified | Protected catalog and delivery API |
+| `apps/master-library-direct-streaming-server/` | Modified | Protected catalog/delivery API and container composition root |
 | `deployment/production/`, `scripts/deployment/` | Modified | Container topology, TLS, persistence, backup, monitoring, release operations |
 | `01-Implementation/01-MasterLibrary/` | Modified | Production documentation |
 
@@ -51,6 +51,7 @@ Use gated vertical slices on an auto-chain feature-branch-chain: contracts and b
 | Catalog/files diverge on interruption | Medium | Durable journals, reconciliation, recovery tests |
 | Content exposure or scope leakage | Medium | TLS, least privilege, contract tests, hard Personal Knowledge exclusion |
 | Container restart or upgrade damages authority | Medium | Exclusive disk-backed volume ownership, readiness gating, migration preflight, verified rollback/restore |
+| Container bypasses the protected server | High | PR6 replaces the legacy file-server entrypoint and proves TLS proxy E2E against real adapters |
 
 ## Rollback Plan
 
@@ -58,11 +59,11 @@ Ship compatible API paths, immutable pinned container images, and restartable mi
 
 ## Dependencies
 
-- Reachable NAS, production hostname and trusted certificates.
-- Rotatable secrets, authorization owner, encrypted off-NAS backup target, retention/RPO/RTO and alert-routing owners.
-- NAS disk paths for PostgreSQL, Master publication/operation files, and backups; capacity, filesystem permissions, container UID/GID, and named owner.
-- Pinned application, PostgreSQL, proxy, and worker images plus Compose-capable NAS runtime; no host-installed production application or database runtime.
-- A non-production containerized NAS environment for restore, migration, security, restart, upgrade, and load evidence.
+- **Release/deployment gate (not PR4 implementation):** reachable NAS, public hostname, trusted certificate authority and renewal owner.
+- **G1 NAS release/deployment gate (not PR5 implementation):** encrypted off-NAS backup target, retention, RPO/RTO, alert-routing owner, and an assigned operational owner.
+- **G2 NAS release/deployment gate (not PR5 implementation):** persistence root and capacity, filesystem permissions, container UID/GID, Compose runtime/version, pinned-image source/retention, and backup-space facts.
+- Docker Desktop with Compose is the local PR5 validation environment. It uses a repository-controlled disposable bind-mount fixture root, generated test TLS/credentials where required, and local backup artifacts; it does not establish NAS paths, capacity, off-NAS encryption, retention, RPO/RTO, or operational ownership.
+- Production remains container-only: no host-installed production application or database runtime.
 
 ## Success Criteria
 
