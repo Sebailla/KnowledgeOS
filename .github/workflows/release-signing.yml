@@ -19,7 +19,7 @@ jobs:
         with: { python-version: '3.12' }
       - run: python3 scripts/release-1.0/generate-release-attestation.py
       - run: KNOWLEDGEOS_TARGET_CHANNEL=${{ inputs.target_channel }} bash scripts/release-1.0/validate-promotion-policy.sh
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: release-attestation
           path: release/1.0.0-rc.1/attestations/
