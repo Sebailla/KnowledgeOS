@@ -83,6 +83,14 @@ Mobile state SHALL be classified as:
 
 Scene, task and subscription lifecycles SHALL release resources deterministically.
 
+### 7.1 iPad First Launch and Recovery
+
+The iPad application SHALL load its saved service endpoint before bootstrapping remote clients. If no valid HTTPS endpoint exists, it SHALL present onboarding and SHALL NOT start synchronization, AI, acquisition, or other protected remote work.
+
+The endpoint is non-secret local configuration. Access tokens SHALL be stored only through the platform Keychain. A saved endpoint without a token MAY be used only by an endpoint that explicitly supports anonymous access.
+
+On relaunch, the application SHALL restore the valid saved configuration before creating remote clients. Pending shared imports SHALL be processed through the public `MobileAppModel` API after the Local Library is restored; completed and duplicate requests SHALL NOT create a second Local Library item.
+
 ## 8. Failure and Recovery
 
 The application SHALL preserve locally committed Personal Knowledge and Local Library identity across process termination, network loss, CloudKit outage and NAS unavailability.
