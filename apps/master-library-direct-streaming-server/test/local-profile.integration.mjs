@@ -1,0 +1,5 @@
+import assert from "node:assert/strict";
+import { deliveryBoundaryFromEnvironment } from "../dist/index.js";
+const ports = { credentialSource: { async authenticate() { return undefined; } }, authorizer: { async authorize() { return false; } }, audit() {} };
+assert.throws(() => deliveryBoundaryFromEnvironment({ MASTER_LIBRARY_DELIVERY_PROFILE: "deployment", MASTER_LIBRARY_PUBLIC_ORIGIN: "https://master-library.example", MASTER_LIBRARY_TRUSTED_PROXY_ADDRESSES: "127.0.0.1", MASTER_LIBRARY_TLS_MATERIAL_REF: "vault://tls", MASTER_LIBRARY_CREDENTIAL_SOURCE_REF: "vault://credentials", MASTER_LIBRARY_AUTHORIZATION_PORT_REF: "vault://authorization", LOCAL_BROWSER_PASSWORD_FILE: "/run/secrets/local" }, ports), /local development authentication is forbidden/);
+assert.equal(deliveryBoundaryFromEnvironment({ MASTER_LIBRARY_DELIVERY_PROFILE: "local", MASTER_LIBRARY_PUBLIC_ORIGIN: "https://localhost:8443", MASTER_LIBRARY_TRUSTED_PROXY_ADDRESSES: "127.0.0.1", MASTER_LIBRARY_TLS_MATERIAL_REF: "local://tls", MASTER_LIBRARY_CREDENTIAL_SOURCE_REF: "local://credentials", MASTER_LIBRARY_AUTHORIZATION_PORT_REF: "local://authorization" }, ports).profile, "local");
