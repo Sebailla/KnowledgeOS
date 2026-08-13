@@ -1,0 +1,47 @@
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
+import { readFile } from "node:fs/promises";
+export interface BrowserSession { readonly sessionId: string; readonly credential: string; readonly expiresAt: number; }
+export interface BrowserAuth { login(email: string, password: string): Promise<BrowserSession | undefined>; authenticate(authorization: string | undefined): Promise<string | undefined>; logout(sessionId: string): void; }
+export interface V1Response { readonly status: number; readonly body: unknown; readonly headers?: Readonly<Record<string, string>>; }
+export interface ProtectedV1Fetcher { (path: string, init: { readonly method: string; readonly authorization: string; readonly body?: string | IncomingMessage; readonly contentType?: string; readonly contentLength?: string; readonly idempotencyKey?: string }): Promise<V1Response>; }
+export interface BrowserDependencies { readonly auth: BrowserAuth; readonly fetcher: ProtectedV1Fetcher; readonly expectedOrigin: string; }
+export interface BrowserOptions { readonly host: string; readonly port: number; }
+export interface BrowserAddress { readonly host: string; readonly port: number; }
+const cookieName = "knowledgeos_local_session";
+const cookie = (id: string, expiry?: boolean) => `${cookieName}=${id}; Path=/; HttpOnly; Secure; SameSite=Strict${expiry ? "; Max-Age=0" : ""}`;
+const header = (request: IncomingMessage, name: string) => { const value = request.headers[name]; return typeof value === "string" ? value : Array.isArray(value) ? value[0] : undefined; };
+const json = (response: ServerResponse, status: number, body?: unknown) => { response.statusCode = status; if (body !== undefined) response.setHeader("content-type", "application/json; charset=utf-8"); response.end(body === undefined ? undefined : JSON.stringify(body)); };
+const asset = async (response: ServerResponse, name: "index.html" | "app.js" | "app.css", type: string) => {
+  response.statusCode = 200;
+  response.setHeader("content-type", type);
+  response.setHeader("cache-control", "no-store");
+  response.end(await readFile(new URL(`../public/${name}`, import.meta.url)));
+};
+const parseBody = async (request: IncomingMessage) => { const chunks: Uint8Array[] = []; await new Promise<void>((resolve, reject) => { request.on("data", value => chunks.push(typeof value === "string" ? Buffer.from(value) : value)); request.once("end", () => resolve()); request.once("error", error => reject(error)); }); try { return JSON.parse(Buffer.concat(chunks).toString("utf8")) as Record<string, unknown>; } catch { return undefined; } };
+const path = (request: IncomingMessage) => (request.url ?? "/").split("?", 1)[0] ?? "/";
+const errorCode = (body: unknown) => typeof body === "object" && body !== null && "error" in body && typeof body.error === "object" && body.error !== null && "code" in body.error && typeof body.error.code === "string" ? body.error.code : "infrastructure.transient";
+const safeError = (body: unknown) => ({ error: { code: errorCode(body) } });
+export class LocalMasterLibraryBrowserServer {
+  private server: Server | undefined;
+  private readonly sessions = new Map<string, BrowserSession>();
+  public constructor(private readonly dependencies: BrowserDependencies, private readonly options: BrowserOptions) {}
+  async start(): Promise<BrowserAddress> { const server = createServer((request, response) => this.handle(request, response)); this.server = server; await new Promise<void>(resolve => server.listen(this.options.port, this.options.host, resolve)); const address = server.address(); if (!address || typeof address === "string") throw new Error("Unable to resolve BFF address."); return { host: address.address, port: address.port }; }
+  async stop(): Promise<void> { if (!this.server) return; const server = this.server; this.server = undefined; await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve())); }
+  private originAllowed(request: IncomingMessage): boolean { const origin = header(request, "origin"); return !origin || origin === this.dependencies.expectedOrigin; }
+  private async session(request: IncomingMessage): Promise<BrowserSession | undefined> { const id = header(request, "cookie")?.split(";").map(part => part.trim()).find(part => part.startsWith(`${cookieName}=`))?.slice(cookieName.length + 1); const session = id ? this.sessions.get(id) : undefined; return session && await this.dependencies.auth.authenticate(`Bearer ${session.credential}`) ? session : undefined; }
+  private clear(response: ServerResponse): void { response.setHeader("set-cookie", cookie("", true)); }
+  private async protected(request: IncomingMessage, response: ServerResponse, upstream: string, method: string, body?: string | IncomingMessage, binary = false, contentType?: string, contentLength?: string): Promise<void> { const session = await this.session(request); if (!session) { this.clear(response); json(response, 401, { error: { code: "authentication.required" } }); return; } const result = await this.dependencies.fetcher(upstream, { method, authorization: `Bearer ${session.credential}`, ...(body ? { body } : {}), ...(contentType ? { contentType } : {}), ...(contentLength ? { contentLength } : {}), ...(header(request, "idempotency-key") ? { idempotencyKey: header(request, "idempotency-key")! } : {}) }); if (result.status === 401 || result.status === 403) { this.sessions.delete(session.sessionId); this.dependencies.auth.logout(session.sessionId); this.clear(response); } if (binary && result.status >= 200 && result.status < 300 && result.body instanceof Uint8Array) { response.statusCode = result.status; for (const name of ["content-type", "content-length", "content-range", "accept-ranges", "etag"]) { const value = result.headers?.[name]; if (value) response.setHeader(name, value); } response.end(result.body); return; } json(response, result.status, result.status >= 400 ? safeError(result.body) : result.body); }
+  private async handle(request: IncomingMessage, response: ServerResponse): Promise<void> { try { const current = path(request); const method = request.method ?? "GET"; if ((method === "POST" || method === "DELETE") && !this.originAllowed(request)) { json(response, 403, { error: { code: "origin.denied" } }); return; }
+    if (method === "GET" && current === "/") { await asset(response, "index.html", "text/html; charset=utf-8"); return; }
+    if (method === "GET" && current === "/app.js") { await asset(response, "app.js", "application/javascript; charset=utf-8"); return; }
+    if (method === "GET" && current === "/app.css") { await asset(response, "app.css", "text/css; charset=utf-8"); return; }
+    if (method === "POST" && current === "/local/auth/login") { const body = await parseBody(request); const session = typeof body?.email === "string" && typeof body?.password === "string" ? await this.dependencies.auth.login(body.email, body.password) : undefined; if (!session) { json(response, 401, { error: { code: "authentication.denied" } }); return; } this.sessions.set(session.sessionId, session); response.setHeader("set-cookie", cookie(session.sessionId)); json(response, 204); return; }
+    if (method === "POST" && current === "/local/auth/logout") { const session = await this.session(request); if (session) { this.sessions.delete(session.sessionId); this.dependencies.auth.logout(session.sessionId); } this.clear(response); json(response, 204); return; }
+    if (method === "GET" && current === "/local/api/catalog") { await this.protected(request, response, `/v1/master-library/catalog${(request.url ?? "").includes("?") ? (request.url ?? "").slice((request.url ?? "").indexOf("?")) : ""}`, method); return; }
+    const content = /^\/local\/api\/publications\/([^/]+)\/versions\/([^/]+)\/content$/.exec(current); if (content && (method === "GET" || method === "HEAD")) { await this.protected(request, response, `/v1/master-library/publications/${content[1]}/versions/${content[2]}/content`, method, undefined, true); return; }
+    if (method === "POST" && current === "/local/api/acquisitions") { const body = await parseBody(request); if (!body) { json(response, 400, { error: { code: "validation.failed" } }); return; } await this.protected(request, response, "/v1/master-library/acquisitions", method, JSON.stringify(body)); return; }
+    if (method === "POST" && current === "/local/api/publications:ingest") { const contentType = header(request, "content-type"); if (!contentType?.toLowerCase().startsWith("multipart/form-data;")) { json(response, 400, { error: { code: "ingest.validation-failed" } }); return; } await this.protected(request, response, "/v1/master-library/publications:ingest", method, request, false, contentType, header(request, "content-length")); return; }
+    const ingestStatus = /^\/local\/api\/ingest-operations\/([^/]+)$/.exec(current); if (method === "GET" && ingestStatus) { await this.protected(request, response, `/v1/master-library/ingest-operations/${ingestStatus[1]}`, method); return; }
+    json(response, 404, { error: { code: "http.route-not-found" } });
+  } catch { json(response, 503, { error: { code: "infrastructure.transient" } }); } }
+}

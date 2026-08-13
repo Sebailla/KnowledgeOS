@@ -1,0 +1,12 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+const compose = await readFile(new URL("../../../deployment/production/compose.local.yaml", import.meta.url), "utf8");
+const proxy = await readFile(new URL("../../../deployment/production/proxy/default.conf.template", import.meta.url), "utf8");
+assert.match(compose, /MASTER_LIBRARY_DELIVERY_PROFILE: local/);
+assert.match(compose, /local_browser_password/);
+assert.match(compose, /local_browser_signing_secret/);
+assert.match(compose, /master-library-browser/);
+assert.doesNotMatch(compose, /master-library-browser:[\s\S]*\n[\s\S]*volumes:/);
+assert.match(proxy, /location \/v1\//);
+assert.match(proxy, /location \/ \{/);
+assert.match(proxy, /master-library-browser:8090/);
