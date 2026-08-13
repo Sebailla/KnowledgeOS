@@ -1,3 +1,4 @@
-declare module "node:fs/promises" { export function mkdir(path:string,options?:{recursive?:boolean}):Promise<void>; export function writeFile(path:string,data:Uint8Array):Promise<void>; export function rename(oldPath:string,newPath:string):Promise<void>; }
+declare module "node:fs/promises" { export function mkdir(path:string,options?:{recursive?:boolean}):Promise<void>; export function writeFile(path:string,data:Uint8Array):Promise<void>; export function appendFile(path:string,data:Uint8Array):Promise<void>; export function rename(oldPath:string,newPath:string):Promise<void>; export function mkdtemp(prefix:string):Promise<string>; export function readFile(path:string):Promise<Uint8Array>; export function rm(path:string,options?:{recursive?:boolean;force?:boolean}):Promise<void>; export function access(path:string):Promise<void>; }
 declare module "node:path" { export function join(...parts:string[]):string; }
-declare module "node:crypto" { export function createHash(name:string):{update(data:Uint8Array):any;digest(encoding:"hex"):string}; }
+declare module "node:os" { export function tmpdir():string; }
+declare module "node:crypto" { export function createHash(name:string):{update(data:Uint8Array|string):any;digest(encoding:"hex"):string}; export function randomUUID():string; }
