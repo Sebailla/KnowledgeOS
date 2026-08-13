@@ -1,0 +1,112 @@
+# Docker Desktop-only overlay. MASTER_LIBRARY_FIXTURE_ROOT is disposable test data,
+# never a NAS persistence declaration.
+services:
+  master-library-fixture-seed:
+    image: ${IMAGE_PREFIX:-knowledgeos}/master-library:${IMAGE_TAG:-0.44.0-rc.1}
+    command: ["node", "/app/fixture-seed.mjs"]
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      master-library-migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-knowledgeos}@postgres:5432/${POSTGRES_DB:-knowledgeos}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets: [postgres_password]
+    volumes:
+      - type: bind
+        source: ${MASTER_LIBRARY_FIXTURE_ROOT:?MASTER_LIBRARY_FIXTURE_ROOT is required}/publications
+        target: /var/lib/knowledgeos/master-library
+    networks: [backend]
+  postgres:
+    volumes:
+      - type: bind
+        source: ${MASTER_LIBRARY_FIXTURE_ROOT:?MASTER_LIBRARY_FIXTURE_ROOT is required}/postgres
+        target: /var/lib/postgresql/data
+  master-library-migrate:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/master-library/Dockerfile
+    image: ${IMAGE_PREFIX:-knowledgeos}/master-library:${IMAGE_TAG:-0.44.0-rc.1}
+    command: ["node", "/app/migrate.mjs"]
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      OPERATIONS_ROOT: /var/lib/knowledgeos/operations
+      MASTER_LIBRARY_INGEST_ENABLED: "true"
+      MASTER_LIBRARY_INGEST_MAX_BYTES: ${MASTER_LIBRARY_INGEST_MAX_BYTES:-104857600}
+      MASTER_LIBRARY_INGEST_INTERRUPT_AFTER_PROMOTED: ${MASTER_LIBRARY_INGEST_INTERRUPT_AFTER_PROMOTED:-false}
+    volumes:
+      - type: bind
+        source: ${MASTER_LIBRARY_FIXTURE_ROOT:?MASTER_LIBRARY_FIXTURE_ROOT is required}/publications
+        target: /var/lib/knowledgeos/master-library
+      - type: bind
+        source: ${MASTER_LIBRARY_FIXTURE_ROOT:?MASTER_LIBRARY_FIXTURE_ROOT is required}/operations
+        target: /var/lib/knowledgeos/operations
+    networks: [backend]
+  master-library:
+    depends_on:
+      postgres:
+        condition: service_healthy
+      master-library-migrate:
+        condition: service_completed_successfully
+      master-library-fixture-seed:
+        condition: service_completed_successfully
+    environment:
+      MASTER_LIBRARY_DELIVERY_PROFILE: local
+      MASTER_LIBRARY_PUBLIC_ORIGIN: https://localhost:${MASTER_LIBRARY_HTTPS_PORT:-8443}
+      # Docker Desktop assigns the proxy bridge address dynamically; wildcard is test-profile only.
+      MASTER_LIBRARY_TRUSTED_PROXY_ADDRESSES: "*"
+      MASTER_LIBRARY_TLS_MATERIAL_REF: fixture://generated-tls
+      MASTER_LIBRARY_CREDENTIAL_SOURCE_REF: local://development-browser
+      MASTER_LIBRARY_AUTHORIZATION_PORT_REF: local://development-browser
+      MASTER_LIBRARY_INGEST_ENABLED: "true"
+      MASTER_LIBRARY_INGEST_MAX_BYTES: ${MASTER_LIBRARY_INGEST_MAX_BYTES:-104857600}
+      MASTER_LIBRARY_INGEST_INTERRUPT_AFTER_PROMOTED: ${MASTER_LIBRARY_INGEST_INTERRUPT_AFTER_PROMOTED:-false}
+      OPERATIONS_ROOT: /var/lib/knowledgeos/operations
+      LOCAL_BROWSER_PASSWORD_FILE: /run/secrets/local_browser_password
+      LOCAL_BROWSER_SIGNING_SECRET_FILE: /run/secrets/local_browser_signing_secret
+    secrets: [postgres_password, local_browser_password, local_browser_signing_secret]
+    volumes:
+      - type: bind
+        source: ${MASTER_LIBRARY_FIXTURE_ROOT:?MASTER_LIBRARY_FIXTURE_ROOT is required}/publications
+        target: /var/lib/knowledgeos/master-library
+      - type: bind
+        source: ${MASTER_LIBRARY_FIXTURE_ROOT:?MASTER_LIBRARY_FIXTURE_ROOT is required}/operations
+        target: /var/lib/knowledgeos/operations
+  master-library-browser:
+    image: ${IMAGE_PREFIX:-knowledgeos}/master-library:${IMAGE_TAG:-0.44.0-rc.1}
+    command: ["node", "/app/local-browser-server.mjs"]
+    restart: unless-stopped
+    depends_on:
+      master-library:
+        condition: service_healthy
+    environment:
+      MASTER_LIBRARY_DELIVERY_PROFILE: local
+      LOCAL_BROWSER_ORIGIN: https://localhost:${MASTER_LIBRARY_HTTPS_PORT:-8443}
+      MASTER_LIBRARY_V1_ORIGIN: http://master-library:8081
+      LOCAL_BROWSER_SESSION_TTL_MS: ${LOCAL_BROWSER_SESSION_TTL_MS:-900000}
+      LOCAL_BROWSER_PASSWORD_FILE: /run/secrets/local_browser_password
+      LOCAL_BROWSER_SIGNING_SECRET_FILE: /run/secrets/local_browser_signing_secret
+    secrets: [local_browser_password, local_browser_signing_secret]
+    networks: [backend]
+  master-library-proxy:
+    depends_on:
+      master-library:
+        condition: service_healthy
+secrets:
+  postgres_password:
+    file: ${MASTER_LIBRARY_FIXTURE_ROOT:?MASTER_LIBRARY_FIXTURE_ROOT is required}/secrets/postgres_password.txt
+  local_browser_password:
+    file: ${MASTER_LIBRARY_FIXTURE_ROOT:?MASTER_LIBRARY_FIXTURE_ROOT is required}/secrets/local_browser_password.txt
+  local_browser_signing_secret:
+    file: ${MASTER_LIBRARY_FIXTURE_ROOT:?MASTER_LIBRARY_FIXTURE_ROOT is required}/secrets/local_browser_signing_secret.txt
+  sync_token:
+    file: ${MASTER_LIBRARY_FIXTURE_ROOT:?MASTER_LIBRARY_FIXTURE_ROOT is required}/secrets/sync_token.txt
+  master_library_tls_certificate:
+    file: ${MASTER_LIBRARY_FIXTURE_ROOT:?MASTER_LIBRARY_FIXTURE_ROOT is required}/secrets/tls.crt
+  master_library_tls_private_key:
+    file: ${MASTER_LIBRARY_FIXTURE_ROOT:?MASTER_LIBRARY_FIXTURE_ROOT is required}/secrets/tls.key
