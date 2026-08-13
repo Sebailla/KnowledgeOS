@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Local Master Library</title>
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <main class="shell">
+    <header><h1>Local Master Library</h1><p class="boundary">This panel is for Docker Desktop only. It does not represent NAS readiness.</p></header>
+    <section id="login-card" class="card">
+      <h2>Sign in</h2><p>Use the temporary credentials printed when the local launcher starts.</p>
+      <form id="login-form"><label>Email<input id="email" name="email" type="email" value="admin@knowledgeos.local" autocomplete="username" required></label><label>Password<input id="password" name="password" type="password" autocomplete="current-password" required></label><button type="submit">Sign in</button></form>
+    </section>
+    <section id="library-card" class="card" hidden>
+      <div class="toolbar"><div><h2>Master Catalog</h2><p id="catalog-status" role="status">Loading catalog…</p></div><button id="logout" class="secondary" type="button">Sign out</button></div>
+      <section class="ingest" aria-labelledby="ingest-title">
+        <div><h3 id="ingest-title">Upload PDF or EPUB</h3><p>Register source bytes and provenance in the local Master Library.</p></div>
+        <form id="ingest-form">
+          <label>Title<input id="ingest-title-input" name="title" maxlength="512" required></label>
+          <label>Authors <span class="hint">Separate multiple authors with commas.</span><input id="ingest-authors" name="authors" maxlength="12800" required></label>
+          <label>Source file<input id="ingest-source" name="source" type="file" accept="application/pdf,application/epub+zip,.pdf,.epub" required></label>
+          <button id="ingest-submit" type="submit">Upload source</button>
+        </form>
+        <p id="ingest-status" role="status" aria-live="polite"></p>
+      </section>
+      <div id="catalog" aria-live="polite"></div>
+      <form id="acquisition-form" class="acquisition" hidden><h3>Acquire selected version</h3><p id="selection"></p><label>Target Local Library<input id="target-local-library" value="local-library:development" required></label><button type="submit">Create acquisition receipt</button></form>
+      <pre id="receipt" hidden aria-live="polite"></pre>
+    </section>
+    <p id="notice" role="alert" aria-live="assertive"></p>
+  </main>
+  <script src="/app.js" defer></script>
+</body>
+</html>
