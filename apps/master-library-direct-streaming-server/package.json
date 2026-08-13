@@ -13,11 +13,12 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node test/direct-streaming-server.integration.mjs",
+    "test": "node test/direct-streaming-server.integration.mjs && node test/protected-delivery.integration.mjs && node test/local-profile.integration.mjs && node test/ingest.integration.mjs",
     "lint": "eslint .",
     "validate": "pnpm typecheck"
   },
   "dependencies": {
+    "@knowledgeos/contracts": "workspace:*",
     "@knowledgeos/domain-types": "workspace:*",
     "@knowledgeos/master-library-streaming-server": "workspace:*",
     "@knowledgeos/master-storage": "workspace:*",
