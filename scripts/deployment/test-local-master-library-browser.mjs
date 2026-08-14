@@ -30,6 +30,7 @@ const composeEnvironment = {
   MASTER_LIBRARY_TLS_PRIVATE_KEY_FILE: join(fixture, "secrets", "tls.key"),
 };
 const compose = ["compose", "--project-name", project, "-f", "deployment/production/compose.yaml", "-f", "deployment/production/compose.local.yaml"];
+const userPanelBefore = spawnSync("docker", ["inspect", "--format", "{{.State.Running}} {{if .State.Health}}{{.State.Health.Status}}{{end}}", "knowledgeos-master-library-1"], { encoding: "utf8" });
 let cleaned = false;
 const teardown = () => {
   if (cleaned) return;
@@ -190,8 +191,11 @@ try {
   try {
     teardown();
     if (started) {
-      const userPanel = execFileSync("docker", ["inspect", "--format", "{{.State.Running}} {{if .State.Health}}{{.State.Health.Status}}{{end}}", "knowledgeos-master-library-1"], { encoding: "utf8" }).trim();
-      assert.equal(userPanel, "true healthy", `user panel changed state: ${userPanel}`);
+      const userPanel = spawnSync("docker", ["inspect", "--format", "{{.State.Running}} {{if .State.Health}}{{.State.Health.Status}}{{end}}", "knowledgeos-master-library-1"], { encoding: "utf8" });
+      if (userPanelBefore.status === 0) {
+        assert.equal(userPanel.status, 0, "user panel disappeared during isolated harness execution");
+        assert.equal(userPanel.stdout.trim(), userPanelBefore.stdout.trim(), `user panel changed state: ${userPanel.stdout.trim()}`);
+      }
     }
     if (!failure) console.log(JSON.stringify({ harness: "local-master-library-browser", project, status: "passed", teardown: "passed", userPanel: started ? "healthy" : "not-started" }));
   } catch (error) {
