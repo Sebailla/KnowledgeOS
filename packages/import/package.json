@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./dist/index.js"
+    ".": "./dist/index.js",
+    "./metadata": "./dist/metadata/inspectPublication.js"
   },
   "types": "./dist/index.d.ts",
   "files": [
@@ -12,17 +13,22 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "build:metadata": "tsc -p tsconfig.metadata.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "tsc -p tsconfig.test.json && node --test dist-test/test/import.test.js dist-test/test/import-jobs.test.js",
+    "test": "tsc -p tsconfig.test.json && node --test dist-test/test/import.test.js dist-test/test/import-jobs.test.js dist-test/test/metadata-inspector.test.js",
     "generate": "node -e \"process.exit(0)\"",
     "validate": "pnpm typecheck"
   },
   "dependencies": {
+    "@knowledgeos/contracts": "workspace:*",
     "@knowledgeos/kernel": "workspace:*",
+    "@knowledgeos/knowledge-graph": "workspace:*",
     "@knowledgeos/library": "workspace:*",
-    "@knowledgeos/storage": "workspace:*",
     "@knowledgeos/search": "workspace:*",
-    "@knowledgeos/knowledge-graph": "workspace:*"
+    "@knowledgeos/storage": "workspace:*",
+    "fast-xml-parser": "5.2.5",
+    "fflate": "0.8.2",
+    "pdfjs-dist": "5.4.624"
   },
   "devDependencies": {
     "typescript": "^5.9.0"

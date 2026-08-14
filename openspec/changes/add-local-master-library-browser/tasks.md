@@ -48,3 +48,10 @@ Chain strategy: feature-branch-chain
 - [x] 3.3 GREEN: create `scripts/deployment/{start-local-master-library-browser,test-local-master-library-browser}.mjs` with fixed Compose arguments and disposable TLS fixture.
 - [x] 3.4 Verify Docker HTTPS login, catalog, protected download, acquisition replay/conflict, expiry/logout, no Local Library/Personal Knowledge persistence, and deployment-profile refusal.
 - [x] 3.5 Update `01-Implementation/01-MasterLibrary/09-Operations/README.md` with local-only boundary, receipt semantics, rollback, unresolved G0/G1/G2, and no NAS-readiness claim.
+
+## Phase 4: Opt-In Persistent Docker Desktop Credential
+
+- [x] 4.1 RED: add launcher tests for an absolute nonempty regular mode-0600 password source and reject relative, empty, non-regular, insecure, and repository paths.
+- [x] 4.2 GREEN: add `MASTER_LIBRARY_LOCAL_BROWSER_PASSWORD_SOURCE_FILE` selection to the launcher and Compose local Docker secret while preserving temporary mode as the default.
+- [x] 4.3 Verify the persistent source is never printed or removed, browser authentication succeeds through the Docker secret, and short-lived sessions remain unchanged.
+- [x] 4.4 Update proposal, design, specification, tasks, and Master Library operations runbook with the Docker Desktop-only boundary and runtime procedure.

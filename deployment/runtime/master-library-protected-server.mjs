@@ -1,4 +1,5 @@
 import { readFile, access } from 'node:fs/promises';
+import { Readable } from 'node:stream';
 import { join } from 'node:path';
 import {
   PgSqlClient, PostgresMasterStorageCatalog, PostgresMasterCatalogReader, PostgresAcquisitionReceiptRepository, PostgresAuthoritativeIngestRepository, AuthoritativeIngestService,
@@ -10,6 +11,10 @@ import {
 } from '/app/workspace/apps/master-library-direct-streaming-server/dist/index.js';
 import { createLocalDevelopmentAuth, createLocalDevelopmentCredentialVerifier, validateLocalDevelopmentAuthEnvironment } from '/app/workspace/packages/master-library-local-development-auth/dist/index.js';
 import { LocalMasterLibraryBrowserServer } from '/app/workspace/apps/master-library-local-browser/dist/index.js';
+// Load only the Import Engine metadata boundary. The package index also exposes
+// unrelated import pipelines and would make the local runtime depend on them.
+import { inspectPublication } from '/app/workspace/packages/import/dist/metadata/inspectPublication.js';
+import { TesseractPdfOcrProvider, verifyLocalOcrRuntime } from '/app/workspace/packages/ocr/dist/tesseract/TesseractPdfOcrProvider.js';
 
 const profile = process.env.MASTER_LIBRARY_DELIVERY_PROFILE;
 validateLocalDevelopmentAuthEnvironment(process.env);
@@ -42,8 +47,9 @@ const delivery = profile === 'test'
   : deliveryBoundaryFromEnvironment(process.env, localPorts ?? { authorizer: fixtureAuthorizer, credentialSource: { async authenticate() { return undefined; } }, audit: (record) => console.log(JSON.stringify({ correlationId: record.correlationId, category: record.category, outcome: record.outcome })) });
 const operationsRoot = process.env.OPERATIONS_ROOT ?? '/var/lib/knowledgeos/operations';
 const ingestEnabled = process.env.MASTER_LIBRARY_INGEST_ENABLED === 'true';
-const ingestLimit = Number(process.env.MASTER_LIBRARY_INGEST_MAX_BYTES ?? '104857600');
-if (ingestEnabled && (profile !== 'local' || !Number.isSafeInteger(ingestLimit) || ingestLimit < 1)) throw new Error('Local ingest requires a valid positive byte limit and local delivery profile.');
+const ingestLimit = Number(process.env.MASTER_LIBRARY_INGEST_MAX_BYTES ?? '524288000');
+const inspectionLimit = Number(process.env.MASTER_LIBRARY_INSPECTION_MAX_BYTES ?? '16777216');
+if (ingestEnabled && (profile !== 'local' || !Number.isSafeInteger(ingestLimit) || ingestLimit < 1 || !Number.isSafeInteger(inspectionLimit) || inspectionLimit < 1)) throw new Error('Local ingest requires valid positive ingest and inspection byte limits and a local delivery profile.');
 const readiness = { async ready() { try { await Promise.all(['migration-ready', 'reconciliation-ready'].map((name) => access(join(operationsRoot, name)))); return true; } catch { return false; } } };
 const ingest = ingestEnabled ? new AuthoritativeIngestService(new PostgresAuthoritativeIngestRepository(client), process.env.MASTER_LIBRARY_FILES_ROOT ?? '/var/lib/knowledgeos/master-library', { maxBytes: ingestLimit }) : undefined;
 const interruptAfterPromotion = profile === 'local' && process.env.MASTER_LIBRARY_INGEST_INTERRUPT_AFTER_PROMOTED === 'true';
@@ -51,13 +57,23 @@ const ingestRoute = ingest ? {
   accept: ingest.accept.bind(ingest), status: ingest.status.bind(ingest),
   async acceptStream(request) { return ingest.acceptStream({ ...request, ...(interruptAfterPromotion ? { interruptAfter: 'promoted' } : {}) }); },
 } : undefined;
-const server = new MasterDirectStreamingServer({ reader, catalog: new PostgresMasterCatalogReader(client), acquisitionReceipts: new PostgresAcquisitionReceiptRepository(client), ...(ingestRoute ? { ingest: ingestRoute } : {}), delivery, processingRecovery: { async recover() { await ingest?.reconcile(); } }, readiness }, { host: process.env.HOST ?? '0.0.0.0', port: Number(process.env.PORT ?? 8081) });
+const localOcrRequested = ingestEnabled && profile === 'local' && process.env.MASTER_LIBRARY_LOCAL_OCR_ENABLED !== 'false';
+const localOcr = localOcrRequested && await verifyLocalOcrRuntime()
+  ? new TesseractPdfOcrProvider()
+  : undefined;
+if (localOcrRequested && !localOcr) console.log(JSON.stringify({ category: 'local-ocr', outcome: 'unavailable' }));
+const inspection = ingestEnabled ? {
+  async inspect(request) {
+    return inspectPublication({ metadata: request.metadata, source: request.source, ...(localOcr ? { ocr: localOcr } : {}) });
+  },
+} : undefined;
+const server = new MasterDirectStreamingServer({ reader, catalog: new PostgresMasterCatalogReader(client), acquisitionReceipts: new PostgresAcquisitionReceiptRepository(client), ...(ingestRoute ? { ingest: ingestRoute } : {}), ...(inspection ? { inspection, inspectionMaximumBytes: inspectionLimit } : {}), delivery, processingRecovery: { async recover() { await ingest?.reconcile(); } }, readiness }, { host: process.env.HOST ?? '0.0.0.0', port: Number(process.env.PORT ?? 8081) });
 await server.start();
 const browser = profile === 'local' && process.env.LOCAL_BROWSER_EMBEDDED === 'true' ? new LocalMasterLibraryBrowserServer({
   auth: localAuth,
   expectedOrigin: process.env.LOCAL_BROWSER_ORIGIN ?? process.env.MASTER_LIBRARY_PUBLIC_ORIGIN,
   async fetcher(path, init) {
-    const response = await fetch(`${process.env.MASTER_LIBRARY_V1_ORIGIN ?? process.env.MASTER_LIBRARY_PUBLIC_ORIGIN}${path}`, { method: init.method, headers: { authorization: init.authorization, ...(init.idempotencyKey ? { 'idempotency-key': init.idempotencyKey } : {}), ...(init.body ? { 'content-type': 'application/json' } : {}) }, body: init.body });
+    const response = await fetch(`${process.env.MASTER_LIBRARY_V1_ORIGIN ?? process.env.MASTER_LIBRARY_PUBLIC_ORIGIN}${path}`, { method: init.method, headers: { authorization: init.authorization, ...(init.idempotencyKey ? { 'idempotency-key': init.idempotencyKey } : {}), ...(init.contentType ? { 'content-type': init.contentType } : init.body ? { 'content-type': 'application/json' } : {}), ...(init.contentLength ? { 'content-length': init.contentLength } : {}) }, body: typeof init.body === 'string' ? init.body : init.body ? Readable.toWeb(init.body) : undefined, ...(init.body && typeof init.body !== 'string' ? { duplex: 'half' } : {}) });
     return { status: response.status, body: await response.json() };
   },
 }, { host: '0.0.0.0', port: Number(process.env.LOCAL_BROWSER_PORT ?? 8090) }) : undefined;

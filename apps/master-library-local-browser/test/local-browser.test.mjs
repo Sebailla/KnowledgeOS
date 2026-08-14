@@ -15,6 +15,7 @@ const fetcher = async (path, init) => {
   if (path === "/v1/master-library/catalog") return { status: 200, body: { items: [{ publicationId: "publication:a" }] } };
   if (path === "/v1/master-library/acquisitions") return { status: 202, body: { receipt: { accepted: true }, manifest: { publicationId: "publication:a" } } };
   if (path === "/v1/master-library/publications:ingest") return { status: 202, body: { operationId: "operation:ingest-1", publicationId: "publication:book-1", versionId: "version:book-1", knowledgeObjectId: "knowledge-object:book-1", outcome: "registered" } };
+  if (path === "/v1/master-library/publications:inspect") return { status: 200, body: { title: { value: "Recovered title", evidence: "pdf-xmp", confidence: "high" }, authors: [{ value: "Recovered author", evidence: "pdf-info", confidence: "high" }], candidates: [], correlationId: "correlation:inspection", outcome: "completed" } };
   if (path === "/v1/master-library/ingest-operations/operation%3Aingest-1") return { status: 200, body: { operationId: "operation:ingest-1", state: "registered", outcome: "registered" } };
   if (path.includes("forbidden")) return { status: 403, body: { error: { code: "authorization.denied", token: "token", path: "/var/lib/knowledgeos/source.pdf" } } };
   return { status: 503, body: { error: { code: "infrastructure.transient" } } };
@@ -45,6 +46,12 @@ try {
   assert.equal(script.status, 200);
   assert.match(script.headers["content-type"], /javascript/);
   assert.match(script.body, /local\/api\/catalog/);
+  const preview = await call("GET", "/source-preview.js");
+  assert.equal(preview.status, 200);
+  assert.match(preview.headers["content-type"], /javascript/);
+  const styles = await call("GET", "/app.css");
+  assert.equal(styles.status, 200);
+  assert.match(styles.body, /\.source-preview-empty\[hidden\][^}]*display:none!important/);
   // PR3 RED: an authenticated same-origin browser upload must stream multipart bytes and forward only server-held credentials.
   const boundary = "browser-test-boundary";
   const multipart = `--${boundary}\r\nContent-Disposition: form-data; name="metadata"\r\n\r\n{"title":"A local book","authors":["Operator"]}\r\n--${boundary}\r\nContent-Disposition: form-data; name="source"; filename="book.pdf"\r\nContent-Type: application/pdf\r\n\r\n%PDF-local-book\r\n--${boundary}--\r\n`;
@@ -77,4 +84,22 @@ try {
   assert.match(script.body, /originalFilename: source\.name/);
   assert.match(script.body, /declaredMediaType/);
   assert.match(script.body, /byteLength: source\.size/);
+  // Phase 2 RED: the BFF proxies an authenticated multipart inspection without exposing credentials or paths.
+  const inspect = await call("POST", "/local/api/publications:inspect", { cookie: uploadCookie, origin: "https://localhost:8443", "content-type": `multipart/form-data; boundary=${boundary}`, "content-length": String(Buffer.byteLength(multipart)) }, multipart);
+  assert.equal(inspect.status, 200);
+  assert.equal(calls.at(-1).path, "/v1/master-library/publications:inspect");
+  assert.equal(calls.at(-1).init.contentType, `multipart/form-data; boundary=${boundary}`);
+  assert.match(JSON.parse(inspect.body).title.value, /Recovered title/);
+  assert.doesNotMatch(inspect.body, /token|\/var\/lib\/knowledgeos/i);
+  assert.equal(calls.every((call) => call.path.startsWith("/v1/master-library/")), true);
+  assert.match(updatedPanel.body, /id="ingest-provenance"/);
+  assert.match(updatedPanel.body, /id="source-preview-document"/);
+  assert.match(updatedPanel.body, /First page preview/);
+  assert.match(script.body, /source-preview\.js/);
+  assert.match(script.body, /URL\.createObjectURL/);
+  assert.match(script.body, /URL\.revokeObjectURL/);
+  assert.match(script.body, /#page=1/);
+  assert.match(script.body, /publications:inspect/);
+  assert.match(script.body, /AbortController/);
+  assert.match(script.body, /dataset\.dirty/);
 } finally { await server.stop(); }

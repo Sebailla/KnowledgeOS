@@ -12,6 +12,10 @@ declare module "node:assert/strict" {
   interface Assert {
     equal(actual: unknown, expected: unknown): void;
     deepEqual(actual: unknown, expected: unknown): void;
+    rejects(
+      block: () => Promise<unknown>,
+      error?: (error: unknown) => boolean,
+    ): Promise<void>;
   }
 
   const assert: Assert;

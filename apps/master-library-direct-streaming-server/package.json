@@ -13,7 +13,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node test/direct-streaming-server.integration.mjs && node test/protected-delivery.integration.mjs && node test/local-profile.integration.mjs && node test/ingest.integration.mjs",
+    "test": "node test/direct-streaming-server.integration.mjs && node test/protected-delivery.integration.mjs && node test/local-profile.integration.mjs && node test/ingest.integration.mjs && node test/inspect.integration.mjs",
     "lint": "eslint .",
     "validate": "pnpm typecheck"
   },

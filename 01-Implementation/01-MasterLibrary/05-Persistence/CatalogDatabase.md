@@ -149,3 +149,15 @@ Schema and storage migrations SHALL be versioned, restartable and tested against
 ## 12. Status
 
 This document is part of the KnowledgeOS Master Library V4 implementation baseline.
+
+## 13. Accepted Metadata Provenance
+
+Migration `0007_master_library_accepted_metadata_provenance` adds the
+additive `accepted_metadata_provenance` JSONB column to `master_publications`.
+It stores only immutable per-field evidence labels and confidence for accepted
+title and author values. Existing catalog rows receive `{}` and remain valid.
+
+The column deliberately excludes document text, OCR text, filesystem paths,
+credentials, and browser identities. Reverting the migration drops only this
+derived provenance column; it does not alter authoritative source bytes,
+publication identities, titles, authors, or the ingest journal.

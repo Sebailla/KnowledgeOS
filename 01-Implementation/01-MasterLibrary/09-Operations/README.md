@@ -179,7 +179,7 @@ Docker Desktop's `compose.local.yaml` is test-only: it seeds one explicitly regi
 
 ## Local Master Library Browser (Docker Desktop only)
 
-`compose.local.yaml` adds an explicitly local, HTTPS browser panel for Docker Desktop. Start it with `node scripts/deployment/start-local-master-library-browser.mjs`; the launcher prints the one-time temporary `admin@knowledgeos.local` password in its initiating terminal, waits for the browser route, then removes the host password file. The BFF uses secure, strict, HTTP-only cookies and keeps bearer credentials out of browser JavaScript.
+`compose.local.yaml` adds an explicitly local, HTTPS browser panel for Docker Desktop. Start it with `node scripts/deployment/start-local-master-library-browser.mjs`; by default the launcher prints the one-time temporary `admin@knowledgeos.local` password in its initiating terminal, waits for the browser route, then removes the generated host password file. The BFF uses secure, strict, HTTP-only cookies and keeps bearer credentials out of browser JavaScript.
 
 The panel renders the protected Master Catalog, downloads only through the protected v1 delivery route, and creates an idempotent acquisition **receipt** for a named Local Library. A receipt and its manifest are an authorized handoff record only: they do not download content into a Local Library, execute client processing, or store Personal Knowledge.
 
@@ -189,6 +189,15 @@ This proof is deliberately local. G0 (hostname/TLS/authorization ownership), G1 
 
 ### Local Browser Ingest Runbook
 
-Start the local panel with `node scripts/deployment/start-local-master-library-browser.mjs`. The launcher starts only the browser route and its declared Master Library dependencies; it does not start `sync-server`, so an isolated Docker Desktop run cannot bind the user's shared sync port. It prints a temporary credential once, removes the host password file after readiness, and keeps the BFF credentials in Docker secrets.
+Start the local panel with `node scripts/deployment/start-local-master-library-browser.mjs`. The launcher starts only the browser route and its declared Master Library dependencies; it does not start `sync-server`, so an isolated Docker Desktop run cannot bind the user's shared sync port. It prints a temporary credential once, removes the generated host password file after readiness, and keeps the BFF credentials in Docker secrets.
+
+To retain a Docker Desktop-local password across restarts, create an operator-owned file **outside this repository** with the password as its nonempty content and exact mode `0600`, then run:
+
+```sh
+MASTER_LIBRARY_LOCAL_BROWSER_PASSWORD_SOURCE_FILE=/absolute/path/to/local-browser-password.txt \
+  node scripts/deployment/start-local-master-library-browser.mjs
+```
+
+The launcher rejects relative paths, non-regular or empty files, modes other than `0600`, and repository paths before it invokes Compose. It passes only the file path to the local Compose Docker-secret declaration; it never prints, logs, copies, deletes, commits, or forwards the password as an environment variable. This is an opt-in Docker Desktop workflow, not a NAS/deployment credential mechanism. Sessions remain short-lived and are invalidated on restart because signing material is regenerated.
 
 For rollback of local ingest proof, stop the isolated Compose project and remove only its disposable fixture root. Retain normal Master Library journal, PostgreSQL, and source evidence whenever investigating a real interrupted promotion. The automated harness uses a unique Compose project and performs this teardown itself; it never targets the user's `knowledgeos` project.

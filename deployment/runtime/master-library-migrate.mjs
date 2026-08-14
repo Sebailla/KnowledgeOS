@@ -1,7 +1,7 @@
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import {
-  PgSqlClient, MigrationRunner, initialMasterLibraryMigration, durableProcessingMigration, catalogMetadataMigration, acquisitionReceiptMigration, ingestJournalMigration, ingestPromotionMigration,
+  PgSqlClient, MigrationRunner, initialMasterLibraryMigration, durableProcessingMigration, catalogMetadataMigration, acquisitionReceiptMigration, ingestJournalMigration, ingestPromotionMigration, acceptedMetadataProvenanceMigration,
   PostgresMasterStorageCatalog, PostgresOperationJournal, AuthorityReconciler, PostgresAuthoritativeIngestRepository, AuthoritativeIngestService,
 } from '/app/workspace/packages/master-storage/dist/index.js';
 
@@ -12,7 +12,7 @@ const password = (await readFile(passwordFile, 'utf8')).trim();
 const database = new URL(databaseUrl);
 const client = new PgSqlClient({ host: database.hostname, port: Number(database.port || 5432), database: database.pathname.slice(1), user: decodeURIComponent(database.username), password });
 try {
-  const applied = await new MigrationRunner(client).apply([initialMasterLibraryMigration, durableProcessingMigration, catalogMetadataMigration, acquisitionReceiptMigration, ingestJournalMigration, ingestPromotionMigration]);
+  const applied = await new MigrationRunner(client).apply([initialMasterLibraryMigration, durableProcessingMigration, catalogMetadataMigration, acquisitionReceiptMigration, ingestJournalMigration, ingestPromotionMigration, acceptedMetadataProvenanceMigration]);
   const catalog = new PostgresMasterStorageCatalog(client);
   const journal = new PostgresOperationJournal(client);
   if (process.env.MASTER_LIBRARY_RECONCILIATION_FIXTURE === 'orphan') {
@@ -29,7 +29,7 @@ try {
   const reconciled = [];
   for (const row of records.rows) reconciled.push({ operationId: row.operation_id, decision: await reconciler.recover({ operationId: row.operation_id, publicationId: row.publication_id, versionId: row.version_id, state: row.state, fingerprint: row.content_fingerprint }) });
   if (process.env.MASTER_LIBRARY_INGEST_ENABLED === 'true') {
-    const limit = Number(process.env.MASTER_LIBRARY_INGEST_MAX_BYTES ?? '104857600');
+    const limit = Number(process.env.MASTER_LIBRARY_INGEST_MAX_BYTES ?? '524288000');
     if (!Number.isSafeInteger(limit) || limit < 1) throw new Error('MASTER_LIBRARY_INGEST_MAX_BYTES must be a positive integer.');
     await new AuthoritativeIngestService(new PostgresAuthoritativeIngestRepository(client), process.env.MASTER_LIBRARY_FILES_ROOT ?? '/var/lib/knowledgeos/master-library', { maxBytes: limit }).reconcile();
   }

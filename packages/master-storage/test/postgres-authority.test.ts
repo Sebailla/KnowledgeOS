@@ -11,6 +11,7 @@ import {
   acquisitionReceiptMigration,
   PostgresAcquisitionReceiptRepository,
   ingestJournalMigration,
+  acceptedMetadataProvenanceMigration,
   PostgresIngestJournal,
   type SqlClient,
 } from "../src/index.js";
@@ -19,6 +20,14 @@ test("catalog metadata migration keeps legacy descriptors non-browseable until r
   assert.equal(catalogMetadataMigration.up.includes("title text NULL"), true);
   assert.equal(catalogMetadataMigration.up.includes("knowledge_object_id text NULL"), true);
   assert.equal(catalogMetadataMigration.up.includes("authors jsonb NULL"), true);
+});
+
+test("accepted metadata provenance migration preserves legacy rows and has a reversible boundary", () => {
+  assert.equal(acceptedMetadataProvenanceMigration.up.includes("accepted_metadata_provenance jsonb NOT NULL DEFAULT '{}'::jsonb"), true);
+  assert.equal(acceptedMetadataProvenanceMigration.up.includes("ALTER TABLE master_publications"), true);
+  assert.equal(acceptedMetadataProvenanceMigration.down.includes("DROP COLUMN IF EXISTS accepted_metadata_provenance"), true);
+  assert.equal(acceptedMetadataProvenanceMigration.up.includes("ocrText"), false);
+  assert.equal(acceptedMetadataProvenanceMigration.up.includes("path"), false);
 });
 
 class FakeSqlClient implements SqlClient {

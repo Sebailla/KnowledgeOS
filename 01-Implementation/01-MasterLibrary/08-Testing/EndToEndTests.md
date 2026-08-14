@@ -149,3 +149,12 @@ Schema and storage migrations SHALL be versioned, restartable and tested against
 ## 12. Status
 
 This document is part of the KnowledgeOS Master Library V4 implementation baseline.
+
+## 13. Local Metadata Review Coverage
+
+The Docker-local browser path SHALL prove that PDF and EPUB inspection stays
+same-origin and that no enrichment request targets an external host. Coverage
+includes a suggested prefill, a user-corrected field that remains unchanged,
+and an inspection failure where manually entered title and authors still ingest
+successfully. Tests assert redacted BFF responses and must not record document
+content, local paths, credentials, or OCR output.

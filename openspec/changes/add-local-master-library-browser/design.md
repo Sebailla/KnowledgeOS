@@ -9,7 +9,7 @@ Add a Docker Desktop-only browser BFF and static panel behind the TLS proxy. Its
 | Decision | Choice | Alternative / rationale |
 |---|---|---|
 | Panel boundary | Dependency-free Node HTTP BFF plus HTML/CSS/JS | Browser-held bearer tokens expose protected credentials. |
-| Local identity | Ephemeral `admin@knowledgeos.local`; startup password hash and HMAC credentials | Static fixture tokens cannot meet expiry or one-time disclosure. |
+| Local identity | Ephemeral `admin@knowledgeos.local`; startup password hash and HMAC credentials, with an opt-in local Docker secret password source | Static fixture tokens cannot meet expiry or one-time disclosure. |
 | Handoff | Protected `POST /v1/master-library/acquisitions` accepts publication/version, named Local Library, and `Idempotency-Key`; returns receipt + manifest | Direct content download is not an explicit acquisition handoff. |
 | Receipt state | PostgreSQL Master operational journal stores idempotency fingerprint and receipt only | It creates no Local Library/Personal Knowledge data and survives retry/restart. |
 | Profiles | Add `local`; retain `test`/`deployment`; reject `LOCAL_BROWSER_*`, `local://`, or local ports in deployment | Reusing `test` obscures the security boundary. |
@@ -24,7 +24,7 @@ operator -> HTTPS nginx `/` -> browser BFF
   -> handoff receipt/manifest (not Local Library work)
 ```
 
-The launcher generates mode-0600 password/signing-secret files, prints the password once to its initiating terminal, starts Compose, and removes the password file after browser readiness. The BFF hashes/drops the raw password, keeps sessions memory-only, validates `Origin` on state changes, and logs only correlation/outcome. Proxy routes `/v1/` and health to Master Library, all other paths to the browser. Browser has no database/files/operations mounts.
+By default, the launcher generates mode-0600 password/signing-secret files, prints the generated password once to its initiating terminal, starts Compose, and removes the generated password file after browser readiness. An operator MAY instead set `MASTER_LIBRARY_LOCAL_BROWSER_PASSWORD_SOURCE_FILE` to an absolute, nonempty, regular mode-0600 file outside the repository. The launcher validates that file before Compose and passes its path only to the Compose Docker-secret declaration; it neither copies, prints, logs, nor removes its content. This opt-in is Docker Desktop-local only and is excluded from NAS and deployment configuration. The BFF hashes/drops the raw password, keeps sessions memory-only, validates `Origin` on state changes, and logs only correlation/outcome. Proxy routes `/v1/` and health to Master Library, all other paths to the browser. Browser has no database/files/operations mounts.
 
 On `POST /v1/master-library/acquisitions`, authorize `publication.acquire`, validate stable identities and availability, read the already-authorized manifest, and atomically insert/find `(subject, idempotencyKey)` with a canonical request fingerprint. Same fingerprint returns the original receipt/manifest; a differing fingerprint returns `operation.conflict`; validation/unavailable failures create no receipt. The server never downloads content, writes a Local Library, starts local processing, or accepts Personal Knowledge.
 
@@ -40,7 +40,7 @@ On `POST /v1/master-library/acquisitions`, authorize `publication.acquire`, vali
 | `deployment/runtime/master-library-protected-server.mjs` | Modify | Wire local adapter and handoff repository only in `local`. |
 | `deployment/docker/master-library/Dockerfile` | Modify | Build/copy adapter and browser image stage or dedicated Dockerfile. |
 | `deployment/production/{compose.yaml,compose.local.yaml,proxy/default.conf.template}` | Modify | Browser service, secrets, path split, local profile, no authoritative mounts. |
-| `scripts/deployment/{start-local-master-library-browser.mjs,test-local-master-library-browser.mjs}` | Create | One-time bootstrap/launch and TLS Docker E2E. |
+| `scripts/deployment/{start-local-master-library-browser.mjs,test-local-master-library-browser.mjs}` | Create | Default temporary bootstrap plus validated opt-in persistent-secret launch and TLS Docker E2E. |
 | `01-Implementation/01-MasterLibrary/09-Operations/README.md` | Modify | Local boundary, receipt semantics, NAS exclusion. |
 
 ## Interfaces / Contracts
@@ -61,10 +61,10 @@ The BFF exposes same-origin `POST /local/auth/login`, `POST /local/auth/logout`,
 
 | Layer | What to test | Approach |
 |---|---|---|
-| Unit | password constant-time compare, token signature/expiry, profile rejection | Node RED tests. |
+| Unit | password constant-time compare, token signature/expiry, profile rejection, persistent-source absolute/regular/nonempty/0600/repository rejection | Node RED tests. |
 | Storage/contract | insert/replay/conflict, validation, exact manifest/identity preservation | PostgreSQL and v1 route tests. |
 | Integration | cookie flags, origin checks, catalog/download/handoff forwarding, UI states | BFF with injected v1 fetcher. |
-| Docker E2E | TLS login, download, receipt replay/conflict, expiry/logout, no mounts/log secrets, deployment refusal | disposable Compose fixture + Node cookie jar. |
+| Docker E2E | TLS login, download, receipt replay/conflict, expiry/logout, persistent-secret non-disclosure, no mounts/log secrets, deployment refusal | disposable Compose fixture + Node cookie jar. |
 
 ## Threat Matrix
 

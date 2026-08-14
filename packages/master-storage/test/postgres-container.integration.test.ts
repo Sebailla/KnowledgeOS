@@ -11,6 +11,7 @@ import {
   acquisitionReceiptMigration,
   ingestJournalMigration,
   ingestPromotionMigration,
+  acceptedMetadataProvenanceMigration,
   MigrationRunner,
   PgSqlClient,
   PostgresAcquisitionReceiptRepository,
@@ -100,7 +101,7 @@ if (databaseUrl) {
     const root = await mkdtemp(join(tmpdir(), "knowledgeos-postgres-ingest-"));
     const client = new PgSqlClient({ connectionString: databaseUrl });
     try {
-      await new MigrationRunner(client).apply([initialMasterLibraryMigration, durableProcessingMigration, catalogMetadataMigration, acquisitionReceiptMigration, ingestJournalMigration, ingestPromotionMigration]);
+      await new MigrationRunner(client).apply([initialMasterLibraryMigration, durableProcessingMigration, catalogMetadataMigration, acquisitionReceiptMigration, ingestJournalMigration, ingestPromotionMigration, acceptedMetadataProvenanceMigration]);
       const service = new AuthoritativeIngestService(new PostgresAuthoritativeIngestRepository(client), root, { maxBytes: 1024 });
       const bytes = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31]);
       const accepted = await service.accept({ subject: "operator:postgres-recovery", correlationId: "correlation:postgres-recovery", idempotencyKey: `ingest:postgres-recovery:${Date.now()}`, bytes, metadata: { title: "Postgres Recovery", authors: ["Ada"], originalFilename: "postgres.pdf", declaredMediaType: "application/pdf", byteLength: bytes.byteLength }, interruptAfter: "promoted" });
@@ -128,6 +129,7 @@ if (databaseUrl) {
       acquisitionReceiptMigration,
   ingestJournalMigration,
   ingestPromotionMigration,
+  acceptedMetadataProvenanceMigration,
     ]);
     const receipts = new PostgresAcquisitionReceiptRepository(client);
     const request = {
@@ -175,6 +177,7 @@ if (databaseUrl) {
       acquisitionReceiptMigration,
       ingestJournalMigration,
       ingestPromotionMigration,
+      acceptedMetadataProvenanceMigration,
     ]);
     const journal = new PostgresIngestJournal(client);
     const [first, second] = await Promise.all([

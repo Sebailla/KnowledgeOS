@@ -75,7 +75,13 @@ export type MasterLibraryErrorCode =
   | "ingest.validation-failed"
   | "ingest.capacity-exceeded"
   | "ingest.idempotency-conflict"
-  | "ingest.duplicate-content";
+  | "ingest.duplicate-content"
+  | "inspection.validation-failed"
+  | "inspection.capacity-exceeded"
+  | "inspection.cancelled"
+  | "ocr.unavailable"
+  | "ocr.limited"
+  | "ocr.failed";
 
 export interface MasterLibraryError {
   readonly code: MasterLibraryErrorCode;
@@ -169,6 +175,8 @@ export interface IngestSourceMetadataV1 {
   readonly originalFilename: string;
   readonly declaredMediaType: "application/pdf" | "application/epub+zip";
   readonly byteLength: number;
+  /** Review-confirmed source labels only; never extracted content, paths, or identities. */
+  readonly acceptedProvenance?: AcceptedMetadataProvenanceV1;
 }
 
 /** Versioned ingest intent; paths and client-provided identities are deliberately absent. */
@@ -202,4 +210,51 @@ export interface IngestOperationStatusV1 {
   readonly state: IngestOperationStateV1;
   readonly outcome?: IngestOutcomeV1;
   readonly error?: MasterLibraryError;
+}
+
+/** Local evidence used to propose a value before explicit user submission. */
+export type MetadataEvidence =
+  | "pdf-info"
+  | "pdf-xmp"
+  | "epub-opf"
+  | "first-page-text"
+  | "filename"
+  | "local-ocr"
+  | "user-entered";
+
+export type MetadataConfidence = "high" | "medium" | "low";
+
+export interface MetadataSuggestion {
+  readonly value: string;
+  readonly evidence: MetadataEvidence;
+  readonly confidence: MetadataConfidence;
+}
+
+/** A lower-ranked local suggestion that the reviewer may explicitly apply. */
+export interface MetadataCandidate extends MetadataSuggestion {
+  /** The metadata field to which this candidate may be applied. */
+  readonly field: "title" | "authors";
+}
+
+/** Immutable evidence labels retained beside accepted title and author values. */
+export interface AcceptedMetadataProvenanceV1 {
+  readonly title: Pick<MetadataSuggestion, "evidence" | "confidence">;
+  readonly authors: readonly Pick<MetadataSuggestion, "evidence" | "confidence">[];
+}
+
+/** Source bytes travel separately and are never persisted by inspection. */
+export interface InspectPublicationV1 {
+  readonly metadata: Pick<
+    IngestSourceMetadataV1,
+    "originalFilename" | "declaredMediaType" | "byteLength"
+  >;
+}
+
+/** Reviewable, local-only suggestions; candidates preserve lower-ranked conflicts and their target field. */
+export interface InspectPublicationResultV1 {
+  readonly title?: MetadataSuggestion;
+  readonly authors?: readonly MetadataSuggestion[];
+  readonly candidates: readonly MetadataCandidate[];
+  readonly correlationId: string;
+  readonly outcome: "completed" | "partial" | "ocr-unavailable" | "ocr-limited";
 }

@@ -24,6 +24,7 @@ import type {
   IngestAcceptedV1,
   IngestOperationStatusV1,
   IngestSourceMetadataV1,
+  InspectPublicationResultV1,
 } from "@knowledgeos/contracts";
 
 export interface DirectStreamingServerOptions {
@@ -38,6 +39,13 @@ export interface DirectStreamingDependencies {
   readonly readiness?: DeliveryReadiness;
   readonly acquisitionReceipts: AcquisitionReceiptRepository;
   readonly ingest?: IngestRouteService;
+  readonly inspection?: InspectionRouteService;
+  /**
+   * Hard upper bound for ephemeral inspection bytes. Inspection materializes
+   * source bytes for local PDF/EPUB parsing, so this is deliberately separate
+   * from the streaming authoritative-ingest limit.
+   */
+  readonly inspectionMaximumBytes?: number;
   readonly delivery: DeliveryBoundaryConfiguration;
 }
 
@@ -284,6 +292,16 @@ export interface IngestRouteService {
   status(operationId: string): Promise<IngestOperationStatusV1 | undefined>;
 }
 
+/** Import Engine boundary for ephemeral, local document inspection. */
+export interface InspectionRouteService {
+  inspect(request: {
+    readonly subject: string;
+    readonly correlationId: string;
+    readonly metadata: Pick<IngestSourceMetadataV1, "originalFilename" | "declaredMediaType" | "byteLength">;
+    readonly source: AsyncIterable<Uint8Array>;
+  }): Promise<InspectPublicationResultV1>;
+}
+
 export interface BoundAddress {
   readonly host: string;
   readonly port: number;
@@ -427,9 +445,13 @@ async function multipartStream(request: IncomingMessage, maximumControlBytes: nu
   const delimiter = Buffer.from(`\r\n--${boundary}`);
   let metadata: IngestSourceMetadataV1 | undefined;
   while (!metadata) {
-    if (pending.byteLength > maximumControlBytes) throw new IngestRouteValidationError();
     const nextBoundary = pending.indexOf(delimiter);
-    if (nextBoundary < 0) { await read(); continue; }
+    if (nextBoundary < 0) {
+      if (pending.byteLength > maximumControlBytes) throw new IngestRouteValidationError();
+      await read();
+      continue;
+    }
+    if (nextBoundary > maximumControlBytes) throw new IngestRouteValidationError();
     const section = pending.subarray(0, nextBoundary).toString("utf8");
     pending = pending.subarray(nextBoundary + delimiter.byteLength + 2);
     const marker = section.indexOf("\r\n\r\n");
@@ -462,6 +484,29 @@ async function multipartStream(request: IncomingMessage, maximumControlBytes: nu
 class ValidationError extends Error {}
 class IngestRouteValidationError extends Error {}
 class IngestCapacityError extends Error {}
+class InspectionCapacityError extends Error {}
+class InspectionCancelledError extends Error {}
+
+/**
+ * The local default accepts ordinary PDFs while preventing PDF.js/OCR from
+ * materializing an unbounded upload in a request process.
+ */
+export const DEFAULT_INSPECTION_MAX_BYTES = 16 * 1024 * 1024;
+
+async function* boundedInspectionSource(
+  request: IncomingMessage,
+  source: AsyncIterable<Uint8Array>,
+  maximumBytes: number,
+): AsyncIterable<Uint8Array> {
+  let length = 0;
+  for await (const chunk of source) {
+    if (request.aborted) throw new InspectionCancelledError();
+    length += chunk.byteLength;
+    if (length > maximumBytes) throw new InspectionCapacityError();
+    yield chunk;
+  }
+  if (request.aborted) throw new InspectionCancelledError();
+}
 
 function requiredIdentity(body: Readonly<Record<string, unknown>>, key: string, prefix: string): string {
   const value = body[key];
@@ -471,11 +516,19 @@ function requiredIdentity(body: Readonly<Record<string, unknown>>, key: string, 
 
 export class MasterDirectStreamingServer {
   private server: Server | undefined;
+  private readonly inspectionMaximumBytes: number;
 
   public constructor(
     private readonly dependencies: DirectStreamingDependencies,
     private readonly options: DirectStreamingServerOptions,
-  ) {}
+  ) {
+    this.inspectionMaximumBytes = dependencies.inspectionMaximumBytes
+      ?? DEFAULT_INSPECTION_MAX_BYTES;
+    if (!Number.isSafeInteger(this.inspectionMaximumBytes)
+      || this.inspectionMaximumBytes < 1) {
+      throw new Error("Inspection maximum bytes must be a positive integer.");
+    }
+  }
 
   async start(): Promise<BoundAddress> {
     if (this.server) {
@@ -538,7 +591,7 @@ export class MasterDirectStreamingServer {
 
       const permission = pathname === "/v1/master-library/catalog"
         ? "catalog.read"
-        : pathname === "/v1/master-library/publications:ingest" || pathname.startsWith("/v1/master-library/ingest-operations/")
+        : pathname === "/v1/master-library/publications:ingest" || pathname === "/v1/master-library/publications:inspect" || pathname.startsWith("/v1/master-library/ingest-operations/")
           ? "catalog.write"
           : "publication.acquire";
 
@@ -629,6 +682,25 @@ export class MasterDirectStreamingServer {
         return;
       }
 
+      if (method === "POST" && pathname === "/v1/master-library/publications:inspect") {
+        if (!this.dependencies.inspection) throw new Error("Inspection is not enabled.");
+        const streamed = await multipartStream(request, 64 * 1024);
+        const principal = await this.dependencies.delivery.credentialSource.authenticate(headerValue(request, "authorization"));
+        if (!principal) { json(response, 403, { error: { code: "authorization.denied", correlationId } }); return; }
+        const inspected = await this.dependencies.inspection.inspect({
+          subject: principal.subject,
+          correlationId,
+          metadata: streamed.metadata,
+          source: boundedInspectionSource(
+            request,
+            streamed.source,
+            this.inspectionMaximumBytes,
+          ),
+        });
+        json(response, 200, inspected);
+        return;
+      }
+
       const ingestStatus = /^\/v1\/master-library\/ingest-operations\/([^/]+)$/.exec(pathname);
       if (method === "GET" && ingestStatus) {
         if (!this.dependencies.ingest) throw new Error("Ingest is not enabled.");
@@ -714,8 +786,20 @@ export class MasterDirectStreamingServer {
         json(response, 413, { error: { code: "ingest.capacity-exceeded", correlationId: "correlation:master-library-request" } });
         return;
       }
+      if (error instanceof InspectionCapacityError) {
+        json(response, 413, { error: { code: "inspection.capacity-exceeded", correlationId: "correlation:master-library-request" } });
+        return;
+      }
+      if (error instanceof InspectionCancelledError) {
+        json(response, 499, { error: { code: "inspection.cancelled", correlationId: "correlation:master-library-request" } });
+        return;
+      }
       if (error instanceof IngestRouteValidationError || error instanceof Error && error.name === "IngestValidationError") {
         json(response, 400, { error: { code: "ingest.validation-failed", correlationId: "correlation:master-library-request" } });
+        return;
+      }
+      if (error instanceof Error && error.name === "InspectionValidationError") {
+        json(response, 400, { error: { code: "inspection.validation-failed", correlationId: "correlation:master-library-request" } });
         return;
       }
       if (error instanceof Error && error.name === "IngestIdempotencyConflictError") {

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { request as httpRequest } from "node:http";
 import { MasterDirectStreamingServer, FixtureDeliveryAuthorizer, createFixtureDeliveryBoundary } from "../dist/index.js";
 
 const audit = [];
@@ -36,6 +37,43 @@ const multipart = (metadata, bytes, filename = "book.pdf") => {
   };
 };
 
+const chunkedPost = (url, headers, body) => new Promise((resolve, reject) => {
+  const target = new URL(url);
+  const request = httpRequest({ host: target.hostname, port: target.port, method: "POST", path: target.pathname, headers }, (response) => {
+    const chunks = [];
+    response.on("data", (chunk) => chunks.push(chunk));
+    response.once("end", () => resolve({ status: response.statusCode, body: Buffer.concat(chunks) }));
+  });
+  request.once("error", reject);
+  request.write(body.subarray(0, 17));
+  request.write(body.subarray(17));
+  request.end();
+});
+
+const streamedRequest = (headers, chunks) => ({
+  method: "POST",
+  url: "/v1/master-library/publications:ingest",
+  headers,
+  socket: { remoteAddress: "127.0.0.1" },
+  complete: true,
+  once() {},
+  async *[Symbol.asyncIterator]() { yield* chunks; },
+});
+
+const capturedResponse = () => {
+  const state = { status: 0, body: Buffer.alloc(0) };
+  return {
+    state,
+    response: {
+      set statusCode(value) { state.status = value; },
+      setHeader() {},
+      write() { return true; },
+      once() {},
+      end(value) { state.body = Buffer.from(value ?? ""); },
+    },
+  };
+};
+
 try {
   const pdf = Buffer.from("%PDF-1.7");
   const metadata = { title: "HTTP Ingest", authors: ["Ada"], originalFilename: "book.pdf", declaredMediaType: "application/pdf", byteLength: pdf.byteLength };
@@ -45,6 +83,17 @@ try {
   assert.equal((await accepted.json()).operationId, "operation:ingest-http");
   assert.equal(calls[0]?.metadata.title, "HTTP Ingest");
   assert.equal(calls[0]?.bytes.toString(), "%PDF-1.7");
+
+  const chunked = await chunkedPost(`${base}/v1/master-library/publications:ingest`, { ...headers, "content-type": form.contentType, "idempotency-key": "ingest:chunked" }, form.body);
+  assert.equal(chunked.status, 202, chunked.body.toString());
+
+  // A chunked forwarder may deliver the complete control part with source bytes
+  // in one chunk. The control-size bound applies to control data, not the chunk.
+  const largePdf = Buffer.concat([Buffer.from("%PDF-1.7\n"), Buffer.alloc(70 * 1024)]);
+  const largeForm = multipart({ ...metadata, byteLength: largePdf.byteLength }, largePdf, "large.pdf");
+  const capture = capturedResponse();
+  await server.handle(streamedRequest({ ...headers, "content-type": largeForm.contentType, "transfer-encoding": "chunked", "idempotency-key": "ingest:chunked-large" }, [largeForm.body]), capture.response);
+  assert.equal(capture.state.status, 202, capture.state.body.toString());
 
   const status = await fetch(`${base}/v1/master-library/ingest-operations/operation%3Aingest-http`, { headers });
   assert.equal(status.status, 200);

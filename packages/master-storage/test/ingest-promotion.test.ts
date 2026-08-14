@@ -16,6 +16,10 @@ const metadata = {
   originalFilename: "recovery-book.pdf",
   declaredMediaType: "application/pdf" as const,
   byteLength: pdf.byteLength,
+  acceptedProvenance: {
+    title: { evidence: "pdf-info" as const, confidence: "high" as const },
+    authors: [{ evidence: "user-entered" as const, confidence: "high" as const }],
+  },
 };
 
 test("promotes validated bytes and registers a catalog-visible publication exactly once", async () => {
@@ -34,6 +38,7 @@ test("promotes validated bytes and registers a catalog-visible publication exact
 
     assert.equal(accepted.outcome, "registered");
     assert.equal((await repository.browse()).items.length, 1);
+    assert.deepEqual((await repository.record(accepted.operationId))?.metadata.acceptedProvenance, metadata.acceptedProvenance);
     assert.deepEqual(
       await readFile(join(root, "publications", accepted.publicationId, accepted.versionId, "content")),
       Buffer.from(pdf),

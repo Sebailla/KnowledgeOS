@@ -37,7 +37,7 @@ services:
     environment:
       OPERATIONS_ROOT: /var/lib/knowledgeos/operations
       MASTER_LIBRARY_INGEST_ENABLED: "true"
-      MASTER_LIBRARY_INGEST_MAX_BYTES: ${MASTER_LIBRARY_INGEST_MAX_BYTES:-104857600}
+      MASTER_LIBRARY_INGEST_MAX_BYTES: ${MASTER_LIBRARY_INGEST_MAX_BYTES:-524288000}
       MASTER_LIBRARY_INGEST_INTERRUPT_AFTER_PROMOTED: ${MASTER_LIBRARY_INGEST_INTERRUPT_AFTER_PROMOTED:-false}
     volumes:
       - type: bind
@@ -64,7 +64,8 @@ services:
       MASTER_LIBRARY_CREDENTIAL_SOURCE_REF: local://development-browser
       MASTER_LIBRARY_AUTHORIZATION_PORT_REF: local://development-browser
       MASTER_LIBRARY_INGEST_ENABLED: "true"
-      MASTER_LIBRARY_INGEST_MAX_BYTES: ${MASTER_LIBRARY_INGEST_MAX_BYTES:-104857600}
+      MASTER_LIBRARY_INGEST_MAX_BYTES: ${MASTER_LIBRARY_INGEST_MAX_BYTES:-524288000}
+      MASTER_LIBRARY_INSPECTION_MAX_BYTES: ${MASTER_LIBRARY_INSPECTION_MAX_BYTES:-16777216}
       MASTER_LIBRARY_INGEST_INTERRUPT_AFTER_PROMOTED: ${MASTER_LIBRARY_INGEST_INTERRUPT_AFTER_PROMOTED:-false}
       OPERATIONS_ROOT: /var/lib/knowledgeos/operations
       LOCAL_BROWSER_PASSWORD_FILE: /run/secrets/local_browser_password
@@ -101,7 +102,8 @@ secrets:
   postgres_password:
     file: ${MASTER_LIBRARY_FIXTURE_ROOT:?MASTER_LIBRARY_FIXTURE_ROOT is required}/secrets/postgres_password.txt
   local_browser_password:
-    file: ${MASTER_LIBRARY_FIXTURE_ROOT:?MASTER_LIBRARY_FIXTURE_ROOT is required}/secrets/local_browser_password.txt
+    # The launcher validates this operator-managed Docker Desktop secret source.
+    file: ${MASTER_LIBRARY_LOCAL_BROWSER_PASSWORD_SOURCE_FILE:?MASTER_LIBRARY_LOCAL_BROWSER_PASSWORD_SOURCE_FILE is required}
   local_browser_signing_secret:
     file: ${MASTER_LIBRARY_FIXTURE_ROOT:?MASTER_LIBRARY_FIXTURE_ROOT is required}/secrets/local_browser_signing_secret.txt
   sync_token:

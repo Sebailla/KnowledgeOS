@@ -9,6 +9,7 @@ declare module "node:http" {
     readonly headers: IncomingHttpHeaders;
     readonly socket: { readonly remoteAddress?: string };
     readonly complete: boolean;
+    readonly aborted?: boolean;
     once(event: "aborted" | "close", listener: () => void): void;
   }
 

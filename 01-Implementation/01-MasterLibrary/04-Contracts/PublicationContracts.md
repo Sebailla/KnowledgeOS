@@ -147,3 +147,18 @@ Schema and storage migrations SHALL be versioned, restartable and tested against
 ## 12. Status
 
 This document is part of the KnowledgeOS Master Library V4 implementation baseline.
+
+## 13. Local Ingest Metadata Review
+
+Before a local PDF or EPUB ingest, the local browser MAY submit the selected
+source to the authenticated `POST /v1/master-library/publications:inspect`
+boundary. The response contains only reviewable title/author suggestions,
+evidence labels, confidence, a correlation identity, and a redacted outcome.
+
+- Inspection SHALL NOT create a publication, source item, version, or client identity.
+- The local inspection source limit is configured by the local runtime; a larger request returns `inspection.capacity-exceeded`.
+- The browser SHALL prefill only untouched title and author fields; all final values remain editable.
+- Lower-ranked inspection candidates SHALL identify whether they apply to the title or authors field, remain ranked by the local inspector, and require an explicit reviewer action before replacing either field.
+- Ingest metadata MAY contain `acceptedProvenance` with evidence and confidence labels for title and authors. It SHALL NOT contain extracted text, OCR output, filesystem paths, or client identities.
+- A user edit is recorded as `user-entered`; it SHALL NOT be silently replaced by a later suggestion.
+- An inspection failure SHALL preserve the existing manual ingest path.

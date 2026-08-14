@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { request } from "node:https";
@@ -10,12 +10,14 @@ const fixture = mkdtempSync(join(tmpdir(), "knowledgeos-local-ingest-e2e-"));
 const project = `knowledgeos-ingest-e2e-${process.pid}-${Date.now()}`;
 const port = String(18_000 + Math.floor(Math.random() * 1_000));
 const password = "local-ingest-e2e-password";
+const persistentPasswordFile = join(fixture, "persistent-browser-password.txt");
+writeFileSync(persistentPasswordFile, `${password}\n`, { mode: 0o600 });
 const environment = {
   ...process.env,
   KNOWLEDGEOS_COMPOSE_PROJECT: project,
   MASTER_LIBRARY_FIXTURE_ROOT: fixture,
   MASTER_LIBRARY_HTTPS_PORT: port,
-  LOCAL_BROWSER_PASSWORD: password,
+  MASTER_LIBRARY_LOCAL_BROWSER_PASSWORD_SOURCE_FILE: persistentPasswordFile,
   MASTER_LIBRARY_SESSION_TTL_MS: "900000",
   MASTER_LIBRARY_INGEST_MAX_BYTES: "256",
 };
@@ -86,6 +88,15 @@ const upload = async (cookie, key, metadata, bytes, filename = metadata.original
     "idempotency-key": key,
   }, form.body);
 };
+const inspect = async (cookie, metadata, bytes, filename = metadata.originalFilename) => {
+  const form = multipart(metadata, bytes, filename);
+  return call("POST", "/local/api/publications:inspect", {
+    cookie,
+    origin: `https://localhost:${port}`,
+    "content-type": form.contentType,
+    "content-length": String(form.body.byteLength),
+  }, form.body);
+};
 const waitForReady = async () => {
   for (let attempt = 0; attempt < 45; attempt += 1) {
     try { if ((await call("GET", "/health/ready")).status === 200) return; } catch { /* recreate window */ }
@@ -100,9 +111,9 @@ try {
   const start = spawnSync("node", ["scripts/deployment/start-local-master-library-browser.mjs"], { cwd: root, env: environment, encoding: "utf8", timeout: 240_000 });
   assert.equal(start.status, 0, `${start.stdout}\n${start.stderr}`);
   started = true;
-  assert.match(start.stdout, /Temporary login: admin@knowledgeos\.local \/ local-ingest-e2e-password/);
-  assert.equal((start.stdout.match(/local-ingest-e2e-password/g) ?? []).length, 1);
-  assert.throws(() => statSync(join(fixture, "secrets", "local_browser_password.txt")));
+  assert.match(start.stdout, /Persistent local login: admin@knowledgeos\.local/);
+  assert.doesNotMatch(start.stdout, /local-ingest-e2e-password/);
+  assert.equal(statSync(persistentPasswordFile).mode & 0o777, 0o600);
   assert.equal(statSync(join(fixture, "secrets", "local_browser_signing_secret.txt")).mode & 0o777, 0o600);
 
   const panel = await call("GET", "/");
@@ -110,6 +121,18 @@ try {
   assert.match(panel.body.toString(), /Local Master Library/);
   assert.equal((await call("GET", "/local/api/catalog")).status, 401);
   const cookie = await login();
+  const scannedBytes = readFileSync(join(root, "packages/import/test/fixtures/scanned-paper.pdf"));
+  const scannedMetadata = { title: "Manual correction", authors: ["Manual author"], originalFilename: "scan.pdf", declaredMediaType: "application/pdf", byteLength: scannedBytes.byteLength };
+  const scanned = await inspect(cookie, scannedMetadata, scannedBytes);
+  assert.equal(scanned.status, 200, scanned.body.toString());
+  const scannedInspection = JSON.parse(scanned.body);
+  assert.equal(scannedInspection.authors?.[0]?.value, "Ada Lovelace");
+  assert.equal(scannedInspection.authors?.[0]?.evidence, "local-ocr");
+  assert.equal(scannedInspection.candidates.some(candidate => candidate.value === "Scanned Paper" && candidate.evidence === "local-ocr"), true);
+  assert.equal(scannedInspection.outcome, "completed");
+  const failedInspection = await inspect(cookie, { title: "Manual", authors: ["Ada"], originalFilename: "broken.pdf", declaredMediaType: "application/pdf", byteLength: 4 }, Buffer.from("nope"));
+  assert.equal(failedInspection.status, 400);
+  assert.equal(JSON.parse(failedInspection.body).error.code, "inspection.validation-failed");
   const invalid = await upload(cookie, "ingest-invalid", { title: "Invalid", authors: ["Ada"], originalFilename: "invalid.pdf", declaredMediaType: "application/pdf", byteLength: 5 }, Buffer.from("nope"));
   assert.equal(invalid.status, 400);
   assert.equal(JSON.parse(invalid.body).error.code, "ingest.validation-failed");
@@ -150,7 +173,6 @@ try {
   // A test-only runtime seam stops after durable promotion. Reconciliation must
   // make the retained bytes browseable only after the one-shot runner restarts.
   const interruptedEnvironment = { ...composeEnvironment, MASTER_LIBRARY_INGEST_INTERRUPT_AFTER_PROMOTED: "true" };
-  writeFileSync(join(fixture, "secrets", "local_browser_password.txt"), `${password}\n`, { mode: 0o600 });
   execFileSync("docker", [...compose, "up", "-d", "--force-recreate", "master-library"], { cwd: root, env: interruptedEnvironment, stdio: "inherit", timeout: 120_000 });
   await waitForReady();
   const interruptedBytes = Buffer.from("%PDF-1.7\ninterrupted promote");
@@ -162,7 +184,6 @@ try {
   assert.equal(hidden.status, 200);
   assert.equal(JSON.parse(hidden.body).items.some(item => item.publicationId === interruptedAccepted.publicationId), false, "promoted-but-unregistered bytes must stay hidden");
   execFileSync("docker", [...compose, "run", "--rm", "master-library-migrate"], { cwd: root, env: composeEnvironment, stdio: "inherit", timeout: 120_000 });
-  writeFileSync(join(fixture, "secrets", "local_browser_password.txt"), `${password}\n`, { mode: 0o600 });
   execFileSync("docker", [...compose, "up", "-d", "--force-recreate", "master-library"], { cwd: root, env: composeEnvironment, stdio: "inherit", timeout: 120_000 });
   await waitForReady();
   const recovered = await call("GET", `/local/api/ingest-operations/${encodeURIComponent(interruptedAccepted.operationId)}`, { cookie });
@@ -181,6 +202,8 @@ try {
   const browserId = execFileSync("docker", [...compose, "ps", "-q", "master-library-browser"], { cwd: root, env: composeEnvironment, encoding: "utf8" }).trim();
   const browserMounts = JSON.parse(execFileSync("docker", ["inspect", browserId, "--format", "{{json .Mounts}}"], { encoding: "utf8" }));
   assert.equal(browserMounts.some(mount => /knowledgeos\/(master-library|operations)|postgresql|local-library/i.test(mount.Destination)), false);
+  const browserNetworks = JSON.parse(execFileSync("docker", ["inspect", browserId, "--format", "{{json .NetworkSettings.Networks}}"], { encoding: "utf8" }));
+  assert.equal(Object.keys(browserNetworks).length, 1, "browser must use only the isolated Compose backend network");
   const logs = execFileSync("docker", [...compose, "logs", "--no-color"], { cwd: root, env: composeEnvironment, encoding: "utf8" });
   assert.doesNotMatch(logs, /local-ingest-e2e-password|local_browser_signing_secret|BEGIN PRIVATE KEY/i);
 } catch (error) {

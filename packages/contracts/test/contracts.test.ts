@@ -12,6 +12,9 @@ import type {
   IngestPublicationV1,
   IngestAcceptedV1,
   IngestOperationStatusV1,
+  InspectPublicationResultV1,
+  IngestSourceMetadataV1,
+  MetadataEvidence,
   SearchQuery,
 } from "../src/index.js";
 
@@ -124,4 +127,51 @@ test("Master Library ingest v1 contracts expose opaque accepted identifiers and 
   assert.equal(JSON.stringify(accepted).includes("knowledge.pdf"), false);
   assert.equal(status.state, "registered");
   assert.equal(errors.map((error) => error.code).join(","), "ingest.validation-failed,ingest.idempotency-conflict");
+});
+
+test("Master Library inspection v1 contracts preserve local evidence and redacted outcomes", () => {
+  const title = {
+    value: "The Architecture of Knowledge",
+    evidence: "pdf-xmp",
+    confidence: "high",
+  } satisfies InspectPublicationResultV1["title"];
+  const inspected = {
+    title,
+    authors: [{ value: "Ada Lovelace", evidence: "pdf-info", confidence: "high" }],
+    candidates: [{ value: "knowledge", evidence: "filename", confidence: "low" }],
+    correlationId: "correlation:inspection",
+    outcome: "completed",
+  } satisfies InspectPublicationResultV1;
+  const evidence = ["pdf-info", "pdf-xmp", "epub-opf", "first-page-text", "filename", "local-ocr", "user-entered"] satisfies readonly MetadataEvidence[];
+  const errors = [
+    { code: "inspection.validation-failed", correlationId: inspected.correlationId },
+    { code: "inspection.capacity-exceeded", correlationId: inspected.correlationId },
+    { code: "inspection.cancelled", correlationId: inspected.correlationId },
+    { code: "ocr.unavailable", correlationId: inspected.correlationId },
+    { code: "ocr.limited", correlationId: inspected.correlationId },
+    { code: "ocr.failed", correlationId: inspected.correlationId },
+  ] satisfies readonly MasterLibraryError[];
+
+  assert.equal(inspected.title?.evidence, "pdf-xmp");
+  assert.equal(inspected.candidates[0]?.confidence, "low");
+  assert.equal(evidence.length, 7);
+  assert.equal(errors.every((error) => !JSON.stringify(error).includes("/")), true);
+});
+
+test("ingest metadata records accepted local evidence without storing extracted content", () => {
+  const metadata = {
+    title: "The Architecture of Knowledge",
+    authors: ["Ada Lovelace"],
+    originalFilename: "knowledge.pdf",
+    declaredMediaType: "application/pdf",
+    byteLength: 42,
+    acceptedProvenance: {
+      title: { evidence: "pdf-xmp", confidence: "high" },
+      authors: [{ evidence: "user-entered", confidence: "high" }],
+    },
+  } satisfies IngestSourceMetadataV1;
+
+  assert.equal(metadata.acceptedProvenance?.title.evidence, "pdf-xmp");
+  assert.equal(JSON.stringify(metadata.acceptedProvenance).includes("/"), false);
+  assert.equal(JSON.stringify(metadata.acceptedProvenance).includes("OCR text"), false);
 });

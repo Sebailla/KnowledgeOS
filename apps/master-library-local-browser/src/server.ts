@@ -11,7 +11,7 @@ const cookieName = "knowledgeos_local_session";
 const cookie = (id: string, expiry?: boolean) => `${cookieName}=${id}; Path=/; HttpOnly; Secure; SameSite=Strict${expiry ? "; Max-Age=0" : ""}`;
 const header = (request: IncomingMessage, name: string) => { const value = request.headers[name]; return typeof value === "string" ? value : Array.isArray(value) ? value[0] : undefined; };
 const json = (response: ServerResponse, status: number, body?: unknown) => { response.statusCode = status; if (body !== undefined) response.setHeader("content-type", "application/json; charset=utf-8"); response.end(body === undefined ? undefined : JSON.stringify(body)); };
-const asset = async (response: ServerResponse, name: "index.html" | "app.js" | "app.css", type: string) => {
+const asset = async (response: ServerResponse, name: "index.html" | "app.js" | "app.css" | "metadata-review.js" | "source-preview.js", type: string) => {
   response.statusCode = 200;
   response.setHeader("content-type", type);
   response.setHeader("cache-control", "no-store");
@@ -34,6 +34,8 @@ export class LocalMasterLibraryBrowserServer {
   private async handle(request: IncomingMessage, response: ServerResponse): Promise<void> { try { const current = path(request); const method = request.method ?? "GET"; if ((method === "POST" || method === "DELETE") && !this.originAllowed(request)) { json(response, 403, { error: { code: "origin.denied" } }); return; }
     if (method === "GET" && current === "/") { await asset(response, "index.html", "text/html; charset=utf-8"); return; }
     if (method === "GET" && current === "/app.js") { await asset(response, "app.js", "application/javascript; charset=utf-8"); return; }
+    if (method === "GET" && current === "/metadata-review.js") { await asset(response, "metadata-review.js", "application/javascript; charset=utf-8"); return; }
+    if (method === "GET" && current === "/source-preview.js") { await asset(response, "source-preview.js", "application/javascript; charset=utf-8"); return; }
     if (method === "GET" && current === "/app.css") { await asset(response, "app.css", "text/css; charset=utf-8"); return; }
     if (method === "POST" && current === "/local/auth/login") { const body = await parseBody(request); const session = typeof body?.email === "string" && typeof body?.password === "string" ? await this.dependencies.auth.login(body.email, body.password) : undefined; if (!session) { json(response, 401, { error: { code: "authentication.denied" } }); return; } this.sessions.set(session.sessionId, session); response.setHeader("set-cookie", cookie(session.sessionId)); json(response, 204); return; }
     if (method === "POST" && current === "/local/auth/logout") { const session = await this.session(request); if (session) { this.sessions.delete(session.sessionId); this.dependencies.auth.logout(session.sessionId); } this.clear(response); json(response, 204); return; }
@@ -41,6 +43,7 @@ export class LocalMasterLibraryBrowserServer {
     const content = /^\/local\/api\/publications\/([^/]+)\/versions\/([^/]+)\/content$/.exec(current); if (content && (method === "GET" || method === "HEAD")) { await this.protected(request, response, `/v1/master-library/publications/${content[1]}/versions/${content[2]}/content`, method, undefined, true); return; }
     if (method === "POST" && current === "/local/api/acquisitions") { const body = await parseBody(request); if (!body) { json(response, 400, { error: { code: "validation.failed" } }); return; } await this.protected(request, response, "/v1/master-library/acquisitions", method, JSON.stringify(body)); return; }
     if (method === "POST" && current === "/local/api/publications:ingest") { const contentType = header(request, "content-type"); if (!contentType?.toLowerCase().startsWith("multipart/form-data;")) { json(response, 400, { error: { code: "ingest.validation-failed" } }); return; } await this.protected(request, response, "/v1/master-library/publications:ingest", method, request, false, contentType, header(request, "content-length")); return; }
+    if (method === "POST" && current === "/local/api/publications:inspect") { const contentType = header(request, "content-type"); if (!contentType?.toLowerCase().startsWith("multipart/form-data;")) { json(response, 400, { error: { code: "inspection.validation-failed" } }); return; } await this.protected(request, response, "/v1/master-library/publications:inspect", method, request, false, contentType, header(request, "content-length")); return; }
     const ingestStatus = /^\/local\/api\/ingest-operations\/([^/]+)$/.exec(current); if (method === "GET" && ingestStatus) { await this.protected(request, response, `/v1/master-library/ingest-operations/${ingestStatus[1]}`, method); return; }
     json(response, 404, { error: { code: "http.route-not-found" } });
   } catch { json(response, 503, { error: { code: "infrastructure.transient" } }); } }

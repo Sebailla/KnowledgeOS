@@ -206,6 +206,8 @@ export class InMemoryAuthoritativeIngestRepository implements AuthoritativeInges
     return [...this.records.values()].filter((record) => record.state !== "rejected");
   }
   public async browse(): Promise<MasterCatalogPage> { return { protocolVersion: "v1", items: [...this.visible].map((id) => this.records.get(id)!).filter((record) => record.state === "registered").map((record) => ({ publicationId: record.publicationId as never, knowledgeObjectId: record.knowledgeObjectId as never, title: record.metadata.title, authors: record.metadata.authors, versionId: record.versionId as never, availability: { kind: "master-library" } as never })) }; }
+  /** Test-only inspection hook; callers receive durable metadata but no source bytes. */
+  public async record(operationId: string): Promise<AuthoritativeIngestRecord | undefined> { return this.records.get(operationId); }
 }
 
 function createIds() { const suffix = randomUUID(); return { operationId: `operation:${suffix}`, publicationId: `publication:${suffix}`, versionId: `version:${suffix}`, knowledgeObjectId: `knowledge-object:${suffix}`, sourceItemId: `source-item:${suffix}` }; }
@@ -303,6 +305,16 @@ function validateMetadata(metadata: IngestSourceMetadataV1): void {
   if (!Number.isSafeInteger(metadata.byteLength) || metadata.byteLength < 1) {
     throw new IngestValidationError("Declared byte length is invalid.");
   }
+  if (metadata.acceptedProvenance && !validAcceptedProvenance(metadata.acceptedProvenance)) {
+    throw new IngestValidationError("Accepted metadata provenance is invalid.");
+  }
+}
+
+function validAcceptedProvenance(value: NonNullable<IngestSourceMetadataV1["acceptedProvenance"]>): boolean {
+  const evidence = new Set(["pdf-info", "pdf-xmp", "epub-opf", "first-page-text", "filename", "local-ocr", "user-entered"]);
+  const confidence = new Set(["high", "medium", "low"]);
+  const valid = (candidate: unknown): candidate is { evidence: string; confidence: string } => typeof candidate === "object" && candidate !== null && "evidence" in candidate && "confidence" in candidate && typeof candidate.evidence === "string" && evidence.has(candidate.evidence) && typeof candidate.confidence === "string" && confidence.has(candidate.confidence) && Object.keys(candidate).length === 2;
+  return valid(value.title) && Array.isArray(value.authors) && value.authors.length > 0 && value.authors.every(valid);
 }
 
 function hasExpectedSignature(bytes: Uint8Array, mediaType: IngestSourceMetadataV1["declaredMediaType"]): boolean {

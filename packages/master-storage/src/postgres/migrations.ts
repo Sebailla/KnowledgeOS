@@ -81,3 +81,10 @@ export const ingestPromotionMigration: SqlMigration = {
   up: "ALTER TABLE master_ingest_operations ADD COLUMN IF NOT EXISTS subject text NOT NULL DEFAULT ''; ALTER TABLE master_ingest_operations ADD COLUMN IF NOT EXISTS request_fingerprint text NOT NULL DEFAULT ''; ALTER TABLE master_ingest_operations ADD COLUMN IF NOT EXISTS source_item_id text NOT NULL DEFAULT ''; ALTER TABLE master_ingest_operations ADD COLUMN IF NOT EXISTS metadata jsonb NOT NULL DEFAULT '{}'::jsonb; ALTER TABLE master_ingest_operations ADD COLUMN IF NOT EXISTS relative_path text NOT NULL DEFAULT ''; CREATE UNIQUE INDEX IF NOT EXISTS master_ingest_subject_idempotency_idx ON master_ingest_operations (subject, idempotency_key);",
   down: "DROP INDEX IF EXISTS master_ingest_subject_idempotency_idx; ALTER TABLE master_ingest_operations DROP COLUMN IF EXISTS relative_path; ALTER TABLE master_ingest_operations DROP COLUMN IF EXISTS metadata; ALTER TABLE master_ingest_operations DROP COLUMN IF EXISTS source_item_id; ALTER TABLE master_ingest_operations DROP COLUMN IF EXISTS request_fingerprint; ALTER TABLE master_ingest_operations DROP COLUMN IF EXISTS subject;",
 };
+
+/** Per-field evidence labels are additive, reversible, and never contain extracted document content. */
+export const acceptedMetadataProvenanceMigration: SqlMigration = {
+  id: "0007_master_library_accepted_metadata_provenance",
+  up: "ALTER TABLE master_publications ADD COLUMN IF NOT EXISTS accepted_metadata_provenance jsonb NOT NULL DEFAULT '{}'::jsonb;",
+  down: "ALTER TABLE master_publications DROP COLUMN IF EXISTS accepted_metadata_provenance;",
+};

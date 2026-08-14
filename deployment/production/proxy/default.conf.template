@@ -23,6 +23,30 @@ server {
     proxy_set_header X-Correlation-Id $http_x_correlation_id;
   }
 
+  location = /local/api/publications:inspect {
+    client_max_body_size 500m;
+    proxy_request_buffering off;
+    proxy_http_version 1.1;
+    proxy_pass http://master-library-browser:8090;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Host $http_host;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Correlation-Id $http_x_correlation_id;
+  }
+
+  location = /local/api/publications:ingest {
+    client_max_body_size 500m;
+    proxy_request_buffering off;
+    proxy_http_version 1.1;
+    proxy_pass http://master-library-browser:8090;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Host $http_host;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Correlation-Id $http_x_correlation_id;
+  }
+
   location / {
     proxy_pass http://master-library-browser:8090;
     proxy_set_header Host $host;

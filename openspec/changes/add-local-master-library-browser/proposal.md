@@ -8,7 +8,7 @@ Make the Master Catalog usable locally: browsing, protected download, and explic
 
 ### In Scope
 - Local HTTPS panel: login, catalog, download, initiation, error states.
-- Development-only `admin@knowledgeos.local`, with a temporary password disclosed once at local startup.
+- Development-only `admin@knowledgeos.local`, with a temporary password disclosed once at local startup by default and an explicit Docker Desktop-only persistent-password opt-in.
 - Short-lived local sessions mapped to `catalog.read` and `publication.acquire` authorization.
 - Versioned command: publication/version plus target Local Library identity returns acceptance; it performs no Local Library write.
 - Docker E2E: login, browse, download, command, expiry, and profile rejection.
@@ -30,7 +30,7 @@ None; `openspec/specs/` has no existing capability specifications.
 
 ## Approach
 
-Add a local client and adapter behind the proxy. It calls protected endpoints only—no bypass token, PostgreSQL, or filesystem access. The command is a client handoff, not NAS-side Local Library work. Fail closed outside local profile. Reveal the password only to the initiating terminal; exclude it from audits.
+Add a local client and adapter behind the proxy. It calls protected endpoints only—no bypass token, PostgreSQL, or filesystem access. The command is a client handoff, not NAS-side Local Library work. Fail closed outside local profile. The default password is revealed only to the initiating terminal; an opt-in persistent password is supplied only through an operator-managed Docker secret file and is never revealed by the launcher or audits.
 
 ## Affected Areas
 
@@ -50,6 +50,7 @@ Add a local client and adapter behind the proxy. It calls protected endpoints on
 | Browser bypasses authorization | Protected HTTPS contracts only; E2E denial |
 | NAS owns client data | Client handoff; no Local Library/Personal Knowledge persistence |
 | Password reaches logs | One-time terminal output; redaction tests |
+| Persistent local password leaks through configuration | Accept only an absolute, nonempty, regular mode-0600 host file outside the repository; pass it to Compose only as a Docker secret source path and never print its content. |
 
 ## Rollback Plan
 
