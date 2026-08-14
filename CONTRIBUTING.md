@@ -2,12 +2,19 @@
 
 ## Required workflow
 
-1. Start from the current `main` branch.
+1. Start from the current `develop` branch.
 2. Implement one coherent architectural block.
 3. Keep Domain and Platform boundaries intact.
 4. Run strict TypeScript compilation and relevant tests.
 5. Update documentation, `CHANGELOG.md` and `VERSION`.
 6. Commit only after validation succeeds.
+
+## Branch flow
+
+- `main` is reserved for production releases only.
+- `develop` is the shared development and integration branch.
+- Feature and fix branches SHALL start from `develop` and open pull requests to `develop`.
+- Do not create temporary Git worktrees for the regular development workflow.
 
 ## Commit convention
 

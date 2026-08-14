@@ -1,0 +1,17 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+const compose = await readFile(new URL("../../../deployment/production/compose.local.yaml", import.meta.url), "utf8");
+const proxy = await readFile(new URL("../../../deployment/production/proxy/default.conf.template", import.meta.url), "utf8");
+assert.match(compose, /MASTER_LIBRARY_DELIVERY_PROFILE: local/);
+assert.match(compose, /local_browser_password/);
+assert.match(compose, /MASTER_LIBRARY_LOCAL_BROWSER_PASSWORD_SOURCE_FILE/);
+assert.match(compose, /local_browser_signing_secret/);
+assert.match(compose, /master-library-browser/);
+assert.match(compose, /MASTER_LIBRARY_INGEST_MAX_BYTES: \$\{MASTER_LIBRARY_INGEST_MAX_BYTES:-524288000\}/);
+assert.match(compose, /MASTER_LIBRARY_INSPECTION_MAX_BYTES: \$\{MASTER_LIBRARY_INSPECTION_MAX_BYTES:-16777216\}/);
+assert.doesNotMatch(compose, /master-library-browser:[\s\S]*\n[\s\S]*volumes:/);
+assert.match(proxy, /location \/v1\//);
+assert.match(proxy, /location \/ \{/);
+assert.match(proxy, /master-library-browser:8090/);
+assert.match(proxy, /location = \/local\/api\/publications:ingest \{\n    client_max_body_size 500m;/);
+assert.match(proxy, /location = \/local\/api\/publications:inspect \{\n    client_max_body_size 500m;/);

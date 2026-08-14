@@ -147,3 +147,38 @@ Schema and storage migrations SHALL be versioned, restartable and tested against
 ## 12. Status
 
 This document is part of the KnowledgeOS Master Library V4 implementation baseline.
+
+## 13. Local Metadata Inspection Rollback
+
+If local metadata inspection is unavailable or produces unacceptable
+suggestions, operators SHALL leave manual ingest enabled and disable only the
+`/publications:inspect` composition path or browser prefill. The user can then
+enter title and authors manually and continue with normal ingest.
+
+Do not delete source bytes, accepted catalog metadata, identities, ingest
+journals, or accepted provenance during this rollback. Inspect operational
+events by correlation identity and stable error code only; logs SHALL NOT
+include document text, paths, credentials, or OCR output.
+
+## 14. Local Large-PDF Capacity Policy
+
+Docker Desktop local ingest accepts up to **500 MiB** by default. The value is
+declared once as `MASTER_LIBRARY_INGEST_MAX_BYTES` (default `524288000`) for
+both the migrator and the Master Library service. The HTTPS proxy uses a
+matching `500m` request limit for the local inspect and ingest routes and
+forwards request bodies without proxy buffering.
+
+Inspection is intentionally separate: `MASTER_LIBRARY_INSPECTION_MAX_BYTES`
+defaults to **16 MiB** (`16777216`). The local inspector reads the complete
+ephemeral source into memory for deterministic PDF/EPUB metadata extraction,
+and local PDF OCR may require an additional working copy. Operators SHALL NOT
+raise this value to the ingest limit merely to inspect a large PDF: concurrent
+inspection requests would then make memory use unbounded.
+
+For a source above the inspection limit, the inspect route returns HTTP 413
+with `inspection.capacity-exceeded`. The browser remains able to submit the
+same source through streaming ingest after the user reviews or enters title
+and authors manually. Deferred/background metadata extraction for files above
+the inspection cap is not part of the current local contract; it requires a
+durable, observable job before it can be added. This does not alter
+authoritative source storage or ingest identity semantics.

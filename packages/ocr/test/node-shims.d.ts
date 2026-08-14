@@ -20,8 +20,9 @@ declare module "node:assert/strict" {
     ): void;
     rejects(
       block: () => Promise<unknown>,
-      error?: new (...args: never[]) => Error,
+      error?: ((error: unknown) => boolean) | (new (...args: never[]) => Error),
     ): Promise<void>;
+    match(actual: string, expected: RegExp): void;
   }
 
   const assert: Assert;

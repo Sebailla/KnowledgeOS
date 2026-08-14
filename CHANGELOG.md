@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.7.0
+
+- Added local Master Library PDF/EPUB intake with reviewable metadata provenance.
+- Added local OCR fallback, a first-page PDF preview, and large-file streaming limits.
+- Added protected persistent local-browser authentication and operational guidance.
+
 ## 5.6.5
 
 - Completed the global audit of `02-CodeArchitecture`.

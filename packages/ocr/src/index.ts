@@ -6,6 +6,7 @@ export * from "./contracts/OCRSession.js";
 export * from "./errors/OCRError.js";
 export * from "./in-memory/InMemoryOCRProvider.js";
 export * from "./in-memory/InMemoryOCRSession.js";
+export * from "./tesseract/TesseractPdfOcrProvider.js";
 export * from "./integration/OCRSearchProjection.js";
 export * from "./model/OCRDocument.js";
 export * from "./model/OCRJob.js";
