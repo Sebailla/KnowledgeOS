@@ -7,13 +7,16 @@ declare module "node:http" {
     readonly method?: string;
     readonly url?: string;
     readonly headers: IncomingHttpHeaders;
+    readonly socket: { readonly remoteAddress?: string };
+    readonly complete: boolean;
+    once(event: "aborted" | "close", listener: () => void): void;
   }
 
   export interface ServerResponse {
     statusCode: number;
     setHeader(name: string, value: string | number): void;
     write(chunk: Uint8Array): boolean;
-    once(event: "drain", listener: () => void): void;
+    once(event: "drain" | "close", listener: () => void): void;
     end(data?: string | Uint8Array): void;
   }
 
@@ -37,5 +40,28 @@ declare module "node:http" {
 }
 
 declare const Buffer: {
-  from(value: string | Uint8Array): Uint8Array;
+  from(value: string | Uint8Array<ArrayBufferLike>, encoding?: string): Buffer;
+  alloc(size: number): Buffer;
+  concat(values: readonly Uint8Array<ArrayBufferLike>[]): Buffer;
+};
+
+interface Buffer extends Uint8Array<ArrayBufferLike> {
+  indexOf(searchElement: number, fromIndex?: number): number;
+  indexOf(
+    value: string | Uint8Array<ArrayBufferLike>,
+    byteOffset?: number,
+    encoding?: string,
+  ): number;
+  subarray(begin?: number, end?: number): Buffer;
+  toString(encoding?: string): string;
+}
+
+declare class URL {
+  public constructor(input: string, base?: string | URL);
+  public readonly host: string;
+  public readonly protocol: string;
+}
+
+declare const process: {
+  readonly env: Readonly<Record<string, string | undefined>>;
 };
