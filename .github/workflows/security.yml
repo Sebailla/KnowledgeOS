@@ -13,6 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: {fetch-depth: 0}
+      - run: scripts/rc/test-scan-secrets.sh
       - run: scripts/rc/scan-secrets.sh
       - uses: anchore/sbom-action@v0
         with:

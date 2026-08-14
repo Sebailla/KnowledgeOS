@@ -421,6 +421,12 @@ importers:
 
   packages/master-storage:
     dependencies:
+      '@knowledgeos/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@knowledgeos/domain-types':
+        specifier: workspace:*
+        version: link:../domain-types
       pg:
         specifier: ^8.23.0
         version: 8.23.0

@@ -19,6 +19,8 @@
     "validate": "pnpm typecheck"
   },
   "dependencies": {
+    "@knowledgeos/contracts": "workspace:*",
+    "@knowledgeos/domain-types": "workspace:*",
     "pg": "^8.23.0"
   },
   "devDependencies": {
