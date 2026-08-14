@@ -13,11 +13,16 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node -e \"process.exit(0)\"",
+    "test": "tsc -p tsconfig.test.json && node --test dist-test/test/*.test.js",
+    "test:postgres": "tsc -p tsconfig.test.json && node scripts/run-postgres-test.mjs",
+    "test:recovery": "tsc -p tsconfig.test.json && node scripts/run-processing-recovery-test.mjs",
     "validate": "pnpm typecheck"
   },
-  "dependencies": {},
+  "dependencies": {
+    "pg": "^8.23.0"
+  },
   "devDependencies": {
+    "@types/pg": "^8.21.0",
     "typescript": "^5.9.0"
   }
 }
