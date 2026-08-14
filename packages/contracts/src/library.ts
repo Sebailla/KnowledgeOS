@@ -21,6 +21,74 @@ export interface PublicationSummary {
   readonly availability: AvailabilityDescriptor;
 }
 
+export const MASTER_LIBRARY_PROTOCOL_VERSION = "v1";
+
+export type MasterLibraryProtocolVersion =
+  typeof MASTER_LIBRARY_PROTOCOL_VERSION;
+
+export interface MasterCatalogPage {
+  readonly protocolVersion: MasterLibraryProtocolVersion;
+  readonly items: readonly PublicationSummary[];
+  readonly nextCursor?: string;
+}
+
+export interface AcquisitionManifest {
+  readonly protocolVersion: MasterLibraryProtocolVersion;
+  readonly publicationId: PublicationId;
+  readonly knowledgeObjectId: KnowledgeObjectId;
+  readonly versionId: VersionId;
+  readonly contentFingerprint: string;
+  readonly byteLength: number;
+  readonly mediaType: string;
+}
+
+/** Versioned client handoff; Master Library never executes Local Library work. */
+export interface InitiateAcquisitionV1 {
+  readonly publicationId: PublicationId;
+  readonly versionId: VersionId;
+  readonly targetLocalLibraryId: LocalLibraryId;
+}
+
+export interface AcquisitionReceiptV1 {
+  readonly acquisitionId: AcquisitionId;
+  readonly idempotencyKey: string;
+  readonly accepted: true;
+}
+
+export interface AcquisitionHandoffAcceptedV1 {
+  readonly receipt: AcquisitionReceiptV1;
+  readonly manifest: AcquisitionManifest;
+}
+
+export type MasterLibraryErrorCode =
+  | "authorization.denied"
+  | "catalog.not-found"
+  | "range.invalid"
+  | "integrity.failed"
+  | "operation.conflict"
+  | "validation.failed"
+  | "catalog.unavailable"
+  | "compatibility.unsupported"
+  | "infrastructure.transient"
+  | "master-library.personal-knowledge-forbidden"
+  | "http.route-not-found"
+  | "ingest.validation-failed"
+  | "ingest.capacity-exceeded"
+  | "ingest.idempotency-conflict"
+  | "ingest.duplicate-content";
+
+export interface MasterLibraryError {
+  readonly code: MasterLibraryErrorCode;
+  readonly correlationId: string;
+}
+
+/** Temporary compatibility mapping from the pre-v1 content path to its v1 replacement. */
+export interface MasterLibraryContentAlias {
+  readonly deprecatedPath: string;
+  readonly canonicalPath: string;
+  readonly sunsetAfter: string;
+}
+
 export interface BrowseMasterCatalogParameters extends PageRequest {
   readonly search?: string;
   readonly format?: string;
@@ -93,3 +161,45 @@ export type ListLocalLibraryQuery = Query<
 >;
 
 export type ListLocalLibraryResult = Page<PublicationSummary>;
+
+/** Local-only request metadata for authoritative PDF/EPUB intake. Source bytes travel outside this DTO. */
+export interface IngestSourceMetadataV1 {
+  readonly title: string;
+  readonly authors: readonly string[];
+  readonly originalFilename: string;
+  readonly declaredMediaType: "application/pdf" | "application/epub+zip";
+  readonly byteLength: number;
+}
+
+/** Versioned ingest intent; paths and client-provided identities are deliberately absent. */
+export interface IngestPublicationV1 {
+  readonly idempotencyKey: string;
+  readonly metadata: IngestSourceMetadataV1;
+}
+
+export type IngestOutcomeV1 = "registered" | "duplicate";
+
+/** Accepted results contain server-assigned opaque identities only. */
+export interface IngestAcceptedV1 {
+  readonly operationId: string;
+  readonly publicationId: PublicationId;
+  readonly versionId: VersionId;
+  readonly knowledgeObjectId: KnowledgeObjectId;
+  readonly outcome: IngestOutcomeV1;
+}
+
+export type IngestOperationStateV1 =
+  | "staged"
+  | "validated"
+  | "promoted"
+  | "registered"
+  | "reconciliation-required"
+  | "rejected";
+
+/** Status is intentionally redacted: no filesystem path, bytes, or credentials are exposed. */
+export interface IngestOperationStatusV1 {
+  readonly operationId: string;
+  readonly state: IngestOperationStateV1;
+  readonly outcome?: IngestOutcomeV1;
+  readonly error?: MasterLibraryError;
+}
