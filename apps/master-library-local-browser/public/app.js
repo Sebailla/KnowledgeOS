@@ -47,8 +47,21 @@ $('ingest-form').addEventListener('submit', async (event) => {
   const status = $('ingest-status');
   const submit = $('ingest-submit');
   if (!(source instanceof File)) { status.textContent = 'Choose a PDF or EPUB source file.'; return; }
+  const filename = source.name.toLowerCase();
+  const declaredMediaType = source.type === 'application/pdf' || filename.endsWith('.pdf')
+    ? 'application/pdf'
+    : source.type === 'application/epub+zip' || filename.endsWith('.epub')
+    ? 'application/epub+zip'
+    : undefined;
+  if (!declaredMediaType) { status.textContent = 'Choose a PDF or EPUB source file.'; return; }
   const upload = new FormData();
-  upload.append('metadata', JSON.stringify({ title: String(form.get('title') ?? '').trim(), authors }));
+  upload.append('metadata', JSON.stringify({
+    title: String(form.get('title') ?? '').trim(),
+    authors,
+    originalFilename: source.name,
+    declaredMediaType,
+    byteLength: source.size,
+  }));
   upload.append('source', source, source.name);
   submit.disabled = true;
   status.textContent = 'Upload submitted. Streaming source bytes…';

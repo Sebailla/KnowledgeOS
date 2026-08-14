@@ -74,4 +74,7 @@ try {
   assert.match(script.body, /Recovery is in progress/);
   assert.match(script.body, /ingest\.validation-failed/);
   assert.match(script.body, /infrastructure\.transient/);
+  assert.match(script.body, /originalFilename: source\.name/);
+  assert.match(script.body, /declaredMediaType/);
+  assert.match(script.body, /byteLength: source\.size/);
 } finally { await server.stop(); }
