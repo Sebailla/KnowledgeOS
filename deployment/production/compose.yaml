@@ -38,6 +38,26 @@ services:
       retries: 10
     networks: [backend]
 
+  master-library-migrate:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/master-library/Dockerfile
+    image: ${IMAGE_PREFIX:-knowledgeos}/master-library:${IMAGE_TAG:-0.44.0-rc.1}
+    command: ["node", "/app/migrate.mjs"]
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-knowledgeos}@postgres:5432/${POSTGRES_DB:-knowledgeos}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      OPERATIONS_ROOT: /var/lib/knowledgeos/operations
+      MASTER_LIBRARY_RECONCILIATION_FIXTURE: ${MASTER_LIBRARY_RECONCILIATION_FIXTURE:-}
+    secrets: [postgres_password]
+    volumes:
+      - knowledgeos_operations:/var/lib/knowledgeos/operations
+    networks: [backend]
+
   master-library:
     build:
       context: ../..
@@ -47,16 +67,43 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      master-library-migrate:
+        condition: service_completed_successfully
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-knowledgeos}@postgres:5432/${POSTGRES_DB:-knowledgeos}
       MASTER_LIBRARY_FILES_ROOT: /var/lib/knowledgeos/master-library
       HOST: 0.0.0.0
       PORT: 8081
+      MASTER_LIBRARY_DELIVERY_PROFILE: deployment
+      MASTER_LIBRARY_PUBLIC_ORIGIN: ${MASTER_LIBRARY_PUBLIC_ORIGIN:?MASTER_LIBRARY_PUBLIC_ORIGIN is required}
+      MASTER_LIBRARY_TRUSTED_PROXY_ADDRESSES: ${MASTER_LIBRARY_TRUSTED_PROXY_ADDRESSES:?MASTER_LIBRARY_TRUSTED_PROXY_ADDRESSES is required}
+      MASTER_LIBRARY_TLS_MATERIAL_REF: ${MASTER_LIBRARY_TLS_MATERIAL_REF:?MASTER_LIBRARY_TLS_MATERIAL_REF is required}
+      MASTER_LIBRARY_CREDENTIAL_SOURCE_REF: ${MASTER_LIBRARY_CREDENTIAL_SOURCE_REF:?MASTER_LIBRARY_CREDENTIAL_SOURCE_REF is required}
+      MASTER_LIBRARY_AUTHORIZATION_PORT_REF: ${MASTER_LIBRARY_AUTHORIZATION_PORT_REF:?MASTER_LIBRARY_AUTHORIZATION_PORT_REF is required}
     secrets: [postgres_password]
     volumes:
       - knowledgeos_master_files:/var/lib/knowledgeos/master-library
+      - knowledgeos_operations:/var/lib/knowledgeos/operations
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8081/health/ready').then(r => { if (!r.ok) process.exit(1) })"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks: [backend]
+
+  master-library-proxy:
+    image: nginx:1.27.4-alpine
+    restart: unless-stopped
+    depends_on:
+      master-library:
+        condition: service_healthy
     ports:
-      - "${MASTER_LIBRARY_PORT:-8081}:8081"
+      - "${MASTER_LIBRARY_HTTPS_PORT:-443}:443"
+    secrets:
+      - master_library_tls_certificate
+      - master_library_tls_private_key
+    volumes:
+      - ./proxy/default.conf.template:/etc/nginx/templates/default.conf.template:ro
     networks: [backend]
 
   local-library:
@@ -80,6 +127,7 @@ networks:
 volumes:
   knowledgeos_postgres:
   knowledgeos_master_files:
+  knowledgeos_operations:
   knowledgeos_local_library:
 
 secrets:
@@ -87,3 +135,7 @@ secrets:
     file: ./secrets/postgres_password.txt
   sync_token:
     file: ./secrets/sync_token.txt
+  master_library_tls_certificate:
+    file: ${MASTER_LIBRARY_TLS_CERTIFICATE_FILE:?MASTER_LIBRARY_TLS_CERTIFICATE_FILE is required}
+  master_library_tls_private_key:
+    file: ${MASTER_LIBRARY_TLS_PRIVATE_KEY_FILE:?MASTER_LIBRARY_TLS_PRIVATE_KEY_FILE is required}

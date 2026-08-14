@@ -1,14 +1,23 @@
 import { createServer } from 'node:http';
-import { stat, createReadStream, mkdir } from 'node:fs';
+import { stat, createReadStream, mkdir, access } from 'node:fs';
 import { resolve, normalize } from 'node:path';
 
 const root = resolve(process.env.MASTER_LIBRARY_FILES_ROOT ?? '/var/lib/knowledgeos/master-library');
 const host = process.env.HOST ?? '0.0.0.0';
 const port = Number(process.env.PORT ?? 8081);
+const operationsRoot = resolve(process.env.OPERATIONS_ROOT ?? '/var/lib/knowledgeos/operations');
 await new Promise((ok, fail) => mkdir(root, { recursive: true }, e => e ? fail(e) : ok()));
 
 const server = createServer((request, response) => {
   const target = request.url ?? '/';
+  if (request.method === 'GET' && target === '/health/ready') {
+    Promise.all([resolve(operationsRoot, 'migration-ready'), resolve(operationsRoot, 'reconciliation-ready')].map(path => new Promise(resolve => access(path, error => resolve(error))))).then(errors => { const error = errors.find(Boolean);
+      response.statusCode = error ? 503 : 200;
+      response.setHeader('content-type', 'application/json');
+      response.end(JSON.stringify({ state: error ? 'blocked' : 'ready' }));
+    });
+    return;
+  }
   if (request.method === 'GET' && target === '/health/live') {
     response.setHeader('content-type', 'application/json');
     response.end(JSON.stringify({ state: 'healthy' }));
