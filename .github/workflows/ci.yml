@@ -8,7 +8,7 @@ jobs:
   typescript:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -25,7 +25,7 @@ jobs:
   swift:
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: swift test --package-path apple/Packages/KnowledgeOSCoreBridge
       - run: swift test --package-path apple/Packages/KnowledgeOSMobile
       - run: swift test --package-path apple/Apps/macOS
