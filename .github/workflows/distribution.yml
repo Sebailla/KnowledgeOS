@@ -38,7 +38,7 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: '22' }
       - run: corepack enable && pnpm install --frozen-lockfile=false
       - run: scripts/build-macos-release.sh
